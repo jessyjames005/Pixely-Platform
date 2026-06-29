@@ -1,152 +1,146 @@
-# 📸 Pixely
+# 🚀 Pixely Platform
 
-> A modern, extensible and self-hosted photo gallery built with Laravel 12, Vue 3 and TypeScript.
+> **Build once. Extend forever.**
 
-![Status](https://img.shields.io/badge/status-alpha-orange)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![PHP](https://img.shields.io/badge/PHP-8.4-777BB4)
-![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20)
-![Vue](https://img.shields.io/badge/Vue-3-42B883)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
+Pixely Platform is an open-source modular platform built with Laravel and Vue.
 
----
+Instead of building one monolithic application, Pixely provides a powerful Core that can be extended with independent modules.
 
-## ✨ Overview
-
-Pixely is a modern and extensible self-hosted photo gallery designed with software engineering best practices in mind.
-
-The project aims to provide a clean architecture, an intuitive user interface and a modular foundation for future extensions.
-
-Pixely is built as a long-term open-source project with a strong focus on maintainability, documentation and code quality.
+Whether you need a photo gallery, a blog, an e-commerce solution or any other business feature, modules plug into the Core without modifying it.
 
 ---
 
-## 🚀 Planned Features
+## Why Pixely?
 
-- Photo gallery
-- Albums
-- Categories
-- Tags
-- Comments
-- Favorites
-- EXIF metadata
-- User management
-- Administration panel
+Modern applications quickly become difficult to maintain when every feature is tightly coupled.
+
+Pixely follows a different philosophy.
+
+The Core provides shared services.
+
+Modules provide business features.
+
+This keeps the platform clean, maintainable and extensible.
+
+---
+
+## Platform Philosophy
+
+The Core never knows the modules.
+
+Modules plug into the Core.
+
+Everything is extensible.
+
+Documentation comes first.
+
+Architecture before complexity.
+
+Quality over quantity.
+
+---
+
+## Core Responsibilities
+
+- Authentication
+- Users
+- Roles & Permissions
+- Settings
+- Localization
 - Dashboard
-- REST API
-- Search engine
-- Responsive interface
-- Multi-language support
-- Docker support
-- Modular architecture (planned)
+- Notifications
+- Events
+- Scheduler
+- API
+- Module Engine
 
 ---
 
-## 🛠️ Tech Stack
+## Official Modules
 
-### Backend
+📸 Gallery
 
-- Laravel 12
-- PHP 8.4
+📝 Blog
+
+🛒 Shop
+
+⭐ Reviews
+
+📊 Statistics
+
+📅 Calendar
+
+More modules will come over time.
+
+---
+
+## Technology Stack
+
+Backend
+
+- Laravel
+- PHP
 - MySQL
 - Redis
 
-### Frontend
+Frontend
 
 - Vue 3
 - TypeScript
 - Vite
-- Pinia
-- Vue Router
 - Tailwind CSS
+- Pinia
 
-### Quality
+Quality
 
 - PHPUnit / Pest
 - PHPStan
-- Larastan
 - ESLint
 - Prettier
-- Laravel Pint
 
-### DevOps
+Infrastructure
 
 - Docker
-- Docker Compose
 - GitHub Actions
 
 ---
 
-## 📁 Project Structure
+## Roadmap
 
-```
-Pixely/
+Sprint 0
 
-├── backend/
-├── frontend/
-├── docker/
-├── docs/
-├── scripts/
+Project foundation
 
-├── README.md
-├── ROADMAP.md
-├── CHANGELOG.md
-└── LICENSE
-```
+Sprint 1
 
----
+Platform Kernel
 
-## 📚 Documentation
+Sprint 2
 
-Documentation will be available inside the `docs/` directory.
+Core Services
 
-It will include:
+Sprint 3
 
-- Engineering Handbook
-- Architecture Decision Records (ADR)
-- Sprint reports
-- Development guides
-- Git workflow
-- Deployment guides
+Authentication
+
+Sprint 4
+
+Gallery Module
 
 ---
 
-## 🗺️ Roadmap
+## Documentation
 
-Current version:
+Documentation lives in the `docs/` directory.
 
-```
-v0.0.1-alpha
-```
-
-Next milestone:
-
-```
-v0.1.0 Foundations
-```
-
-The complete roadmap is available in `ROADMAP.md`.
+Every important decision is documented through Architecture Decision Records (ADR).
 
 ---
 
-## 🤝 Contributing
+## License
 
-Contributions will be welcome.
-
-Contribution guidelines will be available in `CONTRIBUTING.md`.
+MIT
 
 ---
 
-## 📄 License
-
-This project will be released under the MIT License.
-
----
-
-## ❤️ Philosophy
-
-> Build software that we are proud to maintain.
-
----
-
-Made with ❤️ by me and the Pixely community.
+Made with ❤️ by the Pixely Platform community.
