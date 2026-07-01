@@ -1,44 +1,56 @@
 # Extension Manifest
 
-## Overview
+## Purpose
 
-Every Pixely extension must provide a `pixely.json` manifest.
+Every extension must contain a `pixely.json` file.
 
-This file contains the metadata required by the Kernel to discover, validate and load the extension.
+The Kernel uses this file to discover, validate and load the extension.
 
 ## Example
 
 ```json
 {
-  "name": "gallery",
-  "type": "module",
-  "display_name": "Gallery",
-  "description": "Photo gallery module",
-  "version": "1.0.0",
-  "authors": [
-    {
-      "name": "Pixely Team"
-    }
-  ],
-  "providers": [
-    "Modules\\Gallery\\Providers\\GalleryServiceProvider"
-  ],
-  "dependencies": [],
-  "minimum_kernel_version": "1.0.0"
+    "name": "gallery",
+    "type": "module",
+    "display_name": "Gallery",
+    "description": "Official Gallery module",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Pixely Team"
+        }
+    ],
+    "providers": [
+        "Modules\\Gallery\\Providers\\GalleryServiceProvider"
+    ],
+    "dependencies": [],
+    "minimum_kernel_version": "1.0.0",
+    "license": "MIT"
 }
 ```
 
 ## Required Fields
 
-- name
-- type
-- version
-- providers
+| Field | Description |
+|-------|-------------|
+| name | Unique extension name |
+| type | module, theme, widget, integration |
+| version | Extension version |
+| providers | Service Providers |
 
 ## Optional Fields
 
-- display_name
-- description
-- authors
-- dependencies
-- minimum_kernel_version
+| Field | Description |
+|-------|-------------|
+| display_name | Human readable name |
+| description | Extension description |
+| authors | Authors |
+| dependencies | Required extensions |
+| minimum_kernel_version | Minimum supported Kernel version |
+| license | Extension license |
+
+## Rules
+
+- One manifest per extension.
+- The Kernel validates the manifest before loading the extension.
+- Invalid manifests prevent the extension from loading.
