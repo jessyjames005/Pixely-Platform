@@ -18,7 +18,8 @@ final class GalleryExtensionTest extends TestCase
     public function test_it_returns_the_extension_name(): void
     {
         $extension = new GalleryExtension();
-
-        $this->assertSame('gallery', $extension->getName());
+        
+        $this->assertSame('gallery', $extension->manifest()->name);
+        $this->assertSame('1.0.0', $extension->manifest()->version);
     }
 }

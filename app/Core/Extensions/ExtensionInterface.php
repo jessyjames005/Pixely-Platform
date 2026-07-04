@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Extensions;
 
+use App\Core\Extensions\ExtensionManifest;
+
 /**
  * Base contract for all Pixely extensions.
  *
@@ -12,9 +14,9 @@ namespace App\Core\Extensions;
 interface ExtensionInterface
 {
     /**
-     * Unique identifier of the extension.
+     * Returns the extension manifest.
      */
-    public function getName(): string;
+    public function manifest(): ExtensionManifest;
 
     /**
      * Register the extension into the platform.

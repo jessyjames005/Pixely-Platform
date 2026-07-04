@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery;
 
 use App\Core\Extensions\ExtensionInterface;
+use App\Core\Extensions\ExtensionManifest;
 
 /**
  * Gallery extension.
@@ -13,12 +14,14 @@ use App\Core\Extensions\ExtensionInterface;
  */
 final class GalleryExtension implements ExtensionInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function getName(): string
+    public function manifest(): ExtensionManifest
     {
-        return 'gallery';
+        return new ExtensionManifest(
+            name: 'gallery',
+            version: '1.0.0',
+            description: 'Pixely gallery extension.',
+            author: 'Pixely Team',
+        );
     }
 
     /**

@@ -21,7 +21,7 @@ final class ExtensionRegistry
      */
     public function register(ExtensionInterface $extension): void
     {
-        $name = $extension->getName();
+        $name = $extension->manifest()->name;
 
         if (isset($this->extensions[$name])) {
             throw new InvalidArgumentException("Extension [{$name}] already registered.");
