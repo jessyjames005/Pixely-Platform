@@ -6,6 +6,7 @@ namespace App\Core\Kernel;
 
 use App\Core\Contracts\KernelInterface;
 use App\Core\Extensions\ExtensionRegistry;
+use App\Core\Extensions\ExtensionManager;
 
 /**
  * Default implementation of the Pixely Kernel.
@@ -19,11 +20,13 @@ final class Kernel implements KernelInterface
      * Indicates whether the platform has been booted.
      */
     private bool $booted = false;
-    private ExtensionRegistry $registry;
+    private ExtensionManager $extensionManager;
 
     public function __construct()
     {
-        $this->registry = new ExtensionRegistry();
+        $this->extensionManager = new ExtensionManager(
+            new ExtensionRegistry()
+        );
     }
 
     /**
@@ -33,7 +36,7 @@ final class Kernel implements KernelInterface
     {
         $this->booted = true;
 
-        $this->registry->boot();
+        $this->extensionManager->boot();
     }
 
     /**
@@ -54,11 +57,11 @@ final class Kernel implements KernelInterface
 
     public function registerExtension(\App\Core\Extensions\ExtensionInterface $extension): void
     {
-        $this->registry->register($extension);
-}
+        $this->extensionManager->register($extension);
+    }
 
     public function extensions(): array
     {
-        return $this->registry->all();
+        return $this->extensionManager->all();
     }
 }
