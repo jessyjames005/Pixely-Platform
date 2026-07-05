@@ -18,7 +18,7 @@ final class KernelIntegrationTest extends TestCase
      */
     public function test_it_registers_an_extension(): void
     {
-        $kernel = new Kernel();
+        $kernel = app(Kernel::class);
 
         $kernel->registerExtension(new GalleryExtension());
 
@@ -30,7 +30,7 @@ final class KernelIntegrationTest extends TestCase
      */
     public function test_it_boots_with_registered_extensions(): void
     {
-        $kernel = new Kernel();
+        $kernel = app(Kernel::class);
 
         $kernel->registerExtension(new GalleryExtension());
 

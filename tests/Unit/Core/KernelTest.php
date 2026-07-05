@@ -9,14 +9,14 @@ class KernelTest extends TestCase
 {
     public function test_kernel_is_not_booted_by_default(): void
     {
-        $kernel = new Kernel();
+        $kernel = app(Kernel::class);
 
         $this->assertFalse($kernel->isBooted());
     }
 
     public function test_kernel_boots(): void
     {
-        $kernel = new Kernel();
+        $kernel = app(Kernel::class);
         $kernel->boot();
 
         $this->assertTrue($kernel->isBooted());
@@ -24,7 +24,7 @@ class KernelTest extends TestCase
 
     public function test_kernel_shuts_down(): void
     {
-        $kernel = new Kernel();
+        $kernel = app(Kernel::class);
         $kernel->boot();
         $kernel->shutdown();
 

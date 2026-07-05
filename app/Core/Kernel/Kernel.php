@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Core\Kernel;
 
 use App\Core\Contracts\KernelInterface;
-use App\Core\Extensions\ExtensionRegistry;
 use App\Core\Extensions\ExtensionManager;
 
 /**
@@ -20,13 +19,10 @@ final class Kernel implements KernelInterface
      * Indicates whether the platform has been booted.
      */
     private bool $booted = false;
-    private ExtensionManager $extensionManager;
 
-    public function __construct()
-    {
-        $this->extensionManager = new ExtensionManager(
-            new ExtensionRegistry()
-        );
+    public function __construct(
+    private readonly ExtensionManager $extensionManager
+    ) {
     }
 
     /**
