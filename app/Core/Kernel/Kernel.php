@@ -6,6 +6,7 @@ namespace App\Core\Kernel;
 
 use App\Core\Contracts\KernelInterface;
 use App\Core\Extensions\ExtensionManager;
+use App\Core\Extensions\ExtensionRegistry;
 
 /**
  * Default implementation of the Pixely Kernel.
@@ -20,9 +21,16 @@ final class Kernel implements KernelInterface
      */
     private bool $booted = false;
 
-    public function __construct(
-    private readonly ExtensionManager $extensionManager
-    ) {
+    private ExtensionManager $extensionManager;
+
+    /**
+     * Create a new Kernel instance.
+     */
+    public function __construct()
+    {
+        $this->extensionManager = new ExtensionManager(
+            new ExtensionRegistry()
+        );
     }
 
     /**
