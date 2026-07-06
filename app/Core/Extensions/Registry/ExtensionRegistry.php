@@ -2,34 +2,39 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Extensions;
+namespace App\Core\Extensions\Registry;
 
+use App\Core\Extensions\Contracts\ExtensionInterface;
 use InvalidArgumentException;
 
 /**
- * Responsible for registering and managing extensions.
+ * Stores and manages registered extensions.
  */
 final class ExtensionRegistry
 {
     /**
-     * @var ExtensionInterface[]
+     * Registered extensions indexed by their unique name.
+     *
+     * @var array<string, ExtensionInterface>
      */
     private array $extensions = [];
 
     /**
-     * Register a new extension.
+     * Register an extension.
+     *
+     * @throws InvalidArgumentException When the extension is already registered.
      */
     public function register(ExtensionInterface $extension): void
     {
         $name = $extension->manifest()->name;
 
         if (isset($this->extensions[$name])) {
-            throw new InvalidArgumentException("Extension [{$name}] already registered.");
+            throw new InvalidArgumentException(
+                "Extension [{$name}] is already registered."
+            );
         }
 
         $this->extensions[$name] = $extension;
-
-        $extension->register();
     }
 
     /**
@@ -43,9 +48,9 @@ final class ExtensionRegistry
     }
 
     /**
-     * Get all registered extensions.
+     * Return all registered extensions.
      *
-     * @return ExtensionInterface[]
+     * @return array<string, ExtensionInterface>
      */
     public function all(): array
     {

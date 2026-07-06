@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Extensions;
+namespace App\Core\Extensions\Manager;
+
+use App\Core\Extensions\Contracts\ExtensionInterface;
+use App\Core\Extensions\Registry\ExtensionRegistry;
 
 /**
  * Manages the lifecycle of registered extensions.

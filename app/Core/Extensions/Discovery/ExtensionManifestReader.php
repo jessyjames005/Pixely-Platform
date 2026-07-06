@@ -5,29 +5,23 @@ declare(strict_types=1);
 namespace App\Core\Extensions\Discovery;
 
 /**
- * Reads an extension manifest.
+ * Reads PHP-based extension manifest files.
  */
 final class ExtensionManifestReader
 {
     /**
-     * Read an extension manifest.
+     * Read extension manifest file.
      *
      * @return array<string, mixed>
      */
-    public function read(string $manifestPath): array
+    public function read(string $manifestPath): ?array
     {
-        if (! is_file($manifestPath)) {
-            return [];
+        if (!is_file($manifestPath)) {
+            return null;
         }
 
-        $content = file_get_contents($manifestPath);
+        $data = require $manifestPath;
 
-        if ($content === false) {
-            return [];
-        }
-
-        $manifest = json_decode($content, true);
-
-        return is_array($manifest) ? $manifest : [];
+        return is_array($data) ? $data : null;
     }
 }

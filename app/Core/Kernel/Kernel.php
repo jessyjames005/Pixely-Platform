@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Core\Kernel;
 
 use App\Core\Contracts\KernelInterface;
-use App\Core\Extensions\ExtensionManager;
-use App\Core\Extensions\ExtensionRegistry;
+use App\Core\Extensions\Discovery\ExtensionRepository;
+use App\Core\Extensions\Manager\ExtensionManager;
 
 /**
  * Default implementation of the Pixely Kernel.
  *
- * The Kernel is responsible for bootstrapping and shutting down
- * the Pixely Platform.
+ * The Kernel is responsible for bootstrapping the platform
+ * and loading all extensions automatically.
  */
 final class Kernel implements KernelInterface
 {
@@ -21,16 +21,14 @@ final class Kernel implements KernelInterface
      */
     private bool $booted = false;
 
-    private ExtensionManager $extensionManager;
-
     /**
      * Create a new Kernel instance.
      */
-    public function __construct()
-    {
-        $this->extensionManager = new ExtensionManager(
-            new ExtensionRegistry()
-        );
+    public function __construct(
+        private readonly ExtensionManager $extensionManager,
+        private readonly ExtensionRepository $repository,
+        private readonly string $extensionsPath,
+    ) {
     }
 
     /**
@@ -38,9 +36,17 @@ final class Kernel implements KernelInterface
      */
     public function boot(): void
     {
-        $this->booted = true;
+        if ($this->booted) {
+            return;
+        }
+
+        foreach ($this->repository->all($this->extensionsPath) as $extension) {
+            $this->extensionManager->register($extension);
+        }
 
         $this->extensionManager->boot();
+
+        $this->booted = true;
     }
 
     /**
@@ -59,11 +65,11 @@ final class Kernel implements KernelInterface
         return $this->booted;
     }
 
-    public function registerExtension(\App\Core\Extensions\ExtensionInterface $extension): void
-    {
-        $this->extensionManager->register($extension);
-    }
-
+    /**
+     * Get all registered extensions.
+     *
+     * @return array<string, \App\Core\Extensions\Contracts\ExtensionInterface>
+     */
     public function extensions(): array
     {
         return $this->extensionManager->all();

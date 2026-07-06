@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Core\Kernel;
 
 use App\Core\Kernel\Kernel;
-use App\Extensions\Gallery\GalleryExtension;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 /**
  * Integration tests for the Pixely Kernel.
@@ -14,25 +13,28 @@ use PHPUnit\Framework\TestCase;
 final class KernelIntegrationTest extends TestCase
 {
     /**
-     * Ensure the kernel can register an extension.
+     * Ensure the kernel registers discovered extensions.
      */
     public function test_it_registers_an_extension(): void
     {
+        /** @var Kernel $kernel */
         $kernel = app(Kernel::class);
 
-        $kernel->registerExtension(new GalleryExtension());
+        $kernel->boot();
 
-        $this->assertCount(1, $kernel->extensions());
+        $extensions = $kernel->extensions();
+
+        $this->assertArrayHasKey('gallery', $extensions);
+        $this->assertCount(1, $extensions);
     }
 
     /**
-     * Ensure the kernel boots after registering an extension.
+     * Ensure the kernel boots successfully.
      */
     public function test_it_boots_with_registered_extensions(): void
     {
+        /** @var Kernel $kernel */
         $kernel = app(Kernel::class);
-
-        $kernel->registerExtension(new GalleryExtension());
 
         $kernel->boot();
 
