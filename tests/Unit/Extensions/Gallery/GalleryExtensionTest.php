@@ -25,4 +25,14 @@ final class GalleryExtensionTest extends TestCase
         $this->assertSame('1.0.0', $manifest->version);
         $this->assertSame(GalleryExtension::class, $manifest->class);
     }
+
+    public function test_it_declares_the_gallery_service_provider(): void
+    {
+        $extension = new GalleryExtension();
+
+        $this->assertContains(
+            \App\Extensions\Gallery\Providers\GalleryServiceProvider::class,
+            $extension->providers()
+        );
+    }
 }

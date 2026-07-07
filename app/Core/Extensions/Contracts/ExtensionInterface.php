@@ -6,20 +6,16 @@ namespace App\Core\Extensions\Contracts;
 
 use App\Core\Extensions\Manifest\ExtensionManifest;
 
-/**
- * Represents a Pixely extension.
- */
 interface ExtensionInterface
 {
     public function manifest(): ExtensionManifest;
 
     /**
-     * Register services.
+     * Laravel service providers used by the extension.
+     *
+     * @return array<class-string>
      */
-    public function register(): void;
+    public function providers(): array;
 
-    /**
-     * Boot the extension.
-     */
     public function boot(): void;
 }

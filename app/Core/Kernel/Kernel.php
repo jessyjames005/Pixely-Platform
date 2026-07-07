@@ -28,8 +28,7 @@ final class Kernel implements KernelInterface
         private readonly ExtensionManager $extensionManager,
         private readonly ExtensionRepository $repository,
         private readonly string $extensionsPath,
-    ) {
-    }
+    ) {}
 
     /**
      * Boot the Pixely Platform.
@@ -41,6 +40,11 @@ final class Kernel implements KernelInterface
         }
 
         foreach ($this->repository->all($this->extensionsPath) as $extension) {
+
+            foreach ($extension->providers() as $provider) {
+                app()->register($provider);
+            }
+
             $this->extensionManager->register($extension);
         }
 

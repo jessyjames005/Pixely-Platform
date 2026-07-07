@@ -6,6 +6,7 @@ namespace Tests\Unit\Core\Kernel;
 
 use App\Core\Kernel\Kernel;
 use Tests\TestCase;
+use App\Extensions\Gallery\GalleryExtension;
 
 /**
  * Integration tests for the Pixely Kernel.
@@ -22,10 +23,14 @@ final class KernelIntegrationTest extends TestCase
 
         $kernel->boot();
 
-        $extensions = $kernel->extensions();
+        $this->assertArrayHasKey('gallery', $kernel->extensions());
 
-        $this->assertArrayHasKey('gallery', $extensions);
-        $this->assertCount(1, $extensions);
+        $extension = $kernel->extensions()['gallery'];
+
+        $this->assertInstanceOf(
+            GalleryExtension::class,
+            $extension
+        );
     }
 
     /**
