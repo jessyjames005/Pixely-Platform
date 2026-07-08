@@ -26,6 +26,11 @@ final class GalleryExtension implements ExtensionInterface
         ];
     }
 
+    public function register(): void
+    {
+        app()->register(GalleryServiceProvider::class);
+    }
+
     public function boot(): void
     {
         //
