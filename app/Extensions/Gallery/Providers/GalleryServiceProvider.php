@@ -21,6 +21,11 @@ final class GalleryServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadViewsFrom(
+            __DIR__ . '/../Resources/Views',
+            'gallery'
+        );
+
         $this->loadRoutesFrom(
             __DIR__ . '/../routes/web.php'
         );
