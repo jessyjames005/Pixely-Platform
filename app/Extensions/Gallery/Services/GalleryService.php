@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery\Services;
 
 use App\Extensions\Gallery\Models\Photo;
-use App\Extensions\Gallery\Repositories\GalleryRepository;
+use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -20,7 +20,7 @@ final class GalleryService
      * Create a new Gallery service instance.
      */
     public function __construct(
-        private readonly GalleryRepository $repository,
+        private readonly GalleryRepositoryInterface $repository,
     ) {
     }
 

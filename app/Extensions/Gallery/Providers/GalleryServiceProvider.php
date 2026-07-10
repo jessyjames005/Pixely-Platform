@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
+use App\Extensions\Gallery\Repositories\GalleryRepository;
 
 final class GalleryServiceProvider extends ServiceProvider
 {
@@ -13,7 +15,10 @@ final class GalleryServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            GalleryRepositoryInterface::class,
+            GalleryRepository::class
+        );
     }
 
     /**

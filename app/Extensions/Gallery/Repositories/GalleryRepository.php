@@ -6,8 +6,9 @@ namespace App\Extensions\Gallery\Repositories;
 
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Database\Eloquent\Collection;
+use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
 
-final class GalleryRepository
+final class GalleryRepository implements GalleryRepositoryInterface
 {
     /**
      * Return all photos.
