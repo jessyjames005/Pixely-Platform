@@ -9,3 +9,7 @@ use App\Extensions\Gallery\Http\Controllers\GalleryController;
  * Gallery web routes.
  */
 Route::get('/gallery', [GalleryController::class, 'index']);
+Route::post(
+    '/gallery/upload',
+    [GalleryController::class, 'store']
+);
