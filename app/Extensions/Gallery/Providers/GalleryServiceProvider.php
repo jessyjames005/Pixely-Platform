@@ -31,9 +31,10 @@ final class GalleryServiceProvider extends ServiceProvider
             'gallery'
         );
 
-        $this->loadRoutesFrom(
-            __DIR__ . '/../routes/web.php'
-        );
+        $this->app->router->middleware('web')
+            ->group(
+                __DIR__ . '/../routes/web.php'
+            );
 
         $this->loadMigrationsFrom(
             __DIR__ . '/../Database/Migrations'

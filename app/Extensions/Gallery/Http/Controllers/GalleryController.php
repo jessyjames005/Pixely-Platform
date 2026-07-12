@@ -7,7 +7,7 @@ namespace App\Extensions\Gallery\Http\Controllers;
 use App\Extensions\Gallery\Services\GalleryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use App\Extensions\Gallery\Http\Requests\GalleryUploadRequest;
 
 /**
  * Handles HTTP requests for the Gallery extension.
@@ -37,7 +37,7 @@ final class GalleryController
     /**
      * Store a newly uploaded photo.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(GalleryUploadRequest $request): RedirectResponse
     {
         // Stocke le fichier dans storage/app/public/photos
         $path = $request->file('image')->store('photos', 'public');
