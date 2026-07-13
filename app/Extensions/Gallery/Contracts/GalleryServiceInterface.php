@@ -7,12 +7,7 @@ namespace App\Extensions\Gallery\Contracts;
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Database\Eloquent\Collection;
 
-/**
- * Contract for gallery repositories.
- *
- * Defines every data access operation available for the Gallery.
- */
-interface GalleryRepositoryInterface
+interface GalleryServiceInterface
 {
     /**
      * Retrieve all photos.
@@ -22,14 +17,14 @@ interface GalleryRepositoryInterface
     public function all(): Collection;
 
     /**
-     * Create a new photo.
+     * Create a photo.
      *
      * @param array<string, mixed> $attributes
      */
     public function create(array $attributes): Photo;
 
     /**
-     * Delete a photo.
+     * Delete a photo and its associated file.
      */
     public function delete(Photo $photo): void;
 }

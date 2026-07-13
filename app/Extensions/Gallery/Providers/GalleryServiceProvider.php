@@ -7,6 +7,8 @@ namespace App\Extensions\Gallery\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
 use App\Extensions\Gallery\Repositories\GalleryRepository;
+use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
+use App\Extensions\Gallery\Services\GalleryService;
 
 final class GalleryServiceProvider extends ServiceProvider
 {
@@ -17,7 +19,12 @@ final class GalleryServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             GalleryRepositoryInterface::class,
-            GalleryRepository::class
+            GalleryRepository::class,
+        );
+
+        $this->app->bind(
+            GalleryServiceInterface::class,
+            GalleryService::class
         );
     }
 

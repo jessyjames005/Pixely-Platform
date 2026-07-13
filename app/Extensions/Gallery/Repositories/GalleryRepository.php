@@ -25,4 +25,12 @@ final class GalleryRepository implements GalleryRepositoryInterface
     {
         return Photo::create($attributes);
     }
+
+    /**
+     * Delete a photo.
+     */
+    public function delete(Photo $photo): void
+    {
+        $photo->delete();
+    }
 }

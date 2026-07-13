@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Extensions\Gallery\Http\Controllers;
 
-use App\Extensions\Gallery\Services\GalleryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Extensions\Gallery\Http\Requests\GalleryUploadRequest;
 use App\Extensions\Gallery\Models\Photo;
+use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
 
 /**
  * Handles HTTP requests for the Gallery extension.
@@ -22,7 +22,7 @@ final class GalleryController
      * Create a new Gallery controller instance.
      */
     public function __construct(
-        private readonly GalleryService $galleryService,
+        private readonly GalleryServiceInterface $galleryService,
     ) {}
 
     /**
@@ -61,5 +61,15 @@ final class GalleryController
         return view('gallery::show', [
             'photo' => $photo,
         ]);
+    }
+
+    /**
+     * Delete a photo.
+     */
+    public function destroy(Photo $photo): RedirectResponse
+    {
+        $this->galleryService->delete($photo);
+
+        return redirect('/gallery');
     }
 }

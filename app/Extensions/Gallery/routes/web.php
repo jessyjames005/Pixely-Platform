@@ -20,3 +20,10 @@ Route::get(
     '/gallery/{photo}',
     [GalleryController::class, 'show']
 );
+/**
+ * Delete a photo.
+ */
+Route::delete(
+    '/gallery/{photo}',
+    [GalleryController::class, 'destroy']
+);
