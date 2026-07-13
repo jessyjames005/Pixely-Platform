@@ -8,6 +8,7 @@ use App\Extensions\Gallery\Services\GalleryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Extensions\Gallery\Http\Requests\GalleryUploadRequest;
+use App\Extensions\Gallery\Models\Photo;
 
 /**
  * Handles HTTP requests for the Gallery extension.
@@ -50,5 +51,15 @@ final class GalleryController
 
 
         return redirect('/gallery');
+    }
+
+    /**
+     * Display a single photo.
+     */
+    public function show(Photo $photo): View
+    {
+        return view('gallery::show', [
+            'photo' => $photo,
+        ]);
     }
 }

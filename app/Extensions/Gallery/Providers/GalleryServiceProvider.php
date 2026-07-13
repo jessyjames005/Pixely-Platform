@@ -27,7 +27,7 @@ final class GalleryServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom(
-            __DIR__ . '/../Resources/Views',
+            __DIR__ . '/../Resources/views',
             'gallery'
         );
 

@@ -13,3 +13,10 @@ Route::post(
     '/gallery/upload',
     [GalleryController::class, 'store']
 );
+/**
+ * Display a single photo.
+ */
+Route::get(
+    '/gallery/{photo}',
+    [GalleryController::class, 'show']
+);
