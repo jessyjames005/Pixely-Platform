@@ -56,4 +56,19 @@ final class GalleryService implements GalleryServiceInterface
 
         $this->repository->delete($photo);
     }
+
+    /**
+     * Update a photo.
+     *
+     * @param array<string, mixed> $attributes
+     */
+    public function update(
+        Photo $photo,
+        array $attributes
+    ): Photo {
+        return $this->repository->update(
+            $photo,
+            $attributes
+        );
+    }
 }

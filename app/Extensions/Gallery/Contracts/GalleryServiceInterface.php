@@ -27,4 +27,11 @@ interface GalleryServiceInterface
      * Delete a photo and its associated file.
      */
     public function delete(Photo $photo): void;
+
+    /**
+     * Update a photo.
+     *
+     * @param array<string, mixed> $attributes
+     */
+    public function update(Photo $photo, array $attributes): Photo;
 }

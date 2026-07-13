@@ -21,6 +21,13 @@ Route::get(
     [GalleryController::class, 'show']
 );
 /**
+ * Update a photo.
+ */
+Route::put(
+    '/gallery/{photo}',
+    [GalleryController::class, 'update']
+);
+/**
  * Delete a photo.
  */
 Route::delete(

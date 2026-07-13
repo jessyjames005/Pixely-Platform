@@ -33,4 +33,18 @@ final class GalleryRepository implements GalleryRepositoryInterface
     {
         $photo->delete();
     }
+
+    /**
+     * Update a photo.
+     *
+     * @param array<string, mixed> $attributes
+     */
+    public function update(
+        Photo $photo,
+        array $attributes
+    ): Photo {
+        $photo->update($attributes);
+
+        return $photo;
+    }
 }

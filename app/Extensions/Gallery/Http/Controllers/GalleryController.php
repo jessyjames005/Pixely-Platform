@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Extensions\Gallery\Http\Requests\GalleryUploadRequest;
 use App\Extensions\Gallery\Models\Photo;
 use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
+use App\Extensions\Gallery\Http\Requests\GalleryUpdateRequest;
 
 /**
  * Handles HTTP requests for the Gallery extension.
@@ -69,6 +70,21 @@ final class GalleryController
     public function destroy(Photo $photo): RedirectResponse
     {
         $this->galleryService->delete($photo);
+
+        return redirect('/gallery');
+    }
+
+    /**
+     * Update a photo.
+     */
+    public function update(
+        GalleryUpdateRequest $request,
+        Photo $photo
+    ): RedirectResponse {
+        $this->galleryService->update(
+            $photo,
+            $request->validated()
+        );
 
         return redirect('/gallery');
     }
