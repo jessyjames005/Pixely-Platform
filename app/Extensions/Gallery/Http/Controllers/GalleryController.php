@@ -10,6 +10,7 @@ use App\Extensions\Gallery\Http\Requests\GalleryUploadRequest;
 use App\Extensions\Gallery\Models\Photo;
 use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
 use App\Extensions\Gallery\Http\Requests\GalleryUpdateRequest;
+use App\Media\Services\StorageManager;
 
 /**
  * Handles HTTP requests for the Gallery extension.
@@ -24,6 +25,7 @@ final class GalleryController
      */
     public function __construct(
         private readonly GalleryServiceInterface $galleryService,
+        private readonly StorageManager $storage,
     ) {}
 
     /**
@@ -48,7 +50,7 @@ final class GalleryController
     public function store(GalleryUploadRequest $request): RedirectResponse
     {
         // Stocke le fichier dans storage/app/public/photos
-        $path = $request->file('image')->store('photos', 'public');
+        $path = $this->storage->store($request->file('image'));
 
         // Enregistre la photo en base
         $this->galleryService->create([

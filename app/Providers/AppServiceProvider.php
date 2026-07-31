@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Media\Contracts\StorageInterface;
+use App\Media\Drivers\LocalStorage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +13,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            StorageInterface::class,
+            LocalStorage::class
+        );
     }
 
     /**
