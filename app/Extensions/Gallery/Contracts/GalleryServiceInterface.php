@@ -6,6 +6,7 @@ namespace App\Extensions\Gallery\Contracts;
 
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface GalleryServiceInterface
 {
@@ -34,4 +35,16 @@ interface GalleryServiceInterface
      * @param array<string, mixed> $attributes
      */
     public function update(Photo $photo, array $attributes): Photo;
+
+    /**
+     * Paginate photos.
+     */
+    public function paginate(
+        int $perPage = 12
+    ): LengthAwarePaginator;
+
+    public function search(
+        string $search,
+        int $perPage = 12,
+    ): LengthAwarePaginator;
 }

@@ -9,6 +9,7 @@ use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * Handles business operations related to the Gallery extension.
@@ -69,6 +70,25 @@ final class GalleryService implements GalleryServiceInterface
         return $this->repository->update(
             $photo,
             $attributes
+        );
+    }
+
+    /**
+     * Paginate photos.
+     */
+    public function paginate(
+        int $perPage = 12
+    ): LengthAwarePaginator {
+        return $this->repository->paginate($perPage);
+    }
+
+    public function search(
+        string $search,
+        int $perPage = 12,
+    ): LengthAwarePaginator {
+        return $this->repository->search(
+            $search,
+            $perPage
         );
     }
 }

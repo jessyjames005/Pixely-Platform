@@ -7,6 +7,7 @@ namespace App\Extensions\Gallery\Repositories;
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Database\Eloquent\Collection;
 use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 final class GalleryRepository implements GalleryRepositoryInterface
 {
@@ -46,5 +47,29 @@ final class GalleryRepository implements GalleryRepositoryInterface
         $photo->update($attributes);
 
         return $photo;
+    }
+
+    /**
+     * Paginate photos.
+     */
+    public function paginate(
+        int $perPage = 12
+    ): LengthAwarePaginator {
+        return Photo::query()
+            ->latest()
+            ->paginate($perPage);
+    }
+
+    /**
+     * Search photos by title.
+     */
+    public function search(
+        string $search,
+        int $perPage = 12,
+    ): LengthAwarePaginator {
+        return Photo::query()
+            ->where('title', 'like', "%{$search}%")
+            ->latest()
+            ->paginate($perPage);
     }
 }

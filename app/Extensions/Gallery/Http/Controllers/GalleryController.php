@@ -31,8 +31,14 @@ final class GalleryController
      */
     public function index(): View
     {
+        $search = (string) request('search');
+
+        $photos = $search !== ''
+            ? $this->galleryService->search($search)
+            : $this->galleryService->paginate();
+
         return view('gallery::index', [
-            'photos' => $this->galleryService->all(),
+            'photos' => $photos,
         ]);
     }
 
