@@ -7,6 +7,7 @@ namespace Tests\Feature\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use App\Media\Services\ThumbnailGenerator;
 
 /**
  * Tests thumbnail generation.
@@ -14,24 +15,32 @@ use Tests\TestCase;
 final class ThumbnailGenerationTest extends TestCase
 {
     /**
-     * Ensure a thumbnail is generated and stored.
+     * Ensure thumbnail generation works.
      */
     public function test_it_generates_a_thumbnail(): void
     {
         Storage::fake('public');
 
         $file = UploadedFile::fake()->image(
-            'sunset.jpg',
+            'photo.jpg',
             800,
             600
         );
 
-        $path = $file->store('photos', 'public');
+        $source = $file->store(
+            'photos',
+            'public'
+        );
 
-        $generator = new \App\Media\Services\ThumbnailGenerator();
+        $generator = app(
+            ThumbnailGenerator::class
+        );
 
-        $thumbnail = $generator->generate($path);
+        $thumbnail = $generator->generate(
+            $source
+        );
 
-        Storage::disk('public')->assertExists($thumbnail);
+        Storage::disk('public')
+            ->assertExists($thumbnail);
     }
 }
