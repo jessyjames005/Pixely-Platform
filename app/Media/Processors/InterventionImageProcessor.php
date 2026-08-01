@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Media\Processors;
 
 use App\Media\Contracts\ImageProcessorInterface;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * Image processor based on Intervention Image.
@@ -20,6 +22,17 @@ final class InterventionImageProcessor implements ImageProcessorInterface
         int $width = 300,
         int $height = 300,
     ): void {
-        // Implementation will come in the next step.
+        $manager = ImageManager::usingDriver(
+            Driver::class
+        );
+
+        $image = $manager->decodePath($sourcePath);
+
+        $image
+            ->scaleDown(
+                width: $width,
+                height: $height
+            )
+            ->save($targetPath);
     }
 }
