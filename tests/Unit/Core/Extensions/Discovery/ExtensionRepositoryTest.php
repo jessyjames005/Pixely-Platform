@@ -26,5 +26,5 @@ it('returns discovered extensions with manifests', function () {
         \App\Core\Extensions\Contracts\ExtensionInterface::class
     );
 
-    expect($extensions[0]->manifest()->name)->toBe('gallery');
+    expect($extensions[0]->manifest()->name)->toBe('Gallery');
 });

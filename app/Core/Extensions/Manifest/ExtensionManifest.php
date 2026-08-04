@@ -10,11 +10,13 @@ namespace App\Core\Extensions\Manifest;
 final readonly class ExtensionManifest
 {
     /**
-     * @param string $name Unique extension identifier.
+     * @param string $id Unique extension identifier.
+     * @param string $name Extension display name.
      * @param string $version Extension version.
-     * @param string $class description.
+     * @param string $class Extension entrypoint class.
      */
-     public function __construct(
+    public function __construct(
+        public readonly string $id,
         public readonly string $name,
         public readonly string $version,
         public readonly string $class,

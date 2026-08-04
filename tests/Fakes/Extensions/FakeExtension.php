@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Extensions\Gallery;
+namespace Tests\Fakes\Extensions;
 
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
-use App\Extensions\Gallery\Providers\GalleryServiceProvider;
 
-final class GalleryExtension implements ExtensionInterface
+/**
+ * Fake extension used for unit testing.
+ */
+final class FakeExtension implements ExtensionInterface
 {
     /**
      * Return the extension manifest.
@@ -24,15 +26,13 @@ final class GalleryExtension implements ExtensionInterface
     }
 
     /**
-     * Return extension service providers.
+     * Return the Laravel service providers.
      *
      * @return array<class-string>
      */
     public function providers(): array
     {
-        return [
-            GalleryServiceProvider::class,
-        ];
+        return [];
     }
 
     /**
@@ -40,6 +40,6 @@ final class GalleryExtension implements ExtensionInterface
      */
     public function boot(): void
     {
-        //
+        // Nothing to boot.
     }
 }

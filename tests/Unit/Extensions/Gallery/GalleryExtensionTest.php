@@ -21,7 +21,8 @@ final class GalleryExtensionTest extends TestCase
 
         $manifest = $extension->manifest();
 
-        $this->assertSame('gallery', $manifest->name);
+        $this->assertSame('gallery', $manifest->id);
+        $this->assertSame('Gallery', $manifest->name);
         $this->assertSame('1.0.0', $manifest->version);
         $this->assertSame(GalleryExtension::class, $manifest->class);
     }

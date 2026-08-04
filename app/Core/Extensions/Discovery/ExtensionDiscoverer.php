@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Extensions\Discovery;
 
+
 /**
  * Discovers available extensions.
  */
@@ -16,7 +17,7 @@ final class ExtensionDiscoverer
      */
     public function discover(string $path): array
     {
-        if (! is_dir($path)) {
+        if (!is_dir($path)) {
             return [];
         }
 
