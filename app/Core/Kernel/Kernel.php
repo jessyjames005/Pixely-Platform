@@ -39,13 +39,17 @@ final class Kernel implements KernelInterface
             return;
         }
 
-        foreach ($this->repository->all($this->extensionsPath) as $extension) {
+        $extensions = $this->repository->all(
+            $this->extensionsPath
+        );
+
+        foreach ($extensions as $extension) {
+
+            $this->extensionManager->register($extension);
 
             foreach ($extension->providers() as $provider) {
                 app()->register($provider);
             }
-
-            $this->extensionManager->register($extension);
         }
 
         $this->extensionManager->boot();
