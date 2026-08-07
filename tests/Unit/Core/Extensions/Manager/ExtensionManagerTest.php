@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use App\Core\Extensions\Discovery\ExtensionDiscoverer;
 use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Discovery\ExtensionManifestReader;
+use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 
 /**
  * Tests the extension manager.
@@ -22,17 +23,7 @@ final class ExtensionManagerTest extends TestCase
      */
     public function test_it_can_register_an_extension(): void
     {
-        $registry = new ExtensionRegistry();
-
-         $repository = new ExtensionRepository(
-            new ExtensionDiscoverer(),
-            new ExtensionManifestReader()
-        );
-
-        $manager = new ExtensionManager(
-            $registry,
-            $repository
-        );
+        $manager = $this->createManager();
 
         $extension = new FakeExtension();
 
@@ -49,17 +40,7 @@ final class ExtensionManagerTest extends TestCase
      */
     public function test_it_can_boot_extensions(): void
     {
-        $registry = new ExtensionRegistry();
-
-         $repository = new ExtensionRepository(
-            new ExtensionDiscoverer(),
-            new ExtensionManifestReader()
-        );
-
-        $manager = new ExtensionManager(
-            $registry,
-            $repository
-        );
+        $manager = $this->createManager();
 
         $manager->register(
             new FakeExtension()
@@ -75,17 +56,7 @@ final class ExtensionManagerTest extends TestCase
      */
     public function test_it_can_load_extensions(): void
     {
-        $registry = new ExtensionRegistry();
-
-        $repository = new ExtensionRepository(
-            new ExtensionDiscoverer(),
-            new ExtensionManifestReader()
-        );
-
-        $manager = new ExtensionManager(
-            $registry,
-            $repository
-        );
+        $manager = $this->createManager();
 
         $manager->load(
             dirname(__DIR__, 5) . '/tests/Fixtures/Extensions'
@@ -94,6 +65,72 @@ final class ExtensionManagerTest extends TestCase
         $this->assertArrayHasKey(
             'gallery',
             $manager->all()
+        );
+    }
+
+    public function test_it_can_find_an_extension_state(): void
+    {
+        $manager = $this->createManager();
+
+        $manager->register(new FakeExtension());
+
+        $state = $manager->findState('gallery');
+
+        $this->assertNotNull($state);
+
+        $this->assertSame(
+            'gallery',
+            $state->extension->manifest()->id,
+        );
+    }
+
+    public function test_it_knows_when_an_extension_is_enabled(): void
+    {
+        $manager = $this->createManager();
+
+        $manager->register(new FakeExtension());
+
+        $this->assertTrue(
+            $manager->isEnabled('gallery')
+        );
+    }
+
+    /**
+     * Create a new extension manager.
+     */
+    private function createManager(): ExtensionManager
+    {
+        return new ExtensionManager(
+            new ExtensionRegistry(),
+            new ExtensionRepository(
+                new ExtensionDiscoverer(),
+                new ExtensionManifestReader(),
+            ),
+            new InMemoryExtensionStateRepository(),
+        );
+    }
+
+    public function test_it_returns_enabled_extensions(): void
+    {
+        $manager = $this->createManager();
+
+        $manager->register(new FakeExtension());
+
+        $this->assertCount(
+            1,
+            $manager->enabled(),
+        );
+    }
+
+    public function test_it_returns_no_disabled_extensions(): void
+    {
+        $manager = $this->createManager();
+
+        $manager->register(new FakeExtension());
+
+        $this->assertCount(
+            0,
+            $manager->disabled(),
         );
     }
 }

@@ -11,6 +11,8 @@ use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Kernel\Kernel;
 use Illuminate\Support\ServiceProvider;
+use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
+use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 
 final class PixelyServiceProvider extends ServiceProvider
 {
@@ -36,6 +38,11 @@ final class PixelyServiceProvider extends ServiceProvider
                 app_path('Extensions'),
             );
         });
+
+        $this->app->singleton(
+            ExtensionStateRepositoryInterface::class,
+            InMemoryExtensionStateRepository::class,
+        );
     }
 
     /**

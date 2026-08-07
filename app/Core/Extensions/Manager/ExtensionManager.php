@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Core\Extensions\Manager;
 
 use App\Core\Extensions\Contracts\ExtensionInterface;
-use App\Core\Extensions\Registry\ExtensionRegistry;
+use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Discovery\ExtensionRepository;
+use App\Core\Extensions\Registry\ExtensionRegistry;
+use App\Core\Extensions\Enum\ExtensionStatus;
+use App\Core\Extensions\State\ExtensionState;
 
 /**
  * Manages the lifecycle of registered extensions.
@@ -16,6 +19,7 @@ final class ExtensionManager
     public function __construct(
         private readonly ExtensionRegistry $registry,
         private readonly ExtensionRepository $repository,
+        private readonly ExtensionStateRepositoryInterface $stateRepository,
     ) {}
 
     /**
@@ -23,6 +27,13 @@ final class ExtensionManager
      */
     public function register(ExtensionInterface $extension): void
     {
+        $state = new ExtensionState(
+            $extension,
+            ExtensionStatus::Enabled,
+        );
+
+        $this->stateRepository->save($state);
+
         $this->registry->register($extension);
     }
 
@@ -52,5 +63,51 @@ final class ExtensionManager
         foreach ($this->repository->all($path) as $extension) {
             $this->register($extension);
         }
+    }
+
+    /**
+     * Return the state of an extension.
+     */
+    public function findState(string $id): ?ExtensionState
+    {
+        return $this->stateRepository->find($id);
+    }
+
+    /**
+     * Determine whether an extension is enabled.
+     */
+    public function isEnabled(string $id): bool
+    {
+        return $this->findState($id)?->status === ExtensionStatus::Enabled;
+    }
+
+    /**
+     * Return all enabled extensions.
+     *
+     * @return array<string, ExtensionInterface>
+     */
+    public function enabled(): array
+    {
+        return array_filter(
+            $this->all(),
+            fn(ExtensionInterface $extension): bool => $this->isEnabled(
+                $extension->manifest()->id
+            ),
+        );
+    }
+
+    /**
+     * Return all disabled extensions.
+     *
+     * @return array<string, ExtensionInterface>
+     */
+    public function disabled(): array
+    {
+        return array_filter(
+            $this->all(),
+            fn(ExtensionInterface $extension): bool => ! $this->isEnabled(
+                $extension->manifest()->id
+            ),
+        );
     }
 }
