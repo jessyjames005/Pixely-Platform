@@ -1,0 +1,9 @@
+{
+    "gallery": {
+        "id": "gallery",
+        "name": "Gallery",
+        "version": "1.0.0",
+        "class": "App\\Extensions\\Gallery\\GalleryExtension",
+        "status": "enabled"
+    }
+}
