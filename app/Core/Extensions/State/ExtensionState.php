@@ -18,6 +18,35 @@ final readonly class ExtensionState
     public function __construct(
         public ExtensionInterface $extension,
         public ExtensionStatus $status,
-    ) {
+    ) {}
+
+    /**
+     * Return a new state with the extension enabled.
+     */
+    public function enable(): self
+    {
+        return new self(
+            $this->extension,
+            ExtensionStatus::Enabled,
+        );
+    }
+
+    /**
+     * Return a new state with the extension disabled.
+     */
+    public function disable(): self
+    {
+        return new self(
+            $this->extension,
+            ExtensionStatus::Disabled,
+        );
+    }
+
+    /**
+     * Determine whether the extension is enabled.
+     */
+    public function isEnabled(): bool
+    {
+        return $this->status === ExtensionStatus::Enabled;
     }
 }

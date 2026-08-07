@@ -27,4 +27,6 @@ interface ExtensionStateRepositoryInterface
      * Persist an extension state.
      */
     public function save(ExtensionState $state): void;
+
+    public function update(ExtensionState $state): void;
 }

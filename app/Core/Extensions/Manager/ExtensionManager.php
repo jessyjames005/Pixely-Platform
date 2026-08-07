@@ -110,4 +110,43 @@ final class ExtensionManager
             ),
         );
     }
+
+    /**
+     * Enable an extension.
+     */
+    public function enable(string $id): void
+    {
+        $state = $this->stateRepository->find($id);
+
+        if ($state === null) {
+            return;
+        }
+
+        $this->stateRepository->save(
+            $state->enable()
+        );
+    }
+
+    /**
+     * Disable an extension.
+     */
+    public function disable(string $id): void
+    {
+        $state = $this->stateRepository->find($id);
+
+        if ($state === null) {
+            return;
+        }
+
+        $this->stateRepository->save(
+            $state->disable()
+        );
+    }
+
+    public function has(string $id): bool
+    {
+        return isset(
+            $this->all()[$id]
+        );
+    }
 }

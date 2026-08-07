@@ -133,4 +133,32 @@ final class ExtensionManagerTest extends TestCase
             $manager->disabled(),
         );
     }
+
+    public function test_it_can_disable_an_extension(): void
+    {
+        $manager = $this->createManager();
+
+        $manager->register(new FakeExtension());
+
+        $manager->disable('gallery');
+
+        $this->assertFalse(
+            $manager->isEnabled('gallery')
+        );
+    }
+
+    public function test_it_can_enable_an_extension(): void
+    {
+        $manager = $this->createManager();
+
+        $manager->register(new FakeExtension());
+
+        $manager->disable('gallery');
+
+        $manager->enable('gallery');
+
+        $this->assertTrue(
+            $manager->isEnabled('gallery')
+        );
+    }
 }

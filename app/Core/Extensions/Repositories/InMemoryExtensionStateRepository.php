@@ -42,8 +42,11 @@ final class InMemoryExtensionStateRepository implements ExtensionStateRepository
      */
     public function save(ExtensionState $state): void
     {
-        $this->states[
-            $state->extension->manifest()->id
-        ] = $state;
+        $this->states[$state->extension->manifest()->id] = $state;
+    }
+
+    public function update(ExtensionState $state): void
+    {
+        $this->states[$state->extension->manifest()->id] = $state;
     }
 }
