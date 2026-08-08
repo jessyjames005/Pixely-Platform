@@ -1,25 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * Extension manifest file.
- *
- * This file defines the metadata required for Pixely
- * to discover and register this extension.
+ * Gallery extension manifest.
  */
-
 return [
-    /*
-    | Name of the extension (unique identifier)
-    */
+    'id' => 'gallery',
     'name' => 'gallery',
-
-    /*
-    | Semantic version of the extension
-    */
     'version' => '1.0.0',
-
-    /*
-    | Main entry class of the extension
-    */
     'class' => App\Extensions\Gallery\GalleryExtension::class,
+    'requires' => [
+        'media',
+    ],
 ];

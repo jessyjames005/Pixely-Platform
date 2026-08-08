@@ -13,6 +13,7 @@ use App\Core\Extensions\Repositories\JsonExtensionStateRepository;
 use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Kernel\Kernel;
 use Illuminate\Support\ServiceProvider;
+use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
 
 final class PixelyServiceProvider extends ServiceProvider
 {
@@ -39,6 +40,10 @@ final class PixelyServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             ExtensionRepository::class,
+        );
+
+        $this->app->singleton(
+            ExtensionDependencyResolver::class,
         );
 
         $this->app->singleton(

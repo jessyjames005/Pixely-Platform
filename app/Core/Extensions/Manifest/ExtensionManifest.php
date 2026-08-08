@@ -10,15 +10,37 @@ namespace App\Core\Extensions\Manifest;
 final readonly class ExtensionManifest
 {
     /**
-     * @param string $id Unique extension identifier.
-     * @param string $name Extension display name.
-     * @param string $version Extension version.
-     * @param string $class Extension entrypoint class.
+     * Create a new extension manifest.
+     *
+     * @param string[] $dependencies Extension identifiers required before loading.
      */
     public function __construct(
-        public readonly string $id,
-        public readonly string $name,
-        public readonly string $version,
-        public readonly string $class,
-    ) {}
+        /**
+         * Unique extension identifier.
+         */
+        public string $id,
+
+        /**
+         * Extension display name.
+         */
+        public string $name,
+
+        /**
+         * Extension version.
+         */
+        public string $version,
+
+        /**
+         * Extension entrypoint class.
+         */
+        public string $class,
+
+        /**
+         * Required extension identifiers.
+         *
+         * @var string[]
+         */
+        public array $dependencies = [],
+    ) {
+    }
 }

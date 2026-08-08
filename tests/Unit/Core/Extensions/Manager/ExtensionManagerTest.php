@@ -12,6 +12,8 @@ use App\Core\Extensions\Discovery\ExtensionDiscoverer;
 use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Discovery\ExtensionManifestReader;
 use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
+use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
+
 
 /**
  * Tests the extension manager.
@@ -105,6 +107,7 @@ final class ExtensionManagerTest extends TestCase
             new ExtensionRepository(
                 new ExtensionDiscoverer(),
                 new ExtensionManifestReader(),
+                new ExtensionDependencyResolver(),
             ),
             new InMemoryExtensionStateRepository(),
         );
