@@ -7,8 +7,8 @@ namespace App\Core\Extensions\Manager;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Discovery\ExtensionRepository;
-use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Extensions\Enum\ExtensionStatus;
+use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Extensions\State\ExtensionState;
 
 /**
@@ -27,14 +27,14 @@ final class ExtensionManager
      */
     public function register(ExtensionInterface $extension): void
     {
-        $state = new ExtensionState(
-            $extension,
-            ExtensionStatus::Enabled,
-        );
-
-        $this->stateRepository->save($state);
-
         $this->registry->register($extension);
+
+        $this->stateRepository->save(
+            new ExtensionState(
+                extension: $extension,
+                status: ExtensionStatus::Enabled,
+            ),
+        );
     }
 
     /**
@@ -43,12 +43,111 @@ final class ExtensionManager
     public function boot(): void
     {
         $this->registry->boot();
+
+        foreach ($this->registry->all() as $extension) {
+            $this->stateRepository->update(
+                new ExtensionState(
+                    extension: $extension,
+                    status: ExtensionStatus::Enabled,
+                ),
+            );
+        }
+    }
+
+    /**
+     * Determine whether an extension is registered.
+     */
+    public function has(string $id): bool
+    {
+        return $this->registry->has($id);
+    }
+
+    /**
+     * Enable a registered extension.
+     */
+    public function enable(string $id): void
+    {
+        $extension = $this->registry->get($id);
+
+        $this->stateRepository->update(
+            new ExtensionState(
+                extension: $extension,
+                status: ExtensionStatus::Enabled,
+            ),
+        );
+    }
+
+    /**
+     * Disable a registered extension.
+     */
+    public function disable(string $id): void
+    {
+        $extension = $this->registry->get($id);
+
+        $this->stateRepository->update(
+            new ExtensionState(
+                extension: $extension,
+                status: ExtensionStatus::Disabled,
+            ),
+        );
+    }
+
+    /**
+
+     * Determine whether an extension is enabled.
+     */
+    public function isEnabled(string $id): bool
+    {
+        $state = $this->stateRepository->find($id);
+
+        return $state?->status === ExtensionStatus::Enabled;
+    }
+
+    /**
+
+     * Return the state of a registered extension.
+     */
+    public function findState(string $id): ?ExtensionState
+    {
+        return $this->stateRepository->find($id);
+    }
+
+    /**
+
+     * Return all enabled extensions.
+     *
+     * @return array<string, ExtensionInterface>
+     */
+    public function enabled(): array
+    {
+        return array_filter(
+            $this->registry->all(),
+            fn(ExtensionInterface $extension): bool => $this->isEnabled(
+                $extension->manifest()->id,
+            ),
+        );
+    }
+
+    /**
+
+     * Return all disabled extensions.
+     *
+     * @return array<string, ExtensionInterface>
+     */
+    public function disabled(): array
+    {
+        return array_filter(
+            $this->registry->all(),
+            fn(ExtensionInterface $extension): bool => ! $this->isEnabled(
+                $extension->manifest()->id,
+            ),
+        );
     }
 
     /**
      * Return all registered extensions.
      *
-     * @return ExtensionInterface[]
+     * @return array<string, ExtensionInterface>
      */
     public function all(): array
     {
@@ -63,90 +162,5 @@ final class ExtensionManager
         foreach ($this->repository->all($path) as $extension) {
             $this->register($extension);
         }
-    }
-
-    /**
-     * Return the state of an extension.
-     */
-    public function findState(string $id): ?ExtensionState
-    {
-        return $this->stateRepository->find($id);
-    }
-
-    /**
-     * Determine whether an extension is enabled.
-     */
-    public function isEnabled(string $id): bool
-    {
-        return $this->findState($id)?->status === ExtensionStatus::Enabled;
-    }
-
-    /**
-     * Return all enabled extensions.
-     *
-     * @return array<string, ExtensionInterface>
-     */
-    public function enabled(): array
-    {
-        return array_filter(
-            $this->all(),
-            fn(ExtensionInterface $extension): bool => $this->isEnabled(
-                $extension->manifest()->id
-            ),
-        );
-    }
-
-    /**
-     * Return all disabled extensions.
-     *
-     * @return array<string, ExtensionInterface>
-     */
-    public function disabled(): array
-    {
-        return array_filter(
-            $this->all(),
-            fn(ExtensionInterface $extension): bool => ! $this->isEnabled(
-                $extension->manifest()->id
-            ),
-        );
-    }
-
-    /**
-     * Enable an extension.
-     */
-    public function enable(string $id): void
-    {
-        $state = $this->stateRepository->find($id);
-
-        if ($state === null) {
-            return;
-        }
-
-        $this->stateRepository->save(
-            $state->enable()
-        );
-    }
-
-    /**
-     * Disable an extension.
-     */
-    public function disable(string $id): void
-    {
-        $state = $this->stateRepository->find($id);
-
-        if ($state === null) {
-            return;
-        }
-
-        $this->stateRepository->save(
-            $state->disable()
-        );
-    }
-
-    public function has(string $id): bool
-    {
-        return isset(
-            $this->all()[$id]
-        );
     }
 }
