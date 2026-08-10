@@ -10,6 +10,8 @@ use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Enum\ExtensionStatus;
 use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Extensions\State\ExtensionState;
+use App\Core\Extensions\Exceptions\ExtensionDependencyException;
+use App\Core\Extensions\Exceptions\ExtensionDependencyCycleException;
 
 /**
  * Manages the lifecycle of registered extensions.
@@ -63,11 +65,16 @@ final class ExtensionManager
     }
 
     /**
+
      * Enable a registered extension.
+     *
+     * @throws ExtensionDependencyException When a dependency is missing or disabled.
      */
     public function enable(string $id): void
     {
         $extension = $this->registry->get($id);
+
+        $this->assertDependenciesEnabled($id);
 
         $this->stateRepository->update(
             new ExtensionState(
@@ -76,6 +83,52 @@ final class ExtensionManager
             ),
         );
     }
+
+    /**
+
+     * Ensure that all extension dependencies are enabled.
+     *
+     * @param array<string, bool> $visiting
+     *
+     * @throws ExtensionDependencyException When a dependency is missing or disabled.
+     * @throws ExtensionDependencyCycleException When a circular dependency is detected.
+     */
+    private function assertDependenciesEnabled(
+        string $id,
+        array &$visiting = [],
+    ): void {
+        if (isset($visiting[$id])) {
+            throw new ExtensionDependencyCycleException(
+                "Circular extension dependency detected: [{$id}].",
+            );
+        }
+
+        $visiting[$id] = true;
+
+        $extension = $this->registry->get($id);
+
+        foreach ($extension->manifest()->dependencies as $dependencyId) {
+            if (! $this->registry->has($dependencyId)) {
+                throw new ExtensionDependencyException(
+                    "Extension [{$id}] requires missing extension [{$dependencyId}].",
+                );
+            }
+
+            $this->assertDependenciesEnabled(
+                $dependencyId,
+                $visiting,
+            );
+
+            if (! $this->isEnabled($dependencyId)) {
+                throw new ExtensionDependencyException(
+                    "Extension [{$id}] cannot be enabled because dependency [{$dependencyId}] is disabled.",
+                );
+            }
+        }
+
+        unset($visiting[$id]);
+    }
+
 
     /**
      * Disable a registered extension.
