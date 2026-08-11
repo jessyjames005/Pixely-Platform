@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Fakes\Extensions;
 
+use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 
 /**
- * Fake gallery extension requiring the media extension.
+ * Fake gallery extension providing configuration.
  */
-final class GalleryExtension implements ExtensionInterface
+final class GalleryExtension implements ExtensionInterface, ExtensionConfigurableInterface
 {
     /**
      * Return the extension manifest.
@@ -26,6 +27,21 @@ final class GalleryExtension implements ExtensionInterface
                 'media',
             ],
         );
+    }
+
+    /**
+     * Return the extension default configuration.
+     *
+     * @return array<string, mixed>
+     */
+    public function defaultConfiguration(): array
+    {
+        return [
+            'enabled' => true,
+            'gallery' => [
+                'per_page' => 20,
+            ],
+        ];
     }
 
     /**

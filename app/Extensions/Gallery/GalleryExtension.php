@@ -8,6 +8,9 @@ use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Extensions\Gallery\Providers\GalleryServiceProvider;
 
+/**
+ * Gallery extension.
+ */
 final class GalleryExtension implements ExtensionInterface
 {
     /**
@@ -20,11 +23,14 @@ final class GalleryExtension implements ExtensionInterface
             name: 'Gallery',
             version: '1.0.0',
             class: self::class,
+            dependencies: [
+                'media',
+            ],
         );
     }
 
     /**
-     * Return extension service providers.
+     * Return the Laravel service providers used by the extension.
      *
      * @return array<class-string>
      */
@@ -40,6 +46,6 @@ final class GalleryExtension implements ExtensionInterface
      */
     public function boot(): void
     {
-        //
+        // Nothing to boot.
     }
 }

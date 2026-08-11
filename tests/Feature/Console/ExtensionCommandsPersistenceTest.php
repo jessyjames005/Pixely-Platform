@@ -6,7 +6,8 @@ namespace Tests\Feature\Console;
 
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Enum\ExtensionStatus;
-use App\Extensions\Gallery\GalleryExtension;
+use App\Core\Extensions\Manager\ExtensionManager;
+use Tests\Fakes\Extensions\MediaExtension;
 use Tests\TestCase;
 
 final class ExtensionCommandsPersistenceTest extends TestCase
@@ -15,16 +16,18 @@ final class ExtensionCommandsPersistenceTest extends TestCase
     {
         parent::setUp();
 
-        $repository = app(
-            ExtensionStateRepositoryInterface::class
-        );
+        $manager = app(ExtensionManager::class);
 
-        $repository->save(
-            new \App\Core\Extensions\State\ExtensionState(
-                new GalleryExtension(),
-                ExtensionStatus::Enabled,
-            ),
-        );
+        /*
+         * Gallery is already registered by the application bootstrap.
+         *
+         * Its dependency, Media, must also be available before enabling it.
+         */
+        if (! $manager->has('media')) {
+            $manager->register(
+                new MediaExtension(),
+            );
+        }
     }
 
     public function test_disable_command_persists_disabled_state(): void
@@ -35,7 +38,7 @@ final class ExtensionCommandsPersistenceTest extends TestCase
             ->assertSuccessful();
 
         $repository = app(
-            ExtensionStateRepositoryInterface::class
+            ExtensionStateRepositoryInterface::class,
         );
 
         $state = $repository->find('gallery');
@@ -61,7 +64,7 @@ final class ExtensionCommandsPersistenceTest extends TestCase
             ->assertSuccessful();
 
         $repository = app(
-            ExtensionStateRepositoryInterface::class
+            ExtensionStateRepositoryInterface::class,
         );
 
         $state = $repository->find('gallery');

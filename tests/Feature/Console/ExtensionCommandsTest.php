@@ -5,13 +5,30 @@ declare(strict_types=1);
 namespace Tests\Feature\Console;
 
 use App\Core\Extensions\Manager\ExtensionManager;
-use App\Core\Extensions\State\ExtensionState;
-use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
-use App\Extensions\Gallery\GalleryExtension;
+use Tests\Fakes\Extensions\MediaExtension;
 use Tests\TestCase;
 
 final class ExtensionCommandsTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $manager = app(ExtensionManager::class);
+
+        /*
+         * Gallery depends on Media.
+         *
+         * Gallery is provided by the application bootstrap,
+         * while Media must be available for dependency validation.
+         */
+        if (! $manager->has('media')) {
+            $manager->register(
+                new MediaExtension(),
+            );
+        }
+    }
+
     public function test_it_can_disable_an_extension(): void
     {
         $manager = app(ExtensionManager::class);
@@ -22,7 +39,7 @@ final class ExtensionCommandsTest extends TestCase
             ->assertSuccessful();
 
         $this->assertFalse(
-            $manager->isEnabled('gallery')
+            $manager->isEnabled('gallery'),
         );
     }
 
@@ -41,7 +58,7 @@ final class ExtensionCommandsTest extends TestCase
             ->assertSuccessful();
 
         $this->assertTrue(
-            $manager->isEnabled('gallery')
+            $manager->isEnabled('gallery'),
         );
     }
 }
