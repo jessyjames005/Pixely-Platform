@@ -1,0 +1,181 @@
+openapi: 3.0.3
+
+info:
+  title: Pixely Platform API
+  description: Public API for Pixely Platform extensions.
+  version: 0.1.0
+
+servers:
+  - url: /
+
+tags:
+  - name: Gallery
+    description: Gallery photo management.
+
+paths:
+
+  /api/gallery:
+    get:
+      tags:
+        - Gallery
+      summary: List gallery photos
+      operationId: listGalleryPhotos
+      responses:
+        '200':
+          description: Gallery photos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoListResponse'
+
+  /api/gallery/{photo}:
+    get:
+      tags:
+        - Gallery
+      summary: Get a gallery photo
+      operationId: getGalleryPhoto
+      parameters:
+        - $ref: '#/components/parameters/PhotoId'
+      responses:
+        '200':
+          description: Gallery photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
+        '404':
+          description: Photo not found
+
+    put:
+      tags:
+        - Gallery
+      summary: Update a gallery photo
+      operationId: updateGalleryPhoto
+      parameters:
+        - $ref: '#/components/parameters/PhotoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhotoUpdateRequest'
+      responses:
+        '200':
+          description: Updated gallery photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
+        '404':
+          description: Photo not found
+
+    delete:
+      tags:
+        - Gallery
+      summary: Delete a gallery photo
+      operationId: deleteGalleryPhoto
+      parameters:
+        - $ref: '#/components/parameters/PhotoId'
+      responses:
+        '204':
+          description: Photo deleted
+        '404':
+          description: Photo not found
+
+  /api/gallery/upload:
+    post:
+      tags:
+        - Gallery
+      summary: Upload a gallery photo
+      operationId: uploadGalleryPhoto
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhotoUploadRequest'
+      responses:
+        '201':
+          description: Photo uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
+        '422':
+          description: Validation error
+
+components:
+
+  parameters:
+
+    PhotoId:
+      name: photo
+      in: path
+      required: true
+      description: Photo identifier.
+      schema:
+        type: integer
+        example: 1
+
+  schemas:
+
+    Photo:
+      type: object
+      required:
+        - id
+        - title
+        - filename
+      properties:
+        id:
+          type: integer
+          example: 1
+
+        title:
+          type: string
+          nullable: true
+          example: Sunset
+
+        filename:
+          type: string
+          example: gallery/sunset.jpg
+
+    PhotoResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Photo'
+
+    PhotoListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+
+    PhotoUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: Beautiful Sunset
+
+    PhotoUploadRequest:
+      type: object
+      required:
+        - image
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: Sunset
+
+        image:
+          type: string
+          format: binary
+          description: Image file to upload.

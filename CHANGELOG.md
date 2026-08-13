@@ -18,3 +18,12 @@ Versioning follows Semantic Versioning.
 ### Added
 - Repository initialization
 - Documentation foundation
+
+### Added
+
+- Added Gallery API endpoints for listing, viewing, creating, updating and deleting photos.
+- Added Gallery image upload through the API.
+- Added Gallery upload validation.
+- Added public storage handling for uploaded gallery images.
+- Added automatic deletion of the stored image when a photo is deleted.
+- Added feature tests covering the Gallery API.
