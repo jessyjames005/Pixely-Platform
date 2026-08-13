@@ -1,0 +1,143 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+use App\Extensions\Gallery\Models\Photo;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+uses(
+    TestCase::class,
+    RefreshDatabase::class,
+);
+
+it('exposes the gallery API endpoint', function () {
+    $response = $this->getJson('/api/gallery');
+
+    $response->assertOk();
+});
+
+it('returns gallery photos', function () {
+    \App\Extensions\Gallery\Models\Photo::create([
+        'title' => 'Sunset',
+        'filename' => 'sunset.jpg',
+    ]);
+
+    $response = $this->getJson('/api/gallery');
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Sunset')
+        ->assertJsonPath('data.0.filename', 'sunset.jpg');
+});
+
+it('returns photos with the public gallery fields', function () {
+    \App\Extensions\Gallery\Models\Photo::create([
+        'title' => 'Sunset',
+        'filename' => 'sunset.jpg',
+    ]);
+
+    $response = $this->getJson('/api/gallery');
+
+    $response
+        ->assertOk()
+        ->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'id',
+                    'title',
+                    'filename',
+                ],
+            ],
+        ]);
+});
+
+it('returns a single gallery photo', function () {
+    $photo = Photo::create([
+        'title' => 'Sunset',
+        'filename' => 'sunset.jpg',
+    ]);
+
+    $response = $this->getJson(
+        "/api/gallery/{$photo->id}",
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.id', $photo->id)
+        ->assertJsonPath('data.title', 'Sunset')
+        ->assertJsonPath('data.filename', 'sunset.jpg');
+});
+
+it('returns 404 when the gallery photo does not exist', function () {
+    $response = $this->getJson(
+        '/api/gallery/999999',
+    );
+
+    $response->assertNotFound();
+});
+
+it('updates a gallery photo', function () {
+    $photo = Photo::create([
+        'title' => 'Sunset',
+        'filename' => 'sunset.jpg',
+    ]);
+
+    $response = $this->putJson(
+        "/api/gallery/{$photo->id}",
+        [
+            'title' => 'Beautiful Sunset',
+        ],
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonPath(
+            'data.title',
+            'Beautiful Sunset',
+        );
+
+    expect($photo->refresh()->title)
+        ->toBe('Beautiful Sunset');
+});
+
+it('deletes a gallery photo', function () {
+    $photo = Photo::create([
+        'title' => 'Sunset',
+        'filename' => 'sunset.jpg',
+    ]);
+
+    $response = $this->deleteJson(
+        "/api/gallery/{$photo->id}",
+    );
+
+    $response->assertNoContent();
+
+    expect(Photo::find($photo->id))
+        ->toBeNull();
+});
+
+it('deletes the stored file when deleting a photo', function () {
+    Storage::fake('public');
+
+    $image = UploadedFile::fake()->image('sunset.jpg');
+
+    $filename = $image->store('gallery', 'public');
+
+    $photo = Photo::create([
+        'title' => 'Sunset',
+        'filename' => $filename,
+    ]);
+
+    Storage::disk('public')->assertExists($filename);
+
+    $response = $this->deleteJson(
+        "/api/gallery/{$photo->id}",
+    );
+
+    $response->assertNoContent();
+
+    Storage::disk('public')->assertMissing($filename);
+});
