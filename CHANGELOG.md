@@ -27,3 +27,12 @@ Versioning follows Semantic Versioning.
 - Added public storage handling for uploaded gallery images.
 - Added automatic deletion of the stored image when a photo is deleted.
 - Added feature tests covering the Gallery API.
+
+### Added
+
+- Added pagination support to the Gallery API.
+- Added configurable `page` and `per_page` query parameters.
+- Limited Gallery API page size to a maximum of 100 photos.
+- Added pagination metadata to Gallery API responses.
+- Added automated tests for Gallery API pagination.
+- Documented Gallery API pagination in OpenAPI.
