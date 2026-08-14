@@ -141,3 +141,56 @@ it('deletes the stored file when deleting a photo', function () {
 
     Storage::disk('public')->assertMissing($filename);
 });
+
+it('paginates gallery photos', function () {
+    Photo::factory()
+        ->count(25)
+        ->create();
+
+    $response = $this->getJson(
+        '/api/gallery?per_page=20',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(20, 'data')
+        ->assertJsonStructure([
+            'data',
+            'meta' => [
+                'current_page',
+                'last_page',
+                'per_page',
+                'total',
+            ],
+        ]);
+});
+
+it('limits gallery pagination to 100 photos per page', function () {
+    Photo::factory()
+        ->count(105)
+        ->create();
+
+    $response = $this->getJson(
+        '/api/gallery?per_page=500',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(100, 'data')
+        ->assertJsonPath('meta.per_page', 100);
+});
+
+it('uses one photo as the minimum page size', function () {
+    Photo::factory()
+        ->count(5)
+        ->create();
+
+    $response = $this->getJson(
+        '/api/gallery?per_page=0',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('meta.per_page', 1);
+});

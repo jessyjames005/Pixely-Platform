@@ -17,10 +17,27 @@ final class GalleryController
     /**
      * Display all gallery photos.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $perPage = min(
+            max(
+                (int) $request->input('per_page', 20),
+                1,
+            ),
+            100,
+        );
+
+        $photos = Photo::query()
+            ->paginate($perPage);
+
         return response()->json([
-            'data' => Photo::query()->get(),
+            'data' => $photos->items(),
+            'meta' => [
+                'current_page' => $photos->currentPage(),
+                'last_page' => $photos->lastPage(),
+                'per_page' => $photos->perPage(),
+                'total' => $photos->total(),
+            ],
         ]);
     }
 

@@ -13,20 +13,41 @@ tags:
     description: Gallery photo management.
 
 paths:
-
   /api/gallery:
     get:
       tags:
         - Gallery
       summary: List gallery photos
       operationId: listGalleryPhotos
+      parameters:
+        - name: page
+          in: query
+          description: Page number.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+
+        - name: per_page
+          in: query
+          description: Number of photos per page. Maximum 100.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+
       responses:
-        '200':
-          description: Gallery photos
+        "200":
+          description: Paginated gallery photos
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhotoListResponse'
+                $ref: "#/components/schemas/PhotoListResponse"
 
   /api/gallery/{photo}:
     get:
@@ -35,15 +56,15 @@ paths:
       summary: Get a gallery photo
       operationId: getGalleryPhoto
       parameters:
-        - $ref: '#/components/parameters/PhotoId'
+        - $ref: "#/components/parameters/PhotoId"
       responses:
-        '200':
+        "200":
           description: Gallery photo
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhotoResponse'
-        '404':
+                $ref: "#/components/schemas/PhotoResponse"
+        "404":
           description: Photo not found
 
     put:
@@ -52,21 +73,21 @@ paths:
       summary: Update a gallery photo
       operationId: updateGalleryPhoto
       parameters:
-        - $ref: '#/components/parameters/PhotoId'
+        - $ref: "#/components/parameters/PhotoId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PhotoUpdateRequest'
+              $ref: "#/components/schemas/PhotoUpdateRequest"
       responses:
-        '200':
+        "200":
           description: Updated gallery photo
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhotoResponse'
-        '404':
+                $ref: "#/components/schemas/PhotoResponse"
+        "404":
           description: Photo not found
 
     delete:
@@ -75,11 +96,11 @@ paths:
       summary: Delete a gallery photo
       operationId: deleteGalleryPhoto
       parameters:
-        - $ref: '#/components/parameters/PhotoId'
+        - $ref: "#/components/parameters/PhotoId"
       responses:
-        '204':
+        "204":
           description: Photo deleted
-        '404':
+        "404":
           description: Photo not found
 
   /api/gallery/upload:
@@ -93,21 +114,19 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PhotoUploadRequest'
+              $ref: "#/components/schemas/PhotoUploadRequest"
       responses:
-        '201':
+        "201":
           description: Photo uploaded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhotoResponse'
-        '422':
+                $ref: "#/components/schemas/PhotoResponse"
+        "422":
           description: Validation error
 
 components:
-
   parameters:
-
     PhotoId:
       name: photo
       in: path
@@ -118,7 +137,6 @@ components:
         example: 1
 
   schemas:
-
     Photo:
       type: object
       required:
@@ -145,17 +163,21 @@ components:
         - data
       properties:
         data:
-          $ref: '#/components/schemas/Photo'
+          $ref: "#/components/schemas/Photo"
 
     PhotoListResponse:
       type: object
       required:
         - data
+        - meta
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Photo'
+            $ref: "#/components/schemas/Photo"
+
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
 
     PhotoUpdateRequest:
       type: object
@@ -179,3 +201,27 @@ components:
           type: string
           format: binary
           description: Image file to upload.
+
+    PaginationMeta:
+      type: object
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+      properties:
+        current_page:
+          type: integer
+          example: 1
+
+        last_page:
+          type: integer
+          example: 5
+
+        per_page:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 95
