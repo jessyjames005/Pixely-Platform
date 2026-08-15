@@ -41,6 +41,14 @@ paths:
             default: 20
             example: 20
 
+        - name: filter[title]
+          in: query
+          description: Filter photos by title.
+          required: false
+          schema:
+            type: string
+          example: sunset
+
       responses:
         "200":
           description: Paginated gallery photos
@@ -202,26 +210,26 @@ components:
           format: binary
           description: Image file to upload.
 
-    PaginationMeta:
-      type: object
-      required:
-        - current_page
-        - last_page
-        - per_page
-        - total
-      properties:
-        current_page:
-          type: integer
-          example: 1
+  PaginationMeta:
+    type: object
+    required:
+      - current_page
+      - last_page
+      - per_page
+      - total
+    properties:
+      current_page:
+        type: integer
+        example: 1
 
-        last_page:
-          type: integer
-          example: 5
+      last_page:
+        type: integer
+        example: 5
 
-        per_page:
-          type: integer
-          example: 20
+      per_page:
+        type: integer
+        example: 20
 
-        total:
-          type: integer
-          example: 95
+      total:
+        type: integer
+        example: 95

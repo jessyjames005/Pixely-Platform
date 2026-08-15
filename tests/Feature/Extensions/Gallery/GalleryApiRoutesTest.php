@@ -194,3 +194,59 @@ it('uses one photo as the minimum page size', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('meta.per_page', 1);
 });
+
+it('returns a JSON response when the gallery photo does not exist', function () {
+    $response = $this->getJson('/api/gallery/999999');
+
+    $response
+        ->assertNotFound()
+        ->assertJsonStructure([
+            'message',
+        ]);
+});
+
+it('filters gallery photos by title', function () {
+    Photo::factory()->create([
+        'title' => 'Sunset',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Mountain',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Sunset over the ocean',
+    ]);
+
+    $response = $this->getJson(
+        '/api/gallery?filter[title]=Sunset',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.title', 'Sunset')
+        ->assertJsonPath(
+            'data.1.title',
+            'Sunset over the ocean',
+        );
+});
+
+it('filters gallery photos by title case insensitively', function () {
+    Photo::factory()->create([
+        'title' => 'Sunset',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Mountain',
+    ]);
+
+    $response = $this->getJson(
+        '/api/gallery?filter[title]=sunset',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.title', 'Sunset');
+});

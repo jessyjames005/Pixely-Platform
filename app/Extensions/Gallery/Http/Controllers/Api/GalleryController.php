@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 final class GalleryController
 {
     /**
-     * Display all gallery photos.
+     * Display gallery photos.
      */
     public function index(Request $request): JsonResponse
     {
@@ -27,8 +27,19 @@ final class GalleryController
             100,
         );
 
-        $photos = Photo::query()
-            ->paginate($perPage);
+        $query = Photo::query();
+
+        $title = $request->input('filter.title');
+
+        if (is_string($title) && $title !== '') {
+            $query->where(
+                'title',
+                'like',
+                '%' . $title . '%',
+            );
+        }
+
+        $photos = $query->paginate($perPage);
 
         return response()->json([
             'data' => $photos->items(),

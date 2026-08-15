@@ -52,3 +52,18 @@ it('uploads an image and creates a photo', function () {
         Photo::first()->filename,
     );
 });
+
+it('returns a consistent validation error response', function () {
+    $response = $this->postJson('/api/gallery/upload', [
+        'title' => 'Sunset',
+    ]);
+
+    $response
+        ->assertStatus(422)
+        ->assertJsonStructure([
+            'message',
+            'errors' => [
+                'image',
+            ],
+        ]);
+});
