@@ -39,6 +39,14 @@ final class GalleryController
             );
         }
 
+        $sort = $request->input('sort');
+
+        if ($sort === 'title') {
+            $query->orderBy('title', 'asc');
+        } elseif ($sort === '-title') {
+            $query->orderBy('title', 'desc');
+        }
+
         $photos = $query->paginate($perPage);
 
         return response()->json([

@@ -250,3 +250,51 @@ it('filters gallery photos by title case insensitively', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.title', 'Sunset');
 });
+
+it('sorts gallery photos by title ascending', function () {
+    Photo::factory()->create([
+        'title' => 'Sunset',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Mountain',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Beach',
+    ]);
+
+    $response = $this->getJson(
+        '/api/gallery?sort=title',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Beach')
+        ->assertJsonPath('data.1.title', 'Mountain')
+        ->assertJsonPath('data.2.title', 'Sunset');
+});
+
+it('sorts gallery photos by title descending', function () {
+    Photo::factory()->create([
+        'title' => 'Sunset',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Mountain',
+    ]);
+
+    Photo::factory()->create([
+        'title' => 'Beach',
+    ]);
+
+    $response = $this->getJson(
+        '/api/gallery?sort=-title',
+    );
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Sunset')
+        ->assertJsonPath('data.1.title', 'Mountain')
+        ->assertJsonPath('data.2.title', 'Beach');
+});
