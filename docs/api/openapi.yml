@@ -41,13 +41,25 @@ paths:
             default: 20
             example: 20
 
-        - name: filter[title]
+        - name: filter
           in: query
-          description: Filter photos by title.
+          description: >
+            Comma-separated filter expressions.
+            Each expression uses the field.operator.value syntax.
+            Multiple values are separated by the pipe character.
           required: false
           schema:
             type: string
-          example: sunset
+          examples:
+            simple:
+              summary: Simple filter
+              value: number.greater.1
+            multiple:
+              summary: Multiple filters
+              value: number.greater.1,title.contains.sun
+            between:
+              summary: Date range filter
+              value: "created_date.between.2010-03-02 08:10:00|2010-03-03 18:30:00"
 
       responses:
         "200":
