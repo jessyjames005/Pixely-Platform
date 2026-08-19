@@ -8,6 +8,8 @@ use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Core\Api\Query\ApiQueryParser;
+use App\Core\Api\Query\ApiQueryApplier;
 
 /**
  * Handles Gallery API requests.
@@ -17,45 +19,38 @@ final class GalleryController
     /**
      * Display gallery photos.
      */
-    public function index(Request $request): JsonResponse
-    {
-        $perPage = min(
-            max(
-                (int) $request->input('per_page', 20),
-                1,
-            ),
-            100,
-        );
+    public function index(
+        Request $request,
+        ApiQueryParser $queryParser,
+        ApiQueryApplier $queryApplier,
+    ): JsonResponse {
+        $apiQuery = $queryParser->parse($request->query());
 
         $query = Photo::query();
 
-        $title = $request->input('filter.title');
+        $queryApplier->apply($query, $apiQuery);
 
-        if (is_string($title) && $title !== '') {
-            $query->where(
-                'title',
-                'like',
-                '%' . $title . '%',
-            );
-        }
+        $total = $query->toBase()->getCountForPagination();
 
-        $sort = $request->input('sort');
+        $photos = $query->get();
 
-        if ($sort === 'title') {
-            $query->orderBy('title', 'asc');
-        } elseif ($sort === '-title') {
-            $query->orderBy('title', 'desc');
-        }
+        $perPage = $apiQuery->limit();
 
-        $photos = $query->paginate($perPage);
+        $currentPage = $perPage > 0
+            ? (int) floor($apiQuery->offset() / $perPage) + 1
+            : 1;
+
+        $lastPage = $perPage > 0
+            ? (int) ceil($total / $perPage)
+            : 1;
 
         return response()->json([
-            'data' => $photos->items(),
+            'data' => $photos,
             'meta' => [
-                'current_page' => $photos->currentPage(),
-                'last_page' => $photos->lastPage(),
-                'per_page' => $photos->perPage(),
-                'total' => $photos->total(),
+                'current_page' => $currentPage,
+                'last_page' => $lastPage,
+                'per_page' => $perPage,
+                'total' => $total,
             ],
         ]);
     }
