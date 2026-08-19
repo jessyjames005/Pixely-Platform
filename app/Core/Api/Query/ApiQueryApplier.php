@@ -21,6 +21,7 @@ final class ApiQueryApplier
         $this->applyFilters($query, $apiQuery->filters());
         $this->applySorts($query, $apiQuery->sorts());
         $this->applyPagination($query, $apiQuery);
+        $this->applyRelationships($query, $apiQuery->relationships());
 
         return $query;
     }
@@ -134,6 +135,22 @@ final class ApiQueryApplier
 
             $query->orderBy($field, $direction);
         }
+    }
+
+    /**
+     * Apply requested Eloquent relationships.
+     *
+     * @param list<string> $relationships
+     */
+    private function applyRelationships(
+        Builder $query,
+        array $relationships,
+    ): void {
+        if ($relationships === []) {
+            return;
+        }
+
+        $query->with($relationships);
     }
 
     /**

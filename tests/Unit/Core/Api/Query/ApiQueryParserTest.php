@@ -141,4 +141,16 @@ final class ApiQueryParserTest extends TestCase
             'include' => 'photos,',
         ]);
     }
+
+    public function test_it_parses_include_parameter(): void
+    {
+        $query = (new ApiQueryParser())->parse([
+            'include' => 'comments,user',
+        ]);
+
+        self::assertSame(
+            ['comments', 'user'],
+            $query->relationships(),
+        );
+    }
 }

@@ -584,3 +584,37 @@ it('applies not between filter', function () {
 
     (new ApiQueryApplier())->apply($query, $apiQuery);
 });
+
+it('applies relationships', function () {
+    $query = Mockery::mock(Builder::class);
+
+    $query
+        ->shouldReceive('limit')
+        ->once()
+        ->with(20)
+        ->andReturnSelf();
+
+    $query
+        ->shouldReceive('offset')
+        ->once()
+        ->with(0)
+        ->andReturnSelf();
+
+    $query
+        ->shouldReceive('with')
+        ->once()
+        ->with(['comments', 'user'])
+        ->andReturnSelf();
+
+    $apiQuery = new ApiQuery(
+        filters: [],
+        sorts: [],
+        limit: 20,
+        offset: 0,
+        relationships: ['comments', 'user'],
+    );
+
+    $result = (new ApiQueryApplier())->apply($query, $apiQuery);
+
+    expect($result)->toBe($query);
+});
