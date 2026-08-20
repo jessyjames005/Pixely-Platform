@@ -14,7 +14,7 @@ uses(
 );
 
 it('exposes the gallery API endpoint', function () {
-    $response = $this->getJson('/api/gallery');
+    $response = $this->getJson('/api/v1/gallery');
 
     $response->assertOk();
 });
@@ -25,7 +25,7 @@ it('returns gallery photos', function () {
         'filename' => 'sunset.jpg',
     ]);
 
-    $response = $this->getJson('/api/gallery');
+    $response = $this->getJson('/api/v1/gallery');
 
     $response
         ->assertOk()
@@ -39,7 +39,7 @@ it('returns photos with the public gallery fields', function () {
         'filename' => 'sunset.jpg',
     ]);
 
-    $response = $this->getJson('/api/gallery');
+    $response = $this->getJson('/api/v1/gallery');
 
     $response
         ->assertOk()
@@ -61,7 +61,7 @@ it('returns a single gallery photo', function () {
     ]);
 
     $response = $this->getJson(
-        "/api/gallery/{$photo->id}",
+        "/api/v1/gallery/{$photo->id}",
     );
 
     $response
@@ -73,7 +73,7 @@ it('returns a single gallery photo', function () {
 
 it('returns 404 when the gallery photo does not exist', function () {
     $response = $this->getJson(
-        '/api/gallery/999999',
+        '/api/v1/gallery/999999',
     );
 
     $response->assertNotFound();
@@ -86,7 +86,7 @@ it('updates a gallery photo', function () {
     ]);
 
     $response = $this->putJson(
-        "/api/gallery/{$photo->id}",
+        "/api/v1/gallery/{$photo->id}",
         [
             'title' => 'Beautiful Sunset',
         ],
@@ -110,7 +110,7 @@ it('deletes a gallery photo', function () {
     ]);
 
     $response = $this->deleteJson(
-        "/api/gallery/{$photo->id}",
+        "/api/v1/gallery/{$photo->id}",
     );
 
     $response->assertNoContent();
@@ -134,7 +134,7 @@ it('deletes the stored file when deleting a photo', function () {
     Storage::disk('public')->assertExists($filename);
 
     $response = $this->deleteJson(
-        "/api/gallery/{$photo->id}",
+        "/api/v1/gallery/{$photo->id}",
     );
 
     $response->assertNoContent();
@@ -148,7 +148,7 @@ it('paginates gallery photos', function () {
         ->create();
 
     $response = $this->getJson(
-        '/api/gallery?per_page=20',
+        '/api/v1/gallery?per_page=20',
     );
 
     $response
@@ -171,7 +171,7 @@ it('limits gallery pagination to 100 photos per page', function () {
         ->create();
 
     $response = $this->getJson(
-        '/api/gallery?per_page=500',
+        '/api/v1/gallery?per_page=500',
     );
 
     $response
@@ -186,7 +186,7 @@ it('uses one photo as the minimum page size', function () {
         ->create();
 
     $response = $this->getJson(
-        '/api/gallery?per_page=0',
+        '/api/v1/gallery?per_page=0',
     );
 
     $response
@@ -196,12 +196,15 @@ it('uses one photo as the minimum page size', function () {
 });
 
 it('returns a JSON response when the gallery photo does not exist', function () {
-    $response = $this->getJson('/api/gallery/999999');
+    $response = $this->getJson('/api/v1/gallery/999999');
 
     $response
         ->assertNotFound()
         ->assertJsonStructure([
-            'message',
+            'error' => [
+                'code',
+                'message',
+            ],
         ]);
 });
 
@@ -219,7 +222,7 @@ it('filters gallery photos by title', function () {
     ]);
 
     $response = $this->getJson(
-        '/api/gallery?filter[title]=Sunset',
+        '/api/v1/gallery?filter[title]=Sunset',
     );
 
     $response
@@ -242,7 +245,7 @@ it('filters gallery photos by title case insensitively', function () {
     ]);
 
     $response = $this->getJson(
-        '/api/gallery?filter[title]=sunset',
+        '/api/v1/gallery?filter[title]=sunset',
     );
 
     $response
@@ -265,7 +268,7 @@ it('sorts gallery photos by title ascending', function () {
     ]);
 
     $response = $this->getJson(
-        '/api/gallery?sort=title',
+        '/api/v1/gallery?sort=title',
     );
 
     $response
@@ -289,7 +292,7 @@ it('sorts gallery photos by title descending', function () {
     ]);
 
     $response = $this->getJson(
-        '/api/gallery?sort=-title',
+        '/api/v1/gallery?sort=-title',
     );
 
     $response

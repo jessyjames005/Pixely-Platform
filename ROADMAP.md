@@ -264,8 +264,8 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [x] Gallery delete endpoint
 * [x] Generic extension API conventions
 * [x] API pagination
-* [ ] API filtering
-* [ ] API sorting
+* [x] API filtering
+* [x] API sorting
 
 ### API Authentication
 
@@ -323,6 +323,8 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [x] `PUT /api/gallery/{photo}`
 * [x] `DELETE /api/gallery/{photo}`
 * [x] Gallery pagination
+* [x] Gallery filtering
+* [x] Gallery sorting
 
 ### Gallery Upload
 

@@ -45,7 +45,7 @@ final class GalleryServiceProvider extends ServiceProvider
 
         $this->app->router
             ->middleware('api')
-            ->prefix('api')
+            ->prefix('api/v1')
             ->group(
                 __DIR__ . '/../routes/api.php'
             );

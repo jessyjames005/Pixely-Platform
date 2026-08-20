@@ -14,7 +14,7 @@ uses(
 );
 
 it('requires an image for API upload', function () {
-    $response = $this->postJson('/api/gallery/upload', [
+    $response = $this->postJson('/api/v1/gallery/upload', [
         'title' => 'Sunset',
     ]);
 
@@ -26,20 +26,20 @@ it('uploads an image and creates a photo', function () {
 
     $image = UploadedFile::fake()->image('sunset.jpg');
 
-    $response = $this->postJson('/api/gallery/upload', [
+    $response = $this->postJson('/api/v1/gallery/upload', [
         'title' => 'Sunset',
         'image' => $image,
     ]);
 
     $response
-    ->assertCreated()
-    ->assertJsonStructure([
-        'data' => [
-            'id',
-            'title',
-            'filename',
-        ],
-    ]);
+        ->assertCreated()
+        ->assertJsonStructure([
+            'data' => [
+                'id',
+                'title',
+                'filename',
+            ],
+        ]);
 
     expect(Photo::query()->count())
         ->toBe(1);
@@ -54,16 +54,19 @@ it('uploads an image and creates a photo', function () {
 });
 
 it('returns a consistent validation error response', function () {
-    $response = $this->postJson('/api/gallery/upload', [
+    $response = $this->postJson('/api/v1/gallery/upload', [
         'title' => 'Sunset',
     ]);
 
     $response
         ->assertStatus(422)
         ->assertJsonStructure([
-            'message',
-            'errors' => [
-                'image',
+            'error' => [
+                'code',
+                'message',
+                'details' => [
+                    'image',
+                ],
             ],
         ]);
 });
