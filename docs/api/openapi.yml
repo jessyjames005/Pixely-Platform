@@ -13,7 +13,7 @@ tags:
     description: Gallery photo management.
 
 paths:
-  /api/gallery:
+  /api/v1/gallery:
     get:
       tags:
         - Gallery
@@ -69,7 +69,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PhotoListResponse"
 
-  /api/gallery/{photo}:
+  /api/v1/gallery/{photo}:
     get:
       tags:
         - Gallery
@@ -86,6 +86,10 @@ paths:
                 $ref: "#/components/schemas/PhotoResponse"
         "404":
           description: Photo not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
     put:
       tags:
@@ -109,6 +113,10 @@ paths:
                 $ref: "#/components/schemas/PhotoResponse"
         "404":
           description: Photo not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
     delete:
       tags:
@@ -122,8 +130,12 @@ paths:
           description: Photo deleted
         "404":
           description: Photo not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
-  /api/gallery/upload:
+  /api/v1/gallery/upload:
     post:
       tags:
         - Gallery
@@ -144,6 +156,10 @@ paths:
                 $ref: "#/components/schemas/PhotoResponse"
         "422":
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
 components:
   parameters:
@@ -222,26 +238,54 @@ components:
           format: binary
           description: Image file to upload.
 
-  PaginationMeta:
-    type: object
-    required:
-      - current_page
-      - last_page
-      - per_page
-      - total
-    properties:
-      current_page:
-        type: integer
-        example: 1
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: "#/components/schemas/ApiErrorDetails"
 
-      last_page:
-        type: integer
-        example: 5
+    ApiErrorDetails:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: RESOURCE_NOT_FOUND
 
-      per_page:
-        type: integer
-        example: 20
+        message:
+          type: string
+          example: The requested resource was not found.
 
-      total:
-        type: integer
-        example: 95
+        details:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: Additional error details.
+
+    PaginationMeta:
+      type: object
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+      properties:
+        current_page:
+          type: integer
+          example: 1
+
+        last_page:
+          type: integer
+          example: 5
+
+        per_page:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 95
