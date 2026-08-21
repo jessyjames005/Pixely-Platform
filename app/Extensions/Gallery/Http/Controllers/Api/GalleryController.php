@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Core\Api\Query\ApiQueryParser;
 use App\Core\Api\Query\ApiQueryApplier;
+use OpenApi\Attributes as OA;
 
 /**
  * Handles Gallery API requests.
@@ -19,6 +20,43 @@ final class GalleryController
     /**
      * Display gallery photos.
      */
+    #[OA\Get(
+        path: '/api/v1/gallery',
+        operationId: 'listGalleryPhotos',
+        summary: 'List gallery photos',
+        tags: ['Gallery'],
+        parameters: [
+            new OA\Parameter(
+                name: 'page',
+                in: 'query',
+                required: false,
+                description: 'Page number.',
+                schema: new OA\Schema(
+                    type: 'integer',
+                    minimum: 1,
+                    default: 1,
+                ),
+            ),
+            new OA\Parameter(
+                name: 'per_page',
+                in: 'query',
+                required: false,
+                description: 'Number of photos per page. Maximum 100.',
+                schema: new OA\Schema(
+                    type: 'integer',
+                    minimum: 1,
+                    maximum: 100,
+                    default: 20,
+                ),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Paginated gallery photos.',
+            ),
+        ],
+    )]
     public function index(
         Request $request,
         ApiQueryParser $queryParser,
@@ -86,6 +124,34 @@ final class GalleryController
     /**
      * Display a single gallery photo.
      */
+    #[OA\Get(
+        path: '/api/v1/gallery/{photo}',
+        operationId: 'getGalleryPhoto',
+        summary: 'Get a gallery photo',
+        tags: ['Gallery'],
+        parameters: [
+            new OA\Parameter(
+                name: 'photo',
+                in: 'path',
+                required: true,
+                description: 'Photo identifier.',
+                schema: new OA\Schema(
+                    type: 'integer',
+                    example: 1,
+                ),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Gallery photo.',
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Photo not found.',
+            ),
+        ],
+    )]
     public function show(Photo $photo): JsonResponse
     {
         return response()->json([

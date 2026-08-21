@@ -1,291 +1,65 @@
-openapi: 3.0.3
-
+openapi: 3.0.0
 info:
-  title: Pixely Platform API
-  description: Public API for Pixely Platform extensions.
+  title: 'Pixely Platform API'
+  description: 'Public API for Pixely Platform extensions.'
   version: 0.1.0
-
 servers:
-  - url: /
-
-tags:
-  - name: Gallery
-    description: Gallery photo management.
-
+  -
+    url: /
 paths:
   /api/v1/gallery:
     get:
       tags:
         - Gallery
-      summary: List gallery photos
+      summary: 'List gallery photos'
+      description: 'Display gallery photos.'
       operationId: listGalleryPhotos
       parameters:
-        - name: page
+        -
+          name: page
           in: query
-          description: Page number.
+          description: 'Page number.'
           required: false
           schema:
             type: integer
-            minimum: 1
             default: 1
-            example: 1
-
-        - name: per_page
+            minimum: 1
+        -
+          name: per_page
           in: query
-          description: Number of photos per page. Maximum 100.
+          description: 'Number of photos per page. Maximum 100.'
           required: false
           schema:
             type: integer
-            minimum: 1
-            maximum: 100
             default: 20
-            example: 20
-
-        - name: filter
-          in: query
-          description: >
-            Comma-separated filter expressions.
-            Each expression uses the field.operator.value syntax.
-            Multiple values are separated by the pipe character.
-          required: false
-          schema:
-            type: string
-          examples:
-            simple:
-              summary: Simple filter
-              value: number.greater.1
-            multiple:
-              summary: Multiple filters
-              value: number.greater.1,title.contains.sun
-            between:
-              summary: Date range filter
-              value: "created_date.between.2010-03-02 08:10:00|2010-03-03 18:30:00"
-
+            maximum: 100
+            minimum: 1
       responses:
-        "200":
-          description: Paginated gallery photos
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PhotoListResponse"
-
-  /api/v1/gallery/{photo}:
+        '200':
+          description: 'Paginated gallery photos.'
+  '/api/v1/gallery/{photo}':
     get:
       tags:
         - Gallery
-      summary: Get a gallery photo
+      summary: 'Get a gallery photo'
+      description: 'Display a single gallery photo.'
       operationId: getGalleryPhoto
       parameters:
-        - $ref: "#/components/parameters/PhotoId"
+        -
+          name: photo
+          in: path
+          description: 'Photo identifier.'
+          required: true
+          schema:
+            type: integer
+            example: 1
       responses:
-        "200":
-          description: Gallery photo
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PhotoResponse"
-        "404":
-          description: Photo not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
+        '200':
+          description: 'Gallery photo.'
+        '404':
+          description: 'Photo not found.'
+tags:
+  -
+    name: Gallery
+    description: 'Gallery photo management.'
 
-    put:
-      tags:
-        - Gallery
-      summary: Update a gallery photo
-      operationId: updateGalleryPhoto
-      parameters:
-        - $ref: "#/components/parameters/PhotoId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PhotoUpdateRequest"
-      responses:
-        "200":
-          description: Updated gallery photo
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PhotoResponse"
-        "404":
-          description: Photo not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-
-    delete:
-      tags:
-        - Gallery
-      summary: Delete a gallery photo
-      operationId: deleteGalleryPhoto
-      parameters:
-        - $ref: "#/components/parameters/PhotoId"
-      responses:
-        "204":
-          description: Photo deleted
-        "404":
-          description: Photo not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-
-  /api/v1/gallery/upload:
-    post:
-      tags:
-        - Gallery
-      summary: Upload a gallery photo
-      operationId: uploadGalleryPhoto
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/PhotoUploadRequest"
-      responses:
-        "201":
-          description: Photo uploaded
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PhotoResponse"
-        "422":
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-
-components:
-  parameters:
-    PhotoId:
-      name: photo
-      in: path
-      required: true
-      description: Photo identifier.
-      schema:
-        type: integer
-        example: 1
-
-  schemas:
-    Photo:
-      type: object
-      required:
-        - id
-        - title
-        - filename
-      properties:
-        id:
-          type: integer
-          example: 1
-
-        title:
-          type: string
-          nullable: true
-          example: Sunset
-
-        filename:
-          type: string
-          example: gallery/sunset.jpg
-
-    PhotoResponse:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          $ref: "#/components/schemas/Photo"
-
-    PhotoListResponse:
-      type: object
-      required:
-        - data
-        - meta
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Photo"
-
-        meta:
-          $ref: "#/components/schemas/PaginationMeta"
-
-    PhotoUpdateRequest:
-      type: object
-      properties:
-        title:
-          type: string
-          maxLength: 255
-          example: Beautiful Sunset
-
-    PhotoUploadRequest:
-      type: object
-      required:
-        - image
-      properties:
-        title:
-          type: string
-          maxLength: 255
-          example: Sunset
-
-        image:
-          type: string
-          format: binary
-          description: Image file to upload.
-
-    ApiError:
-      type: object
-      required:
-        - error
-      properties:
-        error:
-          $ref: "#/components/schemas/ApiErrorDetails"
-
-    ApiErrorDetails:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: string
-          example: RESOURCE_NOT_FOUND
-
-        message:
-          type: string
-          example: The requested resource was not found.
-
-        details:
-          type: object
-          additionalProperties: true
-          nullable: true
-          description: Additional error details.
-
-    PaginationMeta:
-      type: object
-      required:
-        - current_page
-        - last_page
-        - per_page
-        - total
-      properties:
-        current_page:
-          type: integer
-          example: 1
-
-        last_page:
-          type: integer
-          example: 5
-
-        per_page:
-          type: integer
-          example: 20
-
-        total:
-          type: integer
-          example: 95

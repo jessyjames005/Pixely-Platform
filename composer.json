@@ -9,7 +9,8 @@
         "php": "^8.3",
         "intervention/image": "^4.2",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "zircote/swagger-php": "^6.6"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -34,6 +35,7 @@
         }
     },
     "scripts": {
+        "openapi": "@php artisan openapi:generate",
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

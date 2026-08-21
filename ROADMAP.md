@@ -1,6 +1,6 @@
 # Pixely Platform Roadmap
 
-This roadmap defines the planned evolution of Pixely Platform from the initial foundation to the first stable Gallery release.
+This roadmap defines the planned evolution of Pixely Platform from the initial platform foundation to a stable, extensible platform with a complete administration interface, developer tooling and multiple example extensions.
 
 ---
 
@@ -143,7 +143,83 @@ The original Module concept evolved into the Pixely Extension architecture.
 
 ---
 
-## v0.4.0 - Administration
+## v0.4.0 - Administration Foundation
+
+The Administration layer provides the first visual interface for managing the Pixely Platform.
+
+### Administration Architecture
+
+* [ ] Administration frontend architecture
+* [ ] Vue.js 3 integration
+* [ ] TypeScript integration
+* [ ] Vue Router integration
+* [ ] API client architecture
+* [ ] Authentication integration
+* [ ] Administration layout
+* [ ] Administration navigation
+* [ ] Administration route protection
+
+### Material Design System
+
+* [ ] Material Design principles
+* [ ] Vuetify integration
+* [ ] Pixely Design System
+* [ ] Design tokens
+* [ ] Typography system
+* [ ] Spacing system
+* [ ] Icon system
+* [ ] Colour system
+* [ ] Theme system
+* [ ] Light theme
+* [ ] Dark theme
+* [ ] Responsive design rules
+* [ ] Accessibility rules
+
+### UI Components
+
+* [ ] Buttons
+* [ ] Inputs
+* [ ] Selects
+* [ ] Checkboxes
+* [ ] Radio buttons
+* [ ] Switches
+* [ ] Dialogs
+* [ ] Alerts
+* [ ] Notifications
+* [ ] Cards
+* [ ] Tables
+* [ ] Pagination
+* [ ] Tabs
+* [ ] Breadcrumbs
+* [ ] Loading states
+* [ ] Empty states
+* [ ] Error states
+
+### Storybook
+
+Storybook provides an isolated environment for developing and documenting Vue.js components.
+
+* [ ] Storybook installation
+* [ ] Storybook Vue.js integration
+* [ ] Vuetify integration
+* [ ] Pixely Design System integration
+* [ ] Component stories
+* [ ] Component documentation
+* [ ] Interactive component examples
+* [ ] Accessibility checks
+* [ ] Responsive component previews
+* [ ] Storybook development workflow
+
+### UI Design & Prototyping
+
+* [ ] UI/UX design workflow
+* [ ] Figma or equivalent free design tool
+* [ ] Administration wireframes
+* [ ] Administration layout mockups
+* [ ] Design System documentation
+* [ ] Component specifications
+* [ ] Responsive mockups
+* [ ] Dark mode mockups
 
 ### Dashboard
 
@@ -151,33 +227,9 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [ ] System status
 * [ ] Extension status
 * [ ] Platform statistics
-
-### Extension Manager
-
-* [x] Extension registration
-* [x] Extension discovery
-* [x] Extension state management
-* [x] Enable extension
-* [x] Disable extension
-* [ ] Install extension
-* [ ] Uninstall extension
-* [ ] Update extension
-* [ ] Extension version management
-* [ ] Dependency visualization
-
-### User Management
-
-* [ ] User listing
-* [ ] User creation
-* [ ] User editing
-* [ ] User deletion
-* [ ] Role management
-
-### Settings
-
-* [ ] Administration settings
-* [ ] Extension configuration UI
-* [ ] Platform configuration UI
+* [ ] Dashboard widgets
+* [ ] Recent activity
+* [ ] Quick actions
 
 ---
 
@@ -219,6 +271,8 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [ ] Migration versioning
 * [ ] Extension database isolation
 * [ ] Migration rollback
+* [ ] Migration status
+* [ ] Migration compatibility checks
 
 ### Assets
 
@@ -226,6 +280,8 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [ ] Asset publishing
 * [ ] Frontend assets
 * [ ] Extension views
+* [ ] Extension Vue components
+* [ ] Extension frontend routes
 
 ### Versioning
 
@@ -240,6 +296,10 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [ ] Extension development template
 * [ ] Extension testing helpers
 * [ ] Extension SDK documentation
+* [ ] Extension development guidelines
+* [ ] Extension frontend guidelines
+* [ ] Extension Design System guidelines
+* [ ] Extension Storybook guidelines
 
 ---
 
@@ -251,9 +311,14 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [x] Extension-owned API routes
 * [x] API middleware
 * [x] JSON API responses
-* [ ] API versioning
-* [ ] API error format
-* [ ] API documentation
+* [x] API versioning
+* [x] API error format
+* [x] API query parser
+* [x] API query applier
+* [x] API pagination
+* [x] API filtering
+* [x] API sorting
+* [x] API relationships / includes
 
 ### REST API
 
@@ -266,6 +331,8 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [x] API pagination
 * [x] API filtering
 * [x] API sorting
+* [ ] API relationship documentation
+* [ ] API validation standardisation
 
 ### API Authentication
 
@@ -274,13 +341,50 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [ ] Token permissions
 * [ ] Extension API permissions
 
-### API Documentation
+### OpenAPI
 
-* [x] API route documentation structure
-* [ ] OpenAPI specification
-* [ ] OpenAPI schemas
+OpenAPI is generated automatically from the PHP application rather than maintained manually.
+
+* [x] OpenAPI specification structure
+* [x] Initial `openapi.yml`
+* [ ] Install `zircote/swagger-php`
+* [ ] Define OpenAPI PHP attributes / annotations conventions
+* [ ] Document API controllers with OpenAPI attributes
+* [ ] Document API request objects
+* [ ] Document API response objects
+* [ ] Document API schemas
+* [ ] Document API parameters
+* [ ] Document API errors
+* [ ] Document API authentication
+* [ ] Generate OpenAPI specification from PHP
+* [ ] Generate `openapi.yml`
+* [ ] Generate OpenAPI JSON
+* [ ] Validate generated OpenAPI specification
+* [ ] Prevent invalid OpenAPI definitions in CI
+* [ ] Document OpenAPI generation workflow
+
+### Swagger UI
+
+Swagger UI is the primary interactive interface for exploring and testing the generated API documentation.
+
+* [ ] Swagger UI integration
+* [ ] Swagger UI Docker integration
+* [ ] Connect Swagger UI to generated `openapi.yml`
+* [ ] Interactive API exploration
+* [ ] API request testing
+* [ ] Authentication testing
+* [ ] Swagger UI development workflow
+* [ ] Swagger UI documentation
+
+### API Examples
+
 * [ ] API examples
-* [ ] API documentation generation
+* [ ] Gallery API examples
+* [ ] Filtering examples
+* [ ] Sorting examples
+* [ ] Pagination examples
+* [ ] Relationship examples
+* [ ] Error response examples
 
 ### Public SDK
 
@@ -292,9 +396,195 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 
 ---
 
+## v0.7.0 - Administration Platform
+
+### Extension Manager
+
+* [x] Extension registration
+* [x] Extension discovery
+* [x] Extension state management
+* [x] Enable extension
+* [x] Disable extension
+* [ ] Install extension
+* [ ] Uninstall extension
+* [ ] Update extension
+* [ ] Extension version management
+* [ ] Dependency visualization
+* [ ] Extension details page
+* [ ] Extension configuration page
+
+### User Management
+
+* [ ] User listing
+* [ ] User creation
+* [ ] User editing
+* [ ] User deletion
+* [ ] User profile
+* [ ] Role management
+* [ ] Permission management
+
+### Settings
+
+* [ ] Administration settings
+* [ ] Extension configuration UI
+* [ ] Platform configuration UI
+* [ ] User preferences UI
+* [ ] Language selection
+* [ ] Theme selection
+
+### Administration Infrastructure
+
+* [ ] Reusable administration data tables
+* [ ] Reusable CRUD forms
+* [ ] Form validation system
+* [ ] Notification system
+* [ ] Confirmation dialogs
+* [ ] Error handling
+* [ ] API loading states
+* [ ] API error states
+* [ ] Permission-aware UI
+
+---
+
+## v0.8.0 - Developer Sample Extension
+
+The Sample Extension is a complete reference implementation designed to demonstrate how developers can build a Pixely extension.
+
+The initial sample is a **Cinema / Movie Catalogue**.
+
+### Sample Extension Foundation
+
+* [ ] Sample extension manifest
+* [ ] Sample extension registration
+* [ ] Sample extension service provider
+* [ ] Sample extension configuration
+* [ ] Sample extension migrations
+* [ ] Sample extension models
+* [ ] Sample extension controllers
+* [ ] Sample extension API
+* [ ] Sample extension administration routes
+* [ ] Sample extension Vue.js integration
+
+### Movie Catalogue
+
+* [ ] Movie model
+* [ ] Movie title
+* [ ] Movie description
+* [ ] Movie release date
+* [ ] Movie duration
+* [ ] Movie language
+* [ ] Movie age rating
+* [ ] Movie poster
+* [ ] Movie trailer
+* [ ] Movie status
+* [ ] Movie creation
+* [ ] Movie editing
+* [ ] Movie deletion
+* [ ] Movie listing
+* [ ] Movie detail
+
+### Directors
+
+* [ ] Director model
+* [ ] Director creation
+* [ ] Director editing
+* [ ] Director deletion
+* [ ] Director assignment to movies
+* [ ] Director administration interface
+
+### Actors
+
+* [ ] Actor model
+* [ ] Actor creation
+* [ ] Actor editing
+* [ ] Actor deletion
+* [ ] Actor assignment to movies
+* [ ] Actor administration interface
+* [ ] Character / role information
+
+### Trailers & Media
+
+* [ ] Trailer model
+* [ ] Trailer URL
+* [ ] Multiple trailers
+* [ ] Trailer administration
+* [ ] Video preview
+* [ ] Poster management
+* [ ] Media relationships
+
+### Favourites
+
+* [ ] Favourite model
+* [ ] Add movie to favourites
+* [ ] Remove movie from favourites
+* [ ] Favourite listing
+* [ ] Favourite API
+* [ ] Favourite administration interface
+
+### Sample Extension API
+
+* [ ] Movie listing endpoint
+* [ ] Movie detail endpoint
+* [ ] Movie creation endpoint
+* [ ] Movie update endpoint
+* [ ] Movie deletion endpoint
+* [ ] Director endpoints
+* [ ] Actor endpoints
+* [ ] Favourite endpoints
+* [ ] Trailer endpoints
+* [ ] API filtering
+* [ ] API sorting
+* [ ] API pagination
+* [ ] OpenAPI documentation
+
+### Sample Extension Administration
+
+The Sample Extension is intentionally implemented primarily as an administration example.
+
+* [ ] Movie administration dashboard
+* [ ] Movie listing
+* [ ] Movie creation form
+* [ ] Movie editing form
+* [ ] Movie deletion
+* [ ] Movie detail view
+* [ ] Director management
+* [ ] Actor management
+* [ ] Trailer management
+* [ ] Favourite management
+* [ ] Poster upload
+* [ ] Image preview
+* [ ] Video preview
+* [ ] Form validation
+* [ ] API integration
+* [ ] Loading states
+* [ ] Empty states
+* [ ] Error states
+* [ ] Permission-aware actions
+
+### Developer Examples
+
+* [ ] Complete extension example
+* [ ] Backend / frontend interaction example
+* [ ] API consumption example
+* [ ] CRUD example
+* [ ] Relationships example
+* [ ] File upload example
+* [ ] Media management example
+* [ ] Form validation example
+* [ ] Filtering example
+* [ ] Sorting example
+* [ ] Pagination example
+* [ ] Permissions example
+* [ ] Configuration example
+* [ ] Vue.js component example
+* [ ] Storybook component example
+* [ ] Design System usage example
+
+---
+
 ## v1.0.0 - Gallery Extension
 
-The Gallery Extension is the first complete Pixely Platform extension and the first major functional module.
+The Gallery Extension is the first complete Pixely Platform extension and the first major functional extension.
 
 ### Gallery Foundation
 
@@ -314,14 +604,16 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Photo upload interface
 * [ ] Photo editing interface
 * [ ] Photo deletion interface
+* [ ] Gallery administration interface
+* [ ] Gallery administration dashboard
 
 ### Gallery API
 
-* [x] `GET /api/gallery`
-* [x] `GET /api/gallery/{photo}`
-* [x] `POST /api/gallery/upload`
-* [x] `PUT /api/gallery/{photo}`
-* [x] `DELETE /api/gallery/{photo}`
+* [x] `GET /api/v1/gallery`
+* [x] `GET /api/v1/gallery/{photo}`
+* [x] `POST /api/v1/gallery/upload`
+* [x] `PUT /api/v1/gallery/{photo}`
+* [x] `DELETE /api/v1/gallery/{photo}`
 * [x] Gallery pagination
 * [x] Gallery filtering
 * [x] Gallery sorting
@@ -347,6 +639,7 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Album / photo relationship
 * [ ] Album API
 * [ ] Album interface
+* [ ] Album administration
 
 ### Photos
 
@@ -367,6 +660,7 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Comment deletion
 * [ ] Comment moderation
 * [ ] Comment API
+* [ ] Comment administration
 
 ### Tags
 
@@ -374,6 +668,7 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Photo tagging
 * [ ] Tag management
 * [ ] Tag API
+* [ ] Tag administration
 
 ### Search
 
@@ -382,6 +677,7 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Tag search
 * [ ] Search API
 * [ ] Search filters
+* [ ] Administration search interface
 
 ### EXIF
 
@@ -390,6 +686,7 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Camera information
 * [ ] GPS metadata
 * [ ] EXIF privacy controls
+* [ ] EXIF administration
 
 ---
 
@@ -405,6 +702,8 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Comments
 * [ ] Publishing workflow
 * [ ] Blog API
+* [ ] Blog administration
+* [ ] Blog frontend
 
 ## Shop Extension
 
@@ -414,6 +713,8 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Orders
 * [ ] Payments
 * [ ] Shop API
+* [ ] Shop administration
+* [ ] Shop frontend
 
 ## Media Extension
 
@@ -422,6 +723,7 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Storage abstraction
 * [ ] Image processing
 * [ ] File metadata
+* [ ] Media administration
 
 ---
 
@@ -435,6 +737,9 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Extension dependency resolution
 * [ ] Extension compatibility checks
 * [ ] Extension security validation
+* [ ] Extension ratings
+* [ ] Extension documentation
+* [ ] Extension developer portal
 
 ### Platform
 
@@ -446,6 +751,22 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Notification system
 * [ ] Caching
 * [ ] Logging and monitoring
+* [ ] Audit system
+* [ ] Backup system
+
+### Frontend Platform
+
+* [ ] Vue.js 3 platform architecture
+* [ ] TypeScript architecture
+* [ ] Vuetify integration
+* [ ] Pixely Design System
+* [ ] Storybook component library
+* [ ] Material Design guidelines
+* [ ] Theme system
+* [ ] Dark mode
+* [ ] Accessibility standards
+* [ ] Responsive administration
+* [ ] Reusable administration components
 
 ### Developer Platform
 
@@ -453,8 +774,30 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Extension generator
 * [ ] Developer documentation
 * [ ] API documentation
+* [ ] Swagger UI
+* [ ] OpenAPI generation
 * [ ] CLI tooling
 * [ ] Extension testing framework
+* [ ] Frontend extension tooling
+* [ ] Storybook extension tooling
+* [ ] Sample extensions
+* [ ] Developer tutorials
+* [ ] Extension development cookbook
+
+### Quality
+
+* [ ] Unit test coverage
+* [ ] Feature test coverage
+* [ ] API test coverage
+* [ ] Frontend test coverage
+* [ ] Component test coverage
+* [ ] Storybook component testing
+* [ ] Static analysis
+* [ ] Code style enforcement
+* [ ] Security analysis
+* [ ] Performance testing
+* [ ] Accessibility testing
+* [ ] CI/CD pipeline
 
 ---
 
@@ -476,6 +819,39 @@ The Pixely Platform currently has a functional extension foundation with:
 * Gallery CRUD operations
 * Image upload and storage
 * Automatic stored-file deletion
+* API query parsing
+* API query filtering
+* API query sorting
+* API pagination
+* API relationships
 * Automated tests
 
-The next development focus is to consolidate the **Gallery API**, improve API documentation with OpenAPI, then continue the Gallery feature set with albums, metadata, thumbnails and search.
+The current API query layer is stable and its Gallery API tests are green.
+
+The next development focus is:
+
+1. Consolidate the Platform API documentation architecture.
+2. Replace manually maintained OpenAPI documentation with automatic generation from PHP.
+3. Introduce `zircote/swagger-php` and PHP OpenAPI attributes.
+4. Generate `openapi.yml` from the application source code.
+5. Integrate Swagger UI with the generated specification.
+6. Complete the API documentation workflow.
+7. Continue the Extension SDK.
+8. Start the administration foundation.
+9. Introduce Vue.js 3, Vuetify and the Pixely Material Design System.
+10. Introduce Storybook for reusable Vue.js components.
+11. Create administration mockups using Figma or an equivalent free design tool.
+12. Build the Sample Cinema Extension as a developer reference.
+13. Continue the Gallery Extension with its visual administration interface.
+
+The development process should continue through clearly defined sprints, with each sprint having:
+
+* A defined objective
+* A limited scope
+* Step-by-step implementation tasks
+* Automated tests
+* Documentation updates
+* A final validation
+* A Git commit at the end of the sprint
+
+The roadmap should be updated progressively as each sprint is completed.
