@@ -1,49 +1,49 @@
-openapi: 3.0.3
-info:
-  title: 'Pixely Platform API'
-  description: 'Public API for Pixely Platform extensions.'
-  version: 0.1.0
-servers:
-  -
-    url: /
+tags:
+  - name: Gallery
+    description: Gallery photo management.
+
 paths:
+
   /api/v1/gallery:
     get:
       tags:
         - Gallery
-      summary: 'List gallery photos'
-      description: 'Display gallery photos.'
+      summary: List gallery photos
+      description: Display gallery photos.
       operationId: listGalleryPhotos
+
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           required: false
-          description: 'Page number.'
+          description: Page number.
           schema:
             type: integer
             minimum: 1
             default: 1
-        -
-          name: per_page
+
+        - name: per_page
           in: query
           required: false
-          description: 'Number of photos per page. Maximum 100.'
+          description: Number of photos per page. Maximum 100.
           schema:
             type: integer
             minimum: 1
             maximum: 100
             default: 20
+
       responses:
-        200:
-          description: 'Paginated gallery photos.'
+        '200':
+          description: Paginated gallery photos.
+
   /api/v1/gallery/upload:
     post:
       tags:
         - Gallery
-      summary: 'Upload a gallery photo'
-      description: 'Upload a new gallery photo.'
+      summary: Upload a gallery photo
+      description: Upload a new gallery photo.
       operationId: uploadGalleryPhoto
+
       requestBody:
         required: true
         content:
@@ -57,52 +57,60 @@ paths:
                   type: string
                   nullable: true
                   maxLength: 255
-                  description: 'Optional photo title.'
+                  description: Optional photo title.
+
                 image:
                   type: string
                   format: binary
-                  description: 'Image file.'
+                  description: Image file.
+
       responses:
-        201:
-          description: 'Gallery photo created.'
-        422:
-          description: 'Validation error.'
-  '/api/v1/gallery/{photo}':
+        '201':
+          description: Gallery photo created.
+
+        '422':
+          description: Validation error.
+
+  /api/v1/gallery/{photo}:
     get:
       tags:
         - Gallery
-      summary: 'Get a gallery photo'
-      description: 'Display a single gallery photo.'
+      summary: Get a gallery photo
+      description: Display a single gallery photo.
       operationId: getGalleryPhoto
+
       parameters:
-        -
-          name: photo
+        - name: photo
           in: path
           required: true
-          description: 'Photo identifier.'
+          description: Photo identifier.
           schema:
             type: integer
             example: 1
+
       responses:
-        200:
-          description: 'Gallery photo.'
-        404:
-          description: 'Photo not found.'
+        '200':
+          description: Gallery photo.
+
+        '404':
+          description: Photo not found.
+
     put:
       tags:
         - Gallery
-      summary: 'Update a gallery photo'
-      description: 'Update a gallery photo title.'
+      summary: Update a gallery photo
+      description: Update a gallery photo title.
       operationId: updateGalleryPhoto
+
       parameters:
-        -
-          name: photo
+        - name: photo
           in: path
           required: true
-          description: 'Photo identifier.'
+          description: Photo identifier.
           schema:
             type: integer
             example: 1
+
       requestBody:
         required: true
         content:
@@ -113,35 +121,37 @@ paths:
                 title:
                   type: string
                   maxLength: 255
-                  description: 'Photo title.'
+                  description: Photo title.
+
       responses:
-        200:
-          description: 'Gallery photo updated.'
-        404:
-          description: 'Photo not found.'
-        422:
-          description: 'Validation error.'
+        '200':
+          description: Gallery photo updated.
+
+        '404':
+          description: Photo not found.
+
+        '422':
+          description: Validation error.
+
     delete:
       tags:
         - Gallery
-      summary: 'Delete a gallery photo'
-      description: 'Delete a gallery photo and its stored image.'
+      summary: Delete a gallery photo
+      description: Delete a gallery photo and its stored image.
       operationId: deleteGalleryPhoto
+
       parameters:
-        -
-          name: photo
+        - name: photo
           in: path
           required: true
-          description: 'Photo identifier.'
+          description: Photo identifier.
           schema:
             type: integer
             example: 1
+
       responses:
-        204:
-          description: 'Gallery photo deleted.'
-        404:
-          description: 'Photo not found.'
-tags:
-  -
-    name: Gallery
-    description: 'Gallery photo management.'
+        '204':
+          description: Gallery photo deleted.
+
+        '404':
+          description: Photo not found.

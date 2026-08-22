@@ -16,6 +16,7 @@ function createManifest(
         name: ucfirst($id),
         version: '1.0.0',
         class: "Tests\\Fakes\\Extensions\\" . ucfirst($id) . 'Extension',
+        path: 'app/Extensions/Gallery',
         dependencies: $dependencies,
     );
 }

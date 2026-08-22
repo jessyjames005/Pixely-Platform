@@ -36,6 +36,11 @@ final readonly class ExtensionManifest
         public string $class,
 
         /**
+         * Absolute extension directory.
+         */
+        public string $path,
+
+        /**
          * Required extension identifiers.
          *
          * @var string[]

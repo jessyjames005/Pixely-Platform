@@ -16,6 +16,7 @@ final class MediaExtension implements ExtensionInterface
             name: 'Media',
             version: '1.0.0',
             class: self::class,
+            path: 'app/Extensions/Gallery',
         );
     }
 

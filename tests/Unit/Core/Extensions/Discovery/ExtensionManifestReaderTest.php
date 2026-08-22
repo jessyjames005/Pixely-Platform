@@ -32,7 +32,7 @@ it('creates an extension manifest with dependencies', function () {
             'media',
             'users',
         ],
-    ]);
+    ], path: 'app/Extensions/Gallery');
 
     expect($manifest)->not->toBeNull();
 
@@ -52,7 +52,8 @@ it('creates an extension manifest without dependencies', function () {
         'name' => 'Gallery',
         'version' => '1.0.0',
         'class' => 'App\\Extensions\\Gallery\\GalleryExtension',
-    ]);
+    ],
+    path: 'app/Extensions/Gallery');
 
     expect($manifest)->not->toBeNull();
 
@@ -73,7 +74,7 @@ it('ignores invalid dependencies', function () {
             null,
             'users',
         ],
-    ]);
+    ],path: 'app/Extensions/Gallery');
 
     expect($manifest)->not->toBeNull();
 

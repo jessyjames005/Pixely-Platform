@@ -30,7 +30,7 @@ final class ExtensionManifestReader
      *
      * @param array<string, mixed> $data
      */
-    public function createManifest(array $data): ?ExtensionManifest
+    public function createManifest(array $data, string $path): ?ExtensionManifest
     {
         $id = $data['id'] ?? null;
         $name = $data['name'] ?? null;
@@ -61,6 +61,7 @@ final class ExtensionManifestReader
             name: $name,
             version: $version,
             class: $class,
+            path: $path,
             dependencies: $dependencies,
         );
     }

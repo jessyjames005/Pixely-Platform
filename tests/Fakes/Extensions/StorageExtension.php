@@ -22,6 +22,7 @@ final class StorageExtension implements ExtensionInterface
             name: 'Storage',
             version: '1.0.0',
             class: self::class,
+            path: 'app/Extensions/Gallery',
         );
     }
 

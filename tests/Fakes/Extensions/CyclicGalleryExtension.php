@@ -22,6 +22,7 @@ final class CyclicGalleryExtension implements ExtensionInterface
             name: 'Gallery',
             version: '1.0.0',
             class: self::class,
+            path: 'app/Extensions/Gallery',
             dependencies: [
                 'media',
             ],

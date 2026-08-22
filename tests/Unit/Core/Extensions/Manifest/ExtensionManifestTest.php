@@ -16,6 +16,7 @@ final class ExtensionManifestTest extends TestCase
             name: 'Gallery',
             version: '1.0.0',
             class: 'App\\Extensions\\Gallery\\GalleryExtension',
+            path: 'app/Extensions/Gallery',
         );
 
         $this->assertSame(
@@ -31,6 +32,7 @@ final class ExtensionManifestTest extends TestCase
             name: 'Gallery',
             version: '1.0.0',
             class: 'App\\Extensions\\Gallery\\GalleryExtension',
+            path: 'app/Extensions/Gallery',
             dependencies: [
                 'media',
             ],

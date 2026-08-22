@@ -17,8 +17,7 @@ final class ExtensionRepository
         private readonly ExtensionDiscoverer $discoverer,
         private readonly ExtensionManifestReader $reader,
         private readonly ExtensionDependencyResolver $dependencyResolver,
-    ) {
-    }
+    ) {}
 
     /**
      * Return all discovered extension manifests in dependency order.
@@ -40,6 +39,7 @@ final class ExtensionRepository
 
             $manifest = $this->reader->createManifest(
                 $manifestData,
+                $path,
             );
 
             if ($manifest === null) {
