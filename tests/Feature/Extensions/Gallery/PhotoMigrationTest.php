@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use Tests\TestCase;
 
-uses(
-    TestCase::class,
-    RefreshDatabase::class,
-);
+uses(RefreshDatabase::class);
 
 it('has the photos table', function () {
     expect(

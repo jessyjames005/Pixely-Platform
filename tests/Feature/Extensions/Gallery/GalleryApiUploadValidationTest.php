@@ -3,15 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-uses(
-    TestCase::class,
-    RefreshDatabase::class,
-);
+uses(RefreshDatabase::class);
 
 it('requires an image for API upload', function () {
     $response = $this->postJson('/api/v1/gallery/upload', [

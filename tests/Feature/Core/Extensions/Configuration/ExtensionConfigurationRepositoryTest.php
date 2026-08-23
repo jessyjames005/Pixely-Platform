@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use Tests\TestCase;
 use App\Core\Extensions\Configuration\DatabaseExtensionConfigurationRepository;
 
-uses(
-    TestCase::class,
-    RefreshDatabase::class,
-);
+uses(RefreshDatabase::class);
 
 it('has an extension configurations table', function () {
     expect(

@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Core\Api\Error\ApiError;
 use App\Core\Api\Error\ApiErrorResponse;
 use Illuminate\Http\JsonResponse;
-use Tests\TestCase;
-
-uses(TestCase::class);
 
 it('creates a JSON response from an API error', function () {
     $error = new ApiError(

@@ -343,25 +343,34 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 
 ### OpenAPI
 
-OpenAPI is generated automatically from the PHP application rather than maintained manually.
+OpenAPI documentation is maintained through extension-owned API definitions and generated centrally by the platform.
+
+Each extension provides its own OpenAPI API definition. The platform collects these definitions, validates them, and generates the public OpenAPI specification.
+
+The generated docs/api/openapi.yml is an output artifact and must not be maintained manually.
 
 * [x] OpenAPI specification structure
-* [x] Initial `openapi.yml`
-* [ ] Install `zircote/swagger-php`
-* [ ] Define OpenAPI PHP attributes / annotations conventions
-* [ ] Document API controllers with OpenAPI attributes
-* [ ] Document API request objects
-* [ ] Document API response objects
-* [ ] Document API schemas
-* [ ] Document API parameters
-* [ ] Document API errors
-* [ ] Document API authentication
-* [ ] Generate OpenAPI specification from PHP
-* [ ] Generate `openapi.yml`
-* [ ] Generate OpenAPI JSON
-* [ ] Validate generated OpenAPI specification
-* [ ] Prevent invalid OpenAPI definitions in CI
+* [x] Initial openapi.yml
+* [x] Extension-owned OpenAPI API definitions
+* [x] Extension OpenAPI definition discovery
+* [x] Extension OpenAPI definition validation
+* [x] OpenAPI path validation
+* [x] OpenAPI operation validation
+* [x] Required operationId validation
+* [x] Required responses validation
+* [x] Duplicate OpenAPI path detection
+* [x] Duplicate operationId detection
+* [x] Merge extension OpenAPI definitions
+* [x] Generate openapi.yml
+* [x] Validate generated openapi.yml
+* [x] OpenAPI validation Artisan command
+* [x] Automated OpenAPI generation tests
+* [x] Automated OpenAPI validation tests
+* [ ] OpenAPI relationship documentation
+* [ ] OpenAPI authentication documentation
+* [ ] OpenAPI examples
 * [ ] Document OpenAPI generation workflow
+* [ ] Document extension OpenAPI definition workflow
 
 ### Swagger UI
 
