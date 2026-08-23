@@ -37,6 +37,10 @@ paths:
       responses:
         200:
           description: 'Paginated gallery photos.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoListResponse'
   /api/v1/gallery/upload:
     post:
       tags:
@@ -65,8 +69,16 @@ paths:
       responses:
         201:
           description: 'Gallery photo created.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
         422:
           description: 'Validation error.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
   '/api/v1/gallery/{photo}':
     get:
       tags:
@@ -86,8 +98,16 @@ paths:
       responses:
         200:
           description: 'Gallery photo.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
         404:
           description: 'Photo not found.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
     put:
       tags:
         - Gallery
@@ -117,10 +137,22 @@ paths:
       responses:
         200:
           description: 'Gallery photo updated.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
         404:
           description: 'Photo not found.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         422:
           description: 'Validation error.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
     delete:
       tags:
         - Gallery
@@ -141,7 +173,90 @@ paths:
           description: 'Gallery photo deleted.'
         404:
           description: 'Photo not found.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 tags:
   -
     name: Gallery
     description: 'Gallery photo management.'
+components:
+  schemas:
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: RESOURCE_NOT_FOUND
+            message:
+              type: string
+              example: 'The requested resource was not found.'
+            details:
+              type: object
+              nullable: true
+              additionalProperties: true
+    PaginationMeta:
+      type: object
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 5
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 95
+    Photo:
+      type: object
+      required:
+        - id
+        - title
+        - filename
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          nullable: true
+          example: Sunset
+        filename:
+          type: string
+          example: gallery/sunset.jpg
+    PhotoResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Photo'
+    PhotoListResponse:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'

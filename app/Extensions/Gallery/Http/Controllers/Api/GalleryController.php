@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Core\Api\Query\ApiQueryParser;
 use App\Core\Api\Query\ApiQueryApplier;
+use App\Core\Api\Response\ApiResponse;
+use App\Core\Api\Response\ApiCollectionResponse;
 
 /**
  * Handles Gallery API requests.
@@ -23,6 +25,7 @@ final class GalleryController
         Request $request,
         ApiQueryParser $queryParser,
         ApiQueryApplier $queryApplier,
+        ApiCollectionResponse $apiResponse,
     ): JsonResponse {
         $apiQuery = $queryParser->parse($request->query());
 
@@ -44,22 +47,24 @@ final class GalleryController
             ? (int) ceil($total / $perPage)
             : 1;
 
-        return response()->json([
-            'data' => $photos,
-            'meta' => [
+        return $apiResponse->response(
+            data: $photos,
+            meta: [
                 'current_page' => $currentPage,
                 'last_page' => $lastPage,
                 'per_page' => $perPage,
                 'total' => $total,
             ],
-        ]);
+        );
     }
 
     /**
      * Store an uploaded gallery photo.
      */
-    public function store(Request $request): JsonResponse
-    {
+    public function store(
+        Request $request,
+        ApiResponse $apiResponse,
+    ): JsonResponse {
         $validated = $request->validate([
             'title' => ['nullable', 'string', 'max:255'],
             'image' => ['required', 'image'],
@@ -78,19 +83,20 @@ final class GalleryController
             'filename' => $filename,
         ]);
 
-        return response()->json([
-            'data' => $photo,
-        ], 201);
+        return $apiResponse->response(
+            data: $photo,
+            status: 201,
+        );
     }
 
     /**
      * Display a single gallery photo.
      */
-    public function show(Photo $photo): JsonResponse
-    {
-        return response()->json([
-            'data' => $photo,
-        ]);
+    public function show(
+        Photo $photo,
+        ApiResponse $apiResponse,
+    ): JsonResponse {
+        return $apiResponse->response($photo);
     }
 
     /**
@@ -99,6 +105,7 @@ final class GalleryController
     public function update(
         Request $request,
         Photo $photo,
+        ApiResponse $apiResponse,
     ): JsonResponse {
         $validated = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
@@ -106,9 +113,9 @@ final class GalleryController
 
         $photo->update($validated);
 
-        return response()->json([
-            'data' => $photo->refresh(),
-        ]);
+        return $apiResponse->response(
+            data: $photo->refresh(),
+        );
     }
 
     /**

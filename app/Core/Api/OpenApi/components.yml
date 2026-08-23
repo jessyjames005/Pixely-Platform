@@ -1,0 +1,51 @@
+components:
+
+  schemas:
+
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: RESOURCE_NOT_FOUND
+
+            message:
+              type: string
+              example: The requested resource was not found.
+
+            details:
+              type: object
+              nullable: true
+              additionalProperties: true
+
+    PaginationMeta:
+      type: object
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+      properties:
+        current_page:
+          type: integer
+          example: 1
+
+        last_page:
+          type: integer
+          example: 5
+
+        per_page:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 95
