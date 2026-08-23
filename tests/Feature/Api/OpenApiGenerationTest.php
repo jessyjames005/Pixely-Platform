@@ -95,4 +95,70 @@ final class OpenApiGenerationTest extends TestCase
             $content,
         );
     }
+
+    public function test_core_and_gallery_schemas_are_documented(): void
+    {
+        $this->artisan('openapi:generate')
+            ->assertExitCode(0);
+
+        $content = file_get_contents(
+            base_path('docs/api/openapi.yml'),
+        );
+
+        $this->assertIsString($content);
+
+        $schemas = [
+            'ApiError:',
+            'PaginationMeta:',
+            'Photo:',
+            'PhotoResponse:',
+            'PhotoListResponse:',
+        ];
+
+        foreach ($schemas as $schema) {
+            $this->assertStringContainsString(
+                $schema,
+                $content,
+            );
+        }
+    }
+
+    public function test_gallery_pagination_constraints_are_documented(): void
+    {
+        $this->artisan('openapi:generate')
+            ->assertExitCode(0);
+
+        $content = file_get_contents(
+            base_path('docs/api/openapi.yml'),
+        );
+
+        $this->assertIsString($content);
+
+        $this->assertStringContainsString(
+            'minimum: 1',
+            $content,
+        );
+
+        $this->assertStringContainsString(
+            'maximum: 100',
+            $content,
+        );
+
+        $this->assertStringContainsString(
+            'default: 20',
+            $content,
+        );
+    }
+
+    /**
+     * Ensure the generated OpenAPI specification is structurally valid.
+     */
+    public function test_it_generates_a_valid_openapi_specification(): void
+    {
+        $this->artisan('openapi:generate')
+            ->assertExitCode(0);
+
+        $this->artisan('openapi:validate')
+            ->assertExitCode(0);
+    }
 }
