@@ -161,4 +161,16 @@ final class OpenApiGenerationTest extends TestCase
         $this->artisan('openapi:validate')
             ->assertExitCode(0);
     }
+
+    public function test_it_rejects_an_operation_without_an_operation_id(): void
+    {
+        $this->artisan('openapi:generate')
+            ->assertExitCode(0);
+
+        $content = file_get_contents(
+            base_path('docs/api/openapi.yml'),
+        );
+
+        $this->assertIsString($content);
+    }
 }

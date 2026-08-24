@@ -11,7 +11,7 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Generates the OpenAPI specification from extension API definitions.
  */
-final class GenerateOpenApi extends Command
+class GenerateOpenApi extends Command
 {
     /**
      * Artisan command signature.
@@ -44,7 +44,7 @@ final class GenerateOpenApi extends Command
         }
 
         $manifests = $this->extensionRepository->manifests(
-            app_path('Extensions'),
+            $this->extensionsPath(),
         );
 
         foreach ($manifests as $manifest) {
@@ -505,5 +505,13 @@ final class GenerateOpenApi extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Return the directory containing platform extensions.
+     */
+    protected function extensionsPath(): string
+    {
+        return app_path('Extensions');
     }
 }
