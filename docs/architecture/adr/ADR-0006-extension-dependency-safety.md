@@ -1,4 +1,4 @@
-# ADR-0005: Extension Dependency Safety
+# ADR-0006: Extension Dependency Safety
 
 ## Status
 
