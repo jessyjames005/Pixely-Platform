@@ -149,14 +149,14 @@ The Administration layer provides the first visual interface for managing the Pi
 
 ### Administration Architecture
 
-* [ ] Administration frontend architecture
-* [ ] Vue.js 3 integration
-* [ ] TypeScript integration
-* [ ] Vue Router integration
+* [x] Administration frontend architecture
+* [x] Vue.js 3 integration
+* [x] TypeScript integration
+* [x] Vue Router integration
 * [ ] API client architecture
 * [ ] Authentication integration
-* [ ] Administration layout
-* [ ] Administration navigation
+* [x] Administration layout
+* [x] Administration navigation
 * [ ] Administration route protection
 
 ### Material Design System
@@ -966,12 +966,13 @@ The next development focus is:
 5. Integrate Swagger UI with the generated specification.
 6. Complete the API documentation workflow.
 7. Continue the Extension SDK.
-8. Start the administration foundation.
-9. Introduce Vue.js 3, Vuetify and the Pixely Material Design System.
-10. Introduce Storybook for reusable Vue.js components.
-11. Create administration mockups using Figma or an equivalent free design tool.
-12. Build the Sample Cinema Extension as a developer reference.
-13. Continue the Gallery Extension with its visual administration interface.
+8. Administration foundation started: Vue.js 3, TypeScript, Vue Router, AdminLayout, DashboardView and navigation are implemented and verified on `/admin`.
+9. Build reusable UI components (buttons, tables, cards, forms) before introducing Vuetify and the Pixely Material Design System.
+10. Introduce the API client architecture to connect the administration to the Platform API.
+11. Introduce Storybook for reusable Vue.js components.
+12. Create administration mockups using Figma or an equivalent free design tool.
+13. Build the Sample Cinema Extension as a developer reference.
+14. Continue the Gallery Extension with its visual administration interface.
 
 The development process should continue through clearly defined sprints, with each sprint having:
 
