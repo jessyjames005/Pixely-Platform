@@ -89,7 +89,6 @@ Frontend
 - TypeScript
 - Vite
 - Tailwind CSS
-- Pinia
 
 Quality
 
@@ -107,33 +106,23 @@ Infrastructure
 
 ## Roadmap
 
-Sprint 0
+The detailed, continuously updated roadmap lives in [`ROADMAP.md`](ROADMAP.md).
 
-Project foundation
-
-Sprint 1
-
-Platform Kernel
-
-Sprint 2
-
-Core Services
-
-Sprint 3
-
-Authentication
-
-Sprint 4
-
-Gallery Module
+Current state: Kernel, Extension SDK foundation, Platform API, Gallery Extension (API + upload), and Sanctum SPA Authentication are implemented. Administration Foundation (Vue 3 admin, reusable components, API client) is underway.
 
 ---
 
 ## Documentation
 
-Documentation lives in the `docs/` directory.
+Documentation lives in the `docs/` directory:
 
-Every important decision is documented through Architecture Decision Records (ADR).
+- `docs/architecture/` — system architecture, data model, contracts, and diagrams
+- `docs/architecture/adr/` — Architecture Decision Records (ADR), one per significant decision
+- `docs/handbook/` — practical guides for working with Core systems (extensions, dependencies, authentication)
+- `docs/api/` — API query parameters, examples, and the generated OpenAPI specification
+- `docs/development/` — project rules and architecture principles
+
+Every important decision is documented through an ADR before or alongside its implementation.
 
 ---
 
