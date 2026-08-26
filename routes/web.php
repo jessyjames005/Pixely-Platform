@@ -31,3 +31,13 @@ Route::get('/docs/api/openapi.yml', function () {
         ],
     );
 })->name('api.openapi');
+
+/**
+ * Vue administration application.
+ *
+ * Laravel serves the Vue application entry point.
+ * Vue Router handles the administration routes afterwards.
+ */
+Route::view('/admin/{any?}', 'app')
+    ->where('any', '.*')
+    ->name('admin.application');
