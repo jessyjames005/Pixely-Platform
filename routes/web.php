@@ -41,3 +41,12 @@ Route::get('/docs/api/openapi.yml', function () {
 Route::view('/admin/{any?}', 'app')
     ->where('any', '.*')
     ->name('admin.application');
+
+/**
+ * Vue administration login page.
+ *
+ * Served outside /admin so it stays accessible when the
+ * administration routes require authentication.
+ */
+Route::view('/login', 'app')
+    ->name('login.application');
