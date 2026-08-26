@@ -153,7 +153,7 @@ The Administration layer provides the first visual interface for managing the Pi
 * [x] Vue.js 3 integration
 * [x] TypeScript integration
 * [x] Vue Router integration
-* [ ] API client architecture
+* [x] API client architecture
 * [ ] Authentication integration
 * [x] Administration layout
 * [x] Administration navigation
@@ -743,7 +743,7 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [x] Gallery web route
 * [ ] Gallery listing page
 * [ ] Photo detail page
-* [ ] Photo upload interface
+* [x] Photo upload interface
 * [ ] Photo editing interface
 * [ ] Photo deletion interface
 * [ ] Gallery administration interface

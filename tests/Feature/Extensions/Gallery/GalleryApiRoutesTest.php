@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 uses(RefreshDatabase::class);
 
@@ -76,6 +77,8 @@ it('returns 404 when the gallery photo does not exist', function () {
 });
 
 it('updates a gallery photo', function () {
+    $this->actingAs(User::factory()->create());
+
     $photo = Photo::create([
         'title' => 'Sunset',
         'filename' => 'sunset.jpg',
@@ -100,6 +103,8 @@ it('updates a gallery photo', function () {
 });
 
 it('deletes a gallery photo', function () {
+    $this->actingAs(User::factory()->create());
+
     $photo = Photo::create([
         'title' => 'Sunset',
         'filename' => 'sunset.jpg',
@@ -116,6 +121,8 @@ it('deletes a gallery photo', function () {
 });
 
 it('deletes the stored file when deleting a photo', function () {
+    $this->actingAs(User::factory()->create());
+
     Storage::fake('public');
 
     $image = UploadedFile::fake()->image('sunset.jpg');

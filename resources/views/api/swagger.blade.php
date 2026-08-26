@@ -10,8 +10,8 @@
     <title>Pixely Platform API Documentation</title>
 
     @vite([
-        'resources/css/app.css',
-        'resources/js/app.js',
+    'resources/css/app.css',
+    'resources/js/app.ts',
     ])
 </head>
 

@@ -13,25 +13,27 @@ Route::get(
     [GalleryController::class, 'index'],
 );
 
-Route::post(
-    '/gallery/upload',
-    [GalleryController::class, 'store'],
-);
-
 Route::get(
     '/gallery/{photo}',
     [GalleryController::class, 'show'],
 );
 
-Route::put(
-    '/gallery/{photo}',
-    [GalleryController::class, 'update'],
-);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post(
+        '/gallery/upload',
+        [GalleryController::class, 'store'],
+    );
 
-/**
- * Delete a gallery photo.
- */
-Route::delete(
-    '/gallery/{photo}',
-    [GalleryController::class, 'destroy'],
-);
+    Route::put(
+        '/gallery/{photo}',
+        [GalleryController::class, 'update'],
+    );
+
+    /**
+     * Delete a gallery photo.
+     */
+    Route::delete(
+        '/gallery/{photo}',
+        [GalleryController::class, 'destroy'],
+    );
+});

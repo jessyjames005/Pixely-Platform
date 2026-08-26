@@ -6,10 +6,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 uses(RefreshDatabase::class);
 
 it('requires an image for API upload', function () {
+    $this->actingAs(User::factory()->create());
+
     $response = $this->postJson('/api/v1/gallery/upload', [
         'title' => 'Sunset',
     ]);
@@ -18,6 +21,8 @@ it('requires an image for API upload', function () {
 });
 
 it('uploads an image and creates a photo', function () {
+    $this->actingAs(User::factory()->create());
+
     Storage::fake('public');
 
     $image = UploadedFile::fake()->image('sunset.jpg');
@@ -50,6 +55,8 @@ it('uploads an image and creates a photo', function () {
 });
 
 it('returns a consistent validation error response', function () {
+    $this->actingAs(User::factory()->create());
+
     $response = $this->postJson('/api/v1/gallery/upload', [
         'title' => 'Sunset',
     ]);

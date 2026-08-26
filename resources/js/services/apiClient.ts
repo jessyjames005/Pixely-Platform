@@ -65,17 +65,29 @@ function buildBody(body?: unknown): Pick<RequestInit, 'body' | 'headers'> {
   }
 }
 
-// Performs a fetch call and normalizes success/error handling
+// Reads a cookie value by name (used to read Laravel's XSRF-TOKEN cookie)
+function readCookie(name: string): string | null {
+  const match = document.cookie.split('; ').find((row) => row.startsWith(`${name}=`))
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : null
+}
+
+// Performs a fetch call and normalizes success/error handling.
+// Always sends credentials (session cookie) and, when available,
+// the XSRF token required by Laravel/Sanctum for stateful requests.
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const xsrfToken = readCookie('XSRF-TOKEN')
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       Accept: 'application/json',
+      ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
       ...options.headers,
     },
   })
 
-  // No content: nothing to parse (e.g. DELETE responses)
+  // No content: nothing to parse (e.g. DELETE/logout responses)
   if (response.status === 204) {
     return undefined as T
   }
@@ -123,6 +135,12 @@ function del<T>(path: string): Promise<T> {
   return request<T>(path, {
     method: 'DELETE',
   })
+}
+
+// Fetches the CSRF cookie required by Sanctum before any stateful
+// (session-authenticated) request, typically before login.
+export function fetchCsrfCookie(): Promise<void> {
+  return fetch('/sanctum/csrf-cookie', { credentials: 'include' }).then(() => undefined)
 }
 
 // Public API client used across the administration frontend

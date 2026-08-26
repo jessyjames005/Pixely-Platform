@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__ . '/../app/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
@@ -31,14 +31,21 @@ return Application::configure(basePath: dirname(__DIR__))
             $status = match (true) {
                 $exception instanceof ValidationException => 422,
 
+                $exception instanceof \Illuminate\Auth\AuthenticationException => 401,
+
+                $exception instanceof \Illuminate\Auth\Access\AuthorizationException => 403,
+
                 $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface
                 => $exception->getStatusCode(),
 
                 default => 500,
             };
-
+            
             $code = match ($status) {
                 404 => 'RESOURCE_NOT_FOUND',
+                405 => 'METHOD_NOT_ALLOWED',
+                401 => 'UNAUTHENTICATED',
+                403 => 'FORBIDDEN',
                 422 => 'VALIDATION_ERROR',
                 default => 'INTERNAL_SERVER_ERROR',
             };
@@ -56,9 +63,13 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'error' => [
                     'code' => $code,
-                    'message' => $status === 404
-                        ? 'The requested resource was not found.'
-                        : 'An unexpected error occurred.',
+                    'message' => match ($status) {
+                        404 => 'The requested resource was not found.',
+                        405 => 'This HTTP method is not allowed for this endpoint.',
+                        401 => 'Authentication is required to access this resource.',
+                        403 => 'You are not authorized to perform this action.',
+                        default => 'An unexpected error occurred.',
+                    },
                 ],
             ], $status);
         });

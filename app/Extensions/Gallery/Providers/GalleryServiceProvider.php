@@ -33,16 +33,6 @@ final class GalleryServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadViewsFrom(
-            __DIR__ . '/../Resources/views',
-            'gallery'
-        );
-
-        $this->app->router->middleware('web')
-            ->group(
-                __DIR__ . '/../routes/web.php'
-            );
-
         $this->app->router
             ->middleware('api')
             ->prefix('api/v1')
