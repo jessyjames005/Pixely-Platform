@@ -62,7 +62,7 @@ Example:
 ```php
 ExtensionState(
     extension: GalleryExtension,
-    status: Enabled
+    status: ExtensionStatus::Enabled
 )
 ```
 
@@ -70,6 +70,8 @@ It separates two concepts:
 
 * the extension existence;
 * the current extension lifecycle state.
+
+`ExtensionState` is immutable: a lifecycle change never mutates an existing state, it produces a new instance instead. This keeps lifecycle transitions predictable and side-effect free.
 
 ---
 
@@ -112,7 +114,7 @@ instead of a concrete implementation.
 Possible implementations:
 
 * In-memory storage;
-* JSON file storage;
+* JSON file storage (current default, `storage/pixely/extensions.json`);
 * Database storage.
 
 This allows Pixely to evolve without modifying the Core architecture.
@@ -133,29 +135,59 @@ External components should not directly access:
 
 They should use the manager API.
 
-Examples:
+## Available operations
 
 ```php
-$manager->all();
-
-$manager->enabled();
-
-$manager->isEnabled('gallery');
+$manager->register($extension);   // Register an extension instance
+$manager->load($path);            // Discover and register extensions from a directory
+$manager->boot();                 // Boot all registered extensions
+$manager->has('gallery');         // Is the extension registered?
+$manager->enable('gallery');      // Enable an extension (validates dependencies first)
+$manager->disable('gallery');     // Disable an extension
+$manager->isEnabled('gallery');   // Is the extension currently enabled?
+$manager->findState('gallery');   // Return the extension's current ExtensionState
+$manager->enabled();              // All enabled extensions
+$manager->disabled();             // All disabled extensions
+$manager->all();                  // All registered extensions
 ```
+
+## Enabled
+
+An enabled extension is considered active and available for the platform.
+
+```php
+$manager->isEnabled('gallery'); // true
+```
+
+## Disabled
+
+A disabled extension remains installed but is not considered active.
+
+```php
+$manager->disable('gallery');
+```
+
+## Dependency validation on enable
+
+`enable()` validates the complete dependency chain before activating an extension:
+
+1. direct dependencies;
+2. transitive dependencies;
+3. dependency availability;
+4. dependency enabled state;
+5. circular dependencies.
+
+If a dependency is missing or disabled, `ExtensionDependencyException` is thrown. If a circular dependency is detected, `ExtensionDependencyCycleException` is thrown instead. See [Extension Dependency Safety](../extensions/dependency-safety.md) for the full validation algorithm.
 
 ---
 
 # Artisan Commands
 
-Available command:
+## List registered extensions
 
 ```bash
 php artisan pixely:extensions
 ```
-
-This command displays registered Pixely extensions.
-
-Example:
 
 ```text
 +---------+---------+---------+
@@ -165,6 +197,40 @@ Example:
 +---------+---------+---------+
 ```
 
+## Enable an extension
+
+```bash
+php artisan pixely:enable gallery
+```
+
+```text
+Extension [gallery] enabled.
+```
+
+## Disable an extension
+
+```bash
+php artisan pixely:disable gallery
+```
+
+```text
+Extension [gallery] disabled.
+```
+
+## Unknown extensions
+
+Commands validate the extension identifier and fail safely:
+
+```bash
+php artisan pixely:enable unknown
+```
+
+```text
+Extension [unknown] not found.
+```
+
+The command returns a failure exit status.
+
 ---
 
 # Design Principles
@@ -173,30 +239,33 @@ Example:
 
 Each component has one clear responsibility:
 
-| Component  | Responsibility            |
-| ---------- | ------------------------- |
-| Registry   | Runtime extension storage |
-| Repository | State persistence access  |
-| Manager    | Business logic            |
-| Kernel     | Application orchestration |
-
----
+| Component                | Responsibility                     |
+| ------------------------ | ----------------------------------- |
+| ExtensionManager         | Business lifecycle operations       |
+| ExtensionRegistry        | Runtime extension storage           |
+| ExtensionStateRepository | State persistence                   |
+| ExtensionState           | Extension lifecycle representation  |
+| Kernel                   | Application orchestration           |
 
 ## Dependency Inversion
 
-The Core depends on interfaces instead of implementations.
+The Core depends on interfaces (`ExtensionStateRepositoryInterface`) instead of concrete implementations. This keeps Pixely flexible and testable, and allows swapping the JSON repository for a database-backed one without touching business logic.
 
-This keeps Pixely flexible and testable.
+## Immutability
 
----
+`ExtensionState` is immutable. Changing the lifecycle creates a new state instance rather than mutating the existing one, which prevents unexpected side effects.
 
 ## Testing Strategy
 
-Every extension system evolution must keep the complete test suite green.
+Every extension system evolution must keep the complete test suite green. Tests validate registration, lifecycle management, state handling, dependency validation, and command behaviour.
 
-Tests validate:
+---
 
-* registration;
-* lifecycle management;
-* state handling;
-* commands behavior.
+# Future Improvements
+
+Planned lifecycle features:
+
+* persistent database-backed extension states;
+* extension installation workflow;
+* extension update management;
+* administration interface integration for enable/disable operations.
