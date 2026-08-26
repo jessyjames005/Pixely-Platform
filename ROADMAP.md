@@ -334,6 +334,19 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [ ] API relationship documentation
 * [ ] API validation standardisation
 
+### JSON:API Migration (future)
+
+The current API response format (`{ data }`, `{ data, meta }`, `{ error }`) is stable and used across the frontend. A future migration to strict JSON:API compliance is planned but deferred to avoid blocking frontend progress.
+
+* [ ] JSON:API resource object format (`type`, `id`, `attributes`, `relationships`)
+* [ ] JSON:API error array format (`errors[]` with `status`, `code`, `title`, `detail`, `source`)
+* [ ] JSON:API `links` (self, pagination `next`/`prev`)
+* [ ] `Content-Type: application/vnd.api+json` content negotiation
+* [ ] Rewrite `ApiResponse` / `ApiCollectionResponse` / `ApiError` for JSON:API
+* [ ] Update `openapi.yml` schemas for JSON:API
+* [ ] Update frontend API client and types for JSON:API
+* [ ] Migration tests
+
 ### API Authentication
 
 * [ ] API authentication
