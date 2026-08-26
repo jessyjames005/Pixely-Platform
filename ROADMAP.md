@@ -106,11 +106,11 @@ The original Module concept evolved into the Pixely Extension architecture.
 
 ### Authentication
 
-* [ ] Authentication
-* [ ] Login
-* [ ] Logout
+* [x] Authentication
+* [x] Login
+* [x] Logout
 * [ ] Password management
-* [ ] Authentication API
+* [x] Authentication API
 
 ### Users
 
@@ -154,10 +154,10 @@ The Administration layer provides the first visual interface for managing the Pi
 * [x] TypeScript integration
 * [x] Vue Router integration
 * [x] API client architecture
-* [ ] Authentication integration
+* [x] Authentication integration
 * [x] Administration layout
 * [x] Administration navigation
-* [ ] Administration route protection
+* [x] Administration route protection
 
 ### Material Design System
 
