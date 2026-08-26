@@ -44,7 +44,7 @@ final class GalleryController
             : 1;
 
         $lastPage = $perPage > 0
-            ? (int) ceil($total / $perPage)
+            ? max(1, (int) ceil($total / $perPage))
             : 1;
 
         return $apiResponse->response(
