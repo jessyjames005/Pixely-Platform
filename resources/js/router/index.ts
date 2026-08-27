@@ -33,12 +33,12 @@ const routes: RouteRecordRaw[] = [
         name: "admin.users",
         component: UsersView,
       },
+      {
+        path: "roles",
+        name: "admin.roles",
+        component: RolesView,
+      },
     ],
-  },
-  {
-    path: "roles",
-    name: "admin.roles",
-    component: RolesView,
   },
 ];
 
