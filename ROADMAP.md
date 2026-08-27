@@ -129,16 +129,16 @@ The original Module concept evolved into the Pixely Extension architecture.
 
 ### Settings
 
-* [ ] Platform settings
-* [ ] User settings
+* [x] Platform settings
+* [x] User settings
 * [ ] Extension settings
-* [ ] Persistent settings storage
+* [x] Persistent settings storage
 
 ### Localization
 
-* [ ] Translation system
-* [ ] Locale management
-* [ ] Language selection
+* [x] Translation system
+* [x] Locale management
+* [x] Language selection
 * [ ] Extension translations
 
 ---
