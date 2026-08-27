@@ -10,10 +10,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Core role management API requests.
  */
+#[Group('Roles & Permissions', weight: 4)]
 final class RoleController
 {
     /**

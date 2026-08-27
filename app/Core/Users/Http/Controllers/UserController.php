@@ -11,10 +11,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Core user management API requests.
  */
+#[Group('Users', weight: 3)]
 final class UserController
 {
     /**

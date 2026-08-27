@@ -8,10 +8,12 @@ use App\Core\Api\Response\ApiResponse;
 use App\Core\Settings\Models\PlatformSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles platform-wide settings API requests.
  */
+#[Group('Settings & Localization', weight: 5)]
 final class PlatformSettingController
 {
     /**

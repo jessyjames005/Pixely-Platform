@@ -8,10 +8,12 @@ use App\Core\Api\Response\ApiResponse;
 use App\Core\Settings\Models\UserSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles the current authenticated user's own settings.
  */
+#[Group('Settings & Localization', weight: 5)]
 final class UserSettingController
 {
     /**

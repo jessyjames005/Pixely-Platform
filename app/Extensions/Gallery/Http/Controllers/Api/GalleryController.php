@@ -12,10 +12,12 @@ use App\Core\Api\Query\ApiQueryParser;
 use App\Core\Api\Query\ApiQueryApplier;
 use App\Core\Api\Response\ApiResponse;
 use App\Core\Api\Response\ApiCollectionResponse;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Gallery API requests.
  */
+#[Group('Gallery', weight: 1)]
 final class GalleryController
 {
     /**

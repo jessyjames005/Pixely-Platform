@@ -7,6 +7,7 @@ namespace App\Core\Roles\Http\Controllers;
 use App\Core\Api\Response\ApiCollectionResponse;
 use Illuminate\Http\JsonResponse;
 use Spatie\Permission\Models\Permission;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles read-only access to the list of available permissions.
@@ -14,6 +15,7 @@ use Spatie\Permission\Models\Permission;
  * Permissions are seeded, not created through the API, to keep
  * the permission set stable and predictable.
  */
+#[Group('Roles & Permissions', weight: 4)]
 final class PermissionController
 {
     /**
