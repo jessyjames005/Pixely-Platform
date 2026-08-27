@@ -5,6 +5,7 @@ use App\Core\Providers\PixelyServiceProvider;
 use App\Core\Auth\Providers\AuthServiceProvider;
 use App\Core\Users\Providers\UserServiceProvider;
 use App\Core\Roles\Providers\RoleServiceProvider;
+use App\Core\Settings\Providers\SettingsServiceProvider;
 use App\Providers\ExtensionServiceProvider;
 
 return [
@@ -13,5 +14,6 @@ return [
     AuthServiceProvider::class,
     UserServiceProvider::class,
     RoleServiceProvider::class,
+    SettingsServiceProvider::class,
     ExtensionServiceProvider::class,
 ];
