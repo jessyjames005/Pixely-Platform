@@ -27,13 +27,15 @@ final class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         foreach (self::PERMISSIONS as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+            Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web'],
+            );
         }
 
-        $admin = Role::firstOrCreate(['name' => 'admin']);
+        $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $admin->syncPermissions(self::PERMISSIONS);
 
-        $editor = Role::firstOrCreate(['name' => 'editor']);
+        $editor = Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web']);
         $editor->syncPermissions(['gallery.manage']);
     }
 }

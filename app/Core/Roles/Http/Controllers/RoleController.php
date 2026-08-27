@@ -40,7 +40,7 @@ final class RoleController
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
-        $role = Role::create(['name' => $validated['name']]);
+        $role = Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
         $role->syncPermissions($validated['permissions'] ?? []);
 
         return $apiResponse->response(
