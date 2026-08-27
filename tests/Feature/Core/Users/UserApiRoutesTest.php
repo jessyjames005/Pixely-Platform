@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 it('requires authentication to list users', function () {
     $response = $this->getJson('/api/v1/users');
