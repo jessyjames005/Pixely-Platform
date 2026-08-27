@@ -8,7 +8,10 @@ interface NavItem {
 }
 
 // Navigation links list (to be extended as modules are added)
-const items: NavItem[] = [{ label: "Dashboard", to: "/admin" }];
+const items: NavItem[] = [
+  { label: 'Dashboard', to: '/admin' },
+  { label: 'Users', to: '/admin/users' },
+]
 </script>
 
 <template>

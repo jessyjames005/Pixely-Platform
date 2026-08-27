@@ -114,8 +114,8 @@ The original Module concept evolved into the Pixely Extension architecture.
 
 ### Users
 
-* [ ] User model
-* [ ] User management
+* [x] User model
+* [x] User management
 * [ ] User profile
 * [ ] User preferences
 
