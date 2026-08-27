@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { label: 'Dashboard', to: '/admin' },
   { label: 'Users', to: '/admin/users' },
   { label: 'Roles', to: '/admin/roles' },
+  { label: 'Settings', to: '/admin/settings' },
 ]
 </script>
 
