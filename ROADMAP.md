@@ -121,10 +121,10 @@ The original Module concept evolved into the Pixely Extension architecture.
 
 ### Roles & Permissions
 
-* [ ] Role system
-* [ ] Permission system
-* [ ] Role assignment
-* [ ] Permission checks
+* [x] Role system
+* [x] Permission system
+* [x] Role assignment
+* [x] Permission checks
 * [ ] Extension permissions
 
 ### Settings
