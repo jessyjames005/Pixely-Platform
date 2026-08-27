@@ -27,4 +27,9 @@ export default defineConfig({
       ignored: ["**/storage/framework/views/**"],
     },
   },
+  test: {
+    environment: "happy-dom",
+    globals: true,
+    include: ["resources/js/**/*.test.ts"],
+  },
 });

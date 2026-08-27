@@ -4,18 +4,25 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
         "@types/node": "^26.3.0",
         "@vitejs/plugin-vue": "^6.0.8",
+        "@vitest/coverage-v8": "^4.1.11",
+        "@vue/test-utils": "^2.5.0",
         "concurrently": "^9.0.1",
         "express": "^5.2.1",
+        "happy-dom": "^20.11.12",
         "laravel-vite-plugin": "^3.1",
         "tailwindcss": "^4.0.0",
         "typescript": "^7.0.2",
         "vite": "^8.0.0",
+        "vitest": "^4.1.11",
         "vue-tsc": "^3.3.11"
     },
     "dependencies": {
