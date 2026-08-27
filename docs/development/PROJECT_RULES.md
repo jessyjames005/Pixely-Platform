@@ -105,44 +105,32 @@ App/Core/Api/Query/
 
 ## 4. OpenAPI documentation
 
-OpenAPI must be generated automatically from the PHP source code.
+OpenAPI is generated automatically from the PHP source code by static analysis — no hand-maintained YAML, no manual annotation of every parameter/response.
 
-### Required pipeline
+### Pipeline
 
 ```text
-PHP controllers / DTOs / models
+PHP controllers, validation rules, type hints
         ↓
-OpenAPI PHP attributes
+dedoc/scramble (static analysis)
         ↓
-zircote/swagger-php
+docs/api/openapi.json (generated on demand)
         ↓
-openapi.yml
-        ↓
-Swagger UI
+Swagger UI (resources/views/api/swagger.blade.php)
 ```
 
 ### Rules
 
-- Do not manually maintain the complete OpenAPI specification when the information can be generated from PHP attributes.
-- Use `zircote/swagger-php` for OpenAPI generation.
-- Use PHP attributes rather than legacy annotations whenever possible.
-- Generated `openapi.yml` is an output artifact and must remain reproducible.
-- Swagger UI is the project's API documentation interface.
-- API changes must update their OpenAPI attributes in the same development task.
-- Generated OpenAPI output must be validated in CI/tests where practical.
-- The generated specification must remain compatible with OpenAPI 3.x.
+- Do not hand-write OpenAPI YAML/JSON. If Scramble infers something incorrectly, fix it at the source (validation rules, type hints, API Resources) or use a targeted Scramble attribute (`#[BodyParameter]`, `#[QueryParameter]`, etc.) — never bypass generation with a static file.
+- **Every new controller exposing API routes must declare `#[Dedoc\Scramble\Attributes\Group('Domain Name', weight: N)]` on the class.** This is mandatory, not optional: without it, Scramble falls back to grouping by controller class name, which produces an inconsistent, unordered Swagger UI. Pick the next unused `weight` value, incrementing from the highest currently in use, so new domains append after existing ones.
+- Group names must match the domain, not the controller name (e.g. `'Roles & Permissions'`, not `'RoleController'`).
+- A PHPDoc block on each controller method improves the generated documentation (first line = summary, remaining lines = description) — add one whenever the method name alone doesn't make the endpoint's purpose obvious.
+- `docs/api/openapi.json` is a generated artifact (served live via `Scramble::registerJsonSpecificationRoute`) and must never be manually edited or committed as a static override.
+- Swagger UI (`/docs/api`) is the project's single API documentation interface.
 
-### Expected tooling
+### Reference
 
-The project should eventually provide commands equivalent to:
-
-```bash
-composer openapi:generate
-```
-
-and a Docker-accessible Swagger UI service or frontend route.
-
-The exact implementation is decided during the relevant roadmap sprint.
+See `docs/handbook/core/api-documentation.md` for the full Scramble setup and grouping conventions.
 
 ---
 
@@ -514,7 +502,7 @@ Before introducing a new dependency:
 
 Important planned dependencies include:
 
-- `zircote/swagger-php` for OpenAPI generation;
+- `dedoc/scramble` for OpenAPI generation (static analysis, no manual annotations);
 - Swagger UI for API documentation;
 - Vuetify for administration UI components;
 - Storybook for Vue component documentation.
