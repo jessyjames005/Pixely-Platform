@@ -1,6 +1,0 @@
-paths:
-  /api/v1/invalid:
-    get:
-      responses:
-        "200":
-          description: OK

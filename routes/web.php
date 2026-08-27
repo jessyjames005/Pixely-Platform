@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Dedoc\Scramble\Scramble;
 
 /**
  * Public web routes.
@@ -23,14 +24,8 @@ Route::view('/docs/api', 'api.swagger')
  * The specification is generated from the platform API definitions
  * and exposed read-only for Swagger UI.
  */
-Route::get('/docs/api/openapi.yml', function () {
-    return response()->file(
-        base_path('docs/api/openapi.yml'),
-        [
-            'Content-Type' => 'application/yaml',
-        ],
-    );
-})->name('api.openapi');
+Scramble::registerJsonSpecificationRoute('docs/api/openapi.json')
+    ->name('api.openapi');
 
 /**
  * Vue administration application.

@@ -9,6 +9,7 @@ use App\Media\Contracts\ImageProcessorInterface;
 use App\Media\Processors\InterventionImageProcessor;
 use App\Core\Extensions\Configuration\DatabaseExtensionConfigurationRepository;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
+use Dedoc\Scramble\Scramble;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        Scramble::ignoreDefaultRoutes();
+
         $this->app->bind(
             StorageInterface::class,
             LocalStorage::class
