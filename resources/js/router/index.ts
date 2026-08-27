@@ -9,6 +9,7 @@ import DashboardView from "../views/DashboardView.vue";
 import LoginView from "../views/LoginView.vue";
 import { useAuth } from "../composables/useAuth";
 import UsersView from "../views/UsersView.vue";
+import RolesView from "../views/RolesView.vue";
 
 // Route declarations: /login is public, /admin requires authentication
 const routes: RouteRecordRaw[] = [
@@ -33,6 +34,11 @@ const routes: RouteRecordRaw[] = [
         component: UsersView,
       },
     ],
+  },
+  {
+    path: "roles",
+    name: "admin.roles",
+    component: RolesView,
   },
 ];
 
