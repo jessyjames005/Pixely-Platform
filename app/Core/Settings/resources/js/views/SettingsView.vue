@@ -2,11 +2,8 @@
 // Settings screen: platform-wide settings and the current user's own
 // locale preference, both backed by the Core Settings Pinia store.
 import { onMounted, ref } from 'vue'
-import BaseCard from '@shared/components/BaseCard.vue'
-import BaseButton from '@shared/components/BaseButton.vue'
 import { useApi } from '@shared/composables/useApi'
 import { useSettingsStore } from '../store/settings.store'
-import '../styles/settings.scss'
 
 const settingsStore = useSettingsStore()
 
@@ -20,7 +17,7 @@ const { execute: fetchLocales } = useApi(settingsStore.fetchLocales)
 
 const siteName = ref('')
 const platformLocale = ref('')
-const userLocale = ref('')
+const userLocale = ref<string | null>(null)
 
 onMounted(async () => {
   await Promise.all([fetchLocales(), fetchPlatform(), fetchUserSettings()])
@@ -31,7 +28,7 @@ onMounted(async () => {
   }
 
   if (settingsStore.userSettings) {
-    userLocale.value = settingsStore.userSettings.locale ?? ''
+    userLocale.value = settingsStore.userSettings.locale
   }
 })
 
@@ -40,52 +37,68 @@ async function handleSavePlatform(): Promise<void> {
 }
 
 async function handleSaveUserSettings(): Promise<void> {
-  await submitUserSettings({ locale: userLocale.value || null })
+  await submitUserSettings({ locale: userLocale.value })
 }
 </script>
 
 <template>
-  <section>
-    <h1>Settings</h1>
+  <div>
+    <h1 class="text-h5 mb-4">Settings</h1>
 
-    <BaseCard title="Platform settings" class="settings-card">
-      <form class="settings-form" @submit.prevent="handleSavePlatform">
-        <label class="settings-form__field">
-          <span>Site name</span>
-          <input v-model="siteName" type="text" :disabled="platformLoading" />
-        </label>
+    <v-card title="Platform settings" class="mb-6">
+      <v-card-text>
+        <v-form class="d-flex align-end ga-4 flex-wrap" @submit.prevent="handleSavePlatform">
+          <v-text-field
+            v-model="siteName"
+            label="Site name"
+            density="compact"
+            style="max-width: 240px"
+            hide-details
+            :disabled="platformLoading"
+          />
 
-        <label class="settings-form__field">
-          <span>Default locale</span>
-          <select v-model="platformLocale" :disabled="platformLoading">
-            <option v-for="locale in settingsStore.locales" :key="locale.code" :value="locale.code">
-              {{ locale.label }}
-            </option>
-          </select>
-        </label>
+          <v-select
+            v-model="platformLocale"
+            :items="settingsStore.locales.map((locale) => ({ title: locale.label, value: locale.code }))"
+            label="Default locale"
+            density="compact"
+            style="max-width: 220px"
+            hide-details
+            :disabled="platformLoading"
+          />
 
-        <BaseButton type="submit" :loading="savingPlatform">Save platform settings</BaseButton>
-      </form>
+          <v-btn type="submit" color="primary" :loading="savingPlatform">Save platform settings</v-btn>
+        </v-form>
 
-      <p v-if="platformError" class="settings-form__error">{{ platformError.message }}</p>
-    </BaseCard>
+        <v-alert v-if="platformError" type="error" density="compact" class="mt-4">{{ platformError.message }}</v-alert>
+      </v-card-text>
+    </v-card>
 
-    <BaseCard title="My preferences">
-      <form class="settings-form" @submit.prevent="handleSaveUserSettings">
-        <label class="settings-form__field">
-          <span>My language</span>
-          <select v-model="userLocale" :disabled="userSettingsLoading">
-            <option value="">Use platform default</option>
-            <option v-for="locale in settingsStore.locales" :key="locale.code" :value="locale.code">
-              {{ locale.label }}
-            </option>
-          </select>
-        </label>
+    <v-card title="My preferences">
+      <v-card-text>
+        <v-form class="d-flex align-end ga-4 flex-wrap" @submit.prevent="handleSaveUserSettings">
+          <v-select
+            v-model="userLocale"
+            :items="settingsStore.locales.map((locale) => ({ title: locale.label, value: locale.code }))"
+            label="My language"
+            density="compact"
+            style="max-width: 220px"
+            hide-details
+            clearable
+            clear-icon="mdi-close"
+            :disabled="userSettingsLoading"
+          >
+            <template #prepend-item>
+              <v-list-item title="Use platform default" @click="userLocale = null" />
+              <v-divider class="mt-2" />
+            </template>
+          </v-select>
 
-        <BaseButton type="submit" :loading="savingUserSettings">Save my preferences</BaseButton>
-      </form>
+          <v-btn type="submit" color="primary" :loading="savingUserSettings">Save my preferences</v-btn>
+        </v-form>
 
-      <p v-if="userSettingsError" class="settings-form__error">{{ userSettingsError.message }}</p>
-    </BaseCard>
-  </section>
+        <v-alert v-if="userSettingsError" type="error" density="compact" class="mt-4">{{ userSettingsError.message }}</v-alert>
+      </v-card-text>
+    </v-card>
+  </div>
 </template>

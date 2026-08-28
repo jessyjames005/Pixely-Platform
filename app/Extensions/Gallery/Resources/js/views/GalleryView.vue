@@ -1,21 +1,15 @@
 <script setup lang="ts">
 // Gallery administration screen: list, upload, delete and paginate photos
 import { onMounted, ref } from 'vue'
-import BaseCard from '@shared/components/BaseCard.vue'
-import BaseButton from '@shared/components/BaseButton.vue'
-import BaseTable, { type TableColumn } from '@shared/components/BaseTable.vue'
-import BasePagination from '@shared/components/BasePagination.vue'
-import BaseFileInput from '@shared/components/BaseFileInput.vue'
 import { useApi } from '@shared/composables/useApi'
 import { useGalleryStore } from '../store/gallery.store'
 import type { Photo } from '../models/Photo'
-import '../styles/gallery.scss'
 
-const columns: TableColumn[] = [
-  { key: 'id', label: 'ID', align: 'center' },
-  { key: 'title', label: 'Title' },
-  { key: 'filename', label: 'File' },
-  { key: 'actions', label: '', align: 'right' },
+const headers = [
+  { title: 'ID', key: 'id', align: 'center' as const, sortable: false },
+  { title: 'Title', key: 'title', sortable: false },
+  { title: 'File', key: 'filename', sortable: false },
+  { title: '', key: 'actions', align: 'end' as const, sortable: false },
 ]
 
 const perPage = 20
@@ -28,7 +22,9 @@ const { loading: deleting, execute: removePhoto } = useApi(galleryStore.deletePh
 const { loading: uploading, error: uploadError, execute: submitUpload } = useApi(galleryStore.uploadPhoto)
 
 const uploadTitle = ref('')
-const uploadFile = ref<File | null>(null)
+// v-file-input's model shape (File | File[] | null) has varied across
+// Vuetify versions; typed loosely here and normalized in getSelectedFile().
+const uploadFile = ref<File | File[] | null>(null)
 
 onMounted(() => {
   fetchPhotos(currentPage.value, perPage)
@@ -44,12 +40,20 @@ async function handleDelete(photoId: number): Promise<void> {
   await fetchPhotos(currentPage.value, perPage)
 }
 
+// Normalizes v-file-input's model value to a single File, whether
+// Vuetify returns it as a bare File or wrapped in an array.
+function getSelectedFile(): File | undefined {
+  const value = uploadFile.value
+  return Array.isArray(value) ? value[0] : (value ?? undefined)
+}
+
 async function handleUpload(): Promise<void> {
-  if (!uploadFile.value) {
+  const file = getSelectedFile()
+  if (!file) {
     return
   }
 
-  const result = await submitUpload(uploadTitle.value, uploadFile.value)
+  const result = await submitUpload(uploadTitle.value, file)
 
   if (result) {
     uploadTitle.value = ''
@@ -65,49 +69,76 @@ function displayTitle(photo: Photo): string {
 </script>
 
 <template>
-  <section>
-    <h1>Gallery</h1>
+  <div>
+    <h1 class="text-h5 mb-4">Gallery</h1>
 
-    <BaseCard title="Upload a photo" class="gallery-upload-card">
-      <form class="gallery-upload-form" @submit.prevent="handleUpload">
-        <input v-model="uploadTitle" type="text" placeholder="Title (optional)" class="gallery-upload-form__title" />
-        <BaseFileInput v-model="uploadFile" :disabled="uploading" />
-        <BaseButton type="submit" :loading="uploading" :disabled="!uploadFile">Upload</BaseButton>
-      </form>
-      <p v-if="uploadError" class="gallery-error">{{ uploadError.message }}</p>
-    </BaseCard>
+    <v-card title="Upload a photo" class="mb-6">
+      <v-card-text>
+        <v-form class="d-flex align-center ga-4 flex-wrap" @submit.prevent="handleUpload">
+          <v-text-field
+            v-model="uploadTitle"
+            label="Title (optional)"
+            density="compact"
+            style="max-width: 240px"
+            hide-details
+          />
+          <v-file-input
+            v-model="uploadFile"
+            label="Image"
+            accept="image/*"
+            density="compact"
+            style="max-width: 240px"
+            hide-details
+            :disabled="uploading"
+          />
+          <v-btn type="submit" color="primary" :loading="uploading" :disabled="!getSelectedFile()">
+            Upload
+          </v-btn>
+        </v-form>
 
-    <BaseCard>
-      <template #header>
-        <div class="gallery-header">
-          <h2 class="base-card__title">Photos</h2>
-          <BaseButton size="sm" variant="secondary" :loading="loading" @click="handlePageChange(currentPage)">
-            Refresh
-          </BaseButton>
-        </div>
-      </template>
+        <v-alert v-if="uploadError" type="error" density="compact" class="mt-4">
+          {{ uploadError.message }}
+        </v-alert>
+      </v-card-text>
+    </v-card>
 
-      <p v-if="error" class="gallery-error">{{ error.message }}</p>
+    <v-card>
+      <v-card-title class="d-flex align-center justify-space-between">
+        Photos
+        <v-btn size="small" variant="tonal" :loading="loading" @click="handlePageChange(currentPage)">
+          Refresh
+        </v-btn>
+      </v-card-title>
 
-      <BaseTable :columns="columns" :rows="galleryStore.photos" :loading="loading">
-        <template #title="{ row }">{{ displayTitle(row as Photo) }}</template>
+      <v-alert v-if="error" type="error" density="compact" class="mx-4">
+        {{ error.message }}
+      </v-alert>
 
-        <template #actions="{ row }">
-          <BaseButton size="sm" variant="danger" :loading="deleting" @click="handleDelete((row as Photo).id)">
+      <v-data-table
+        :headers="headers"
+        :items="galleryStore.photos"
+        :loading="loading"
+        item-value="id"
+        :items-per-page="perPage"
+        hide-default-footer
+      >
+        <template #item.title="{ item }">{{ displayTitle(item) }}</template>
+
+        <template #item.actions="{ item }">
+          <v-btn size="small" color="error" variant="tonal" :loading="deleting" @click="handleDelete(item.id)">
             Delete
-          </BaseButton>
+          </v-btn>
         </template>
-      </BaseTable>
+      </v-data-table>
 
-      <template #footer>
-        <BasePagination
-          v-if="galleryStore.meta"
-          :current-page="galleryStore.meta.current_page"
-          :last-page="galleryStore.meta.last_page"
+      <v-card-actions v-if="galleryStore.meta" class="justify-center">
+        <v-pagination
+          :model-value="galleryStore.meta.current_page"
+          :length="galleryStore.meta.last_page"
           :disabled="loading"
-          @update:page="handlePageChange"
+          @update:model-value="handlePageChange"
         />
-      </template>
-    </BaseCard>
-  </section>
+      </v-card-actions>
+    </v-card>
+  </div>
 </template>

@@ -1,22 +1,17 @@
 <script setup lang="ts">
 // Users administration screen: list, create, edit and delete Core users
 import { computed, onMounted, ref } from 'vue'
-import BaseCard from '@shared/components/BaseCard.vue'
-import BaseButton from '@shared/components/BaseButton.vue'
-import BaseTable, { type TableColumn } from '@shared/components/BaseTable.vue'
-import BasePagination from '@shared/components/BasePagination.vue'
 import { useApi } from '@shared/composables/useApi'
 import { useUsersStore } from '../store/users.store'
 import { useRolesStore } from '@core/roles/store/roles.store'
 import type { User } from '../models/User'
-import '../styles/users.scss'
 
-const columns: TableColumn[] = [
-  { key: 'id', label: 'ID', align: 'center' },
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'role', label: 'Role' },
-  { key: 'actions', label: '', align: 'right' },
+const headers = [
+  { title: 'ID', key: 'id', align: 'center' as const, sortable: false },
+  { title: 'Name', key: 'name', sortable: false },
+  { title: 'Email', key: 'email', sortable: false },
+  { title: 'Role', key: 'role', sortable: false },
+  { title: '', key: 'actions', align: 'end' as const, sortable: false },
 ]
 
 const perPage = 20
@@ -98,88 +93,90 @@ async function handleDelete(user: User): Promise<void> {
   await fetchUsers(currentPage.value, perPage)
 }
 
-async function handleAssignRole(user: User, roleName: string): Promise<void> {
+async function handleAssignRole(userId: number, roleName: string | null): Promise<void> {
   if (!roleName) {
     return
   }
-  await submitAssign(user.id, roleName)
+  await submitAssign(userId, roleName)
 }
 </script>
 
 <template>
-  <section>
-    <h1>Users</h1>
+  <div>
+    <h1 class="text-h5 mb-4">Users</h1>
 
-    <BaseCard :title="isEditing ? 'Edit user' : 'Create a user'" class="users-form-card">
-      <form class="users-form" @submit.prevent="handleSubmit">
-        <input v-model="formName" type="text" placeholder="Name" required class="users-form__input" />
-        <input v-model="formEmail" type="email" placeholder="Email" required class="users-form__input" />
-        <input
-          v-model="formPassword"
-          type="password"
-          :placeholder="isEditing ? 'New password (optional)' : 'Password'"
-          :required="!isEditing"
-          class="users-form__input"
-        />
+    <v-card :title="isEditing ? 'Edit user' : 'Create a user'" class="mb-6">
+      <v-card-text>
+        <v-form class="d-flex align-center ga-4 flex-wrap" @submit.prevent="handleSubmit">
+          <v-text-field v-model="formName" label="Name" density="compact" style="max-width: 200px" hide-details required />
+          <v-text-field v-model="formEmail" label="Email" type="email" density="compact" style="max-width: 200px" hide-details required />
+          <v-text-field
+            v-model="formPassword"
+            :label="isEditing ? 'New password (optional)' : 'Password'"
+            type="password"
+            density="compact"
+            style="max-width: 200px"
+            hide-details
+            :required="!isEditing"
+          />
 
-        <BaseButton type="submit" :loading="saving || updating">
-          {{ isEditing ? 'Save changes' : 'Create user' }}
-        </BaseButton>
+          <v-btn type="submit" color="primary" :loading="saving || updating">
+            {{ isEditing ? 'Save changes' : 'Create user' }}
+          </v-btn>
+          <v-btn v-if="isEditing" variant="text" @click="resetForm">Cancel</v-btn>
+        </v-form>
 
-        <BaseButton v-if="isEditing" type="button" variant="ghost" @click="resetForm">
-          Cancel
-        </BaseButton>
-      </form>
+        <v-alert v-if="saveError" type="error" density="compact" class="mt-4">{{ saveError.message }}</v-alert>
+        <v-alert v-if="updateError" type="error" density="compact" class="mt-4">{{ updateError.message }}</v-alert>
+      </v-card-text>
+    </v-card>
 
-      <p v-if="saveError" class="users-form__error">{{ saveError.message }}</p>
-      <p v-if="updateError" class="users-form__error">{{ updateError.message }}</p>
-    </BaseCard>
+    <v-card>
+      <v-card-title class="d-flex align-center justify-space-between">
+        Users
+        <v-btn size="small" variant="tonal" :loading="loading" @click="handlePageChange(currentPage)">Refresh</v-btn>
+      </v-card-title>
 
-    <BaseCard>
-      <template #header>
-        <div class="users-list-header">
-          <h2 class="base-card__title">Users</h2>
-          <BaseButton size="sm" variant="secondary" :loading="loading" @click="handlePageChange(currentPage)">
-            Refresh
-          </BaseButton>
-        </div>
-      </template>
+      <v-alert v-if="error" type="error" density="compact" class="mx-4">{{ error.message }}</v-alert>
+      <v-alert v-if="deleteError" type="error" density="compact" class="mx-4">{{ deleteError.message }}</v-alert>
+      <v-alert v-if="assignError" type="error" density="compact" class="mx-4">{{ assignError.message }}</v-alert>
 
-      <p v-if="error" class="users-form__error">{{ error.message }}</p>
-      <p v-if="deleteError" class="users-form__error">{{ deleteError.message }}</p>
-      <p v-if="assignError" class="users-form__error">{{ assignError.message }}</p>
-
-      <BaseTable :columns="columns" :rows="usersStore.users" :loading="loading">
-        <template #role="{ row }">
-          <select
-            class="users-form__input"
+      <v-data-table
+        :headers="headers"
+        :items="usersStore.users"
+        :loading="loading"
+        item-value="id"
+        :items-per-page="perPage"
+        hide-default-footer
+      >
+        <template #item.role="{ item }">
+          <v-select
+            :items="rolesStore.roles.map((role) => role.name)"
+            density="compact"
+            variant="underlined"
+            hide-details
+            clearable
             :disabled="assigning"
-            @change="handleAssignRole(row as User, ($event.target as HTMLSelectElement).value)"
-          >
-            <option value="">No role</option>
-            <option v-for="role in rolesStore.roles" :key="role.id" :value="role.name">
-              {{ role.name }}
-            </option>
-          </select>
+            @update:model-value="(value: string | null) => handleAssignRole(item.id, value)"
+          />
         </template>
 
-        <template #actions="{ row }">
-          <BaseButton size="sm" variant="secondary" @click="startEdit(row as User)">Edit</BaseButton>
-          <BaseButton size="sm" variant="danger" :loading="deleting" @click="handleDelete(row as User)">
+        <template #item.actions="{ item }">
+          <v-btn size="small" variant="tonal" class="mr-2" @click="startEdit(item)">Edit</v-btn>
+          <v-btn size="small" color="error" variant="tonal" :loading="deleting" @click="handleDelete(item)">
             Delete
-          </BaseButton>
+          </v-btn>
         </template>
-      </BaseTable>
+      </v-data-table>
 
-      <template #footer>
-        <BasePagination
-          v-if="usersStore.meta"
-          :current-page="usersStore.meta.current_page"
-          :last-page="usersStore.meta.last_page"
+      <v-card-actions v-if="usersStore.meta" class="justify-center">
+        <v-pagination
+          :model-value="usersStore.meta.current_page"
+          :length="usersStore.meta.last_page"
           :disabled="loading"
-          @update:page="handlePageChange"
+          @update:model-value="handlePageChange"
         />
-      </template>
-    </BaseCard>
-  </section>
+      </v-card-actions>
+    </v-card>
+  </div>
 </template>
