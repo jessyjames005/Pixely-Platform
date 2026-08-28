@@ -2,11 +2,8 @@
 // Login screen for the administration SPA
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseButton from '@shared/components/BaseButton.vue'
-import BaseCard from '@shared/components/BaseCard.vue'
 import { useApi } from '@shared/composables/useApi'
 import { useAuthStore } from '../store/auth.store'
-import '../styles/login.scss'
 
 const email = ref('')
 const password = ref('')
@@ -14,7 +11,6 @@ const password = ref('')
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Wraps the login call with loading/error state
 const { loading, error, execute: submitLogin } = useApi(authStore.login)
 
 async function handleSubmit(): Promise<void> {
@@ -27,23 +23,36 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="login-page">
-    <BaseCard title="Sign in" class="login-card">
-      <form class="login-form" @submit.prevent="handleSubmit">
-        <label class="login-form__field">
-          <span>Email</span>
-          <input v-model="email" type="email" required autocomplete="username" />
-        </label>
+  <v-container class="fill-height" fluid>
+    <v-row align="center" justify="center">
+      <v-col cols="12" sm="8" md="4">
+        <v-card title="Sign in">
+          <v-card-text>
+            <v-form @submit.prevent="handleSubmit">
+              <v-text-field
+                v-model="email"
+                label="Email"
+                type="email"
+                autocomplete="username"
+                required
+              />
+              <v-text-field
+                v-model="password"
+                label="Password"
+                type="password"
+                autocomplete="current-password"
+                required
+              />
 
-        <label class="login-form__field">
-          <span>Password</span>
-          <input v-model="password" type="password" required autocomplete="current-password" />
-        </label>
+              <v-alert v-if="error" type="error" density="compact" class="mb-4">
+                {{ error.message }}
+              </v-alert>
 
-        <p v-if="error" class="login-form__error">{{ error.message }}</p>
-
-        <BaseButton type="submit" :loading="loading">Sign in</BaseButton>
-      </form>
-    </BaseCard>
-  </div>
+              <v-btn type="submit" color="primary" block :loading="loading">Sign in</v-btn>
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
