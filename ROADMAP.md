@@ -353,6 +353,7 @@ The current API response format (`{ data }`, `{ data, meta }`, `{ error }`) is s
 * [ ] API tokens
 * [ ] Token permissions
 * [ ] Extension API permissions
+* [ ] Personal access token management UI (create, name, scope, revoke, last-used tracking)
 
 ### OpenAPI
 
@@ -422,6 +423,8 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 
 ### Extension Manager
 
+### Extension Manager
+
 * [x] Extension registration
 * [x] Extension discovery
 * [x] Extension state management
@@ -431,9 +434,11 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [ ] Uninstall extension
 * [ ] Update extension
 * [ ] Extension version management
-* [ ] Dependency visualization
+* [ ] Dependency visualization (interactive graph of extension dependencies)
 * [ ] Extension details page
 * [ ] Extension configuration page
+* [ ] Extension-defined navigation tabs (an extension declares its own admin sections)
+* [ ] Favourite tabs/sections per administrator
 
 ### User Management
 
@@ -459,12 +464,14 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [ ] Reusable administration data tables
 * [ ] Reusable CRUD forms
 * [ ] Form validation system
-* [ ] Notification system
-* [ ] Confirmation dialogs
+* [ ] Notification system (toast: info, success, warning, error)
+* [ ] Confirmation dialogs (destructive action confirmation)
 * [ ] Error handling
 * [ ] API loading states
 * [ ] API error states
 * [ ] Permission-aware UI
+* [ ] Global settings/configuration search (find any setting across platform + extensions)
+* [ ] Translation management interface (view/edit every translation key, platform and extensions, in one place)
 
 # Platform Build & Maintenance
 
@@ -829,6 +836,73 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] GPS metadata
 * [ ] EXIF privacy controls
 * [ ] EXIF administration
+
+---
+
+# v1.1.0 - Platform Tooling & Developer Experience
+
+This milestone gathers operational and developer-facing tools that support running, debugging, and extending Pixely once the core administration platform is stable. Each sub-area is independent and can be scheduled as its own sprint.
+
+## System Observability
+
+* [ ] System log viewer (Laravel log files, filterable by level/date)
+* [ ] Application error log viewer
+* [ ] Redis cache browser (keys, values, TTL, manual eviction)
+* [ ] Read-only database browser (tables, columns, row preview)
+* [ ] Ad-hoc SQL query tool (read-only, permission-gated, query history)
+* [ ] Object relationship viewer (visualize a model's internal + cross-extension relationships)
+
+## Scheduled Tasks & Data Export
+
+* [ ] Scheduled task registry (cron-style, visible in administration)
+* [ ] Scheduled data export jobs (recurring exports to file/storage)
+* [ ] Task execution history and failure alerts
+
+## Data Import / Export
+
+* [ ] CSV import
+* [ ] CSV export
+* [ ] XML import
+* [ ] XML export
+* [ ] SQL dump import
+* [ ] SQL dump export
+* [ ] Import validation and dry-run preview
+* [ ] Export/import audit trail (who exported/imported what, when)
+
+## PDF Generation
+
+* [ ] PDF generation service (Core, reusable by any extension)
+* [ ] Print-friendly data views (e.g. print a Gallery album, a user list)
+* [ ] Fillable/editable PDF content
+* [ ] PDF template system (extension-defined templates)
+
+## Form Builder
+
+* [ ] Dynamic form builder (field types, choices, validation rules)
+* [ ] Form-to-report generation (submitted data rendered as a report)
+* [ ] Form data retrieval into a document (PDF/CSV export of submissions)
+
+## Messaging
+
+* [ ] Messaging Core abstraction (source-agnostic)
+* [ ] POP3/IMAP mailbox integration
+* [ ] Message broker integration (Redis Pub/Sub)
+* [ ] Message broker integration (RabbitMQ)
+* [ ] Message broker integration (Kafka)
+* [ ] Messaging configuration UI (choose/configure the active source)
+
+## Audit & History
+
+* [ ] Data change history (what changed, old/new value, per record)
+* [ ] User activity journal (creations, deletions, updates, filterable by user/date/object)
+* [ ] Audit log administration UI
+
+## Design References
+
+Reviewed as visual/UX references for the future Pixely Design System (not to be adopted wholesale — used for inspiration on layout, navigation, and component patterns):
+
+* Vuestic Admin
+* AdminLTE-based free Vue templates (dashboardpack.com demos)
 
 ---
 
