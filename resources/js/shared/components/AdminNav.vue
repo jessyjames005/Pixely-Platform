@@ -10,6 +10,7 @@ interface NavItem {
 // Navigation links list (to be extended as modules are added)
 const items: NavItem[] = [
   { label: 'Dashboard', to: '/admin' },
+  { label: 'Gallery', to: '/admin/gallery' },
   { label: 'Users', to: '/admin/users' },
   { label: 'Roles', to: '/admin/roles' },
   { label: 'Settings', to: '/admin/settings' },

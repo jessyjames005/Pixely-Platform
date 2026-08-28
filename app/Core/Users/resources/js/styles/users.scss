@@ -1,0 +1,30 @@
+.users-form-card {
+  margin-bottom: 1.5rem;
+}
+
+.users-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  &__input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    min-width: 180px;
+  }
+
+  &__error {
+    color: #dc2626;
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+  }
+}
+
+.users-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
