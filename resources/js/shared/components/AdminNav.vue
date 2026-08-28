@@ -1,56 +1,28 @@
 <script setup lang="ts">
-// Sidebar navigation component for the admin area
-
-// Shape of a single navigation item
+// Sidebar navigation, using Vuetify's list + router integration
 interface NavItem {
-  label: string; // Displayed text
-  to: string; // Target route path
+  label: string
+  to: string
+  icon: string
 }
 
-// Navigation links list (to be extended as modules are added)
 const items: NavItem[] = [
-  { label: 'Dashboard', to: '/admin' },
-  { label: 'Gallery', to: '/admin/gallery' },
-  { label: 'Users', to: '/admin/users' },
-  { label: 'Roles', to: '/admin/roles' },
-  { label: 'Settings', to: '/admin/settings' },
+  { label: 'Dashboard', to: '/admin', icon: 'mdi-view-dashboard' },
+  { label: 'Gallery', to: '/admin/gallery', icon: 'mdi-image-multiple' },
+  { label: 'Users', to: '/admin/users', icon: 'mdi-account-multiple' },
+  { label: 'Roles', to: '/admin/roles', icon: 'mdi-shield-account' },
+  { label: 'Settings', to: '/admin/settings', icon: 'mdi-cog' },
 ]
 </script>
 
 <template>
-  <!-- Navigation links list, rendered dynamically -->
-  <nav class="admin-nav">
-    <router-link
+  <v-list nav>
+    <v-list-item
       v-for="item in items"
       :key="item.to"
       :to="item.to"
-      class="admin-nav-link"
-      active-class="admin-nav-link--active"
-    >
-      {{ item.label }}
-    </router-link>
-  </nav>
+      :prepend-icon="item.icon"
+      :title="item.label"
+    />
+  </v-list>
 </template>
-
-<style scoped>
-/* Vertical link list */
-.admin-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* Navigation link style */
-.admin-nav-link {
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  text-decoration: none;
-  color: inherit;
-}
-
-/* Active link style (current route) */
-.admin-nav-link--active {
-  background: rgba(0, 0, 0, 0.06);
-  font-weight: 600;
-}
-</style>

@@ -25,6 +25,7 @@
         "vue-tsc": "^3.3.11"
     },
     "dependencies": {
+        "@mdi/font": "^7.4.47",
         "pinia": "^4.0.3",
         "sass": "^1.103.1",
         "swagger-ui-dist": "^5.32.14",

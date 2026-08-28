@@ -1,12 +1,15 @@
 <script setup lang="ts">
-// Main admin layout: navigation sidebar + header (user/logout) + content area
+// Main admin app shell: navigation drawer + top bar (user/logout) + content area.
+// v-navigation-drawer / v-app-bar / v-main register with the ancestor
+// <v-app> in App.vue regardless of nesting depth, so no extra <v-app> here.
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminNav from '../components/AdminNav.vue'
-import BaseButton from '../components/BaseButton.vue'
 import { useAuthStore } from '@core/auth/store/auth.store'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const drawer = ref(true)
 
 async function handleLogout(): Promise<void> {
   await authStore.logout()
@@ -15,62 +18,20 @@ async function handleLogout(): Promise<void> {
 </script>
 
 <template>
-  <div class="admin-layout">
-    <aside class="admin-sidebar">
-      <AdminNav />
-    </aside>
+  <v-navigation-drawer v-model="drawer" permanent>
+    <AdminNav />
+  </v-navigation-drawer>
 
-    <div class="admin-main">
-      <header class="admin-header">
-        <span v-if="user" class="admin-header__user">{{ authStore.user?.email }}</span>
-        <BaseButton size="sm" variant="ghost" @click="handleLogout">Log out</BaseButton>
-      </header>
+  <v-app-bar>
+    <v-app-bar-title>Pixely Platform</v-app-bar-title>
+    <v-spacer />
+    <span v-if="authStore.user" class="text-body-2 mr-4">{{ authStore.user.email }}</span>
+    <v-btn variant="text" @click="handleLogout">Log out</v-btn>
+  </v-app-bar>
 
-      <main class="admin-content">
-        <!-- Child views (Dashboard, etc.) render here -->
-        <router-view />
-      </main>
-    </div>
-  </div>
+  <v-main>
+    <v-container fluid>
+      <router-view />
+    </v-container>
+  </v-main>
 </template>
-
-<style scoped>
-/* Flex layout: fixed sidebar + expandable content */
-.admin-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Navigation sidebar */
-.admin-sidebar {
-  width: 240px;
-  border-right: 1px solid #e0e0e0;
-  padding: 1rem;
-}
-
-.admin-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.admin-header__user {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-/* Main content area */
-.admin-content {
-  flex: 1;
-  padding: 1.5rem;
-}
-</style>
