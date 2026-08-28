@@ -224,6 +224,38 @@ The project will use:
 
 ---
 
+## 7bis. Frontend domain structure
+
+Every frontend domain (Core module or backend extension) is organized under `resources/js/extensions/<domain>/` with an identical internal structure, regardless of whether the domain is Core or an extension on the backend.
+
+### Required subfolders
+
+```text
+extensions/<domain>/
+├── components/    # Domain-specific components (not shared across domains)
+├── composables/   # Reactive helpers specific to this domain
+├── docs/           # Domain-specific developer notes, not covered elsewhere
+├── entities/       # Domain entity classes/factories, if richer than a plain type
+├── enums/          # Domain enums (string/int unions with meaning)
+├── models/         # Domain data shapes returned by the API (replaces loose "types/api.ts" per domain)
+├── store/          # Pinia store(s) for this domain
+├── styles/         # .scss files; no <style> blocks inside .vue files
+├── tests/          # Vitest unit tests for this domain
+├── types/           # Domain-specific TypeScript types not tied to a Pinia store
+├── utils/           # Pure helper functions specific to this domain
+└── views/           # Route-level page components
+```
+
+### Rules
+
+- A component, composable, or util used by **only one** domain lives in that domain's folder. If a second domain needs it, promote it to `shared/`.
+- `shared/` holds only genuinely cross-domain code — generic UI (`BaseButton`, `BaseTable`, etc.), generic composables (`useApi`), and shared types (API envelopes).
+- State management uses **Pinia**. Each domain defines its own store(s) under `store/`; no module-level singleton composables for state (the previous `useAuth`-style pattern is retired in favour of a Pinia store).
+- Styling lives in `.scss` files under `styles/`, imported by the component — not written inline in a Vue SFC's `<style>` block. A component file contains markup and logic only.
+- New domains must follow this structure from their first commit — it is not something to "clean up later".
+
+---
+
 ## 8. Material Design and Vuetify
 
 Pixely's administration interface will follow Material Design principles and use Vuetify.

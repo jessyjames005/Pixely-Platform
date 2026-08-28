@@ -1,77 +1,52 @@
-// Vue Router configuration for the administration area
-import {
-  createRouter,
-  createWebHistory,
-  type RouteRecordRaw,
-} from "vue-router";
-import AdminLayout from "../layouts/AdminLayout.vue";
-import DashboardView from "../views/DashboardView.vue";
-import LoginView from "../views/LoginView.vue";
-import { useAuth } from "../composables/useAuth";
-import UsersView from "../views/UsersView.vue";
-import RolesView from "../views/RolesView.vue";
-import SettingsView from "../views/SettingsView.vue";
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import AdminLayout from '@shared/layouts/AdminLayout.vue'
+import DashboardView from '../views/DashboardView.vue'
+import LoginView from '@core/auth/views/LoginView.vue'
+import UsersView from '../views/UsersView.vue'
+import RolesView from '../views/RolesView.vue'
+import SettingsView from '../views/SettingsView.vue'
+import { useAuthStore } from '@core/auth/store/auth.store'
 
-// Route declarations: /login is public, /admin requires authentication
 const routes: RouteRecordRaw[] = [
   {
-    path: "/login",
-    name: "login",
+    path: '/login',
+    name: 'login',
     component: LoginView,
   },
   {
-    path: "/admin",
-    component: AdminLayout, // Global admin layout (sidebar + content)
+    path: '/admin',
+    component: AdminLayout,
     meta: { requiresAuth: true },
     children: [
-      {
-        path: "", // /admin
-        name: "admin.dashboard",
-        component: DashboardView,
-      },
-      {
-        path: "users",
-        name: "admin.users",
-        component: UsersView,
-      },
-      {
-        path: "roles",
-        name: "admin.roles",
-        component: RolesView,
-      },
-      {
-        path: "settings",
-        name: "admin.settings",
-        component: SettingsView,
-      },
+      { path: '', name: 'admin.dashboard', component: DashboardView },
+      { path: 'users', name: 'admin.users', component: UsersView },
+      { path: 'roles', name: 'admin.roles', component: RolesView },
+      { path: 'settings', name: 'admin.settings', component: SettingsView },
     ],
   },
-];
+]
 
-// Router instance in history mode (clean URLs, no #)
 const router = createRouter({
   history: createWebHistory(),
   routes,
-});
+})
 
-// Global navigation guard: verifies the session before entering any
-// route that requires authentication, and redirects appropriately.
 router.beforeEach(async (to) => {
-  const { user, initialized, checkAuth } = useAuth();
+  const authStore = useAuthStore()
 
-  if (!initialized.value) {
-    await checkAuth();
+  if (!authStore.initialized) {
+    await authStore.checkAuth()
   }
 
-  if (to.meta.requiresAuth && !user.value) {
-    return { name: "login" };
+  if (to.meta.requiresAuth && !authStore.user) {
+    return { name: 'login' }
   }
 
-  if (to.name === "login" && user.value) {
-    return { name: "admin.dashboard" };
+  if (to.name === 'login' && authStore.user) {
+    return { name: 'admin.dashboard' }
   }
 
-  return true;
-});
+  return true
+})
 
-export default router;
+export default router

@@ -2,9 +2,9 @@
 // Settings screen: platform-wide settings and the current user's own
 // locale preference, both backed by the Core Settings API.
 import { computed, onMounted, ref } from 'vue'
-import BaseCard from '../components/ui/BaseCard.vue'
-import BaseButton from '../components/ui/BaseButton.vue'
-import { useApi } from '../composables/useApi'
+import BaseCard from '@shared/components/BaseCard.vue'
+import BaseButton from '@shared/components/BaseButton.vue'
+import { useApi } from '@shared/composables/useApi'
 import {
   listLocales,
   getPlatformSettings,

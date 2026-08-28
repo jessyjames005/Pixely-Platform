@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Roles & permissions administration screen: list, create, edit and delete roles
 import { computed, onMounted, ref } from 'vue'
-import BaseCard from '../components/ui/BaseCard.vue'
-import BaseButton from '../components/ui/BaseButton.vue'
-import { useApi } from '../composables/useApi'
+import BaseCard from '@shared/components/BaseCard.vue'
+import BaseButton from '@shared/components/BaseButton.vue'
+import { useApi } from '@shared/composables/useApi'
 import {
   listRoles,
   listPermissions,

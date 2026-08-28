@@ -2,14 +2,14 @@
 // Main admin layout: navigation sidebar + header (user/logout) + content area
 import { useRouter } from 'vue-router'
 import AdminNav from '../components/AdminNav.vue'
-import BaseButton from '../components/ui/BaseButton.vue'
-import { useAuth } from '../composables/useAuth'
+import BaseButton from '../components/BaseButton.vue'
+import { useAuthStore } from '@core/auth/store/auth.store'
 
 const router = useRouter()
-const { user, logout } = useAuth()
+const authStore = useAuthStore()
 
 async function handleLogout(): Promise<void> {
-  await logout()
+  await authStore.logout()
   router.push({ name: 'login' })
 }
 </script>
@@ -22,7 +22,7 @@ async function handleLogout(): Promise<void> {
 
     <div class="admin-main">
       <header class="admin-header">
-        <span v-if="user" class="admin-header__user">{{ user.email }}</span>
+        <span v-if="user" class="admin-header__user">{{ authStore.user?.email }}</span>
         <BaseButton size="sm" variant="ghost" @click="handleLogout">Log out</BaseButton>
       </header>
 

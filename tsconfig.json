@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["resources/js/shared/*"],
+      "@core/auth/*": ["app/Core/Auth/resources/js/*"],
+      "@core/users/*": ["app/Core/Users/resources/js/*"],
+      "@core/roles/*": ["app/Core/Roles/resources/js/*"],
+      "@core/settings/*": ["app/Core/Settings/resources/js/*"],
+      "@extensions/gallery/*": ["app/Extensions/Gallery/resources/js/*"]
+    }
+  },
+  "include": [
+    "resources/js/**/*.ts",
+    "resources/js/**/*.vue",
+    "app/**/resources/js/**/*.ts",
+    "app/**/resources/js/**/*.vue"
+  ]
+}

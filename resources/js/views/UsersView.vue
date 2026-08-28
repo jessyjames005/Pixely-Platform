@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // Users administration screen: list, create, edit and delete Core users
 import { computed, onMounted, ref } from "vue";
-import BaseCard from "../components/ui/BaseCard.vue";
-import BaseButton from "../components/ui/BaseButton.vue";
-import BaseTable, { type TableColumn } from "../components/ui/BaseTable.vue";
-import BasePagination from "../components/ui/BasePagination.vue";
-import { useApi } from "../composables/useApi";
+import BaseCard from '@shared/components/BaseCard.vue'
+import BaseButton from '@shared/components/BaseButton.vue'
+import BaseTable, { type TableColumn } from '@shared/components/BaseTable.vue'
+import BasePagination from '@shared/components/BasePagination.vue'
+import BaseFileInput from '@shared/components/BaseFileInput.vue'
+import { useApi } from '@shared/composables/useApi'
 import {
   listUsers,
   createUser,

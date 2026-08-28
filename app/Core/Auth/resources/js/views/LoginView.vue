@@ -2,19 +2,20 @@
 // Login screen for the administration SPA
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseButton from '../components/ui/BaseButton.vue'
-import BaseCard from '../components/ui/BaseCard.vue'
-import { useApi } from '../composables/useApi'
-import { useAuth } from '../composables/useAuth'
+import BaseButton from '@shared/components/BaseButton.vue'
+import BaseCard from '@shared/components/BaseCard.vue'
+import { useApi } from '@shared/composables/useApi'
+import { useAuthStore } from '../store/auth.store'
+import '../styles/login.scss'
 
 const email = ref('')
 const password = ref('')
 
 const router = useRouter()
-const { login } = useAuth()
+const authStore = useAuthStore()
 
 // Wraps the login call with loading/error state
-const { loading, error, execute: submitLogin } = useApi(login)
+const { loading, error, execute: submitLogin } = useApi(authStore.login)
 
 async function handleSubmit(): Promise<void> {
   await submitLogin(email.value, password.value)
@@ -46,42 +47,3 @@ async function handleSubmit(): Promise<void> {
     </BaseCard>
   </div>
 </template>
-
-<style scoped>
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f9fafb;
-}
-
-.login-card {
-  width: 320px;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.login-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-}
-
-.login-form__field input {
-  padding: 0.5rem 0.65rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-}
-
-.login-form__error {
-  color: #dc2626;
-  margin: 0;
-  font-size: 0.85rem;
-}
-</style>

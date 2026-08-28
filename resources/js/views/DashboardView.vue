@@ -2,12 +2,12 @@
 // Admin dashboard view: displays a live, paginated gallery photo list from the API
 // and allows uploading new photos for end-to-end testing of the API client.
 import { onMounted, ref } from 'vue'
-import BaseCard from '../components/ui/BaseCard.vue'
-import BaseButton from '../components/ui/BaseButton.vue'
-import BaseTable, { type TableColumn } from '../components/ui/BaseTable.vue'
-import BasePagination from '../components/ui/BasePagination.vue'
-import BaseFileInput from '../components/ui/BaseFileInput.vue'
-import { useApi } from '../composables/useApi'
+import BaseCard from '@shared/components/BaseCard.vue'
+import BaseButton from '@shared/components/BaseButton.vue'
+import BaseTable, { type TableColumn } from '@shared/components/BaseTable.vue'
+import BasePagination from '@shared/components/BasePagination.vue'
+import BaseFileInput from '@shared/components/BaseFileInput.vue'
+import { useApi } from '@shared/composables/useApi'
 import {
   listGalleryPhotos,
   deleteGalleryPhoto,
