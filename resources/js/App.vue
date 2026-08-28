@@ -10,7 +10,7 @@ import { RouterView } from 'vue-router';
 </script>
 
 <template>
-    <div id="pixely-app">
-        <RouterView />
-    </div>
+  <v-app>
+    <router-view />
+  </v-app>
 </template>
