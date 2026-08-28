@@ -161,17 +161,17 @@ The Administration layer provides the first visual interface for managing the Pi
 
 ### Material Design System
 
-* [ ] Material Design principles
-* [ ] Vuetify integration
-* [ ] Pixely Design System
-* [ ] Design tokens
-* [ ] Typography system
-* [ ] Spacing system
+* [x] Material Design principles
+* [x] Vuetify integration
+* [x] Pixely Design System
+* [x] Design tokens (via Vuetify theme)
+* [ ] Typography system (au-delà des defaults Vuetify)
+* [ ] Spacing system (au-delà des defaults Vuetify)
 * [ ] Icon system
-* [ ] Colour system
-* [ ] Theme system
-* [ ] Light theme
-* [ ] Dark theme
+* [x] Colour system
+* [x] Theme system
+* [x] Light theme
+* [x] Dark theme
 * [ ] Responsive design rules
 * [ ] Accessibility rules
 
