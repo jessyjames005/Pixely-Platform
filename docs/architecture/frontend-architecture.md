@@ -14,10 +14,10 @@ The frontend follows a **domain-driven structure**: each Core module or backend 
 * TypeScript
 * Vue Router (history mode)
 * Pinia (state management)
-* Sass/SCSS (component styling, no inline `<style>` blocks)
+* Vuetify (Material Design component library and theme system)
 * Vite (build tool, dev server)
 
-Vuetify, the Pixely Design System, and Storybook are planned for a later stage and are not yet integrated.
+Tailwind was removed in favour of Vuetify to avoid running two competing design systems in parallel (see ADR-0008). Storybook is planned for a later stage and is not yet integrated.
 
 ---
 
@@ -177,18 +177,46 @@ onMounted(() => execute(1, 20))
 
 ---
 
-# Reusable UI Components (`shared/components/`)
+# UI Components (Vuetify)
 
-Generic, presentation-only components with no domain knowledge. Each accepts typed props and emits typed events; data fetching and business logic live in the domain view that uses them.
+Pixely uses Vuetify as its component library and design token layer, rather than a set of hand-built `Base*` components. Vuetify's theme system **is** the Pixely Design System — colours, typography, and spacing are configured once, centrally, instead of duplicated per component.
 
-| Component          | Purpose                                                        |
-| ------------------- | --------------------------------------------------------------- |
-| `BaseButton`         | Button with variants (primary/secondary/danger/ghost), sizes, loading state |
-| `BaseCard`           | Container with optional header/footer slots                    |
-| `BaseTable`          | Generic data table driven by a `columns`/`rows` contract, with named cell slots and loading/empty states |
-| `BasePagination`     | Previous/next page controls driven by `currentPage`/`lastPage` |
-| `BaseFileInput`      | File picker with visible selected filename                     |
-| `AdminNav`           | Sidebar navigation, linking to every domain's route             |
+## Theme
+
+`resources/js/shared/plugins/vuetify.ts` defines two themes, `pixelyLight` and `pixelyDark`, registered with `createVuetify()`. Icons use Material Design Icons (`@mdi/font`), imported once in `app.ts`.
+
+```ts
+export const vuetify = createVuetify({
+  theme: {
+    defaultTheme: 'pixelyLight',
+    themes: { pixelyLight, pixelyDark },
+  },
+  defaults: {
+    VBtn: { rounded: 'lg' },
+    VCard: { rounded: 'lg', elevation: 1 },
+  },
+})
+```
+
+Global component defaults (e.g. button/card rounding) are set once in the `defaults` block rather than repeated as props across every usage.
+
+## Component mapping
+
+The previous hand-built components have been fully replaced:
+
+| Previous (removed)   | Vuetify equivalent                          |
+| ---------------------- | --------------------------------------------- |
+| `BaseButton`             | `v-btn`                                        |
+| `BaseCard`               | `v-card`                                       |
+| `BaseTable` + `BasePagination` | `v-data-table` (+ `v-pagination` when paging is server-driven, since `v-data-table` itself only paginates client-side data) |
+| `BaseFileInput`          | `v-file-input`                                 |
+| Layout shell             | `v-app` / `v-app-bar` / `v-navigation-drawer` / `v-main` |
+
+Only `AdminNav.vue` remains as a thin custom wrapper (a `v-list` of `v-list-item`s bound to routes) — everything else is used directly from Vuetify in each domain's views.
+
+## Styling
+
+Per-domain `.scss` files (introduced during the earlier domain restructure) have been removed everywhere a Vuetify component fully replaced the custom markup — Vuetify's theme covers colours/spacing, so component-level `.scss` is now the exception, only added for layout tweaks Vuetify doesn't cover out of the box (e.g. `class="d-flex ga-4"` utility classes are preferred first).            |
 
 ---
 
