@@ -177,21 +177,21 @@ The Administration layer provides the first visual interface for managing the Pi
 
 ### UI Components
 
-* [ ] Buttons
-* [ ] Inputs
-* [ ] Selects
+* [x] Buttons (v-btn)
+* [x] Inputs (v-text-field)
+* [x] Selects (v-select)
 * [ ] Checkboxes
 * [ ] Radio buttons
 * [ ] Switches
 * [ ] Dialogs
-* [ ] Alerts
+* [x] Alerts (v-alert)
 * [ ] Notifications
-* [ ] Cards
-* [ ] Tables
-* [ ] Pagination
+* [x] Cards (v-card)
+* [x] Tables (v-data-table)
+* [x] Pagination (v-pagination)
 * [ ] Tabs
 * [ ] Breadcrumbs
-* [ ] Loading states
+* [x] Loading states (built into v-btn/v-data-table)
 * [ ] Empty states
 * [ ] Error states
 
