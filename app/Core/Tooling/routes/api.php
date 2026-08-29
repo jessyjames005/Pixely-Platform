@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Tooling\Http\Controllers\DatabaseController;
 use App\Core\Tooling\Http\Controllers\LogController;
 use App\Core\Tooling\Http\Controllers\RedisController;
 use Illuminate\Support\Facades\Route;
@@ -27,5 +28,15 @@ Route::middleware(['auth:sanctum'])->prefix('system')->group(function () {
     Route::middleware('permission:system.cache.clear')->group(function () {
         Route::delete('/cache/{key}', [RedisController::class, 'destroy']);
         Route::delete('/cache', [RedisController::class, 'flush']);
+    });
+
+    Route::middleware('permission:system.database.view')->group(function () {
+        Route::get('/database/tables', [DatabaseController::class, 'tables']);
+        Route::get('/database/tables/{table}/columns', [DatabaseController::class, 'columns']);
+        Route::get('/database/tables/{table}/preview', [DatabaseController::class, 'preview']);
+    });
+
+    Route::middleware('permission:system.sql.query')->group(function () {
+        Route::post('/database/query', [DatabaseController::class, 'query']);
     });
 });
