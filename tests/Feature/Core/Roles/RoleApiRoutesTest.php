@@ -18,16 +18,16 @@ it('requires authentication to list roles', function () {
 it('lists roles with their permissions', function () {
     $this->actingAs(User::factory()->create());
 
-    Permission::create(['name' => 'gallery.manage', 'guard_name' => 'web']);
+    Permission::create(['name' => 'gallery.photos.manage', 'guard_name' => 'web']);
     $role = Role::create(['name' => 'editor', 'guard_name' => 'web']);
-    $role->givePermissionTo('gallery.manage');
+    $role->givePermissionTo('gallery.photos.manage');
 
     $response = $this->getJson('/api/v1/roles');
 
     $response
         ->assertOk()
         ->assertJsonPath('data.0.name', 'editor')
-        ->assertJsonPath('data.0.permissions.0.name', 'gallery.manage');
+        ->assertJsonPath('data.0.permissions.0.name', 'gallery.photos.manage');
 });
 
 it('lists available permissions', function () {
@@ -45,17 +45,17 @@ it('lists available permissions', function () {
 it('creates a role with permissions', function () {
     $this->actingAs(User::factory()->create());
 
-    Permission::create(['name' => 'gallery.manage', 'guard_name' => 'web']);
+    Permission::create(['name' => 'gallery.photos.manage', 'guard_name' => 'web']);
 
     $response = $this->postJson('/api/v1/roles', [
         'name' => 'editor',
-        'permissions' => ['gallery.manage'],
+        'permissions' => ['gallery.photos.manage'],
     ]);
 
     $response
         ->assertCreated()
         ->assertJsonPath('data.name', 'editor')
-        ->assertJsonPath('data.permissions.0.name', 'gallery.manage');
+        ->assertJsonPath('data.permissions.0.name', 'gallery.photos.manage');
 });
 
 it('rejects a duplicate role name', function () {
@@ -73,10 +73,10 @@ it('rejects a duplicate role name', function () {
 it('updates a role permissions', function () {
     $this->actingAs(User::factory()->create());
 
-    Permission::create(['name' => 'gallery.manage', 'guard_name' => 'web']);
+    Permission::create(['name' => 'gallery.photos.manage', 'guard_name' => 'web']);
     Permission::create(['name' => 'users.manage', 'guard_name' => 'web']);
     $role = Role::create(['name' => 'editor', 'guard_name' => 'web']);
-    $role->givePermissionTo('gallery.manage');
+    $role->givePermissionTo('gallery.photos.manage');
 
     $response = $this->putJson("/api/v1/roles/{$role->id}", [
         'permissions' => ['users.manage'],

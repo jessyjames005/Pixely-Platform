@@ -10,6 +10,10 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Seeds the default administration roles and permissions.
+ *
+ * Naming convention: <domain>.<object>.<action>
+ * - view / manage (create+update) / delete for CRUD objects
+ * - explicit action names for non-CRUD tools (system.*)
  */
 final class RolePermissionSeeder extends Seeder
 {
@@ -17,11 +21,25 @@ final class RolePermissionSeeder extends Seeder
      * Permissions managed by the administration.
      */
     private const PERMISSIONS = [
+        // Gallery domain
+        'gallery.photos.view',
+        'gallery.photos.manage',
+        'gallery.photos.delete',
+
+        // Core domains
         'users.view',
         'users.manage',
+        'users.delete',
         'roles.view',
         'roles.manage',
-        'gallery.manage',
+        'roles.delete',
+
+        // Platform system tooling (non-CRUD, explicit actions)
+        'system.logs.view',
+        'system.cache.view',
+        'system.cache.clear',
+        'system.database.view',
+        'system.sql.query',
     ];
 
     public function run(): void
@@ -36,6 +54,6 @@ final class RolePermissionSeeder extends Seeder
         $admin->syncPermissions(self::PERMISSIONS);
 
         $editor = Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web']);
-        $editor->syncPermissions(['gallery.manage']);
+        $editor->syncPermissions(['gallery.photos.view', 'gallery.photos.manage']);
     }
 }
