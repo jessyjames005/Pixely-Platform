@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Redis;
 /**
  * Read-only (and single explicit clear action) access to Redis.
  *
+ * Uses the 'tooling' Redis connection (configured with an empty
+ * key prefix in config/database.php) so the admin sees the real,
+ * unprefixed keyspace rather than the app's cache-prefixed view.
+ *
  * This deliberately never exposes arbitrary Redis commands — only
  * key listing, key inspection, and a whole-cache flush.
  */
@@ -28,17 +32,19 @@ final class RedisController
         $pattern = $request->string('pattern')->value() ?: '*';
         $limit = max(1, min(500, (int) $request->integer('limit', 100)));
 
+        $connection = Redis::connection('tooling');
+
         $keys = [];
         $cursor = '0';
 
         do {
-            [$cursor, $batch] = $this->connection()->scan($cursor, ['match' => $pattern, 'count' => 100]);
+            [$cursor, $batch] = $connection->scan($cursor, ['match' => $pattern, 'count' => 100]);
 
             foreach ($batch as $key) {
                 $keys[] = [
                     'key' => $key,
-                    'type' => $this->connection()->type($key),
-                    'ttl' => $this->connection()->ttl($key),
+                    'type' => $connection->type($key),
+                    'ttl' => $connection->ttl($key),
                 ];
 
                 if (count($keys) >= $limit) {
@@ -58,7 +64,7 @@ final class RedisController
      */
     public function show(string $key, ApiResponse $apiResponse): JsonResponse
     {
-        $connection = $this->connection();
+        $connection = Redis::connection('tooling');
 
         if ($connection->exists($key) === 0) {
             return response()->json(
@@ -96,7 +102,7 @@ final class RedisController
      */
     public function destroy(string $key): JsonResponse
     {
-        $this->connection()->del($key);
+        Redis::connection('tooling')->del($key);
 
         return response()->json(status: 204);
     }
@@ -110,20 +116,8 @@ final class RedisController
      */
     public function flush(): JsonResponse
     {
-        $this->connection()->flushdb();
+        Redis::connection('tooling')->flushdb();
 
         return response()->json(status: 204);
-    }
-
-    /**
-     * Returns the Redis connection used for tooling, with key
-     * prefixing disabled so the admin sees the real keyspace.
-     */
-    private function connection()
-    {
-        $connection = Redis::connection('tooling');
-        $connection->client()->setOption(\Predis\Client::OPT_PREFIX, null);
-
-        return $connection;
     }
 }
