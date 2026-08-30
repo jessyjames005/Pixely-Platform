@@ -181,6 +181,79 @@ onMounted(() => execute(1, 20))
 
 Pixely uses Vuetify as its component library and design token layer, rather than a set of hand-built `Base*` components. Vuetify's theme system **is** the Pixely Design System — colours, typography, and spacing are configured once, centrally, instead of duplicated per component.
 
+# UX Conventions
+
+To keep every admin screen consistent, a small set of shared UX primitives is used everywhere rather than each domain inventing its own pattern.
+
+## Page structure
+
+```text
+[Page title]                          [+ Primary action button]
+[v-card: domain's list/table]
+```
+
+One primary action button per page, top-right of the title. No form ever sits permanently above a list.
+
+## Create / edit → dialog, never inline
+
+Clicking the primary action ("New X") or a row's edit icon opens a `v-dialog` containing the form. The form only exists inside the dialog. On success: close the dialog, refresh the list, show a success toast.
+
+## Delete → shared confirm dialog, never `window.confirm()`
+
+`shared/composables/useConfirmDialog.ts` exposes a single, app-wide confirmation dialog (`shared/components/ConfirmDialog.vue`, mounted once in `App.vue`). Any view calls:
+
+```ts
+const confirmed = await confirm({
+  title: 'Delete role',
+  message: `Delete role "${role.name}"? This cannot be undone.`,
+  confirmText: 'Delete',
+})
+
+if (!confirmed) return
+```
+
+`window.confirm()` must never be used anywhere in the codebase.
+
+## Feedback → toast, except form validation errors
+
+`shared/composables/useNotify.ts` exposes a single, app-wide toast (`shared/components/NotifySnackbar.vue`, mounted once in `App.vue`):
+
+```ts
+notify.success('User created.')
+notify.error('Something went wrong.')
+```
+
+Action outcomes (create/update/delete success or failure) use a toast. **Exception**: form validation errors (e.g. "email already taken") stay inline in the dialog, near the field, as a `v-alert` — the user needs to see the error while still looking at the form they're correcting, not in a corner toast.
+
+## Row actions → consistent icons, consistent colours
+
+| Action | Icon           | Colour             |
+| ------- | --------------- | -------------------- |
+| Edit     | `mdi-pencil`      | default (no colour) |
+| Delete    | `mdi-delete`       | `error`               |
+| View/details | `mdi-eye`      | default (no colour) |
+
+Primary actions (save, create) use `color="primary"`. Secondary actions (cancel, refresh) use `variant="text"` or `variant="tonal"` with no colour. Destructive actions use `color="error"`, never `primary`.
+
+## Empty / loading / error states
+
+* Loading: `:loading` on `v-data-table`.
+* Empty: a `#no-data` slot with a clear message ("No {objects} yet. Create one to get started.") instead of a silently blank table.
+* Load error: a `v-alert` at the top of the card, not a full-page block.
+
+## Form validation
+
+Required/simple rules (required, email format, min length) are enforced client-side via Vuetify's `:rules` on each field. Server-side rules that can't be known client-side (e.g. uniqueness) surface as an inline `v-alert` in the dialog after submission.
+
+## Density and dialog sizing
+
+* Form fields: `density="compact"` (implicit Vuetify default used across the admin).
+* Dialogs: `max-width` sized to the form's actual field count — around 480px for a simple form, up to ~600-900px for forms with several grouped fields.
+
+## Adopted so far
+
+Users, Roles, and Gallery follow every convention above. Settings has no list/delete flow yet, so `ConfirmDialog`/row-action icons don't currently apply there — apply them if/when Settings gains a list-based sub-section (e.g. per-locale settings).
+
 ## Theme
 
 `resources/js/shared/plugins/vuetify.ts` defines two themes, `pixelyLight` and `pixelyDark`, registered with `createVuetify()`. Icons use Material Design Icons (`@mdi/font`), imported once in `app.ts`.
