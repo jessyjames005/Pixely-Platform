@@ -466,12 +466,12 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 ### Administration Infrastructure
 
 * [ ] Reusable administration data tables
-* [ ] Reusable CRUD forms
-* [ ] Form validation system
-* [ ] Notification system (toast: info, success, warning, error)
-* [ ] Confirmation dialogs (destructive action confirmation)
+* [x] Reusable CRUD forms (modal-based, applied to Users/Roles/Gallery)
+* [ ] Form validation system (client-side rules in place per form; no shared reusable rule set yet)
+* [x] Notification system (toast: info, success, warning, error)
+* [x] Confirmation dialogs (destructive action confirmation)
 * [ ] Error handling
-* [ ] API loading states
+* [x] API loading states
 * [ ] API error states
 * [ ] Permission-aware UI
 * [ ] Global settings/configuration search (find any setting across platform + extensions)
