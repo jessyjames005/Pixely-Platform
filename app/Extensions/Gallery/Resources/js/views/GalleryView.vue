@@ -1,7 +1,11 @@
 <script setup lang="ts">
-// Gallery administration screen: list, upload, delete and paginate photos
+// Gallery administration screen. Follows shared UX conventions:
+// upload in a v-dialog, deletion via the shared confirm dialog,
+// feedback via toast.
 import { onMounted, ref } from 'vue'
 import { useApi } from '@shared/composables/useApi'
+import { useConfirmDialog } from '@shared/composables/useConfirmDialog'
+import { useNotify } from '@shared/composables/useNotify'
 import { useGalleryStore } from '../store/gallery.store'
 import type { Photo } from '../models/Photo'
 
@@ -16,35 +20,55 @@ const perPage = 20
 const currentPage = ref(1)
 
 const galleryStore = useGalleryStore()
+const { confirm } = useConfirmDialog()
+const notify = useNotify()
 
 const { loading, error, execute: fetchPhotos } = useApi(galleryStore.fetchPhotos)
 const { loading: deleting, execute: removePhoto } = useApi(galleryStore.deletePhoto)
 const { loading: uploading, error: uploadError, execute: submitUpload } = useApi(galleryStore.uploadPhoto)
 
+const dialogOpen = ref(false)
 const uploadTitle = ref('')
-// v-file-input's model shape (File | File[] | null) has varied across
-// Vuetify versions; typed loosely here and normalized in getSelectedFile().
 const uploadFile = ref<File | File[] | null>(null)
 
 onMounted(() => {
   fetchPhotos(currentPage.value, perPage)
 })
 
+function getSelectedFile(): File | undefined {
+  const value = uploadFile.value
+  return Array.isArray(value) ? value[0] : (value ?? undefined)
+}
+
+function openUploadDialog(): void {
+  uploadTitle.value = ''
+  uploadFile.value = null
+  dialogOpen.value = true
+}
+
+function closeDialog(): void {
+  dialogOpen.value = false
+}
+
 async function handlePageChange(page: number): Promise<void> {
   currentPage.value = page
   await fetchPhotos(page, perPage)
 }
 
-async function handleDelete(photoId: number): Promise<void> {
-  await removePhoto(photoId)
-  await fetchPhotos(currentPage.value, perPage)
-}
+async function handleDelete(photo: Photo): Promise<void> {
+  const confirmed = await confirm({
+    title: 'Delete photo',
+    message: `Delete "${photo.title ?? photo.filename}"? This cannot be undone.`,
+    confirmText: 'Delete',
+  })
 
-// Normalizes v-file-input's model value to a single File, whether
-// Vuetify returns it as a bare File or wrapped in an array.
-function getSelectedFile(): File | undefined {
-  const value = uploadFile.value
-  return Array.isArray(value) ? value[0] : (value ?? undefined)
+  if (!confirmed) {
+    return
+  }
+
+  await removePhoto(photo.id);
+  notify.success('Photo deleted.')
+  await fetchPhotos(currentPage.value, perPage)
 }
 
 async function handleUpload(): Promise<void> {
@@ -56,8 +80,8 @@ async function handleUpload(): Promise<void> {
   const result = await submitUpload(uploadTitle.value, file)
 
   if (result) {
-    uploadTitle.value = ''
-    uploadFile.value = null
+    notify.success('Photo uploaded.')
+    closeDialog()
     currentPage.value = 1
     await fetchPhotos(1, perPage)
   }
@@ -70,37 +94,10 @@ function displayTitle(photo: Photo): string {
 
 <template>
   <div>
-    <h1 class="text-h5 mb-4">Gallery</h1>
-
-    <v-card title="Upload a photo" class="mb-6">
-      <v-card-text>
-        <v-form class="d-flex align-center ga-4 flex-wrap" @submit.prevent="handleUpload">
-          <v-text-field
-            v-model="uploadTitle"
-            label="Title (optional)"
-            density="compact"
-            style="max-width: 240px"
-            hide-details
-          />
-          <v-file-input
-            v-model="uploadFile"
-            label="Image"
-            accept="image/*"
-            density="compact"
-            style="max-width: 240px"
-            hide-details
-            :disabled="uploading"
-          />
-          <v-btn type="submit" color="primary" :loading="uploading" :disabled="!getSelectedFile()">
-            Upload
-          </v-btn>
-        </v-form>
-
-        <v-alert v-if="uploadError" type="error" density="compact" class="mt-4">
-          {{ uploadError.message }}
-        </v-alert>
-      </v-card-text>
-    </v-card>
+    <div class="d-flex align-center justify-space-between mb-4">
+      <h1 class="text-h5">Gallery</h1>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openUploadDialog">Upload photo</v-btn>
+    </div>
 
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
@@ -110,9 +107,7 @@ function displayTitle(photo: Photo): string {
         </v-btn>
       </v-card-title>
 
-      <v-alert v-if="error" type="error" density="compact" class="mx-4">
-        {{ error.message }}
-      </v-alert>
+      <v-alert v-if="error" type="error" density="compact" class="mx-4">{{ error.message }}</v-alert>
 
       <v-data-table
         :headers="headers"
@@ -122,12 +117,21 @@ function displayTitle(photo: Photo): string {
         :items-per-page="perPage"
         hide-default-footer
       >
+        <template #no-data>
+          <p class="text-medium-emphasis py-6">No photos yet. Upload one to get started.</p>
+        </template>
+
         <template #item.title="{ item }">{{ displayTitle(item) }}</template>
 
         <template #item.actions="{ item }">
-          <v-btn size="small" color="error" variant="tonal" :loading="deleting" @click="handleDelete(item.id)">
-            Delete
-          </v-btn>
+          <v-btn
+            icon="mdi-delete"
+            size="small"
+            variant="text"
+            color="error"
+            :loading="deleting"
+            @click="handleDelete(item)"
+          />
         </template>
       </v-data-table>
 
@@ -140,5 +144,28 @@ function displayTitle(photo: Photo): string {
         />
       </v-card-actions>
     </v-card>
+
+    <!-- Upload dialog -->
+    <v-dialog v-model="dialogOpen" max-width="480" persistent>
+      <v-card title="Upload a photo">
+        <v-card-text>
+          <v-form @submit.prevent="handleUpload">
+            <v-text-field v-model="uploadTitle" label="Title (optional)" />
+            <v-file-input v-model="uploadFile" label="Image" accept="image/*" :disabled="uploading" />
+
+            <v-alert v-if="uploadError" type="error" density="compact" class="mt-2">
+              {{ uploadError.message }}
+            </v-alert>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
+          <v-btn color="primary" :loading="uploading" :disabled="!getSelectedFile()" @click="handleUpload">
+            Upload
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
