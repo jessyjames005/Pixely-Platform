@@ -111,6 +111,9 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Logout
 * [ ] Password management
 * [x] Authentication API
+* [ ] Two-factor authentication (2FA)
+* [ ] Forgot password / password reset flow
+* [ ] "Remember me" persistent session
 
 ### Users
 
@@ -174,6 +177,7 @@ The Administration layer provides the first visual interface for managing the Pi
 * [x] Dark theme
 * [ ] Responsive design rules
 * [ ] Accessibility rules
+* [ ] Dedicated visual identity for the System/Tooling/Administration area (black, electric blue, white palette), distinct from the general platform theme
 
 ### UI Components
 
@@ -845,12 +849,28 @@ This milestone gathers operational and developer-facing tools that support runni
 
 ## System Observability
 
-* [ ] System log viewer (Laravel log files, filterable by level/date)
-* [ ] Application error log viewer
-* [ ] Redis cache browser (keys, values, TTL, manual eviction)
-* [ ] Read-only database browser (tables, columns, row preview)
-* [ ] Ad-hoc SQL query tool (read-only, permission-gated, query history)
+* [x] System log viewer (Laravel log files, filterable by level/date)
+* [x] Redis cache browser (keys, values, TTL, manual eviction)
+* [x] Read-only database browser (tables, columns, row preview)
+* [x] Ad-hoc raw SQL query tool (read-only, permission-gated, validated single-SELECT)
 * [ ] Object relationship viewer (visualize a model's internal + cross-extension relationships)
+
+### Database Explorer (dedicated admin-only extension)
+
+A dedicated extension, admin-only, replacing/complementing the raw SQL tool with a guided, visual interface — no SQL knowledge required to inspect or query data safely.
+
+* [ ] Tabbed interface: "Browse" and "Query Builder", navigated with a `v-stepper` for the query builder flow
+* [ ] Browse tab: full read-only database view, per-column ascending/descending sort
+* [ ] Browse tab: per-column filter modal, with an operator select per column (`=`, `!=`, `<`, `<=`, `>`, `>=`, `like`, `between`, `in`, `is null`, `is not null`) and the corresponding value input(s)
+* [ ] Query Builder tab: named/titled saved queries (e.g. "Query 1 — user list with roles")
+* [ ] Query Builder: choose statement type (select, update, delete, ...) — write operations require `system.sql.query` plus an explicit additional confirmation, and are logged
+* [ ] Query Builder: choose source objects/tables (e.g. Users, Permissions, Roles) and displayed fields, auto-deriving the necessary joins between them
+* [ ] Query Builder: WHERE clause builder (AND / OR groups)
+* [ ] Query Builder: ORDER BY, GROUP BY, LIMIT builders
+* [ ] Query Builder: drag-and-drop arrangement of selected fields/clauses
+* [ ] Query Builder: live visual preview of the constructed query (readable representation, and/or the generated SQL) before execution
+* [ ] Execute the built query and display results in a table
+* [ ] Saved query library (list, re-run, edit, delete previously built queries)
 
 ## Scheduled Tasks & Data Export
 
@@ -903,6 +923,7 @@ Reviewed as visual/UX references for the future Pixely Design System (not to be 
 
 * Vuestic Admin
 * AdminLTE-based free Vue templates (dashboardpack.com demos)
+* Colorlib Vuetify admin templates (colorlib.com/wp/vuetify-templates)
 
 ---
 
@@ -940,6 +961,36 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Image processing
 * [ ] File metadata
 * [ ] Media administration
+
+## Music Extension
+
+* [ ] Track/album/artist library
+* [ ] Audio playback
+* [ ] Playlists
+* [ ] Search
+* [ ] Music API
+* [ ] Music administration
+* [ ] Music frontend player
+
+## Media Conversion Extension
+
+* [ ] Video → MP3 conversion
+* [ ] Video → MP4 (re-encode/transcode)
+* [ ] Document → PDF conversion (Word, LibreOffice formats)
+* [ ] PDF → editable document conversion
+* [ ] Conversion job queue and status tracking
+* [ ] Conversion API
+* [ ] Conversion administration
+
+## Transport Extension
+
+* [ ] Ride request (taxi / Uber-style / VTC)
+* [ ] Map display with live itinerary
+* [ ] Distance (km) and duration estimation
+* [ ] Toll estimation
+* [ ] Transport provider integration(s)
+* [ ] Transport API
+* [ ] Transport administration
 
 ---
 
