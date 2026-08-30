@@ -40,6 +40,29 @@ final class RolePermissionSeeder extends Seeder
         'system.cache.clear',
         'system.database.view',
         'system.sql.query',
+        'system.extensions.view',
+        'system.extensions.manage',   // enable/disable only
+        'system.extensions.install',  // install/update/uninstall — never auto-granted
+    ];
+
+    private const ADMIN_DEFAULT_PERMISSIONS = [
+        'gallery.photos.view',
+        'gallery.photos.manage',
+        'gallery.photos.delete',
+        'users.view',
+        'users.manage',
+        'users.delete',
+        'roles.view',
+        'roles.manage',
+        'roles.delete',
+        'system.logs.view',
+        'system.cache.view',
+        'system.cache.clear',
+        'system.database.view',
+        'system.sql.query',
+        'system.extensions.view',
+        'system.extensions.manage',
+        // system.extensions.install deliberately excluded — grant manually via /admin/roles if truly needed
     ];
 
     public function run(): void
@@ -51,7 +74,7 @@ final class RolePermissionSeeder extends Seeder
         }
 
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions(self::PERMISSIONS);
+        $admin->syncPermissions(self::ADMIN_DEFAULT_PERMISSIONS);
 
         $editor = Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web']);
         $editor->syncPermissions(['gallery.photos.view', 'gallery.photos.manage']);
