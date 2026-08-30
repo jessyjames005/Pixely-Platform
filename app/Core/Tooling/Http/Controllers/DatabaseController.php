@@ -111,7 +111,7 @@ final class DatabaseController
     /**
      * Execute an ad-hoc, validated, read-only SELECT query.
      */
-    public function query(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function query(Request $request, ApiCollectionResponse $apiResponse): JsonResponse
     {
         $validated = $request->validate([
             'sql' => ['required', 'string', 'max:5000'],
