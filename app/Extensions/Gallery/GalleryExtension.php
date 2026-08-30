@@ -24,9 +24,7 @@ final class GalleryExtension implements ExtensionInterface
             version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Gallery',
-            dependencies: [
-                'media',
-            ],
+            dependencies: [],
         );
     }
 
