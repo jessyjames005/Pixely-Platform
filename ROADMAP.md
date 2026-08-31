@@ -128,7 +128,17 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission system
 * [x] Role assignment
 * [x] Permission checks
-* [ ] Extension permissions
+* [ ] Extension-declared permissions (dynamic, not hardcoded)
+
+#### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
+
+Today, permissions are hardcoded in RolePermissionSeeder. The target model: each installed extension declares its own permission set (view/manage/delete per object, following the established naming convention), synced into the database automatically on install/enable — no more manually editing a seeder for every new extension or object type.
+
+* [ ] Extension manifest/contract method declaring the extension's permissions (object → available actions)
+* [ ] Automatic permission sync on extension install/enable (create missing Permission rows; never silently delete existing ones on disable/uninstall, to avoid breaking existing role assignments)
+* [ ] Roles UI: per-module/per-object row, not a raw permission checkbox list
+* [ ] Roles UI: friendly two-column control per row — "Accessibilité" (Interdit / Lecture / Écriture, mapping to none / view / manage+delete) and "Visibilité" (Caché / Visible, controlling whether the admin nav section appears at all for that role)
+* [ ] "Droits existants" summary view: read-only table of every module/profile/user combination and its current access level, for auditing at a glance
 
 ### Settings
 
@@ -427,22 +437,28 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 
 ### Extension Manager
 
-### Extension Manager
-
 * [x] Extension registration
 * [x] Extension discovery
 * [x] Extension state management
 * [x] Enable extension
 * [x] Disable extension
-* [ ] Install extension
-* [ ] Uninstall extension
-* [ ] Update extension
-* [ ] Extension version management
+* [x] Install extension (zip upload, validated, audited)
+* [x] Uninstall extension (files only; no automatic data rollback)
+* [x] Update extension (zip upload, validated, audited, backup + rollback on failure)
+* [ ] Extension version management (semver comparison, "update available" detection)
 * [ ] Dependency visualization (interactive graph of extension dependencies)
 * [ ] Extension details page
 * [ ] Extension configuration page
 * [ ] Extension-defined navigation tabs (an extension declares its own admin sections)
 * [ ] Favourite tabs/sections per administrator
+
+#### Extension Manager UI (reference: Mediboard modules screen, reviewed 2026-08)
+
+* [ ] Two tabs: "Installed (N)" / "Not installed (N)"
+* [ ] Table columns: name, type, action (uninstall link), dependencies, config button, version, Active toggle, Visible toggle, dependency list
+* [ ] "Activer la suppression" safety toggle: uninstall links/buttons are disabled by default and must be explicitly unlocked first, per session — a second safety layer beyond the confirm dialog
+* [ ] Bulk "Update all modules (N)" action, listing how many extensions have an update available
+* [ ] Per-extension "Configurer" button opens the extension configuration page/modal
 
 ### User Management
 
@@ -476,6 +492,15 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [ ] Permission-aware UI
 * [ ] Global settings/configuration search (find any setting across platform + extensions)
 * [ ] Translation management interface (view/edit every translation key, platform and extensions, in one place)
+
+#### Translation Management UI (reference: Mediboard translation screen, reviewed 2026-08)
+
+* [ ] Filter by module (Core, or a specific installed extension), target language, and reference language
+* [ ] Per-category completion percentage (e.g. "70.69% — 5297/7493 terms"), with a visible progress indicator
+* [ ] Inline-editable translation rows: key on the left, editable text field with the current translation on the right
+* [ ] Warning indicator on a row with a suspect/incomplete translation
+* [ ] Save per category/section rather than only a single global save
+* [ ] Applies uniformly to Core strings and to any installed extension's own translation files
 
 # Platform Build & Maintenance
 
@@ -544,6 +569,14 @@ The platform should provide a visual build and maintenance interface allowing ad
 * [ ] Display maintenance operation history
 * [ ] Permission-aware maintenance actions
 * [ ] Confirmation dialogs for destructive operations
+
+### Platform Health Dashboard (reference: Symfony-style Health Dashboard, reviewed 2026-08)
+
+* [ ] Overview tab: PHP (version, server count, timezone, architecture, SAPI), Database (engine, version, storage engine, uptime), Cache (APCu/Redis/OPcache hit rate and memory usage side by side), Framework (Laravel version, debug mode, environment, maintenance/EOL dates if tracked)
+* [ ] "Last hour" live panel: response time trend, request count, error rate, slow query count, failed authentication count — each with a small sparkline
+* [ ] Alerts tab: surfaced platform-level warnings (e.g. approaching EOL, cache memory near limit, elevated error rate)
+* [ ] Log cross-referencing tab ("Croisement des journaux"): correlate entries across log sources for a given time window
+* [ ] General server info tab
 
 ### Developer / Administration UI
 
@@ -857,20 +890,46 @@ This milestone gathers operational and developer-facing tools that support runni
 
 ### Database Explorer (dedicated admin-only extension)
 
-A dedicated extension, admin-only, replacing/complementing the raw SQL tool with a guided, visual interface — no SQL knowledge required to inspect or query data safely.
+A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. Reference: a Mediboard-style query builder (screenshots reviewed 2026-08).
 
-* [ ] Tabbed interface: "Browse" and "Query Builder", navigated with a `v-stepper` for the query builder flow
-* [ ] Browse tab: full read-only database view, per-column ascending/descending sort
-* [ ] Browse tab: per-column filter modal, with an operator select per column (`=`, `!=`, `<`, `<=`, `>`, `>=`, `like`, `between`, `in`, `is null`, `is not null`) and the corresponding value input(s)
-* [ ] Query Builder tab: named/titled saved queries (e.g. "Query 1 — user list with roles")
-* [ ] Query Builder: choose statement type (select, update, delete, ...) — write operations require `system.sql.query` plus an explicit additional confirmation, and are logged
-* [ ] Query Builder: choose source objects/tables (e.g. Users, Permissions, Roles) and displayed fields, auto-deriving the necessary joins between them
-* [ ] Query Builder: WHERE clause builder (AND / OR groups)
-* [ ] Query Builder: ORDER BY, GROUP BY, LIMIT builders
-* [ ] Query Builder: drag-and-drop arrangement of selected fields/clauses
-* [ ] Query Builder: live visual preview of the constructed query (readable representation, and/or the generated SQL) before execution
-* [ ] Execute the built query and display results in a table
-* [ ] Saved query library (list, re-run, edit, delete previously built queries)
+#### Query Builder — step wizard (`v-stepper`, 6 steps)
+
+* [ ] Step 1 — Choix des classes: pick a main class/table, then add joined classes/tables via their relationships (tabbed view per joined class)
+* [ ] Step 2 — Colonnes à afficher: pick displayed fields per class (tabbed field picker with search), drag-and-drop reordering of selected columns, per-column display label editable inline
+* [ ] Step 3 — Contraintes: WHERE clause builder, AND/OR groups, "Ajouter une contrainte" opens a field-picker modal (tabbed by class) → then an operator select per field (`=`, `!=`, `<`, `<=`, `>`, `>=`, `like`, `between`, `in`, `is null`, `is not null`) with the matching value input(s)
+* [ ] Step 4 — Options supplémentaires: two panels, "Groupement" (GROUP BY builder) and "Ordonnancement" (ORDER BY builder, numbered priority when multiple columns)
+* [ ] Step 5 — Contraintes post-groupement: HAVING clause builder, same constraint UI as step 3, applied after GROUP BY
+* [ ] Step 6 — Validation: read-only generated SQL preview (syntax highlighted), "Exécuter la requête" button, and a query-plan explanation table (selection type, table, access type, possible keys, chosen key, key length, reference, row count, extra info) — i.e. a friendly `EXPLAIN` rendering
+* [ ] Live visual/drag-and-drop preview of the constructed query at every step, not just the final one
+
+#### Query execution
+
+* [ ] Configurable maximum execution time per query (admin-wide setting)
+* [ ] Optional override to allow unlimited execution time (explicit opt-in, off by default)
+* [ ] Execute and display results in a table
+* [ ] Query timeout enforcement server-side, not just a UI setting
+
+#### Saved query library
+
+* [ ] Query list page: search by name, filter by last-execution date range, toggle "Toutes" / "Mes requêtes"
+* [ ] "Nouvelle requête" (start the step wizard) and "Importer une requête" (import a previously exported query definition)
+* [ ] Each saved query shows: name, owner (with a distinguishing colour/avatar), version count, "Aperçu" (preview), download, and history actions
+* [ ] Query versioning: multiple versions per query, one marked "Active"; version history browsable
+* [ ] Query locking: a query can be explicitly locked ("Verrouiller la requête") to prevent further edits
+* [ ] Per-query statistics (execution count/history, expandable)
+
+#### Query properties / export configuration
+
+* [ ] CSV export format settings per query: field separator, field delimiter, encoding (e.g. UTF-8, ISO-8859-1)
+* [ ] Toggle: show column names on the first line
+* [ ] Toggle: translate result fields on execution/export (i.e. apply platform localization to displayed values, not just labels)
+* [ ] Per-query access token(s), for triggering/exporting a saved query without interactive login (scoped, revocable)
+* [ ] "Export de vue" — export the query as a reusable database view definition
+
+#### Permissions
+
+* [ ] New permissions following the established convention: `database-explorer.queries.view`, `database-explorer.queries.manage`, `database-explorer.queries.delete`, `database-explorer.queries.execute` (separate from `manage`, since running a query and being able to edit/save one are different risk levels)
+* [ ] Query access tokens carry their own scope, independent of the creating user's session permissions
 
 ## Scheduled Tasks & Data Export
 
