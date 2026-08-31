@@ -1,5 +1,3 @@
 FROM node:22-alpine
-
 WORKDIR /var/www
-
-CMD ["node", "docker/node/swagger-server.js"]
+CMD ["sh", "-c", "npm install && node docker/node/swagger-server.js"]
