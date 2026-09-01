@@ -9,7 +9,7 @@ return [
     'id' => 'gallery',
     'name' => 'gallery',
     'version' => '1.0.0',
-    'class' => Tests\Fakes\Extensions\GalleryExtension::class,
+    'class' => App\Extensions\Gallery\GalleryExtension::class,
     'requires' => [
         'media',
     ],
