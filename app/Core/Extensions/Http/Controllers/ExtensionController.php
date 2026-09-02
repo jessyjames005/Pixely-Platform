@@ -12,6 +12,7 @@ use App\Core\Extensions\Manager\ExtensionManager;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 
 /**
  * Read/lifecycle (non-destructive) extension management API.
@@ -26,8 +27,8 @@ final class ExtensionController
         private readonly ExtensionManager $manager,
         private readonly ExtensionConfigurationRepositoryInterface $configRepository,
         private readonly ExtensionAuditLogger $auditLogger,
-    ) {
-    }
+        private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
+    ) {}
 
     /**
      * List all registered extensions with their current state.
@@ -35,7 +36,7 @@ final class ExtensionController
     public function index(ApiCollectionResponse $apiResponse): JsonResponse
     {
         $extensions = array_map(
-            fn ($extension) => $this->summarize($extension),
+            fn($extension) => $this->summarize($extension),
             $this->manager->all(),
         );
 
@@ -80,6 +81,8 @@ final class ExtensionController
                 422,
             );
         }
+
+        $this->permissionSynchronizer->sync($this->manager->all()[$id]);
 
         $this->auditLogger->log($id, 'enable');
 

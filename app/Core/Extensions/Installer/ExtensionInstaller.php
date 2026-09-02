@@ -9,6 +9,7 @@ use App\Core\Extensions\Contracts\ExtensionInterface;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
+use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 
 /**
  * Orchestrates the full install/update/uninstall flow for extensions
@@ -24,8 +25,8 @@ final class ExtensionInstaller
     public function __construct(
         private readonly ExtensionPackageValidator $validator,
         private readonly ExtensionAuditLogger $auditLogger,
-    ) {
-    }
+        private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
+    ) {}
 
     /**
      * Install a new extension from an uploaded zip file.
@@ -115,6 +116,11 @@ final class ExtensionInstaller
             $this->refreshAutoloader();
 
             $this->assertClassIsValidExtension($manifest['class'], $targetPath, $backupPath);
+
+            // Sync declared permissions now that the extension's class is
+            // verified and autoloadable.
+            $extensionInstance = new ($manifest['class'])();
+            $this->permissionSynchronizer->sync($extensionInstance);
 
             // Success: the backup (if any) is no longer needed.
             if ($backupPath !== null) {

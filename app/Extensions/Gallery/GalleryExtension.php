@@ -6,16 +6,11 @@ namespace App\Extensions\Gallery;
 
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
+use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
 use App\Extensions\Gallery\Providers\GalleryServiceProvider;
 
-/**
- * Gallery extension.
- */
-final class GalleryExtension implements ExtensionInterface
+final class GalleryExtension implements ExtensionInterface, ExtensionPermissionsInterface
 {
-    /**
-     * Return the extension manifest.
-     */
     public function manifest(): ExtensionManifest
     {
         return new ExtensionManifest(
@@ -29,10 +24,17 @@ final class GalleryExtension implements ExtensionInterface
     }
 
     /**
-     * Return the Laravel service providers used by the extension.
-     *
-     * @return array<class-string>
+     * @return array<int, string>
      */
+    public function declaredPermissions(): array
+    {
+        return [
+            'gallery.photos.view',
+            'gallery.photos.manage',
+            'gallery.photos.delete',
+        ];
+    }
+
     public function providers(): array
     {
         return [
@@ -40,9 +42,6 @@ final class GalleryExtension implements ExtensionInterface
         ];
     }
 
-    /**
-     * Boot the extension.
-     */
     public function boot(): void
     {
         // Nothing to boot.

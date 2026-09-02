@@ -21,28 +21,24 @@ final class RolePermissionSeeder extends Seeder
      * Permissions managed by the administration.
      */
     private const PERMISSIONS = [
-        // Gallery domain
-        'gallery.photos.view',
-        'gallery.photos.manage',
-        'gallery.photos.delete',
-
-        // Core domains
+        // Core domains only — extension-owned permissions (e.g. Gallery)
+        // are synced dynamically via ExtensionPermissionSynchronizer,
+        // triggered on install/update/enable, or manually via
+        // `php artisan pixely:sync-permissions`.
         'users.view',
         'users.manage',
         'users.delete',
         'roles.view',
         'roles.manage',
         'roles.delete',
-
-        // Platform system tooling (non-CRUD, explicit actions)
         'system.logs.view',
         'system.cache.view',
         'system.cache.clear',
         'system.database.view',
         'system.sql.query',
         'system.extensions.view',
-        'system.extensions.manage',   // enable/disable only
-        'system.extensions.install',  // install/update/uninstall — never auto-granted
+        'system.extensions.manage',
+        // system.extensions.install deliberately excluded — grant manually via /admin/roles if truly needed
     ];
 
     private const ADMIN_DEFAULT_PERMISSIONS = [
@@ -67,6 +63,10 @@ final class RolePermissionSeeder extends Seeder
 
     public function run(): void
     {
+        // Ensure extension-declared permissions (e.g. Gallery) exist
+        // before roles reference them below.
+        app(\Illuminate\Contracts\Console\Kernel::class)->call('pixely:sync-permissions');
+
         foreach (self::PERMISSIONS as $permission) {
             Permission::firstOrCreate(
                 ['name' => $permission, 'guard_name' => 'web'],
@@ -74,7 +74,7 @@ final class RolePermissionSeeder extends Seeder
         }
 
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions(self::ADMIN_DEFAULT_PERMISSIONS);
+        $admin->syncPermissions([...self::PERMISSIONS, 'gallery.photos.view', 'gallery.photos.manage', 'gallery.photos.delete']);
 
         $editor = Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web']);
         $editor->syncPermissions(['gallery.photos.view', 'gallery.photos.manage']);
