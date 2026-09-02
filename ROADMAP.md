@@ -122,13 +122,23 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [ ] User profile
 * [ ] User preferences
 
+#### User profile (planned)
+
+* [ ] Profile fields: display name, bio/title, timezone
+* [ ] Avatar upload, stored via the Files Extension (dependency) rather than ad-hoc upload handling
+* [ ] "My profile" self-service screen, distinct from admin-only Users management
+
+#### User preferences (planned)
+
+* [ ] Per-user preference storage (theme choice, density, notification opt-outs), separate table/model from Core Settings' UserSetting (which is locale-only today) — or extend UserSetting's JSON blob if scope stays small
+
 ### Roles & Permissions
 
 * [x] Role system
 * [x] Permission system
 * [x] Role assignment
 * [x] Permission checks
-* [ ] Extension-declared permissions (dynamic, not hardcoded)
+* [ ] Extension-declared permissions (dynamic, not hardcoded) — NEXT SPRINT
 
 #### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
 
@@ -146,6 +156,11 @@ Today, permissions are hardcoded in RolePermissionSeeder. The target model: each
 * [x] User settings
 * [ ] Extension settings
 * [x] Persistent settings storage
+
+#### Extension settings (planned)
+
+* [ ] Per-extension settings screen in the admin (distinct from the raw JSON config editor already in Extension Manager — a friendlier, field-typed UI once an extension declares a settings schema)
+* [ ] Extension manifest/contract method declaring settings fields (key, type, label, default) — mirrors the planned extension-declared permissions approach
 
 ### Localization
 
@@ -304,9 +319,20 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 * [ ] Platform / extension compatibility rules
 * [ ] Extension upgrade mechanism
 
+#### Incremental upgrade mechanism (planned — replaces "update = re-upload full zip")
+
+Today, `update()` replaces an extension's entire directory from a new zip. The target model: an extension ships versioned upgrade steps, applied incrementally from the currently installed version up to the target version — closer to database migrations than a full package swap.
+
+* [ ] Extension declares an ordered list of version steps (e.g. Gallery 1.0.0 → 1.0.1 → 1.0.2), each with its own migration/upgrade logic
+* [ ] Example step semantics: 1.0.1 = a display/bugfix step (no schema change); 1.0.2 = a schema change step (add `slug`, `file_size` columns to `photos`)
+* [ ] Installed version is tracked (already have `version` in the manifest — add a persisted "currently applied version" separate from "manifest version" to detect drift)
+* [ ] Update flow applies only the steps between installed and target version, in order, each wrapped in its own transaction/rollback boundary
+* [ ] "Update available" detection: compare installed version to the version declared in an uploaded package (or, later, a remote source) via semver comparison
+* [ ] The full-zip-replace flow (already built) remains the mechanism for **new installs**; incremental steps are specifically for **updates** to an already-installed extension
+
 ### Developer Experience
 
-* [ ] Extension generator
+* [ ] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an empty, valid extension: `extension.php` manifest, main class implementing `ExtensionInterface`, `Providers/`, `Http/Controllers/`, `routes/api.php`, `Database/Migrations/`, `resources/js/{store,models,views,tests}` following the established domain-driven frontend structure
 * [ ] Extension development template
 * [ ] Extension testing helpers
 * [ ] Extension SDK documentation
@@ -1052,6 +1078,31 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Transport API
 * [ ] Transport administration
 
+## Files Extension
+
+A reusable file-handling extension, meant to be a dependency of other extensions (Gallery, future Shop, etc.) rather than each one reimplementing upload rules independently.
+
+* [ ] Configurable max upload size (global default + per-consuming-extension override)
+* [ ] Allowed file type whitelist (by extension and/or MIME type — e.g. png, jpg, zip, doc)
+* [ ] Configurable max number of files per upload batch
+* [ ] Thumbnail generation
+* [ ] Image resize (on upload, and on-demand by requested dimensions)
+* [ ] Shared storage/validation service consumed by other extensions via a declared dependency (e.g. Gallery `requires: ['files']`)
+* [ ] Files API (upload, list, delete) usable standalone or embedded
+* [ ] Files administration screen (view stored files, usage per consuming extension)
+
+### Planned consumers
+
+* [ ] Gallery Extension: photo upload delegates validation/thumbnailing to Files Extension instead of its own ad-hoc logic
+* [ ] Shop Extension (future): product images use Files Extension the same way
+
+## Translations Extension
+
+Implements the Translation Management UI already specified under Administration Infrastructure (v0.7.0) as an actual installable extension, not a hardcoded Core feature — consistent with ADR-0001 ("Pixely is a Platform, not an Application").
+
+* [ ] Same feature set as already detailed in "Translation Management UI" (module/language filter, completion percentage, inline editing, per-category save)
+* [ ] Applies uniformly to Core strings and any installed extension's own translation files, discovered dynamically rather than hardcoded per module
+
 ---
 
 # Long-Term Platform Goals
@@ -1127,6 +1178,37 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] CI/CD pipeline
 
 ---
+
+# Current Execution Order
+
+CURRENT
+ │
+ ▼
+Extension-declared permissions (dynamic, replaces hardcoded seeder)
+ │
+ ▼
+Incremental extension upgrade mechanism (versioned steps, not full zip replace)
+ │
+ ▼
+Files Extension (upload rules, thumbnails, resize) — dependency for Gallery
+ │
+ ▼
+Translations Extension
+ │
+ ▼
+Extension Manager remaining items (version management, dependency graph, nav tabs, favourites, permission-aware UI)
+ │
+ ▼
+Users: profile, avatar (via Files Extension), preferences
+ │
+ ▼
+Extension settings screen
+ │
+ ▼
+Sample Cinema Extension + frontend training
+ │
+ ▼
+Gallery Administration (visual, albums, tags, search, EXIF)
 
 # Current Progress
 
