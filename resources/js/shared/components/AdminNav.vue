@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { label: 'Users', to: '/admin/users', icon: 'mdi-account-multiple' },
   { label: 'Roles', to: '/admin/roles', icon: 'mdi-shield-account' },
   { label: 'Settings', to: '/admin/settings', icon: 'mdi-cog' },
+  { label: 'Extensions', to: '/admin/extensions', icon: 'mdi-puzzle' },
 ]
 </script>
 

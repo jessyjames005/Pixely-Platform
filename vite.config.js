@@ -21,12 +21,27 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@shared": fileURLToPath(new URL("./resources/js/shared", import.meta.url)),
-      "@core/auth": fileURLToPath(new URL("./app/Core/Auth/resources/js", import.meta.url)),
-      "@core/users": fileURLToPath(new URL("./app/Core/Users/resources/js", import.meta.url)),
-      "@core/roles": fileURLToPath(new URL("./app/Core/Roles/resources/js", import.meta.url)),
-      "@core/settings": fileURLToPath(new URL("./app/Core/Settings/resources/js", import.meta.url)),
-      "@extensions/gallery": fileURLToPath(new URL("./app/Extensions/Gallery/resources/js", import.meta.url)),
+      "@shared": fileURLToPath(
+        new URL("./resources/js/shared", import.meta.url),
+      ),
+      "@core/auth": fileURLToPath(
+        new URL("./app/Core/Auth/resources/js", import.meta.url),
+      ),
+      "@core/users": fileURLToPath(
+        new URL("./app/Core/Users/resources/js", import.meta.url),
+      ),
+      "@core/roles": fileURLToPath(
+        new URL("./app/Core/Roles/resources/js", import.meta.url),
+      ),
+      "@core/settings": fileURLToPath(
+        new URL("./app/Core/Settings/resources/js", import.meta.url),
+      ),
+      "@extensions/gallery": fileURLToPath(
+        new URL("./app/Extensions/Gallery/resources/js", import.meta.url),
+      ),
+      "@core/extensions": fileURLToPath(
+        new URL("./app/Core/Extensions/resources/js", import.meta.url),
+      ),
     },
   },
   server: {
@@ -41,9 +56,6 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: true,
-    include: [
-      "resources/js/**/*.test.ts",
-      "app/**/resources/js/**/*.test.ts",
-    ],
+    include: ["resources/js/**/*.test.ts", "app/**/resources/js/**/*.test.ts"],
   },
 });

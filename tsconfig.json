@@ -14,7 +14,8 @@
       "@core/users/*": ["app/Core/Users/resources/js/*"],
       "@core/roles/*": ["app/Core/Roles/resources/js/*"],
       "@core/settings/*": ["app/Core/Settings/resources/js/*"],
-      "@extensions/gallery/*": ["app/Extensions/Gallery/resources/js/*"]
+      "@extensions/gallery/*": ["app/Extensions/Gallery/resources/js/*"],
+      "@core/extensions/*": ["app/Core/Extensions/resources/js/*"]
     }
   },
   "include": [
