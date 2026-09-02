@@ -445,12 +445,13 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [x] Install extension (zip upload, validated, audited)
 * [x] Uninstall extension (files only; no automatic data rollback)
 * [x] Update extension (zip upload, validated, audited, backup + rollback on failure)
+* [x] Extension details page
+* [x] Extension configuration page
 * [ ] Extension version management (semver comparison, "update available" detection)
 * [ ] Dependency visualization (interactive graph of extension dependencies)
-* [ ] Extension details page
-* [ ] Extension configuration page
 * [ ] Extension-defined navigation tabs (an extension declares its own admin sections)
 * [ ] Favourite tabs/sections per administrator
+* [ ] Permission-aware UI (hide actions the current user lacks permission for)
 
 #### Extension Manager UI (reference: Mediboard modules screen, reviewed 2026-08)
 
