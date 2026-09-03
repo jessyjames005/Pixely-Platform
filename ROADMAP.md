@@ -204,6 +204,30 @@ The Administration layer provides the first visual interface for managing the Pi
 * [ ] Accessibility rules
 * [ ] Dedicated visual identity for the System/Tooling/Administration area (black, electric blue, white palette), distinct from the general platform theme
 
+### UI Design & Prototyping
+
+* [ ] UI/UX design workflow
+* [ ] Figma or equivalent free design tool
+* [ ] Administration wireframes
+* [ ] Administration layout mockups
+* [ ] Design System documentation
+* [ ] Component specifications
+* [ ] Responsive mockups
+* [ ] Dark mode mockups
+* [ ] Pixely UI/UX Kit based on Material Design 3
+* [ ] Pixely UI/UX Kit foundations: colour, typography, spacing, elevation, shape, icons and motion
+* [ ] Pixely UI/UX Kit components and states
+* [ ] Pixely UI/UX Kit patterns: navigation, dashboards, forms, tables, dialogs, notifications and empty/error states
+* [ ] Pixely UI/UX Kit responsive and dark-mode specifications
+* [ ] Pixely UI/UX Kit documentation and usage guidelines
+* [ ] Example web templates for Pixely administration and extension UIs
+* [ ] Figma reference: Tailwind Admin Dashboard UI Kit
+  - https://www.figma.com/design/WrrGik3XDPZuPSXIqruw59/Free-Figma-Admin-Dashboard-UI-Kit---Tailwind-Admin--Community-?m=auto&is-community-duplicate=1&fuid=1677103082960936720
+* [ ] Figma reference: Vision UI Dashboard — React + MUI
+  - https://www.figma.com/design/1CWikkF7YdXsh4bFYlaSog/Vision-UI-Dashboard-React---MUI-Dashboard--Free-Version---Community-?m=auto&is-community-duplicate=1&fuid=1677103082960936720
+* [ ] UI/UX reference: Staffu
+  - https://staffu.mantrakshdevs.com/documentation/
+
 ### UI Components
 
 * [x] Buttons (v-btn)

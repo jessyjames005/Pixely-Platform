@@ -18,6 +18,8 @@ final class Photo extends Model
         'title',
         'filename',
         'thumbnail_filename',
+        'slug',
+        'file_size',
     ];
 
     /**

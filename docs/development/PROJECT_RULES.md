@@ -287,13 +287,15 @@ extensions/<domain>/
 
 ## 8. Material Design and Vuetify
 
-Pixely's administration interface will follow Material Design principles and use Vuetify.
+Pixely's administration interface will follow Material Design 3 (M3) principles and use Vuetify as the implementation layer.
 
 ### Rules
 
 - Vuetify is the default component library for the administration UI.
+- Material Design 3 is the design-system baseline for new Pixely UI/UX work.
 - Avoid introducing another UI component library without an explicit architectural decision.
 - Establish Pixely-specific theme tokens on top of Vuetify.
+- Align Pixely theme tokens with Material 3 tokens where applicable.
 - Reuse spacing, typography, colours, elevation, forms, tables, dialogs, alerts, and navigation patterns consistently.
 - Accessibility must be considered for reusable components.
 
@@ -301,7 +303,7 @@ Pixely's administration interface will follow Material Design principles and use
 
 ## 9. Pixely Design System
 
-Pixely must have a reusable Design System based on Material Design and Vuetify.
+Pixely must have a reusable Design System based on Material Design 3 and Vuetify.
 
 The Design System should progressively define:
 
@@ -322,11 +324,11 @@ The Design System should progressively define:
 - loading states;
 - empty states;
 - error states;
-- confirmation patterns.
+- confirmation patterns;
 
 ### Rule
 
-New administration UI should reuse the Design System instead of inventing visual patterns independently.
+New administration UI should reuse the Pixely Design System instead of inventing visual patterns independently.
 
 ---
 
@@ -367,12 +369,15 @@ Storybook must remain focused on reusable UI components, not complete business w
 
 Pixely may use Figma or a suitable free alternative for interface design and prototypes.
 
+The Pixely UI/UX Kit is the authoritative project design reference. Material Design 3 is the baseline for the design system.
+
 ### Rules
 
 - Design major administration workflows before implementing complex UI when practical.
-- Designs should follow the Pixely Design System.
+- Designs should follow the Pixely UI/UX Kit and Material Design 3.
 - Do not design components that cannot reasonably be represented by the chosen frontend architecture.
 - Design decisions should be documented when they affect the reusable platform UI.
+- External templates may be used as visual references, but must be adapted to the Pixely Design System.
 
 ---
 

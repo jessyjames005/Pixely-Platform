@@ -12,7 +12,7 @@ use Symfony\Component\Process\Process;
 use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 use App\Core\Extensions\Versioning\ExtensionUpgradeRunner;
 use App\Core\Extensions\Versioning\ExtensionUpgradableInterface;
-use
+use App\Core\Extensions\Versioning\ExtensionVersionRepository;
 
 /**
  * Orchestrates the full install/update/uninstall flow for extensions
