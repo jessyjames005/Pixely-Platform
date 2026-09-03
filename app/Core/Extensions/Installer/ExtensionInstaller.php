@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
 use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
+use App\Core\Extensions\Versioning\ExtensionUpgradeRunner;
+use App\Core\Extensions\Versioning\ExtensionUpgradableInterface;
+use
 
 /**
  * Orchestrates the full install/update/uninstall flow for extensions
@@ -26,6 +29,7 @@ final class ExtensionInstaller
         private readonly ExtensionPackageValidator $validator,
         private readonly ExtensionAuditLogger $auditLogger,
         private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
+        private readonly ExtensionUpgradeRunner $upgradeRunner,
     ) {}
 
     /**
@@ -92,6 +96,16 @@ final class ExtensionInstaller
                 );
             }
 
+            if ($mode === 'update') {
+                $installedVersion = app(ExtensionVersionRepository::class)->find($manifest['id']) ?? '0.0.0';
+
+                if (version_compare($manifest['version'], $installedVersion, '<=')) {
+                    throw new \RuntimeException(
+                        "Package version [{$manifest['version']}] is not newer than the installed version [{$installedVersion}].",
+                    );
+                }
+            }
+
             $targetPath = base_path(self::EXTENSIONS_BASE_PATH . '/' . $this->safeDirectoryName($manifest['id']));
             $alreadyExists = is_dir($targetPath);
 
@@ -128,6 +142,12 @@ final class ExtensionInstaller
             }
 
             $this->runPendingMigrations();
+
+            if ($mode === 'install') {
+                $this->upgradeRunner->recordFreshInstall($manifest['id'], $manifest['version']);
+            } else {
+                $appliedSteps = $this->upgradeRunner->upgrade($extensionInstance, $manifest['version']);
+            }
 
             $this->auditLogger->log(
                 $manifest['id'],
