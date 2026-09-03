@@ -19,7 +19,9 @@ final class GalleryExtension implements ExtensionInterface, ExtensionPermissions
             version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Gallery',
-            dependencies: [],
+            dependencies: [
+                'files',
+            ],
         );
     }
 

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery\Http\Controllers\Api;
 
 use App\Extensions\Gallery\Models\Photo;
+use App\Extensions\Files\Services\FileUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Core\Api\Query\ApiQueryParser;
 use App\Core\Api\Query\ApiQueryApplier;
 use App\Core\Api\Response\ApiResponse;
@@ -16,10 +16,19 @@ use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Gallery API requests.
+ *
+ * Upload/delete delegate to the Files extension (a declared
+ * dependency) for validation, storage, and thumbnail generation —
+ * Gallery no longer touches Storage/UploadedFile directly.
  */
 #[Group('Gallery', weight: 1)]
 final class GalleryController
 {
+    public function __construct(
+        private readonly FileUploadService $fileUploadService,
+    ) {
+    }
+
     /**
      * Display gallery photos.
      */
@@ -30,21 +39,14 @@ final class GalleryController
         ApiCollectionResponse $apiResponse,
     ): JsonResponse {
         $apiQuery = $queryParser->parse($request->query());
-
         $query = Photo::query();
-
         $queryApplier->apply($query, $apiQuery);
-
         $total = $query->toBase()->getCountForPagination();
-
         $photos = $query->get();
-
         $perPage = $apiQuery->limit();
-
         $currentPage = $perPage > 0
             ? (int) floor($apiQuery->offset() / $perPage) + 1
             : 1;
-
         $lastPage = $perPage > 0
             ? max(1, (int) ceil($total / $perPage))
             : 1;
@@ -69,20 +71,31 @@ final class GalleryController
     ): JsonResponse {
         $validated = $request->validate([
             'title' => ['nullable', 'string', 'max:255'],
-            'image' => ['required', 'image'],
+            'image' => ['required', 'file'],
         ]);
 
         /** @var \Illuminate\Http\UploadedFile $image */
         $image = $validated['image'];
 
-        $filename = $image->store(
-            'gallery',
-            'public',
-        );
+        try {
+            $result = $this->fileUploadService->upload($image, 'gallery');
+        } catch (\InvalidArgumentException $exception) {
+            return response()->json(
+                [
+                    'error' => [
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => 'The given data was invalid.',
+                        'details' => ['image' => [$exception->getMessage()]],
+                    ],
+                ],
+                422,
+            );
+        }
 
         $photo = Photo::create([
             'title' => $validated['title'] ?? null,
-            'filename' => $filename,
+            'filename' => $result['path'],
+            'thumbnail_filename' => $result['thumbnail_path'],
         ]);
 
         return $apiResponse->response(
@@ -125,12 +138,9 @@ final class GalleryController
      */
     public function destroy(Photo $photo): JsonResponse
     {
-        Storage::disk('public')->delete($photo->filename);
-
+        $this->fileUploadService->delete($photo->filename, $photo->thumbnail_filename);
         $photo->delete();
 
-        return response()->json(
-            status: 204,
-        );
+        return response()->json(status: 204);
     }
 }
