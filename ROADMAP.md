@@ -138,7 +138,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission system
 * [x] Role assignment
 * [x] Permission checks
-* [ ] Extension-declared permissions (dynamic, not hardcoded) — NEXT SPRINT
+* [x] Extension-declared permissions (dynamic, not hardcoded)
 
 #### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
 
