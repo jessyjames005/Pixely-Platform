@@ -44,6 +44,6 @@ final class KernelIntegrationTest extends TestCase
         $kernel->boot();
 
         $this->assertTrue($kernel->isBooted());
-        $this->assertCount(1, $kernel->extensions());
+        $this->assertCount(2, $kernel->extensions());
     }
 }
