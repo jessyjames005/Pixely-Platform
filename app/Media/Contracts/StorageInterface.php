@@ -8,9 +8,7 @@ use Illuminate\Http\UploadedFile;
 
 interface StorageInterface
 {
-    public function store(UploadedFile $file): string;
-
+    public function store(UploadedFile $file, string $directory = 'photos'): string;
     public function delete(string $path): bool;
-
     public function url(string $path): string;
 }

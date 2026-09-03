@@ -12,5 +12,12 @@
         "version": "1.0.0",
         "class": "Tests\\Fakes\\Extensions\\MediaExtension",
         "status": "enabled"
+    },
+    "files": {
+        "id": "files",
+        "name": "Files",
+        "version": "1.0.0",
+        "class": "App\\Extensions\\Files\\FilesExtension",
+        "status": "enabled"
     }
 }
