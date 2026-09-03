@@ -1082,18 +1082,18 @@ Pixely Platform is designed to support multiple independent extensions.
 
 A reusable file-handling extension, meant to be a dependency of other extensions (Gallery, future Shop, etc.) rather than each one reimplementing upload rules independently.
 
-* [ ] Configurable max upload size (global default + per-consuming-extension override)
-* [ ] Allowed file type whitelist (by extension and/or MIME type — e.g. png, jpg, zip, doc)
-* [ ] Configurable max number of files per upload batch
-* [ ] Thumbnail generation
+* [x] Configurable max upload size (global default + per-consuming-extension override)
+* [x] Allowed file type whitelist (by extension and/or MIME type — e.g. png, jpg, zip, doc)
+* [x] Configurable max number of files per upload batch
+* [x] Thumbnail generation
 * [ ] Image resize (on upload, and on-demand by requested dimensions)
-* [ ] Shared storage/validation service consumed by other extensions via a declared dependency (e.g. Gallery `requires: ['files']`)
+* [x] Shared storage/validation service consumed by other extensions via a declared dependency (e.g. Gallery `requires: ['files']`)
 * [ ] Files API (upload, list, delete) usable standalone or embedded
 * [ ] Files administration screen (view stored files, usage per consuming extension)
 
 ### Planned consumers
 
-* [ ] Gallery Extension: photo upload delegates validation/thumbnailing to Files Extension instead of its own ad-hoc logic
+* [x] Gallery Extension: photo upload delegates validation/thumbnailing to Files Extension instead of its own ad-hoc logic
 * [ ] Shop Extension (future): product images use Files Extension the same way
 
 ## Translations Extension
