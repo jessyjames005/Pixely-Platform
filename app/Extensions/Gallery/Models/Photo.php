@@ -17,6 +17,7 @@ final class Photo extends Model
     protected $fillable = [
         'title',
         'filename',
+        'thumbnail_filename',
     ];
 
     /**
