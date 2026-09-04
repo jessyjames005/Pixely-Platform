@@ -8,6 +8,7 @@ import { useNotify } from "@shared/composables/useNotify";
 import { useExtensionsStore } from "../store/extensions.store";
 import type { ExtensionSummary, ExtensionDetail } from "../models/Extension";
 import ExtensionDependencyGraph from "../components/ExtensionDependencyGraph.vue";
+import { useAuthStore } from '@core/auth/store/auth.store'
 
 const headers = [
   { title: "ID", key: "id" },
@@ -19,6 +20,7 @@ const headers = [
 ];
 
 const extensionsStore = useExtensionsStore();
+const authStore = useAuthStore()
 const { confirm } = useConfirmDialog();
 const notify = useNotify();
 const graphDialogOpen = ref(false);
