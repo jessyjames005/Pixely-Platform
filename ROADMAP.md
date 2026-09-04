@@ -339,20 +339,20 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 ### Versioning
 
 * [x] Extension manifest version
-* [ ] Extension version compatibility
+* [x] Extension version compatibility
 * [ ] Platform / extension compatibility rules
-* [ ] Extension upgrade mechanism
+* [x] Extension upgrade mechanism
 
 #### Incremental upgrade mechanism (planned — replaces "update = re-upload full zip")
 
 Today, `update()` replaces an extension's entire directory from a new zip. The target model: an extension ships versioned upgrade steps, applied incrementally from the currently installed version up to the target version — closer to database migrations than a full package swap.
 
-* [ ] Extension declares an ordered list of version steps (e.g. Gallery 1.0.0 → 1.0.1 → 1.0.2), each with its own migration/upgrade logic
-* [ ] Example step semantics: 1.0.1 = a display/bugfix step (no schema change); 1.0.2 = a schema change step (add `slug`, `file_size` columns to `photos`)
-* [ ] Installed version is tracked (already have `version` in the manifest — add a persisted "currently applied version" separate from "manifest version" to detect drift)
-* [ ] Update flow applies only the steps between installed and target version, in order, each wrapped in its own transaction/rollback boundary
-* [ ] "Update available" detection: compare installed version to the version declared in an uploaded package (or, later, a remote source) via semver comparison
-* [ ] The full-zip-replace flow (already built) remains the mechanism for **new installs**; incremental steps are specifically for **updates** to an already-installed extension
+* [x] Extension declares an ordered list of version steps
+* [x] Example step semantics: bugfix step (no schema change) vs schema-changing step (add columns + backfill)
+* [x] Installed version tracked separately from manifest version (`extension_installed_versions`)
+* [x] Update flow applies only pending steps between installed and target version, each in its own transaction, partial success preserved on failure
+* [x] "Update available" detection via semver comparison (reject update if package version ≤ installed version)
+* [x] Full-zip-replace flow remains for new installs; incremental steps for updates
 
 ### Developer Experience
 
