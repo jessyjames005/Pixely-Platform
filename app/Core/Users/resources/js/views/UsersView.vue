@@ -148,6 +148,7 @@ async function handleAssignRole(
   }
   await submitAssign(userId, roleName);
   notify.success("Role assigned.");
+  await fetchUsers(currentPage.value, perPage);
 }
 </script>
 
@@ -198,6 +199,7 @@ async function handleAssignRole(
 
         <template #item.role="{ item }">
           <v-select
+            :model-value="item.role"
             :items="rolesStore.roles.map((role) => role.name)"
             density="compact"
             variant="underlined"

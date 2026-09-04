@@ -30,11 +30,12 @@ final class UserController
         $perPage = max(1, min(100, $perPage));
 
         $paginator = User::query()
+            ->with('roles')
             ->orderBy('name')
             ->paginate($perPage);
 
         return $apiResponse->response(
-            data: $paginator->items(),
+            data: $paginator->getCollection()->map(fn(User $user) => $this->withRole($user)),
             meta: [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => max(1, $paginator->lastPage()),
@@ -76,7 +77,9 @@ final class UserController
         User $user,
         ApiResponse $apiResponse,
     ): JsonResponse {
-        return $apiResponse->response($user);
+        $user->load('roles');
+
+        return $apiResponse->response($this->withRole($user));
     }
 
     /**
@@ -131,5 +134,16 @@ final class UserController
         $user->delete();
 
         return response()->json(status: 204);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function withRole(User $user): array
+    {
+        return [
+            ...$user->toArray(),
+            'role' => $user->roles->first()?->name,
+        ];
     }
 }

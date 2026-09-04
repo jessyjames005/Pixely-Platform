@@ -39,6 +39,8 @@ final class RolePermissionSeeder extends Seeder
         'system.extensions.view',
         'system.extensions.manage',
         'system.telescope.view',
+        'settings.platform.view',
+        'settings.platform.manage',
         // system.extensions.install deliberately excluded — grant manually via /admin/roles if truly needed
     ];
 
