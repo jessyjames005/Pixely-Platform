@@ -68,8 +68,16 @@ final class AuthController
      */
     public function me(Request $request, ApiResponse $apiResponse): JsonResponse
     {
+        $user = $request->user();
+
         return $apiResponse->response(
-            data: $request->user(),
+            data: [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+                'roles' => $user->getRoleNames()->values(),
+            ],
         );
     }
 }

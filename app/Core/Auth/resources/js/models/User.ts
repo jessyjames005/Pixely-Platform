@@ -1,8 +1,10 @@
-// User resource shape as returned by the API
+// Authenticated user shape returned by the auth endpoints
 export interface User {
   id: number
   name: string
   email: string
+  permissions: string[]
+  roles: string[]
 }
 
 // Payload accepted when creating a user

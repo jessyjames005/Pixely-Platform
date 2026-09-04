@@ -16,6 +16,14 @@ export const useAuthStore = defineStore('auth', {
     initialized: false,
   }),
 
+  getters: {
+    // Checks whether the current user has a given permission.
+    // Returns false (fail-closed) when not authenticated yet.
+    can: (state) => (permission: string): boolean => {
+      return state.user?.permissions.includes(permission) ?? false
+    },
+  },
+
   actions: {
     // Fetches the current authenticated user (if any). Called once by
     // the router guard before the first navigation.
