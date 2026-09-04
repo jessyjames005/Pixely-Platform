@@ -7,6 +7,7 @@ import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
 import { useExtensionsStore } from "../store/extensions.store";
 import type { ExtensionSummary, ExtensionDetail } from "../models/Extension";
+import ExtensionDependencyGraph from "../components/ExtensionDependencyGraph.vue";
 
 const headers = [
   { title: "ID", key: "id" },
@@ -20,6 +21,7 @@ const headers = [
 const extensionsStore = useExtensionsStore();
 const { confirm } = useConfirmDialog();
 const notify = useNotify();
+const graphDialogOpen = ref(false);
 
 const {
   loading,
@@ -217,6 +219,14 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             @click="fetchExtensions"
             >Refresh</v-btn
           >
+          <v-btn
+            size="small"
+            variant="tonal"
+            prepend-icon="mdi-graph"
+            @click="graphDialogOpen = true"
+          >
+            Dependency graph
+          </v-btn>
         </div>
       </v-card-title>
 
@@ -426,6 +436,19 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="detailsDialogOpen = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dependency graph dialog -->
+    <v-dialog v-model="graphDialogOpen" max-width="900">
+      <v-card title="Extension dependency graph">
+        <v-card-text>
+          <ExtensionDependencyGraph :extensions="extensionsStore.extensions" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="graphDialogOpen = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
