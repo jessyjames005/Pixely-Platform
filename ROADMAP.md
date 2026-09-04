@@ -156,6 +156,7 @@ Today, permissions are hardcoded in RolePermissionSeeder. The target model: each
 * [x] User settings
 * [ ] Extension settings
 * [x] Persistent settings storage
+* [x] Platform settings properly permission-gated (settings.platform.view/manage) — previously auth-only, fixed alongside permission-aware UI sprint
 
 #### Extension settings (planned)
 
@@ -492,16 +493,16 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [x] Extension state management
 * [x] Enable extension
 * [x] Disable extension
-* [x] Install extension (zip upload, validated, audited)
-* [x] Uninstall extension (files only; no automatic data rollback)
-* [x] Update extension (zip upload, validated, audited, backup + rollback on failure)
+* [x] Install extension
+* [x] Uninstall extension
+* [x] Update extension
+* [x] Extension version management
+* [ ] Dependency visualization (interactive graph of extension dependencies)
 * [x] Extension details page
 * [x] Extension configuration page
-* [ ] Extension version management (semver comparison, "update available" detection)
-* [ ] Dependency visualization (interactive graph of extension dependencies)
 * [ ] Extension-defined navigation tabs (an extension declares its own admin sections)
 * [ ] Favourite tabs/sections per administrator
-* [ ] Permission-aware UI (hide actions the current user lacks permission for)
+* [x] Permission-aware UI (hide actions the current user lacks permission for)
 
 #### Extension Manager UI (reference: Mediboard modules screen, reviewed 2026-08)
 
