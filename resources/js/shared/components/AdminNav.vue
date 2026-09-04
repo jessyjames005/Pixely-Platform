@@ -1,25 +1,40 @@
 <script setup lang="ts">
+// Sidebar navigation: renders whatever the navigation registry
+// declares, filtered by permission and (for extension-backed items)
+// by whether that extension is currently enabled.
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@core/auth/store/auth.store'
-
-interface NavItem {
-  label: string
-  to: string
-  icon: string
-  permission?: string // omitted = always visible (e.g. Dashboard)
-}
+import { useExtensionsStore } from '@core/extensions/store/extensions.store'
+import { navRegistry } from '@shared/navigation/registry'
 
 const authStore = useAuthStore()
+const extensionsStore = useExtensionsStore()
 
-const items: NavItem[] = [
-  { label: 'Dashboard', to: '/admin', icon: 'mdi-view-dashboard' },
-  { label: 'Gallery', to: '/admin/gallery', icon: 'mdi-image-multiple', permission: 'gallery.photos.view' },
-  { label: 'Users', to: '/admin/users', icon: 'mdi-account-multiple', permission: 'users.view' },
-  { label: 'Roles', to: '/admin/roles', icon: 'mdi-shield-account', permission: 'roles.view' },
-  { label: 'Settings', to: '/admin/settings', icon: 'mdi-cog' },
-  { label: 'Extensions', to: '/admin/extensions', icon: 'mdi-puzzle', permission: 'system.extensions.view' },
-]
+// Needed to know which extension-backed nav items should be hidden.
+// Harmless to call even for a user without system.extensions.view —
+// the backend will simply 403, and unresolved items just stay hidden
+// by treating "unknown" as "not enabled" below.
+onMounted(() => {
+  if (extensionsStore.extensions.length === 0) {
+    extensionsStore.fetchExtensions().catch(() => undefined)
+  }
+})
 
-const visibleItems = items.filter((item) => !item.permission || authStore.can(item.permission))
+function isExtensionEnabled(extensionId: string): boolean {
+  return extensionsStore.extensions.find((ext) => ext.id === extensionId)?.enabled ?? false
+}
+
+const visibleItems = computed(() =>
+  navRegistry.filter((item) => {
+    if (item.permission && !authStore.can(item.permission)) {
+      return false
+    }
+    if (item.extensionId && !isExtensionEnabled(item.extensionId)) {
+      return false
+    }
+    return true
+  }),
+)
 </script>
 
 <template>
