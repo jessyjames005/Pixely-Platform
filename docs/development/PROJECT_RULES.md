@@ -8,6 +8,25 @@ The goal is to keep Pixely Platform modular, maintainable, extensible, documente
 
 ---
 
+## Development & Debugging Tools
+
+Local development includes two debugging tools, both dev-only dependencies:
+
+### Laravel Debugbar (v4)
+
+Displays a toolbar (queries, timeline, request data, memory) at the bottom of every page. Enabled automatically outside `production` via `APP_DEBUG`/`APP_ENV`. Never enable in production — it adds overhead and can leak query/timing details.
+
+### Laravel Telescope
+
+Dashboard at `/telescope` for requests, queries, jobs, exceptions, and more. Access is gated by the `system.telescope.view` permission (see `TelescopeServiceProvider::gate()`), following the same permission convention as the rest of the platform's system tooling (`system.logs.view`, `system.database.view`, etc.) rather than Telescope's default email-based Gate.
+
+Rules:
+- Never grant `system.telescope.view` by default to any role — same posture as `system.extensions.install` and other sensitive `system.*` permissions.
+- Telescope's own pruning (`telescope:prune`) should run on a schedule in any long-lived environment, to avoid the `telescope_entries` table growing unbounded.
+- Telescope must never be enabled in production without explicit review — its default watchers record full request/response payloads, which may include sensitive data unless explicitly redacted in `config/telescope.php`.
+
+---
+
 ## 1. Core architectural principle
 
 ### Pixely is a Platform, not an Application

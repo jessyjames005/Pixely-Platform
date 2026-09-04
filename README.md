@@ -82,6 +82,8 @@ Backend
 - PHP
 - MySQL
 - Redis
+- Laravel Debugbar (dev only)
+- Laravel Telescope (dev only, permission-gated)
 
 Frontend
 
