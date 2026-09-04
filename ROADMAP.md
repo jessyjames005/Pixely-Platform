@@ -497,7 +497,7 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [x] Uninstall extension
 * [x] Update extension
 * [x] Extension version management
-* [ ] Dependency visualization (interactive graph of extension dependencies)
+* [x] Dependency visualization (interactive graph of extension dependencies)
 * [x] Extension details page
 * [x] Extension configuration page
 * [ ] Extension-defined navigation tabs (an extension declares its own admin sections)
