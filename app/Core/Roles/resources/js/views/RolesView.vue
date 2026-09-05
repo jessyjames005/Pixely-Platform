@@ -8,7 +8,9 @@ import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
 import { useRolesStore } from "../store/roles.store";
 import type { Role } from "../models/Role";
+import { useAuthStore } from '@core/auth/store/auth.store'
 
+const authStore = useAuthStore();
 const rolesStore = useRolesStore();
 const { confirm } = useConfirmDialog();
 const notify = useNotify();

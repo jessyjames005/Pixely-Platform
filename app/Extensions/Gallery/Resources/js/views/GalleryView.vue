@@ -8,6 +8,7 @@ import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
 import { useGalleryStore } from "../store/gallery.store";
 import type { Photo } from "../models/Photo";
+import { useAuthStore } from '@core/auth/store/auth.store'
 
 const headers = [
   { title: "ID", key: "id", align: "center" as const, sortable: false },
@@ -19,6 +20,7 @@ const headers = [
 const perPage = 20;
 const currentPage = ref(1);
 
+const authStore = useAuthStore();
 const galleryStore = useGalleryStore();
 const { confirm } = useConfirmDialog();
 const notify = useNotify();
