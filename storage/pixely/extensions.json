@@ -12,5 +12,12 @@
         "version": "1.0.0",
         "class": "App\\Extensions\\Files\\FilesExtension",
         "status": "enabled"
+    },
+    "translations": {
+        "id": "translations",
+        "name": "Translations",
+        "version": "1.0.0",
+        "class": "App\\Extensions\\Translations\\TranslationsExtension",
+        "status": "enabled"
     }
 }
