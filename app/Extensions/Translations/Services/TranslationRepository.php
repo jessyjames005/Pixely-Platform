@@ -21,8 +21,7 @@ final class TranslationRepository
 {
     public function __construct(
         private readonly ExtensionManager $extensionManager,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, string> module id => lang directory path
@@ -51,7 +50,7 @@ final class TranslationRepository
 
         return array_values(array_filter(
             scandir($modulePath) ?: [],
-            fn (string $entry): bool => $entry !== '.' && $entry !== '..' && is_dir($modulePath . '/' . $entry),
+            fn(string $entry): bool => $entry !== '.' && $entry !== '..' && is_dir($modulePath . '/' . $entry),
         ));
     }
 
@@ -69,7 +68,7 @@ final class TranslationRepository
         $files = glob($localePath . '/*.php') ?: [];
 
         return array_map(
-            static fn (string $file): string => basename($file, '.php'),
+            static fn(string $file): string => basename($file, '.php'),
             $files,
         );
     }
@@ -106,8 +105,16 @@ final class TranslationRepository
         $export = var_export($nested, true);
 
         $contents = "<?php\n\ndeclare(strict_types=1);\n\nreturn {$export};\n";
+        $path = $this->groupFilePath($modulePath, $locale, $group);
 
-        file_put_contents($this->groupFilePath($modulePath, $locale, $group), $contents);
+        file_put_contents($path, $contents);
+
+        // Force OPcache to drop any cached bytecode for this file —
+        // otherwise a read immediately after a write can return stale
+        // content (mtime-based invalidation has 1-second resolution).
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($path, true);
+        }
     }
 
     /**
