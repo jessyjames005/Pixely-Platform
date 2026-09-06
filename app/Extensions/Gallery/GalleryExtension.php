@@ -11,8 +11,13 @@ use App\Extensions\Gallery\Providers\GalleryServiceProvider;
 use App\Extensions\Gallery\Upgrades\AddSlugAndFileSizeStep;
 use App\Extensions\Gallery\Upgrades\FixPhotoDisplayStep;
 use App\Core\Extensions\Versioning\ExtensionUpgradableInterface;
+use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
 
-final class GalleryExtension implements ExtensionInterface, ExtensionPermissionsInterface, ExtensionUpgradableInterface
+final class GalleryExtension implements
+    ExtensionInterface,
+    ExtensionPermissionsInterface,
+    ExtensionUpgradableInterface,
+    ExtensionTranslatableInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -61,5 +66,13 @@ final class GalleryExtension implements ExtensionInterface, ExtensionPermissions
             new FixPhotoDisplayStep(),
             new AddSlugAndFileSizeStep(),
         ];
+    }
+
+    /**
+     * Absolute path to Gallery's own translation files.
+     */
+    public function translationsPath(): string
+    {
+        return base_path('app/Extensions/Gallery/lang');
     }
 }

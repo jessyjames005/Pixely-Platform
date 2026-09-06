@@ -44,7 +44,7 @@ it('lists groups for the core module', function () {
     $user->givePermissionTo('translations.strings.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/translations/core/groups?locale=en');
+    $response = $this->getJson('/api/v1/translations/gallery/groups?locale=en');
 
     $response
         ->assertOk()
@@ -56,11 +56,11 @@ it('shows translation entries with completion for a group', function () {
     $user->givePermissionTo('translations.strings.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/translations/core/gallery?locale=fr&reference=en');
+    $response = $this->getJson('/api/v1/translations/gallery/gallery?locale=fr&reference=en');
 
     $response
         ->assertOk()
-        ->assertJsonPath('data.module', 'core')
+        ->assertJsonPath('data.module', 'gallery')
         ->assertJsonPath('data.group', 'gallery')
         ->assertJsonStructure(['data' => ['entries', 'completion']]);
 });
@@ -80,7 +80,7 @@ it('requires translations.strings.manage (not just view) to update a group', fun
     $user->givePermissionTo('translations.strings.view');
     $this->actingAs($user);
 
-    $response = $this->putJson('/api/v1/translations/core/gallery', [
+    $response = $this->putJson('/api/v1/translations/gallery/gallery', [
         'locale' => 'fr',
         'translations' => ['title' => 'Galerie'],
     ]);
@@ -93,14 +93,14 @@ it('updates a translation group', function () {
     $user->givePermissionTo('translations.strings.manage');
     $this->actingAs($user);
 
-    $response = $this->putJson('/api/v1/translations/core/gallery', [
+    $response = $this->putJson('/api/v1/translations/gallery/gallery', [
         'locale' => 'fr',
         'translations' => ['title' => 'Galerie', 'upload' => 'Envoyer une photo'],
     ]);
 
     $response->assertOk();
 
-    $show = $this->getJson('/api/v1/translations/core/gallery?locale=fr&reference=en');
+    $show = $this->getJson('/api/v1/translations/gallery/gallery?locale=fr&reference=en');
     $byKey = collect($show->json('data.entries'))->keyBy('key');
 
     expect($byKey['upload']['target'])->toBe('Envoyer une photo');
