@@ -730,3 +730,22 @@ When implementing a new feature, always ask:
 Then place it in the smallest appropriate boundary and expose it through a clear contract.
 
 Pixely should become more extensible as development progresses, not more coupled.
+
+## Translation Key Naming Convention
+
+Every translation key follows a fixed prefix pattern, regardless of which group/file it lives in:
+
+- `object.<object>.<property>` — a business object's field label (e.g. `object.photo.title` → "Title")
+- `object.<object>.<property>.hint` — that field's help/description text (e.g. `object.photo.title.hint` → "The photo's title")
+- `action.<verb>` — a button/action label (e.g. `action.save`, `action.upload`, `action.delete`)
+- `title.<context>` — a modal, page, or list title (e.g. `title.create_role`, `title.gallery_list`)
+- `msg.<context>` — a system message or toast (e.g. `msg.role_deleted`, `msg.confirm_delete_photo`)
+- `tab.<name>` — a navigation tab label (e.g. `tab.gallery`, `tab.settings`)
+- `preference.<name>` — a user preference label (e.g. `preference.locale`)
+- `permission.<name>` — a human-readable permission label (e.g. `permission.gallery_photos_manage`)
+
+### Rules
+
+- Use `snake_case` for multi-word segments (`gallery_list`, not `galleryList` or `gallery-list`).
+- A key must use exactly one of these prefixes — never a bare key with no category (e.g. `title` alone, or `upload` alone).
+- Nested keys are supported and expected for `object.*` (naturally: object → property → hint), not for the other categories.

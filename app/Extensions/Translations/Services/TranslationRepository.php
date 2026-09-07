@@ -84,6 +84,15 @@ final class TranslationRepository
             return [];
         }
 
+        // Ensure PHP does not return stale metadata after the translation file
+        // has been replaced atomically by writeGroup().
+        clearstatcache(true, $path);
+
+        // Ensure OPcache does not serve the previous version of the PHP file.
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($path, true);
+        }
+
         /** @var array<string, mixed> $data */
         $data = include $path;
 
@@ -101,7 +110,13 @@ final class TranslationRepository
             mkdir($localePath, 0755, true);
         }
 
-        $nested = Arr::undot($translations);
+        // Merge with the existing group rather than replacing it wholesale,
+        // so a partial save (e.g. editing one key) never silently drops
+        // other translations already present in the file.
+        $existing = $this->readGroup($modulePath, $locale, $group);
+        $merged = array_merge($existing, $translations);
+
+        $nested = Arr::undot($merged);
         $export = var_export($nested, true);
 
         $contents = "<?php\n\ndeclare(strict_types=1);\n\nreturn {$export};\n";
@@ -109,9 +124,6 @@ final class TranslationRepository
 
         file_put_contents($path, $contents);
 
-        // Force OPcache to drop any cached bytecode for this file —
-        // otherwise a read immediately after a write can return stale
-        // content (mtime-based invalidation has 1-second resolution).
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate($path, true);
         }

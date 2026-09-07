@@ -20,8 +20,7 @@ final class TranslationController
 {
     public function __construct(
         private readonly TranslationRepository $repository,
-    ) {
-    }
+    ) {}
 
     /**
      * List translatable modules and, per module, their available locales/groups.
@@ -85,8 +84,17 @@ final class TranslationController
         $validated = $request->validate([
             'locale' => ['required', 'string'],
             'translations' => ['required', 'array'],
-            'translations.*' => ['nullable', 'string'],
         ]);
+
+        // Validated manually rather than via a 'translations.*' wildcard
+        // rule: Laravel's dot-notation validator misinterprets literal dots
+        // inside our translation keys (e.g. 'action.upload') as nesting
+        // levels, silently dropping those entries from $validated.
+        foreach ($validated['translations'] as $value) {
+            if ($value !== null && ! is_string($value)) {
+                abort(422, 'Each translation value must be a string or null.');
+            }
+        }
 
         $this->repository->writeGroup($modulePath, $validated['locale'], $group, $validated['translations']);
 
