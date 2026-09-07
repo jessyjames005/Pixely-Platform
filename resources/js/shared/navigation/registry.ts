@@ -10,6 +10,7 @@ import { rolesNavItem } from '@core/roles/nav'
 import { settingsNavItem } from '@core/settings/nav'
 import { extensionsNavItem } from '@core/extensions/nav'
 import { galleryNavItem } from '@extensions/gallery/nav'
+import { translationsNavItem } from '@extensions/translations/nav'
 import type { NavItem } from './types'
 
 export const navRegistry: NavItem[] = [
@@ -19,4 +20,5 @@ export const navRegistry: NavItem[] = [
   rolesNavItem,
   settingsNavItem,
   extensionsNavItem,
+  translationsNavItem,
 ]

@@ -1,11 +1,4 @@
 {
-    "files": {
-        "id": "files",
-        "name": "Files",
-        "version": "1.0.0",
-        "class": "App\\Extensions\\Files\\FilesExtension",
-        "status": "enabled"
-    },
     "gallery": {
         "id": "gallery",
         "name": "Gallery",
@@ -20,11 +13,11 @@
         "class": "App\\Extensions\\Translations\\TranslationsExtension",
         "status": "enabled"
     },
-    "media": {
-        "id": "media",
-        "name": "Media",
+    "files": {
+        "id": "files",
+        "name": "Files",
         "version": "1.0.0",
-        "class": "Tests\\Fakes\\Extensions\\MediaExtension",
+        "class": "App\\Extensions\\Files\\FilesExtension",
         "status": "enabled"
     }
 }

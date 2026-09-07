@@ -13,6 +13,7 @@ import SettingsView from "@core/settings/views/SettingsView.vue";
 import GalleryView from "@extensions/gallery/views/GalleryView.vue";
 import { useAuthStore } from "@core/auth/store/auth.store";
 import ExtensionsView from "@core/extensions/views/ExtensionsView.vue";
+import TranslationsView from "@extensions/translations/views/TranslationsView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -36,6 +37,11 @@ const routes: RouteRecordRaw[] = [
         component: ExtensionsView,
       },
     ],
+  },
+  {
+    path: "translations",
+    name: "admin.translations",
+    component: TranslationsView,
   },
 ];
 
