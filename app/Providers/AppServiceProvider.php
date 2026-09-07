@@ -10,6 +10,8 @@ use App\Media\Processors\InterventionImageProcessor;
 use App\Core\Extensions\Configuration\DatabaseExtensionConfigurationRepository;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
 use Dedoc\Scramble\Scramble;
+use App\Core\Translations\Contracts\TranslationFileSystemInterface;
+use App\Core\Translations\Services\LocalTranslationFileSystem;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +30,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ImageProcessorInterface::class,
             InterventionImageProcessor::class
+        );
+
+        $this->app->bind(
+            TranslationFileSystemInterface::class,
+            LocalTranslationFileSystem::class,
         );
 
         $this->app->singleton(

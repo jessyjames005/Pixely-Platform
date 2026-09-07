@@ -7,6 +7,7 @@ namespace App\Extensions\Translations\Services;
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
 use Illuminate\Support\Arr;
+use App\Core\Translations\Contracts\TranslationFileSystemInterface;
 
 /**
  * Discovers translatable modules (Core + extensions implementing
@@ -21,6 +22,7 @@ final class TranslationRepository
 {
     public function __construct(
         private readonly ExtensionManager $extensionManager,
+        private readonly TranslationFileSystemInterface $filesystem,
     ) {}
 
     /**
@@ -48,10 +50,7 @@ final class TranslationRepository
             return [];
         }
 
-        return array_values(array_filter(
-            scandir($modulePath) ?: [],
-            fn(string $entry): bool => $entry !== '.' && $entry !== '..' && is_dir($modulePath . '/' . $entry),
-        ));
+        return $this->filesystem->directories($modulePath);
     }
 
     /**
@@ -61,15 +60,9 @@ final class TranslationRepository
     {
         $localePath = $modulePath . '/' . $this->safeSegment($locale);
 
-        if (! is_dir($localePath)) {
-            return [];
-        }
-
-        $files = glob($localePath . '/*.php') ?: [];
-
         return array_map(
             static fn(string $file): string => basename($file, '.php'),
-            $files,
+            $this->filesystem->phpFiles($localePath),
         );
     }
 
@@ -78,55 +71,24 @@ final class TranslationRepository
      */
     public function readGroup(string $modulePath, string $locale, string $group): array
     {
-        $path = $this->groupFilePath($modulePath, $locale, $group);
-
-        if (! is_file($path)) {
-            return [];
-        }
-
-        // Ensure PHP does not return stale metadata after the translation file
-        // has been replaced atomically by writeGroup().
-        clearstatcache(true, $path);
-
-        // Ensure OPcache does not serve the previous version of the PHP file.
-        if (function_exists('opcache_invalidate')) {
-            opcache_invalidate($path, true);
-        }
-
-        /** @var array<string, mixed> $data */
-        $data = include $path;
-
-        return Arr::dot($data);
+        return $this->filesystem->read(
+            $this->groupFilePath($modulePath, $locale, $group),
+        );
     }
 
     /**
      * @param array<string, string> $translations flattened dot-notation key => value
      */
-    public function writeGroup(string $modulePath, string $locale, string $group, array $translations): void
-    {
-        $localePath = $modulePath . '/' . $this->safeSegment($locale);
-
-        if (! is_dir($localePath)) {
-            mkdir($localePath, 0755, true);
-        }
-
-        // Merge with the existing group rather than replacing it wholesale,
-        // so a partial save (e.g. editing one key) never silently drops
-        // other translations already present in the file.
-        $existing = $this->readGroup($modulePath, $locale, $group);
-        $merged = array_merge($existing, $translations);
-
-        $nested = Arr::undot($merged);
-        $export = var_export($nested, true);
-
-        $contents = "<?php\n\ndeclare(strict_types=1);\n\nreturn {$export};\n";
-        $path = $this->groupFilePath($modulePath, $locale, $group);
-
-        file_put_contents($path, $contents);
-
-        if (function_exists('opcache_invalidate')) {
-            opcache_invalidate($path, true);
-        }
+    public function writeGroup(
+        string $modulePath,
+        string $locale,
+        string $group,
+        array $translations
+    ): void {
+        $this->filesystem->write(
+            $this->groupFilePath($modulePath, $locale, $group),
+            $translations,
+        );
     }
 
     /**

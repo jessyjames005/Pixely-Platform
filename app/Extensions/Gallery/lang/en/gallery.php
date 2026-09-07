@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-   'object' => [
+    'object' => [
         'photo' => [
             'title' => [
                 'label' => 'Title',
