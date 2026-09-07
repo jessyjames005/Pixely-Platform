@@ -1,8 +1,7 @@
 <script setup lang="ts">
-// Translations administration screen: pick a module, target/reference
-// locale, and a group, then edit its strings inline. Mirrors the
-// reviewed Mediboard translation UI (module/language filters,
-// completion bar, inline-editable rows, suspect-entry warnings).
+// Translations administration screen: pick a module/locale, browse
+// categories in a vertical side panel, edit strings inline in an
+// aligned grid layout.
 import { computed, onMounted, ref, watch } from 'vue'
 import { useApi } from '@shared/composables/useApi'
 import { useAuthStore } from '@core/auth/store/auth.store'
@@ -23,7 +22,6 @@ const selectedGroup = ref<string | null>(null)
 const targetLocale = ref('fr')
 const referenceLocale = ref('en')
 
-// Local editable copy of the entries, keyed by translation key
 const editableValues = ref<Record<string, string>>({})
 
 const moduleOptions = computed(() =>
@@ -39,7 +37,6 @@ onMounted(() => {
   fetchModules()
 })
 
-// Reload groups whenever the module or the target locale changes
 watch([selectedModule, targetLocale], async ([moduleId, locale]) => {
   selectedGroup.value = null
   translationsStore.current = null
@@ -48,7 +45,6 @@ watch([selectedModule, targetLocale], async ([moduleId, locale]) => {
   }
 })
 
-// Reload the group's entries whenever the group or either locale changes
 watch([selectedGroup, targetLocale, referenceLocale], async ([group, locale, reference]) => {
   if (selectedModule.value && group && locale && reference) {
     await fetchGroup(selectedModule.value, group, locale, reference)
@@ -74,7 +70,7 @@ async function handleSave(): Promise<void> {
   <div>
     <h1 class="text-h5 mb-4">Translations</h1>
 
-    <v-card class="mb-6">
+    <v-card class="mb-4">
       <v-card-text>
         <div class="d-flex ga-4 flex-wrap">
           <v-select
@@ -107,58 +103,118 @@ async function handleSave(): Promise<void> {
       </v-card-text>
     </v-card>
 
-    <v-card v-if="selectedModule" class="mb-6">
-      <v-card-text>
-        <p v-if="loadingGroups">Loading categories…</p>
-        <v-list v-else lines="one" density="compact">
-          <v-list-item
-            v-for="group in translationsStore.groups"
-            :key="group"
-            :active="group === selectedGroup"
-            :title="group"
-            @click="selectedGroup = group"
-          />
-        </v-list>
-      </v-card-text>
-    </v-card>
-
-    <v-card v-if="translationsStore.current">
-      <v-card-text>
-        <v-alert type="info" density="compact" class="mb-4">
-          {{ translationsStore.current.group }} — {{ Math.round(translationsStore.current.completion) }}%
-          complete ({{ targetLocale }} vs {{ referenceLocale }})
-        </v-alert>
-
-        <v-progress-linear :model-value="translationsStore.current.completion" height="8" rounded class="mb-6" />
-
-        <p v-if="loadingGroup">Loading entries…</p>
-
-        <div v-else>
-          <div
-            v-for="entry in translationsStore.current.entries"
-            :key="entry.key"
-            class="d-flex align-center ga-4 mb-3"
-          >
-            <v-icon v-if="entry.suspect" color="warning" icon="mdi-alert" size="small" />
-            <div style="min-width: 260px" class="text-body-2 font-weight-medium">{{ entry.key }}</div>
-            <div class="text-medium-emphasis text-body-2" style="min-width: 220px">{{ entry.reference }}</div>
-            <v-text-field
-              v-model="editableValues[entry.key]"
-              density="compact"
-              hide-details
-              :disabled="!authStore.can('translations.strings.manage')"
+    <v-row v-if="selectedModule" no-gutters>
+      <!-- Vertical category panel -->
+      <v-col cols="3" lg="2">
+        <v-card class="category-panel">
+          <v-list density="compact" nav>
+            <p v-if="loadingGroups" class="px-4 py-2 text-caption text-medium-emphasis">Loading…</p>
+            <v-list-item
+              v-for="group in translationsStore.groups"
+              :key="group"
+              :active="group === selectedGroup"
+              :title="group"
+              @click="selectedGroup = group"
             />
-          </div>
-        </div>
+          </v-list>
+        </v-card>
+      </v-col>
 
-        <v-alert v-if="groupError" type="error" density="compact" class="mt-4">{{ groupError.message }}</v-alert>
-        <v-alert v-if="saveError" type="error" density="compact" class="mt-4">{{ saveError.message }}</v-alert>
-      </v-card-text>
+      <!-- Entries panel -->
+      <v-col cols="9" lg="10" class="pl-4">
+        <v-card v-if="translationsStore.current">
+          <v-card-text>
+            <div class="d-flex align-center justify-space-between mb-2">
+              <span class="text-subtitle-1 font-weight-medium">{{ translationsStore.current.group }}</span>
+              <span class="text-body-2 text-medium-emphasis">
+                {{ Math.round(translationsStore.current.completion) }}% complete
+                ({{ targetLocale }} vs {{ referenceLocale }})
+              </span>
+            </div>
 
-      <v-card-actions v-if="authStore.can('translations.strings.manage')">
-        <v-spacer />
-        <v-btn color="primary" :loading="saving" @click="handleSave">Save</v-btn>
-      </v-card-actions>
-    </v-card>
+            <v-progress-linear :model-value="translationsStore.current.completion" height="6" rounded class="mb-6" />
+
+            <p v-if="loadingGroup">Loading entries…</p>
+
+            <div v-else class="translation-grid">
+              <div class="translation-grid__header">
+                <span />
+                <span>Key</span>
+                <span>Reference ({{ referenceLocale }})</span>
+                <span>Translation ({{ targetLocale }})</span>
+              </div>
+
+              <div
+                v-for="entry in translationsStore.current.entries"
+                :key="entry.key"
+                class="translation-grid__row"
+                :class="{ 'translation-grid__row--suspect': entry.suspect }"
+              >
+                <v-icon v-if="entry.suspect" color="warning" icon="mdi-alert" size="small" />
+                <span v-else />
+                <span class="text-body-2 font-weight-medium">{{ entry.key }}</span>
+                <span class="text-body-2 text-medium-emphasis">{{ entry.reference }}</span>
+                <v-text-field
+                  v-model="editableValues[entry.key]"
+                  density="compact"
+                  hide-details
+                  variant="outlined"
+                  :disabled="!authStore.can('translations.strings.manage')"
+                />
+              </div>
+            </div>
+
+            <v-alert v-if="groupError" type="error" density="compact" class="mt-4">{{ groupError.message }}</v-alert>
+            <v-alert v-if="saveError" type="error" density="compact" class="mt-4">{{ saveError.message }}</v-alert>
+          </v-card-text>
+
+          <v-card-actions v-if="authStore.can('translations.strings.manage')">
+            <v-spacer />
+            <v-btn color="primary" :loading="saving" @click="handleSave">Save</v-btn>
+          </v-card-actions>
+        </v-card>
+
+        <v-card v-else-if="!loadingGroups">
+          <v-card-text class="text-medium-emphasis">Select a category on the left.</v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </div>
 </template>
+
+<style scoped>
+.category-panel {
+  min-height: 400px;
+}
+
+.translation-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.translation-grid__header,
+.translation-grid__row {
+  display: grid;
+  grid-template-columns: 24px minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, 1.2fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.translation-grid__header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.translation-grid__row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.translation-grid__row--suspect {
+  background-color: rgba(255, 152, 0, 0.05);
+}
+</style>

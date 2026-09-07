@@ -1,11 +1,4 @@
 {
-    "gallery": {
-        "id": "gallery",
-        "name": "Gallery",
-        "version": "1.0.0",
-        "class": "App\\Extensions\\Gallery\\GalleryExtension",
-        "status": "enabled"
-    },
     "translations": {
         "id": "translations",
         "name": "Translations",
@@ -18,6 +11,13 @@
         "name": "Files",
         "version": "1.0.0",
         "class": "App\\Extensions\\Files\\FilesExtension",
+        "status": "enabled"
+    },
+    "gallery": {
+        "id": "gallery",
+        "name": "Gallery",
+        "version": "1.0.0",
+        "class": "App\\Extensions\\Gallery\\GalleryExtension",
         "status": "enabled"
     }
 }
