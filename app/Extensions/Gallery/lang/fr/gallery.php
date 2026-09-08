@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-return array (
+return  [
   'object' =>
-  array (
+   [
     'photo' =>
-    array (
+     [
       'title' =>
-      array (
+       [
         'label' => 'Titre Updated',
-      ),
-    ),
-  ),
+      ],
+    ],
+  ],
   'action' =>
-  array (
+   [
     'upload' => 'Envoyer une photo',
-  ),
-);
+  ],
+];

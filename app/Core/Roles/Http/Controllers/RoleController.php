@@ -6,11 +6,11 @@ namespace App\Core\Roles\Http\Controllers;
 
 use App\Core\Api\Response\ApiCollectionResponse;
 use App\Core\Api\Response\ApiResponse;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
-use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Core role management API requests.

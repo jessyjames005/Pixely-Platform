@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Extensions\Gallery\Repositories;
 
-use App\Extensions\Gallery\Models\Photo;
-use Illuminate\Database\Eloquent\Collection;
 use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
+use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 final class GalleryRepository implements GalleryRepositoryInterface
 {

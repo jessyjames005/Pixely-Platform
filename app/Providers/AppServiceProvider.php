@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use App\Media\Contracts\StorageInterface;
-use App\Media\Drivers\LocalStorage;
-use App\Media\Contracts\ImageProcessorInterface;
-use App\Media\Processors\InterventionImageProcessor;
 use App\Core\Extensions\Configuration\DatabaseExtensionConfigurationRepository;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
-use Dedoc\Scramble\Scramble;
 use App\Core\Translations\Contracts\TranslationFileSystemInterface;
 use App\Core\Translations\Services\LocalTranslationFileSystem;
+use App\Media\Contracts\ImageProcessorInterface;
+use App\Media\Contracts\StorageInterface;
+use App\Media\Drivers\LocalStorage;
+use App\Media\Processors\InterventionImageProcessor;
+use Dedoc\Scramble\Scramble;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Route;
 use App\Extensions\Gallery\Http\Controllers\Api\GalleryController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Gallery API routes.

@@ -6,9 +6,9 @@ namespace App\Core\Settings\Http\Controllers;
 
 use App\Core\Api\Response\ApiResponse;
 use App\Core\Settings\Models\PlatformSetting;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles platform-wide settings API requests.

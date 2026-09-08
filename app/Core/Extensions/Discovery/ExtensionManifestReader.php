@@ -51,7 +51,7 @@ final class ExtensionManifestReader
         $dependencies = array_values(
             array_filter(
                 $dependencies,
-                static fn(mixed $dependency): bool =>
+                static fn (mixed $dependency): bool =>
                 is_string($dependency),
             ),
         );

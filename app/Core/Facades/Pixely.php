@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use App\Core\Kernel\Kernel;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static void boot()

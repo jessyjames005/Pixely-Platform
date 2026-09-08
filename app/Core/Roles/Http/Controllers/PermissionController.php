@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Core\Roles\Http\Controllers;
 
 use App\Core\Api\Response\ApiCollectionResponse;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Spatie\Permission\Models\Permission;
-use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles read-only access to the list of available permissions.

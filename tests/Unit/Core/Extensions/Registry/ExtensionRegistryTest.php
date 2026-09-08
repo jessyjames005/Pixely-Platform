@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core\Extensions\Registry;
 
+use App\Core\Extensions\Exceptions\ExtensionAlreadyRegisteredException;
+use App\Core\Extensions\Exceptions\ExtensionNotFoundException;
 use App\Core\Extensions\Registry\ExtensionRegistry;
 use PHPUnit\Framework\TestCase;
 use Tests\Fakes\Extensions\FakeExtension;
-use App\Core\Extensions\Exceptions\ExtensionAlreadyRegisteredException;
-use App\Core\Extensions\Exceptions\ExtensionNotFoundException;
 
 /**
  * Tests the ExtensionRegistry.

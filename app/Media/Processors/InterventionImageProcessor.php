@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Media\Processors;
 
 use App\Media\Contracts\ImageProcessorInterface;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
-use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
 
 /**
  * Image processor based on Intervention Image.

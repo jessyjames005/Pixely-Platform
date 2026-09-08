@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Core\Providers;
 
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
+use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
 use App\Core\Extensions\Discovery\ExtensionDiscoverer;
 use App\Core\Extensions\Discovery\ExtensionManifestReader;
 use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Manager\ExtensionManager;
-use App\Core\Extensions\Repositories\JsonExtensionStateRepository;
 use App\Core\Extensions\Registry\ExtensionRegistry;
+use App\Core\Extensions\Repositories\JsonExtensionStateRepository;
 use App\Core\Kernel\Kernel;
 use Illuminate\Support\ServiceProvider;
-use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
 
 final class PixelyServiceProvider extends ServiceProvider
 {

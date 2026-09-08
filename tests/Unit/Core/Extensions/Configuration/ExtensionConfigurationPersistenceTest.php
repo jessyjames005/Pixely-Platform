@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Core\Extensions\Configuration\ExtensionConfiguration;
-use Tests\Fakes\Extensions\GalleryExtension;
 use App\Core\Extensions\Configuration\InMemoryExtensionConfigurationRepository;
+use Tests\Fakes\Extensions\GalleryExtension;
 
 it('persists an extension configuration override', function () {
     $repository = new InMemoryExtensionConfigurationRepository();

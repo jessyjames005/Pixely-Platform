@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery\Upgrades;
 
 use App\Core\Extensions\Versioning\ExtensionUpgradeStepInterface;
-use Illuminate\Support\Facades\Schema;
+use App\Extensions\Gallery\Models\Photo;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Extensions\Gallery\Models\Photo;
 
 /**
  * Example schema-changing upgrade step: adds slug and file_size

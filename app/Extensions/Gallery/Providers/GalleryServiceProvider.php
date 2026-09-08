@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Extensions\Gallery\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
-use App\Extensions\Gallery\Repositories\GalleryRepository;
 use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
+use App\Extensions\Gallery\Repositories\GalleryRepository;
 use App\Extensions\Gallery\Services\GalleryService;
+use Illuminate\Support\ServiceProvider;
 
 final class GalleryServiceProvider extends ServiceProvider
 {

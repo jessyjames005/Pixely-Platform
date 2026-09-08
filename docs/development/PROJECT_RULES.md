@@ -756,12 +756,12 @@ Every translation key follows a fixed prefix pattern, regardless of which group/
 
 Adapted from the reviewed Mediboard/PhpStorm convention (PSR-12, PHPCS, ESLint, Stylelint) to VS Code tooling, using public packages only (no private `openxtrem/coding-standard` dependency).
 
-### PHP — PSR-12 via PHP_CodeSniffer
+### PHP — PSR-12 via PHP_CodeSniffer (detection) + PHP-CS-Fixer (auto-fix)
 
-* Ruleset: `phpcs.xml` at the project root, extends PSR-12.
-* Check: `composer cs:check` — Fix (auto-fixable issues only): `composer cs:fix`.
-* VS Code: install the `persoderlind.vscode-phpcs` extension; inline squiggly warnings appear automatically once `.vscode/settings.json` points it at `phpcs.xml`.
-* Every new PHP file must pass `composer cs:check` before commit.
+* Detection ruleset: `phpcs.xml` at the project root, extends PSR-12. Check: `composer cs:check`.
+* Auto-fix ruleset: `.php-cs-fixer.php`, PSR-12 plus a few opinionated rules (sorted imports, single quotes, trailing commas, short array syntax). Fix: `composer cs:fix-auto` (preview only: `composer cs:fix-auto-dry`).
+* VS Code: install `persoderlind.vscode-phpcs` (live PSR-12 warnings) and `junstyle.php-cs-fixer` (fixes on save automatically, per `.vscode/settings.json`).
+* Every new PHP file must pass `composer cs:check` before commit; running `composer cs:fix-auto` beforehand should make this automatic in practice.
 
 ### TypeScript / Vue — ESLint
 

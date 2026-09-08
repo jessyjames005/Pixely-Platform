@@ -7,11 +7,11 @@ namespace App\Extensions\Gallery;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
+use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
+use App\Core\Extensions\Versioning\ExtensionUpgradableInterface;
 use App\Extensions\Gallery\Providers\GalleryServiceProvider;
 use App\Extensions\Gallery\Upgrades\AddSlugAndFileSizeStep;
 use App\Extensions\Gallery\Upgrades\FixPhotoDisplayStep;
-use App\Core\Extensions\Versioning\ExtensionUpgradableInterface;
-use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
 
 final class GalleryExtension implements
     ExtensionInterface,

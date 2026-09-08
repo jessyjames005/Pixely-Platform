@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Extensions\Gallery\Services;
 
-use App\Extensions\Gallery\Models\Photo;
 use App\Extensions\Gallery\Contracts\GalleryRepositoryInterface;
+use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
+use App\Extensions\Gallery\Models\Photo;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
-use App\Extensions\Gallery\Contracts\GalleryServiceInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * Handles business operations related to the Gallery extension.

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Media;
 
+use App\Media\Services\ThumbnailGenerator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
-use App\Media\Services\ThumbnailGenerator;
 
 /**
  * Tests thumbnail generation.

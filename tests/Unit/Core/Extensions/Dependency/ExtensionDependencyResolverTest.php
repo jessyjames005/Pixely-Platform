@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
-use App\Core\Extensions\Exceptions\ExtensionDependencyException;
 use App\Core\Extensions\Exceptions\ExtensionDependencyCycleException;
+use App\Core\Extensions\Exceptions\ExtensionDependencyException;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 
 function createManifest(
@@ -15,7 +15,7 @@ function createManifest(
         id: $id,
         name: ucfirst($id),
         version: '1.0.0',
-        class: "Tests\\Fakes\\Extensions\\" . ucfirst($id) . 'Extension',
+        class: 'Tests\\Fakes\\Extensions\\' . ucfirst($id) . 'Extension',
         path: 'app/Extensions/Gallery',
         dependencies: $dependencies,
     );

@@ -8,11 +8,10 @@ use App\Core\Api\Error\ApiError;
 use App\Core\Api\Error\ApiErrorResponse;
 use App\Core\Api\Response\ApiResponse;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles session-based authentication for the administration SPA.

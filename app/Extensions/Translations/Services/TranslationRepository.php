@@ -6,7 +6,6 @@ namespace App\Extensions\Translations\Services;
 
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
-use Illuminate\Support\Arr;
 use App\Core\Translations\Contracts\TranslationFileSystemInterface;
 
 /**
@@ -62,7 +61,7 @@ final class TranslationRepository
         $localePath = $modulePath . '/' . $this->safeSegment($locale);
 
         return array_map(
-            static fn(string $file): string => basename($file, '.php'),
+            static fn (string $file): string => basename($file, '.php'),
             $this->filesystem->phpFiles($localePath),
         );
     }

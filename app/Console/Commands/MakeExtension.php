@@ -392,13 +392,13 @@ final class MakeExtension extends Command
 
         $this->newLine();
         $this->line('<comment>Remaining manual steps:</comment>');
-        $this->line("1. Add a Vite/TS alias in vite.config.js and tsconfig.json:");
+        $this->line('1. Add a Vite/TS alias in vite.config.js and tsconfig.json:');
         $this->line("   \"@extensions/{$id}\": .../app/Extensions/{$studly}/resources/js");
-        $this->line("2. Import and register the nav item in resources/js/shared/navigation/registry.ts:");
+        $this->line('2. Import and register the nav item in resources/js/shared/navigation/registry.ts:');
         $this->line("   import { {$camel}NavItem } from '@extensions/{$id}/nav'");
         $this->line("3. Add the route in resources/js/router/index.ts (import {$studly}View, add to children[]).");
         $this->line("4. Add {$id}.items.view/manage/delete to database/seeders/RolePermissionSeeder.php (or rely on ExtensionPermissionSynchronizer at enable time).");
-        $this->line("5. Run: php artisan migrate  (once you add migrations to Database/Migrations/).");
-        $this->line("6. Run: php artisan pixely:extensions  to confirm discovery.");
+        $this->line('5. Run: php artisan migrate  (once you add migrations to Database/Migrations/).');
+        $this->line('6. Run: php artisan pixely:extensions  to confirm discovery.');
     }
 }

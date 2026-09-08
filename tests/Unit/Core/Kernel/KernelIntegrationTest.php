@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Core\Kernel;
 
 use App\Core\Kernel\Kernel;
-use Tests\TestCase;
 use App\Extensions\Gallery\GalleryExtension;
+use Tests\TestCase;
 
 /**
  * Integration tests for the Pixely Kernel.

@@ -37,7 +37,7 @@ it('rejects a file with a disallowed extension', function () {
     $file = UploadedFile::fake()->create('document.exe', 100);
 
     $this->validator->assertValid($file);
-})->throws(InvalidArgumentException::class, "not allowed");
+})->throws(InvalidArgumentException::class, 'not allowed');
 
 it('rejects a batch exceeding the max files per upload', function () {
     $files = [

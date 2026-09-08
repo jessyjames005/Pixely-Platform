@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Core\Extensions\Configuration;
 
 use App\Core\Extensions\Contracts\ExtensionInterface;
-use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
 
 /**
  * Provides configuration values for an extension.

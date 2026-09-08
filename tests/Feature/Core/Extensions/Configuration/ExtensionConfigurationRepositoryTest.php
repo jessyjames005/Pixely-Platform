@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Core\Extensions\Configuration\DatabaseExtensionConfigurationRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use App\Core\Extensions\Configuration\DatabaseExtensionConfigurationRepository;
 
 uses(RefreshDatabase::class);
 

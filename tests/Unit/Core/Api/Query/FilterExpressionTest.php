@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Core\Api\Query;
 
 use App\Core\Api\Query\FilterExpression;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Core\Extensions;
 
-use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Enum\ExtensionStatus;
 use App\Core\Extensions\Repositories\JsonExtensionStateRepository;
 use App\Core\Extensions\State\ExtensionState;

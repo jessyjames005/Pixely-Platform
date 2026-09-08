@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Media;
 
-use App\Media\Services\ThumbnailGenerator;
-use Tests\TestCase;
 use App\Media\Contracts\ImageProcessorInterface;
+use App\Media\Services\ThumbnailGenerator;
 use Mockery;
+use Tests\TestCase;
 
 /**
  * Tests ThumbnailGenerator.

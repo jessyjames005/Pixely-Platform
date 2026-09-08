@@ -6,8 +6,8 @@ namespace Tests\Unit\Core\Extensions\State;
 
 use App\Core\Extensions\Enum\ExtensionStatus;
 use App\Core\Extensions\State\ExtensionState;
-use Tests\Fakes\Extensions\FakeExtension;
 use PHPUnit\Framework\TestCase;
+use Tests\Fakes\Extensions\FakeExtension;
 
 /**
  * Tests the extension state.

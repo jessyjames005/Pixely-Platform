@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Extensions\Gallery\Http\Controllers\Api;
 
-use App\Extensions\Gallery\Models\Photo;
+use App\Core\Api\Query\ApiQueryApplier;
+use App\Core\Api\Query\ApiQueryParser;
+use App\Core\Api\Response\ApiCollectionResponse;
+use App\Core\Api\Response\ApiResponse;
 use App\Extensions\Files\Services\FileUploadService;
+use App\Extensions\Gallery\Models\Photo;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Core\Api\Query\ApiQueryParser;
-use App\Core\Api\Query\ApiQueryApplier;
-use App\Core\Api\Response\ApiResponse;
-use App\Core\Api\Response\ApiCollectionResponse;
-use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Gallery API requests.

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Core\Extensions\Discovery\ExtensionDiscoverer;
+use App\Core\Extensions\Discovery\ExtensionManifestReader;
+use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Enum\ExtensionStatus;
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
-use App\Core\Extensions\Discovery\ExtensionRepository;
-use App\Core\Extensions\Discovery\ExtensionDiscoverer;
-use App\Core\Extensions\Discovery\ExtensionManifestReader;
 use Tests\Fakes\Extensions\FakeExtension;
 
 function createLifecycleManager(): ExtensionManager

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Core\Tooling\Http\Controllers;
 
 use App\Core\Api\Response\ApiCollectionResponse;
-use App\Core\Api\Response\ApiResponse;
 use App\Core\Tooling\Services\ReadOnlyQueryValidator;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;

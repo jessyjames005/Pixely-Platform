@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Core\Api\Query\FilterOperator;
 
 it('defines the supported filter operators', function () {

@@ -1,7 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+declare(strict_types=1);
+
 use Dedoc\Scramble\Scramble;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Public web routes.

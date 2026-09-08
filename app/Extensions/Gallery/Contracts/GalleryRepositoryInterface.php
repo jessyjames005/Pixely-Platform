@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery\Contracts;
 
 use App\Extensions\Gallery\Models\Photo;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Contract for gallery repositories.

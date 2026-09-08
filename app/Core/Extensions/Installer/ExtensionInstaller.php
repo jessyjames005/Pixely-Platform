@@ -6,13 +6,12 @@ namespace App\Core\Extensions\Installer;
 
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
 use App\Core\Extensions\Contracts\ExtensionInterface;
+use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
+use App\Core\Extensions\Versioning\ExtensionUpgradeRunner;
+use App\Core\Extensions\Versioning\ExtensionVersionRepository;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
-use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
-use App\Core\Extensions\Versioning\ExtensionUpgradeRunner;
-use App\Core\Extensions\Versioning\ExtensionUpgradableInterface;
-use App\Core\Extensions\Versioning\ExtensionVersionRepository;
 
 /**
  * Orchestrates the full install/update/uninstall flow for extensions

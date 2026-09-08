@@ -8,10 +8,10 @@ use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Enum\ExtensionStatus;
+use App\Core\Extensions\Exceptions\ExtensionDependencyCycleException;
+use App\Core\Extensions\Exceptions\ExtensionDependencyException;
 use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Extensions\State\ExtensionState;
-use App\Core\Extensions\Exceptions\ExtensionDependencyException;
-use App\Core\Extensions\Exceptions\ExtensionDependencyCycleException;
 
 /**
  * Manages the lifecycle of registered extensions.
@@ -176,7 +176,7 @@ final class ExtensionManager
     {
         return array_filter(
             $this->registry->all(),
-            fn(ExtensionInterface $extension): bool => $this->isEnabled(
+            fn (ExtensionInterface $extension): bool => $this->isEnabled(
                 $extension->manifest()->id,
             ),
         );
@@ -192,7 +192,7 @@ final class ExtensionManager
     {
         return array_filter(
             $this->registry->all(),
-            fn(ExtensionInterface $extension): bool => ! $this->isEnabled(
+            fn (ExtensionInterface $extension): bool => ! $this->isEnabled(
                 $extension->manifest()->id,
             ),
         );

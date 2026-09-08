@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core\Extensions\Manager;
 
-use App\Core\Extensions\Registry\ExtensionRegistry;
-use App\Core\Extensions\Manager\ExtensionManager;
-use Tests\Fakes\Extensions\FakeExtension;
-use PHPUnit\Framework\TestCase;
-use App\Core\Extensions\Discovery\ExtensionDiscoverer;
-use App\Core\Extensions\Discovery\ExtensionRepository;
-use App\Core\Extensions\Discovery\ExtensionManifestReader;
-use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
+use App\Core\Extensions\Discovery\ExtensionDiscoverer;
+use App\Core\Extensions\Discovery\ExtensionManifestReader;
+use App\Core\Extensions\Discovery\ExtensionRepository;
+use App\Core\Extensions\Manager\ExtensionManager;
+use App\Core\Extensions\Registry\ExtensionRegistry;
+use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
+use PHPUnit\Framework\TestCase;
+use Tests\Fakes\Extensions\FakeExtension;
 
 /**
  * Tests the extension manager.

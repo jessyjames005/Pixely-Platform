@@ -7,11 +7,11 @@ namespace App\Core\Users\Http\Controllers;
 use App\Core\Api\Response\ApiCollectionResponse;
 use App\Core\Api\Response\ApiResponse;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Dedoc\Scramble\Attributes\Group;
 
 /**
  * Handles Core user management API requests.
@@ -35,7 +35,7 @@ final class UserController
             ->paginate($perPage);
 
         return $apiResponse->response(
-            data: $paginator->getCollection()->map(fn(User $user) => $this->withRole($user)),
+            data: $paginator->getCollection()->map(fn (User $user) => $this->withRole($user)),
             meta: [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => max(1, $paginator->lastPage()),

@@ -9,10 +9,10 @@ use App\Core\Api\Response\ApiResponse;
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
 use App\Core\Extensions\Manager\ExtensionManager;
+use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 
 /**
  * Read/lifecycle (non-destructive) extension management API.
@@ -37,7 +37,7 @@ final class ExtensionController
     public function index(ApiCollectionResponse $apiResponse): JsonResponse
     {
         $extensions = array_map(
-            fn($extension) => $this->summarize($extension),
+            fn ($extension) => $this->summarize($extension),
             $this->manager->all(),
         );
 
