@@ -768,6 +768,7 @@ Adapted from the reviewed Mediboard/PhpStorm convention (PSR-12, PHPCS, ESLint, 
 * Config: `eslint.config.js` (flat config), covers `.ts` and `.vue` files across every domain (`app/Core/*/resources/js`, `app/Extensions/*/resources/js`, `resources/js/shared`).
 * Check: `npm run lint` — Fix: `npm run lint:fix`.
 * VS Code: install `dbaeumer.vscode-eslint`; `editor.codeActionsOnSave` auto-fixes on save.
+> **Known caveat**: `@typescript-eslint` currently declares a peer dependency range (`typescript <6.1.0`) that lags behind this project's `typescript@^7.0.2`. Installed with `--legacy-peer-deps` — functionally fine for the TypeScript subset used here, but revisit once `@typescript-eslint` publishes a release supporting TS 7.
 
 ### SCSS — Stylelint
 
