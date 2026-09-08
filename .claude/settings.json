@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Agent",
+      "AskUserQuestion",
+      "TodoWrite",
+      "Task",
+      "TaskOutput",
+      "Mcp",
+      "NotebookEdit",
+      "Plan"
+    ],
+    "deny": [
+      "Bash(docker *:force)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fd *)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "sh .claude/sync-setup.sh",
+        "description": "Sync Claude Code configuration from shared repository"
+      }
+    ]
+  },
+  "env": {
+    "DOCKER_HOST": "unix:///var/run/docker.sock"
+  }
+}
