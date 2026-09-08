@@ -20,9 +20,9 @@ final class JsonExtensionStateRepositoryTest extends TestCase
         parent::setUp();
 
         $this->storagePath = sys_get_temp_dir()
-            .'/pixely-extension-states-'
-            .uniqid('', true)
-            .'.json';
+            . '/pixely-extension-states-'
+            . uniqid('', true)
+            . '.json';
     }
 
     protected function tearDown(): void

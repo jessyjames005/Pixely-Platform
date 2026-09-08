@@ -16,7 +16,7 @@ final class LocalStorage implements StorageInterface
     /**
      * Store a file.
      */
-     public function store(UploadedFile $file, string $directory = 'photos'): string
+    public function store(UploadedFile $file, string $directory = 'photos'): string
     {
         return $file->store($directory, 'public');
     }

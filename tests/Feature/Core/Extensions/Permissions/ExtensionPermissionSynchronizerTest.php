@@ -32,8 +32,13 @@ final class FakePermissionDeclaringExtension implements ExtensionInterface, Exte
         return ['fake.widgets.view', 'fake.widgets.manage'];
     }
 
-    public function providers(): array { return []; }
-    public function boot(): void {}
+    public function providers(): array
+    {
+        return [];
+    }
+    public function boot(): void
+    {
+    }
 }
 
 final class FakeNonPermissionDeclaringExtension implements ExtensionInterface
@@ -50,8 +55,13 @@ final class FakeNonPermissionDeclaringExtension implements ExtensionInterface
         );
     }
 
-    public function providers(): array { return []; }
-    public function boot(): void {}
+    public function providers(): array
+    {
+        return [];
+    }
+    public function boot(): void
+    {
+    }
 }
 
 it('creates permissions declared by an extension', function () {

@@ -18,7 +18,8 @@ final readonly class ExtensionState
     public function __construct(
         public ExtensionInterface $extension,
         public ExtensionStatus $status,
-    ) {}
+    ) {
+    }
 
     /**
      * Return a new state with the extension enabled.

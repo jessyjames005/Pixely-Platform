@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Core\Extensions\Discovery;
 
-
 /**
  * Discovers available extensions.
  */

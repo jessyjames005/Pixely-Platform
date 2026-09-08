@@ -5,6 +5,7 @@ declare(strict_types=1);
 /**
  * Translations extension manifest.
  */
+
 return [
     'id' => 'translations',
     'name' => 'Translations',

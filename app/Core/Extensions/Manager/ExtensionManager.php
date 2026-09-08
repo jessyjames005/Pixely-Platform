@@ -22,7 +22,8 @@ final class ExtensionManager
         private readonly ExtensionRegistry $registry,
         private readonly ExtensionRepository $repository,
         private readonly ExtensionStateRepositoryInterface $stateRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * Register a new extension.

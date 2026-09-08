@@ -5,6 +5,7 @@ declare(strict_types=1);
 /**
  * Extension manifest.
  */
+
 return [
     'id' => 'gallery',
     'name' => 'Gallery',

@@ -8,6 +8,7 @@ use App\Extensions\Gallery\Http\Controllers\Api\GalleryController;
 /**
  * Gallery API routes.
  */
+
 Route::get(
     '/gallery',
     [GalleryController::class, 'index'],

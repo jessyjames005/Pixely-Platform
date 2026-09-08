@@ -20,7 +20,8 @@ final class TranslationController
 {
     public function __construct(
         private readonly TranslationRepository $repository,
-    ) {}
+    ) {
+    }
 
     /**
      * List translatable modules and, per module, their available locales/groups.

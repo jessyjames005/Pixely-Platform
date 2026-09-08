@@ -30,7 +30,8 @@ final class ExtensionInstaller
         private readonly ExtensionAuditLogger $auditLogger,
         private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
         private readonly ExtensionUpgradeRunner $upgradeRunner,
-    ) {}
+    ) {
+    }
 
     /**
      * Install a new extension from an uploaded zip file.

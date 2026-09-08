@@ -30,7 +30,7 @@ final class PhotoFactory extends Factory
     {
         return [
             'title' => fake()->sentence(3),
-            'filename' => fake()->uuid().'.jpg',
+            'filename' => fake()->uuid() . '.jpg',
         ];
     }
 }

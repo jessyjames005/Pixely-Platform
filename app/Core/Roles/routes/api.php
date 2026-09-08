@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
  * same per-module routing convention as extensions and other
  * Core modules (Auth, Users).
  */
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/permissions', [PermissionController::class, 'index']);
 

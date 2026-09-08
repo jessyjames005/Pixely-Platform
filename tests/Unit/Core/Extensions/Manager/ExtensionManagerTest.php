@@ -14,7 +14,6 @@ use App\Core\Extensions\Discovery\ExtensionManifestReader;
 use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
 
-
 /**
  * Tests the extension manager.
  */

@@ -19,27 +19,22 @@ final readonly class ExtensionManifest
          * Unique extension identifier.
          */
         public string $id,
-
         /**
          * Extension display name.
          */
         public string $name,
-
         /**
          * Extension version.
          */
         public string $version,
-
         /**
          * Extension entrypoint class.
          */
         public string $class,
-
         /**
          * Absolute extension directory.
          */
         public string $path,
-
         /**
          * Required extension identifiers.
          *

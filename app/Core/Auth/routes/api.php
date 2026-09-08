@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
  * Registered under api/v1 by AuthServiceProvider, following
  * the same per-module routing convention as extensions.
  */
+
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {

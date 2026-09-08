@@ -47,13 +47,15 @@ it('creates an extension manifest with dependencies', function () {
 it('creates an extension manifest without dependencies', function () {
     $reader = new ExtensionManifestReader();
 
-    $manifest = $reader->createManifest([
+    $manifest = $reader->createManifest(
+        [
         'id' => 'gallery',
         'name' => 'Gallery',
         'version' => '1.0.0',
         'class' => 'App\\Extensions\\Gallery\\GalleryExtension',
-    ],
-    path: 'app/Extensions/Gallery');
+        ],
+        path: 'app/Extensions/Gallery'
+    );
 
     expect($manifest)->not->toBeNull();
 
@@ -74,7 +76,7 @@ it('ignores invalid dependencies', function () {
             null,
             'users',
         ],
-    ],path: 'app/Extensions/Gallery');
+    ], path: 'app/Extensions/Gallery');
 
     expect($manifest)->not->toBeNull();
 

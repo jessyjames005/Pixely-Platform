@@ -3,17 +3,17 @@
 declare(strict_types=1);
 
 return array (
-  'object' => 
+  'object' =>
   array (
-    'photo' => 
+    'photo' =>
     array (
-      'title' => 
+      'title' =>
       array (
         'label' => 'Titre Updated',
       ),
     ),
   ),
-  'action' => 
+  'action' =>
   array (
     'upload' => 'Envoyer une photo',
   ),

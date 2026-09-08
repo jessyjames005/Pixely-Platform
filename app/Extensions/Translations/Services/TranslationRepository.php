@@ -23,7 +23,8 @@ final class TranslationRepository
     public function __construct(
         private readonly ExtensionManager $extensionManager,
         private readonly TranslationFileSystemInterface $filesystem,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<string, string> module id => lang directory path

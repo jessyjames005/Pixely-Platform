@@ -28,7 +28,8 @@ final class ExtensionController
         private readonly ExtensionConfigurationRepositoryInterface $configRepository,
         private readonly ExtensionAuditLogger $auditLogger,
         private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
-    ) {}
+    ) {
+    }
 
     /**
      * List all registered extensions with their current state.

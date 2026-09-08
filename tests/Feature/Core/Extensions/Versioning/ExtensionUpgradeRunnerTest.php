@@ -64,8 +64,13 @@ final class FakeUpgradableExtension implements ExtensionInterface, ExtensionUpgr
         return $this->steps;
     }
 
-    public function providers(): array { return []; }
-    public function boot(): void {}
+    public function providers(): array
+    {
+        return [];
+    }
+    public function boot(): void
+    {
+    }
 }
 
 final class FakeNonUpgradableExtension implements ExtensionInterface
@@ -82,8 +87,13 @@ final class FakeNonUpgradableExtension implements ExtensionInterface
         );
     }
 
-    public function providers(): array { return []; }
-    public function boot(): void {}
+    public function providers(): array
+    {
+        return [];
+    }
+    public function boot(): void
+    {
+    }
 }
 
 beforeEach(function () {
@@ -101,8 +111,12 @@ it('applies all pending steps in ascending version order', function () {
     $applied = [];
 
     $extension = new FakeUpgradableExtension([
-        new FakeStep('1.0.2', function () use (&$applied) { $applied[] = '1.0.2'; }),
-        new FakeStep('1.0.1', function () use (&$applied) { $applied[] = '1.0.1'; }),
+        new FakeStep('1.0.2', function () use (&$applied) {
+            $applied[] = '1.0.2';
+        }),
+        new FakeStep('1.0.1', function () use (&$applied) {
+            $applied[] = '1.0.1';
+        }),
     ]);
 
     $this->runner->recordFreshInstall($extension->manifest()->id, '1.0.0');
@@ -116,8 +130,12 @@ it('only applies steps strictly after the installed version', function () {
     $applied = [];
 
     $extension = new FakeUpgradableExtension([
-        new FakeStep('1.0.1', function () use (&$applied) { $applied[] = '1.0.1'; }),
-        new FakeStep('1.0.2', function () use (&$applied) { $applied[] = '1.0.2'; }),
+        new FakeStep('1.0.1', function () use (&$applied) {
+            $applied[] = '1.0.1';
+        }),
+        new FakeStep('1.0.2', function () use (&$applied) {
+            $applied[] = '1.0.2';
+        }),
     ]);
 
     // Already at 1.0.1 — only 1.0.2 should run
@@ -131,8 +149,12 @@ it('does not apply steps beyond the target version', function () {
     $applied = [];
 
     $extension = new FakeUpgradableExtension([
-        new FakeStep('1.0.1', function () use (&$applied) { $applied[] = '1.0.1'; }),
-        new FakeStep('2.0.0', function () use (&$applied) { $applied[] = '2.0.0'; }),
+        new FakeStep('1.0.1', function () use (&$applied) {
+            $applied[] = '1.0.1';
+        }),
+        new FakeStep('2.0.0', function () use (&$applied) {
+            $applied[] = '2.0.0';
+        }),
     ]);
 
     $this->runner->recordFreshInstall($extension->manifest()->id, '1.0.0');
@@ -146,11 +168,15 @@ it('keeps earlier successful steps when a later step fails', function () {
     $applied = [];
 
     $extension = new FakeUpgradableExtension([
-        new FakeStep('1.0.1', function () use (&$applied) { $applied[] = '1.0.1'; }),
+        new FakeStep('1.0.1', function () use (&$applied) {
+            $applied[] = '1.0.1';
+        }),
         new FakeStep('1.0.2', function () {
             throw new RuntimeException('boom');
         }),
-        new FakeStep('1.0.3', function () use (&$applied) { $applied[] = '1.0.3'; }),
+        new FakeStep('1.0.3', function () use (&$applied) {
+            $applied[] = '1.0.3';
+        }),
     ]);
 
     $this->runner->recordFreshInstall($extension->manifest()->id, '1.0.0');
@@ -176,7 +202,9 @@ it('treats a never-tracked extension as installed at version 0.0.0', function ()
     $applied = [];
 
     $extension = new FakeUpgradableExtension([
-        new FakeStep('1.0.0', function () use (&$applied) { $applied[] = '1.0.0'; }),
+        new FakeStep('1.0.0', function () use (&$applied) {
+            $applied[] = '1.0.0';
+        }),
     ]);
 
     // No recordFreshInstall call — simulates an extension that

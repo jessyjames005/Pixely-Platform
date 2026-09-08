@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
  * requires authentication AND the specific system.* permission —
  * being logged in alone is not sufficient for this domain.
  */
+
 Route::middleware(['auth:sanctum'])->prefix('system')->group(function () {
     Route::middleware('permission:system.logs.view')->group(function () {
         Route::get('/logs', [LogController::class, 'index']);

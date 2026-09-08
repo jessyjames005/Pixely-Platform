@@ -120,11 +120,13 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
     {
         $directory = dirname($this->path);
 
-        if (! is_dir($directory) && ! mkdir(
-            $directory,
-            0755,
-            true,
-        ) && ! is_dir($directory)) {
+        if (
+            ! is_dir($directory) && ! mkdir(
+                $directory,
+                0755,
+                true,
+            ) && ! is_dir($directory)
+        ) {
             throw new RuntimeException(
                 "Unable to create directory: {$directory}",
             );
@@ -135,7 +137,7 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
             json_encode(
                 $data,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
-            ).PHP_EOL,
+            ) . PHP_EOL,
         );
 
         if ($result === false) {

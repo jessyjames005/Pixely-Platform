@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
  *
  * All operations require an authenticated administrator.
  */
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);

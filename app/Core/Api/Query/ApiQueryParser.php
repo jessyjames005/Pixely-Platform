@@ -35,7 +35,8 @@ final class ApiQueryParser
 
     public function __construct(
         private readonly FilterParser $filterParser = new FilterParser(),
-    ) {}
+    ) {
+    }
 
     /**
      * Parse raw API query parameters.

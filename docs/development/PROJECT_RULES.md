@@ -751,3 +751,34 @@ Every translation key follows a fixed prefix pattern, regardless of which group/
 - Use `snake_case` for multi-word segments (`gallery_list`, not `galleryList` or `gallery-list`).
 - A key must use exactly one of these prefixes — never a bare key with no category (e.g. `title` alone, or `upload` alone).
 - Nested keys are supported and expected for `object.*` (naturally: object → property → hint), not for the other categories.
+
+## Code Style & Static Analysis
+
+Adapted from the reviewed Mediboard/PhpStorm convention (PSR-12, PHPCS, ESLint, Stylelint) to VS Code tooling, using public packages only (no private `openxtrem/coding-standard` dependency).
+
+### PHP — PSR-12 via PHP_CodeSniffer
+
+* Ruleset: `phpcs.xml` at the project root, extends PSR-12.
+* Check: `composer cs:check` — Fix (auto-fixable issues only): `composer cs:fix`.
+* VS Code: install the `persoderlind.vscode-phpcs` extension; inline squiggly warnings appear automatically once `.vscode/settings.json` points it at `phpcs.xml`.
+* Every new PHP file must pass `composer cs:check` before commit.
+
+### TypeScript / Vue — ESLint
+
+* Config: `eslint.config.js` (flat config), covers `.ts` and `.vue` files across every domain (`app/Core/*/resources/js`, `app/Extensions/*/resources/js`, `resources/js/shared`).
+* Check: `npm run lint` — Fix: `npm run lint:fix`.
+* VS Code: install `dbaeumer.vscode-eslint`; `editor.codeActionsOnSave` auto-fixes on save.
+
+### SCSS — Stylelint
+
+* Config: `.stylelintrc.json`, extends `stylelint-config-standard-scss`.
+* Currently has little to lint — the platform's design convention (see `docs/architecture/frontend-architecture.md`) keeps styling in Vuetify's theme/utility classes, with no `<style>` blocks in `.vue` files. This tooling stays in place for the day a domain genuinely needs a `.scss` file.
+* VS Code: install `stylelint.vscode-stylelint`.
+
+### EditorConfig
+
+`.editorconfig` at the root defines indentation (4 spaces PHP, 2 spaces JS/TS/Vue/JSON) and line-ending rules, enforced automatically by the `editorconfig.editorconfig` VS Code extension — install it so `.vscode/settings.json`'s `editor.rulers` and `files.eol` stay consistent with what's committed.
+
+### Recommended extensions
+
+See `.vscode/extensions.json` — VS Code prompts to install these automatically when opening the project.

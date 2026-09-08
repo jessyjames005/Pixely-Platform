@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
  * preference) are self-service: any authenticated user may read
  * and update their own, no dedicated permission required.
  */
+
 Route::get('/locales', [LocaleController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {

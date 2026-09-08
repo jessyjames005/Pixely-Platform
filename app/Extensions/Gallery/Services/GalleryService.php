@@ -24,7 +24,8 @@ final class GalleryService implements GalleryServiceInterface
      */
     public function __construct(
         private readonly GalleryRepositoryInterface $repository,
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieve all photos from the gallery.
