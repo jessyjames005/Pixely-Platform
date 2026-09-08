@@ -731,7 +731,9 @@ Then place it in the smallest appropriate boundary and expose it through a clear
 
 Pixely should become more extensible as development progresses, not more coupled.
 
-## Translation Key Naming Convention
+## Translation Key Naming Convention (docs/development/PROJECT_RULES.md)
+
+* [x] Documented and applied: object.<object>.<property>[.hint], action.<verb>, title.<context>, msg.<context>, tab.<name>, preference.<name>, permission.<name>
 
 Every translation key follows a fixed prefix pattern, regardless of which group/file it lives in:
 

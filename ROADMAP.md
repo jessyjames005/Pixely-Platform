@@ -1125,8 +1125,8 @@ A reusable file-handling extension, meant to be a dependency of other extensions
 
 Implements the Translation Management UI already specified under Administration Infrastructure (v0.7.0) as an actual installable extension, not a hardcoded Core feature — consistent with ADR-0001 ("Pixely is a Platform, not an Application").
 
-* [ ] Same feature set as already detailed in "Translation Management UI" (module/language filter, completion percentage, inline editing, per-category save)
-* [ ] Applies uniformly to Core strings and any installed extension's own translation files, discovered dynamically rather than hardcoded per module
+* [x] Same feature set as already detailed in "Translation Management UI" (module/language filter, completion percentage, inline editing, per-category save)
+* [x] Applies uniformly to Core strings and any installed extension's own translation files, discovered dynamically rather than hardcoded per module
 
 ---
 
