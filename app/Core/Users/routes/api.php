@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Users\Http\Controllers\UserController;
+use App\Core\Users\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -20,4 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
+
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
 });

@@ -1,0 +1,20 @@
+{
+  "id": "tuleap",
+  "name": "Tuleap",
+  "version": "1.0.0",
+  "description": "Sprint management dashboard for Tuleap",
+  "type": "extension",
+  "dependencies": [],
+  "frontend": {
+    "entry": "tuleap",
+    "views": [
+      "Dashboard",
+      "SprintPlanning",
+      "SprintReview",
+      "Retrospective",
+      "SprintAnalytics",
+      "TeamSettings",
+      "SystemSettings"
+    ]
+  }
+}

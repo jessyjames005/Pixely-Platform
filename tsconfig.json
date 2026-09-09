@@ -14,7 +14,8 @@
       "@core/users/*": ["app/Core/Users/resources/js/*"],
       "@core/roles/*": ["app/Core/Roles/resources/js/*"],
       "@core/settings/*": ["app/Core/Settings/resources/js/*"],
-      "@extensions/gallery/*": ["app/Extensions/Gallery/resources/js/*"],
+      "@extensions/gallery/*": ["app/Extensions/Gallery/Resources/js/*"],
+      "@extensions/tuleap/*": ["app/Extensions/Tuleap/Resources/js/*"],
       "@core/extensions/*": ["app/Core/Extensions/resources/js/*"],
       "@extensions/translations/*": ["app/Extensions/Translations/resources/js/*"],
     }
@@ -23,6 +24,8 @@
     "resources/js/**/*.ts",
     "resources/js/**/*.vue",
     "app/**/resources/js/**/*.ts",
-    "app/**/resources/js/**/*.vue"
+    "app/**/resources/js/**/*.vue",
+    "app/**/Resources/js/**/*.ts",
+    "app/**/Resources/js/**/*.vue"
   ]
 }
