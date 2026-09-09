@@ -6,16 +6,30 @@ export interface User {
   role: string | null
 }
 
-// Payload accepted when creating a user
+// Current user's own profile, self-service (distinct from admin User management)
+export interface Profile {
+  id: number
+  name: string
+  email: string
+  bio: string | null
+  timezone: string
+  avatar_url: string | null
+}
+
 export interface CreateUserPayload {
   name: string
   email: string
   password: string
 }
 
-// Payload accepted when updating a user (password optional)
 export interface UpdateUserPayload {
   name?: string
   email?: string
   password?: string
+}
+
+export interface UpdateProfilePayload {
+  name?: string
+  bio?: string | null
+  timezone?: string
 }

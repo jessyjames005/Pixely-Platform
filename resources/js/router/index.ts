@@ -14,6 +14,7 @@ import GalleryView from "@extensions/gallery/views/GalleryView.vue";
 import { useAuthStore } from "@core/auth/store/auth.store";
 import ExtensionsView from "@core/extensions/views/ExtensionsView.vue";
 import TranslationsView from "@extensions/translations/views/TranslationsView.vue";
+import ProfileView from '@core/users/views/ProfileView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -41,6 +42,7 @@ const routes: RouteRecordRaw[] = [
         name: "admin.translations",
         component: TranslationsView,
       },
+      { path: 'profile', name: 'admin.profile', component: ProfileView },
     ],
   },
 ];

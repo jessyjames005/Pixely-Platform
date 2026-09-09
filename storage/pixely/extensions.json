@@ -19,5 +19,12 @@
         "version": "1.0.0",
         "class": "App\\Extensions\\Gallery\\GalleryExtension",
         "status": "enabled"
+    },
+    "tuleap": {
+        "id": "tuleap",
+        "name": "Tuleap",
+        "version": "1.0.0",
+        "class": "App\\Extensions\\Tuleap\\TuleapExtension",
+        "status": "enabled"
     }
 }
