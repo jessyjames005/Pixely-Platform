@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-# Pixely Platform — Claude Code Configuration Sync
+# Pixely Platform — AI Agent Configuration Sync
 # This script is triggered by the SessionStart hook in .claude/settings.json.
-# It keeps the project's Claude Code configuration in sync with the shared
+# It keeps the project's AI agent configuration in sync with the shared
 # configuration repository.
 
 set -eu
@@ -13,7 +13,7 @@ CONFIG_REPO="${PIXELY_CLAUDE_CONFIG_REPO:-git@github.com:jessyjames005/Pixely.gi
 
 # Skip sync if no network or repo unavailable (e.g. offline development)
 if [ ! -d "$CLAUDE_SETUP_DIR/.git" ]; then
-  echo "Claude Code configuration not yet cloned. Skipping sync."
+  echo "AI agent configuration not yet cloned. Skipping sync."
   exit 0
 fi
 
@@ -25,4 +25,4 @@ git reset --quiet --hard origin/main
 rsync -a --exclude 'settings.local.json' --exclude 'mcp/config.json' \
   "$CLAUDE_SETUP_DIR/" "$PROJECT_DIR/"
 
-echo "Claude Code configuration synced successfully."
+echo "AI agent configuration synced successfully."

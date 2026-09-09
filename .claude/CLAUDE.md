@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AI Agent Guidance — Pixely Platform
 
-Guidance for Claude Code on this repository.
+This file provides guidance for AI agents working on this repository.
 Detailed domain knowledge lives in `.claude/agents/` (invoked automatically), `.claude/references/` (patterns/conventions imported by agents via `@`), `.claude/rules/` (path-scoped conventions, auto-loaded), and `.claude/skills/` (executable workflows).
 
 | Domain | Agent |
@@ -9,23 +9,11 @@ Detailed domain knowledge lives in `.claude/agents/` (invoked automatically), `.
 | Backend (PHP, Laravel, Database) | `backend-dev` |
 | Git, MR, workflow | `workflow-helper` |
 
-## Setup
-
-Setup is automatic: the first time you start Claude Code in this project, a
-SessionStart hook clones the shared configuration repository and installs
-everything. No manual step is required.
-
-If the sync fails or you need to re-run it without restarting Claude:
-
-```bash
-sh .claude/sync-setup.sh
-```
-
 ---
 
 ## Language
 
-- **Claude configuration files must be written in English**: `CLAUDE.md`, all files under `.claude/skills/`, `.claude/agents/`, and `.claude/` in general. No French in these files.
+- **All agent configuration files must be written in English**: `CLAUDE.md`, all files under `.claude/skills/`, `.claude/agents/`, and `.claude/` in general. No French in these files.
 
 ---
 

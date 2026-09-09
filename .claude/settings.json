@@ -29,7 +29,7 @@
     "SessionStart": [
       {
         "command": "sh .claude/sync-setup.sh",
-        "description": "Sync Claude Code configuration from shared repository"
+        "description": "Sync AI agent configuration from shared repository"
       }
     ]
   },
