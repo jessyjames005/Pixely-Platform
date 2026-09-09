@@ -17,10 +17,10 @@ final class SprintConfig extends Model
 
     public $incrementing = false;
 
-    protected $primaryKey = 'sprint_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'sprint_id',
+        'id',
         'objective',
         'confidence_index',
         'pct_evolution',
@@ -32,7 +32,7 @@ final class SprintConfig extends Model
     ];
 
     protected $casts = [
-        'sprint_id' => 'integer',
+        'id' => 'integer',
         'confidence_index' => 'integer',
         'pct_evolution' => 'integer',
         'pct_analysis' => 'integer',

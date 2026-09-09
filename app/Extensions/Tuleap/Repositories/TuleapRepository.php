@@ -25,7 +25,7 @@ final class TuleapRepository implements TuleapRepositoryInterface
     public function saveProject(array $data): Project
     {
         return Project::updateOrCreate(
-            ['project_id' => $data['project_id']],
+            ['id' => $data['id'] ?? null],
             $data
         );
     }
@@ -46,7 +46,7 @@ final class TuleapRepository implements TuleapRepositoryInterface
     public function saveMilestone(array $data): Milestone
     {
         return Milestone::updateOrCreate(
-            ['milestone_id' => $data['milestone_id']],
+            ['id' => $data['id'] ?? null],
             $data
         );
     }
@@ -78,7 +78,7 @@ final class TuleapRepository implements TuleapRepositoryInterface
     public function saveSprintConfig(int $sprintId, array $data): SprintConfig
     {
         return SprintConfig::updateOrCreate(
-            ['sprint_id' => $sprintId],
+            ['id' => $sprintId],
             array_merge($data, ['updated_at' => now()])
         );
     }

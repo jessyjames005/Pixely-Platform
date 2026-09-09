@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tuleap_projects', function (Blueprint $table) {
-            $table->id('project_id');
+            $table->id();
             $table->string('name');
             $table->string('identifier')->unique();
             $table->text('description')->nullable();
@@ -19,7 +19,7 @@ return new class extends Migration
         });
 
         Schema::create('tuleap_milestones', function (Blueprint $table) {
-            $table->id('milestone_id');
+            $table->id();
             $table->foreignId('project_id')->constrained('tuleap_projects');
             $table->string('title');
             $table->dateTime('start_date')->nullable();
@@ -37,7 +37,7 @@ return new class extends Migration
         });
 
         Schema::create('tuleap_sprint_configs', function (Blueprint $table) {
-            $table->id('sprint_id');
+            $table->id();
             $table->foreignId('milestone_id')->nullable()->constrained('tuleap_milestones');
             $table->text('objective')->default('');
             $table->integer('confidence_index')->nullable();

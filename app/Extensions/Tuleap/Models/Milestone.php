@@ -16,10 +16,10 @@ final class Milestone extends Model
 
     public $incrementing = false;
 
-    protected $primaryKey = 'milestone_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'milestone_id',
+        'id',
         'project_id',
         'title',
         'start_date',
@@ -28,7 +28,7 @@ final class Milestone extends Model
     ];
 
     protected $casts = [
-        'milestone_id' => 'integer',
+        'id' => 'integer',
         'project_id' => 'integer',
         'start_date' => 'datetime',
         'end_date' => 'datetime',

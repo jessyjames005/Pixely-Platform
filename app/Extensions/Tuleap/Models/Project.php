@@ -15,16 +15,16 @@ final class Project extends Model
 
     public $incrementing = false;
 
-    protected $primaryKey = 'project_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'project_id',
+        'id',
         'name',
         'identifier',
         'description',
     ];
 
     protected $casts = [
-        'project_id' => 'integer',
+        'id' => 'integer',
     ];
 }
