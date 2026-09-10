@@ -9,6 +9,7 @@ import DashboardView from "@shared/views/DashboardView.vue";
 import LoginView from "@core/auth/views/LoginView.vue";
 import UsersView from "@core/users/views/UsersView.vue";
 import RolesView from "@core/roles/views/RolesView.vue";
+import PermissionsView from "@core/roles/views/PermissionsView.vue";
 import SettingsView from "@core/settings/views/SettingsView.vue";
 import GalleryView from "@extensions/gallery/views/GalleryView.vue";
 import { useAuthStore } from "@core/auth/store/auth.store";
@@ -31,6 +32,7 @@ const routes: RouteRecordRaw[] = [
       { path: "gallery", name: "admin.gallery", component: GalleryView },
       { path: "users", name: "admin.users", component: UsersView },
       { path: "roles", name: "admin.roles", component: RolesView },
+      { path: "permissions", name: "admin.permissions", component: PermissionsView },
       { path: "settings", name: "admin.settings", component: SettingsView },
       {
         path: "extensions",

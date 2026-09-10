@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
 import type { ApiCollectionResponse, ApiResponse } from '@shared/types/api'
-import type { Role, Permission, RolePayload } from '../models/Role'
+import type { Role, Permission, RolePayload, PermissionPayload } from '../models/Role'
 
 interface RolesState {
   roles: Role[]
@@ -38,6 +38,20 @@ export const useRolesStore = defineStore('roles', {
 
     async deleteRole(roleId: number): Promise<void> {
       await apiClient.delete<void>(`/roles/${roleId}`)
+    },
+
+    async createPermission(payload: PermissionPayload): Promise<Permission> {
+      const result = await apiClient.post<ApiResponse<Permission>>('/permissions', payload)
+      return result.data
+    },
+
+    async updatePermission(permissionId: number, payload: PermissionPayload): Promise<Permission> {
+      const result = await apiClient.put<ApiResponse<Permission>>(`/permissions/${permissionId}`, payload)
+      return result.data
+    },
+
+    async deletePermission(permissionId: number): Promise<void> {
+      await apiClient.delete<void>(`/permissions/${permissionId}`)
     },
 
     async assignRole(userId: number, role: string): Promise<void> {

@@ -10,4 +10,6 @@ export interface NavItem {
   // that can be enabled/disabled — the item is hidden when disabled,
   // regardless of permission. Core modules (Users, Roles...) omit this.
   extensionId?: string
+  // Nested navigation items for submenus
+  children?: NavItem[]
 }

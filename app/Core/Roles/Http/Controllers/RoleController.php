@@ -23,7 +23,7 @@ final class RoleController
      */
     public function index(ApiCollectionResponse $apiResponse): JsonResponse
     {
-        $roles = Role::with('permissions')->orderBy('name')->get();
+        $roles = Role::with('permissions')->withCount('users')->orderBy('name')->get();
 
         return $apiResponse->response(
             data: $roles,

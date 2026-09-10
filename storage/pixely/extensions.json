@@ -19,8 +19,9 @@
         "version": "1.0.0",
         "class": "App\\Extensions\\Files\\FilesExtension",
         "status": "enabled"
-    },
-    "gallery": {
+    }
+}
+   "gallery": {
         "id": "gallery",
         "name": "Gallery",
         "version": "1.0.0",
