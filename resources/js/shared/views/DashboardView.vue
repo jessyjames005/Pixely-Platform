@@ -2,12 +2,16 @@
 import { onMounted } from 'vue'
 import { useApi } from '../composables/useApi'
 import { useSettingsStore } from '@core/settings/store/settings.store'
+import { useAuthStore } from '@core/auth/store/auth.store'
 
 const settingsStore = useSettingsStore()
+const authStore = useAuthStore()
 const { execute: fetchPlatform } = useApi(settingsStore.fetchPlatformSettings)
 
 onMounted(() => {
-  fetchPlatform()
+  if (authStore.can('settings.platform.view')) {
+    fetchPlatform()
+  }
 })
 </script>
 

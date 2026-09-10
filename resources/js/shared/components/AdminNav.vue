@@ -11,11 +11,10 @@ const authStore = useAuthStore()
 const extensionsStore = useExtensionsStore()
 
 // Needed to know which extension-backed nav items should be hidden.
-// Harmless to call even for a user without system.extensions.view —
-// the backend will simply 403, and unresolved items just stay hidden
-// by treating "unknown" as "not enabled" below.
+// Only fetch extensions for users who have permission to view them;
+// the backend returns 403 otherwise.
 onMounted(() => {
-  if (extensionsStore.extensions.length === 0) {
+  if (authStore.can('system.extensions.view') && extensionsStore.extensions.length === 0) {
     extensionsStore.fetchExtensions().catch(() => undefined)
   }
 })

@@ -82,7 +82,9 @@ const { loading: loadingDetails, execute: fetchDetail } = useApi(
 const { execute: submitUninstall } = useApi(extensionsStore.uninstall);
 
 onMounted(() => {
-  fetchExtensions();
+  if (authStore.can('system.extensions.view')) {
+    fetchExtensions();
+  }
 });
 
 function getSelectedFile(fileRef: File | File[] | null): File | undefined {
