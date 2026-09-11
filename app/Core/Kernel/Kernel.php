@@ -7,6 +7,7 @@ namespace App\Core\Kernel;
 use App\Core\Contracts\KernelInterface;
 use App\Core\Extensions\Discovery\ExtensionRepository;
 use App\Core\Extensions\Manager\ExtensionManager;
+use Exception;
 
 /**
  * Default implementation of the Pixely Kernel.
@@ -40,21 +41,27 @@ final class Kernel implements KernelInterface
             return;
         }
 
-        $extensions = $this->repository->all(
-            $this->extensionsPath
-        );
+        try {
+            $extensions = $this->repository->all(
+                $this->extensionsPath
+            );
 
-        foreach ($extensions as $extension) {
-            $this->extensionManager->register($extension);
+            foreach ($extensions as $extension) {
+                $this->extensionManager->register($extension);
 
-            foreach ($extension->providers() as $provider) {
-                app()->register($provider);
+                foreach ($extension->providers() as $provider) {
+                    app()->register($provider);
+                }
             }
+
+            $this->extensionManager->boot();
+
+            $this->booted = true;
+        } catch (Exception $e) {
+            // Log the error and rethrow to prevent silent failures
+            report($e);
+            throw new Exception("Failed to boot the Pixely Platform: " . $e->getMessage(), 0, $e);
         }
-
-        $this->extensionManager->boot();
-
-        $this->booted = true;
     }
 
     /**

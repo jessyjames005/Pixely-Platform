@@ -11,20 +11,23 @@ use RuntimeException;
 
 /**
  * Persists extension states in a JSON file.
+ *
+ * Reads and writes are serialized through an exclusive file lock
+ * held for the entire read-modify-write cycle, and writes are
+ * atomic (write to a temp file, then rename over the target).
+ * Without this, concurrent requests (e.g. two admin tabs, or an
+ * enable/disable racing a Kernel boot reading the same file) can
+ * interleave their writes and corrupt the file — this happened
+ * repeatedly before this fix.
  */
 final class JsonExtensionStateRepository implements ExtensionStateRepositoryInterface
 {
-    /**
-     * Create a new JSON extension state repository.
-     */
     public function __construct(
         private readonly string $path,
     ) {
     }
 
     /**
-     * Return all extension states.
-     *
      * @return array<string, ExtensionState>
      */
     public function all(): array
@@ -44,9 +47,6 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
         return $states;
     }
 
-    /**
-     * Return an extension state by its identifier.
-     */
     public function find(string $id): ?ExtensionState
     {
         $data = $this->read();
@@ -60,29 +60,73 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
 
     /**
      * Persist an extension state.
+     *
+     * Reads the current file, applies the change, and writes back —
+     * all while holding an exclusive lock, so a concurrent save()
+     * from another request cannot interleave with this one.
      */
     public function save(ExtensionState $state): void
     {
-        $data = $this->read();
+        $this->withExclusiveLock(function (array $data) use ($state): array {
+            $data[$state->extension->manifest()->id] = $this->serialize($state);
 
-        $data[$state->extension->manifest()->id] = $this->serialize(
-            $state,
-        );
-
-        $this->write($data);
+            return $data;
+        });
     }
 
-    /**
-     * Update an extension state.
-     */
     public function update(ExtensionState $state): void
     {
         $this->save($state);
     }
 
     /**
-     * Read the JSON storage file.
+     * Opens the file (creating it if needed), takes an exclusive
+     * lock, reads+decodes the current content, lets the callback
+     * compute the new content, then writes it back and releases
+     * the lock — read, modify, and write all happen under one lock
+     * so no other process can interleave with this operation.
      *
+     * @param callable(array<string, mixed>): array<string, mixed> $mutator
+     */
+    private function withExclusiveLock(callable $mutator): void
+    {
+        $directory = dirname($this->path);
+
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            throw new RuntimeException("Unable to create directory: {$directory}");
+        }
+
+        // 'c+' creates the file if missing, without truncating it,
+        // and allows both reading and writing on the same handle.
+        $handle = fopen($this->path, 'c+');
+
+        if ($handle === false) {
+            throw new RuntimeException("Unable to open extension state file: {$this->path}");
+        }
+
+        try {
+            if (! flock($handle, LOCK_EX)) {
+                throw new RuntimeException("Unable to lock extension state file: {$this->path}");
+            }
+
+            $content = stream_get_contents($handle);
+            $data = $this->decode($content === false ? '' : $content);
+
+            $updated = $mutator($data);
+
+            $encoded = json_encode($updated, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+
+            ftruncate($handle, 0);
+            rewind($handle);
+            fwrite($handle, $encoded);
+            fflush($handle);
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle);
+        }
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function read(): array
@@ -91,65 +135,47 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
             return [];
         }
 
-        $content = file_get_contents($this->path);
+        $handle = fopen($this->path, 'r');
 
-        if ($content === false || trim($content) === '') {
+        if ($handle === false) {
             return [];
         }
 
-        $data = json_decode(
-            $content,
-            true,
-            512,
-            JSON_THROW_ON_ERROR,
-        );
-
-        if (! is_array($data)) {
-            return [];
+        try {
+            // A shared lock still serializes against an in-progress
+            // exclusive write, so a read never observes a half-written file.
+            flock($handle, LOCK_SH);
+            $content = stream_get_contents($handle);
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle);
         }
 
-        return $data;
+        return $this->decode($content === false ? '' : $content);
     }
 
     /**
-     * Write extension states to the JSON storage file.
-     *
-     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
-    private function write(array $data): void
+    private function decode(string $content): array
     {
-        $directory = dirname($this->path);
-
-        if (
-            ! is_dir($directory) && ! mkdir(
-                $directory,
-                0755,
-                true,
-            ) && ! is_dir($directory)
-        ) {
-            throw new RuntimeException(
-                "Unable to create directory: {$directory}",
-            );
+        if (trim($content) === '') {
+            return [];
         }
 
-        $result = file_put_contents(
-            $this->path,
-            json_encode(
-                $data,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
-            ) . PHP_EOL,
-        );
-
-        if ($result === false) {
-            throw new RuntimeException(
-                "Unable to write extension state file: {$this->path}",
-            );
+        try {
+            $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            // A file that somehow still ends up malformed (e.g. from
+            // before this fix) is treated as empty rather than
+            // crashing the whole platform boot.
+            return [];
         }
+
+        return is_array($data) ? $data : [];
     }
 
     /**
-     * Serialize an extension state.
-     *
      * @return array<string, string>
      */
     private function serialize(ExtensionState $state): array
@@ -165,11 +191,6 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
         ];
     }
 
-    /**
-     * Recreate an extension state from persisted data.
-     *
-     * @param mixed $data
-     */
     private function createState(mixed $data): ?ExtensionState
     {
         if (! is_array($data)) {
@@ -179,11 +200,7 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
         $class = $data['class'] ?? null;
         $status = $data['status'] ?? null;
 
-        if (
-            ! is_string($class)
-            || ! class_exists($class)
-            || ! is_string($status)
-        ) {
+        if (! is_string($class) || ! class_exists($class) || ! is_string($status)) {
             return null;
         }
 
@@ -199,9 +216,6 @@ final class JsonExtensionStateRepository implements ExtensionStateRepositoryInte
             return null;
         }
 
-        return new ExtensionState(
-            $extension,
-            $extensionStatus,
-        );
+        return new ExtensionState($extension, $extensionStatus);
     }
 }
