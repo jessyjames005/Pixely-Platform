@@ -59,12 +59,14 @@ function hasChildren(item: NavItem): boolean {
       <!-- Nested submenu -->
       <v-list-group
         v-if="hasChildren(item)"
-        :prepend-icon="item.icon"
-        :title="item.label"
-        value="true"
+        :value="item.label"
       >
-        <template #activator>
-          <v-list-item-title>{{ item.label }}</v-list-item-title>
+        <template #activator="{ props }">
+          <v-list-item
+            v-bind="props"
+            :prepend-icon="item.icon"
+            :title="item.label"
+          />
         </template>
         <v-list-item
           v-for="child in item.children"
