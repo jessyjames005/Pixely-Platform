@@ -1,215 +1,328 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { tuleap, local } from '@/composables/useApi';
-export const useTuleapStore = defineStore('tuleap', () => {
-  const projects = ref([]);
-  const selectedProjectId = ref(null);
-  const milestones = ref([]);
-  const selectedMilestoneId = ref(null);
-  const members = ref([]);
-  const stats = ref(null);
-  const burndown = ref(null);
-  const sprintConfig = ref(null);
-  const cafData = ref([]);
-  const loading = ref({ projects: false, milestones: false, stats: false, burndown: false });
-  const error = ref(null);
-  const tuleapStatus = ref('unknown');
-  const theme = ref(localStorage.getItem('theme') || 'dark');
+// Pinia store for the Tuleap sprint-management dashboard.
+// Holds the current project/sprint selection plus everything derived
+// from it (stats, burndown, local sprint config, CAF, retro actions).
+import { defineStore } from 'pinia'
+import { apiClient, ApiClientError } from '@shared/services/apiClient'
+import type {
+  AppConfig,
+  BurndownData,
+  CacheEntry,
+  CafRecord,
+  RetroAction,
+  SprintAggregate,
+  SprintConfig,
+  SprintHistoryRange,
+  SprintStats,
+  TeamMember,
+  TuleapAssignee,
+  TuleapMilestone,
+  TuleapPingResult,
+  TuleapProject,
+} from '../models/tuleap'
 
-  function setTheme(value) {
-    theme.value = value;
-    localStorage.setItem('theme', value);
-    document.documentElement.setAttribute('data-theme', value === 'light' ? 'light' : '');
+interface TuleapState {
+  projects: TuleapProject[]
+  selectedProjectId: number | null
+  milestones: TuleapMilestone[]
+  selectedMilestoneId: number | null
+  members: TeamMember[]
+  projectMembers: TuleapAssignee[]
+  stats: SprintStats | null
+  burndown: BurndownData | null
+  sprintConfig: SprintConfig | null
+  cafRecords: CafRecord[]
+  sprintHistory: SprintAggregate[]
+  retroActions: RetroAction[]
+  planActions: RetroAction[]
+  appConfig: AppConfig | null
+  cacheInfo: CacheEntry[]
+  tuleapStatus: TuleapPingResult['status'] | 'unknown'
+  loading: {
+    projects: boolean
+    milestones: boolean
+    stats: boolean
+    burndown: boolean
+    history: boolean
   }
+  error: string | null
+}
 
-  document.documentElement.setAttribute('data-theme', theme.value === 'light' ? 'light' : '');
+const DEFAULT_SPRINT_CONFIG: SprintConfig = {
+  objective: '',
+  confidence_index: null,
+  pct_evolution: 50,
+  pct_analysis: 30,
+  pct_bug: 20,
+  working_days: 10,
+  velocity_per_day: 1,
+  review_comment: '',
+}
 
-  const selectedProject = computed(() =>
-    projects.value.find(p => p.id === selectedProjectId.value)
-  );
-
-  const selectedMilestone = computed(() =>
-    milestones.value.find(m => m.id === selectedMilestoneId.value)
-  );
-
-  const theoreticalCapacity = computed(() => {
-    if (!cafData.value.length || !sprintConfig.value) return null;
-    const totalCaf = cafData.value.reduce((s, c) => s + c.value, 0);
-    if (!totalCaf) return null;
-    return { totalCaf, perPerson: cafData.value };
-  });
-
-  async function checkTuleapStatus() {
-    try {
-      const result = await tuleap.ping();
-      tuleapStatus.value = result.ok ? 'connected' : result.status;
-      if (result.ok && error.value?.includes('VPN')) error.value = null;
-    } catch (e) {
-      tuleapStatus.value = 'error';
-    }
+// The VPN-down case is the one error worth a persistent, dedicated
+// message everywhere else in the UI just shows the API error message.
+function describeError(e: unknown): string {
+  if (e instanceof ApiClientError) {
+    return e.message
   }
+  return "Une erreur inattendue s'est produite."
+}
 
-  async function loadProjectById(projectId) {
-    loading.value.projects = true;
-    error.value = null;
-    try {
-      const project = await tuleap.getProject(projectId);
-      if (!projects.value.find(p => p.id === project.id)) {
-        projects.value = [project, ...projects.value];
+export const useTuleapStore = defineStore('tuleap', {
+  state: (): TuleapState => ({
+    projects: [],
+    selectedProjectId: null,
+    milestones: [],
+    selectedMilestoneId: null,
+    members: [],
+    projectMembers: [],
+    stats: null,
+    burndown: null,
+    sprintConfig: null,
+    cafRecords: [],
+    sprintHistory: [],
+    retroActions: [],
+    planActions: [],
+    appConfig: null,
+    cacheInfo: [],
+    tuleapStatus: 'unknown',
+    loading: {
+      projects: false,
+      milestones: false,
+      stats: false,
+      burndown: false,
+      history: false,
+    },
+    error: null,
+  }),
+
+  getters: {
+    selectedProject(state): TuleapProject | undefined {
+      return state.projects.find((p) => p.id === state.selectedProjectId)
+    },
+    selectedMilestone(state): TuleapMilestone | undefined {
+      return state.milestones.find((m) => m.id === state.selectedMilestoneId)
+    },
+    totalCaf(state): number {
+      return state.cafRecords.reduce((sum, c) => sum + c.value, 0)
+    },
+  },
+
+  actions: {
+    async checkTuleapStatus(): Promise<void> {
+      const result = await apiClient.get<TuleapPingResult>('/tuleap/ping')
+      this.tuleapStatus = result.status
+    },
+
+    async fetchProjects(): Promise<void> {
+      this.loading.projects = true
+      this.error = null
+      try {
+        this.projects = await apiClient.get<TuleapProject[]>('/tuleap/projects')
+        this.tuleapStatus = 'connected'
+      } catch (e) {
+        this.error = describeError(e)
+        if (e instanceof ApiClientError && e.code === 'TULEAP_UNAVAILABLE') {
+          this.tuleapStatus = 'unreachable'
+        }
+      } finally {
+        this.loading.projects = false
       }
-      selectedProjectId.value = project.id;
-      tuleapStatus.value = 'connected';
-    } catch (e) {
-      if (e.isVpnError) {
-        tuleapStatus.value = 'unreachable';
-        error.value = 'Tuleap inaccessible — vérifiez le VPN';
-      } else {
-        error.value = `Erreur projet : ${e.message}`;
+    },
+
+    async selectProject(projectId: number): Promise<void> {
+      this.selectedProjectId = projectId
+      this.milestones = []
+      this.selectedMilestoneId = null
+      await this.fetchMilestones(projectId)
+      await this.fetchProjectMembers(projectId)
+    },
+
+    async fetchMilestones(projectId: number): Promise<void> {
+      this.loading.milestones = true
+      this.error = null
+      try {
+        this.milestones = await apiClient.get<TuleapMilestone[]>(`/tuleap/projects/${projectId}/milestones`)
+
+        const todayStr = new Date().toISOString().slice(0, 10)
+        const current = this.milestones.find((m) => {
+          const start = m.start_date?.slice(0, 10)
+          const end = m.end_date?.slice(0, 10)
+          return start && end && todayStr >= start && todayStr <= end
+        })
+
+        if (current) {
+          await this.selectMilestone(current.id)
+        } else if (this.milestones.length > 0) {
+          await this.selectMilestone(this.milestones[0].id)
+        }
+      } catch (e) {
+        this.error = describeError(e)
+      } finally {
+        this.loading.milestones = false
       }
-    } finally {
-      loading.value.projects = false;
-    }
-  }
+    },
 
-  async function loadProjects() {
-    loading.value.projects = true;
-    error.value = null;
-    try {
-      const data = await tuleap.getProjects();
-      projects.value = Array.isArray(data) ? data : data.collection || [];
-      tuleapStatus.value = 'connected';
-    } catch (e) {
-      if (e.isVpnError) {
-        tuleapStatus.value = 'unreachable';
-        error.value = 'Tuleap inaccessible — vérifiez le VPN';
-      } else {
-        error.value = `Erreur projets : ${e.message}`;
+    async fetchProjectMembers(projectId: number): Promise<void> {
+      try {
+        this.projectMembers = await apiClient.get<TuleapAssignee[]>(`/tuleap/projects/${projectId}/members`)
+      } catch {
+        this.projectMembers = []
       }
-    } finally {
-      loading.value.projects = false;
-    }
-  }
+    },
 
-  async function selectProject(projectId) {
-    selectedProjectId.value = projectId;
-    milestones.value = [];
-    selectedMilestoneId.value = null;
-    await loadMilestones(projectId);
-  }
-  async function loadMilestones(projectId) {
-    loading.value.milestones = true;
-    error.value = null;
-    try {
-      const data = await tuleap.getMilestones(projectId);
-      milestones.value = Array.isArray(data) ? data : data.collection || [];
-      const now = new Date().toISOString().split('T')[0];
-      const current = milestones.value.find(m => {
-        const start = m.start_date?.split('T')[0];
-        const end = m.end_date?.split('T')[0];
-        return start && end && now >= start && now <= end;
-      });
-      if (current) {
-        await selectMilestone(current.id);
-      } else if (milestones.value.length > 0) {
-        await selectMilestone(milestones.value[0].id);
+    async selectMilestone(milestoneId: number): Promise<void> {
+      this.selectedMilestoneId = milestoneId
+      this.stats = null
+      this.burndown = null
+      await Promise.all([
+        this.fetchStats(milestoneId),
+        this.fetchSprintConfig(milestoneId),
+        this.fetchCaf(milestoneId),
+      ])
+    },
+
+    async fetchStats(milestoneId: number): Promise<void> {
+      this.loading.stats = true
+      try {
+        this.stats = await apiClient.get<SprintStats>(`/tuleap/milestones/${milestoneId}/stats`)
+      } catch (e) {
+        this.error = describeError(e)
+      } finally {
+        this.loading.stats = false
       }
-    } catch (e) {
-      if (e.isVpnError) {
-        tuleapStatus.value = 'unreachable';
-        error.value = 'Tuleap inaccessible — vérifiez le VPN';
-      } else {
-        error.value = `Erreur milestones : ${e.message}`;
+    },
+
+    async refreshStats(): Promise<void> {
+      if (this.selectedMilestoneId) {
+        await this.fetchStats(this.selectedMilestoneId)
       }
-    } finally {
-      loading.value.milestones = false;
-    }
-  }
+    },
 
-  async function selectMilestone(milestoneId) {
-    selectedMilestoneId.value = milestoneId;
-    stats.value = null;
-    burndown.value = null;
-    await Promise.all([
-      loadStats(milestoneId),
-      loadSprintConfig(milestoneId),
-      loadCaf(milestoneId),
-    ]);
-  }
-
-  async function loadStats(milestoneId) {
-    loading.value.stats = true;
-    try {
-      stats.value = await tuleap.getStats(milestoneId);
-    } catch (e) {
-      if (e.isVpnError) {
-        tuleapStatus.value = 'unreachable';
-        error.value = 'Tuleap inaccessible — vérifiez le VPN';
-      } else {
-        error.value = `Erreur statistiques : ${e.message}`;
+    async fetchBurndown(milestoneId: number): Promise<void> {
+      this.loading.burndown = true
+      try {
+        this.burndown = await apiClient.get<BurndownData>(`/tuleap/milestones/${milestoneId}/burndown`)
+      } catch (e) {
+        this.error = describeError(e)
+      } finally {
+        this.loading.burndown = false
       }
-    } finally {
-      loading.value.stats = false;
-    }
-  }
+    },
 
-  async function loadBurndown(milestoneId) {
-    loading.value.burndown = true;
-    try {
-      burndown.value = await tuleap.getBurndown(milestoneId);
-    } finally {
-      loading.value.burndown = false;
-    }
-  }
+    async fetchSprintHistory(projectId: number, range: SprintHistoryRange = '6m', force = false): Promise<void> {
+      this.loading.history = true
+      try {
+        this.sprintHistory = await apiClient.get<SprintAggregate[]>(`/tuleap/projects/${projectId}/sprint-history`, {
+          range,
+          force: force ? 1 : undefined,
+        })
+      } catch (e) {
+        this.error = describeError(e)
+      } finally {
+        this.loading.history = false
+      }
+    },
 
-  async function loadSprintConfig(milestoneId) {
-    try {
-      sprintConfig.value = await local.getSprintConfig(milestoneId);
-    } catch (e) {
-      console.error('Erreur config sprint', e);
-    }
-  }
+    // ── Local sprint configuration ──────────────────────────────────
 
-  async function saveSprintConfig(data) {
-    if (!selectedMilestoneId.value) return;
-    sprintConfig.value = await local.saveSprintConfig(selectedMilestoneId.value, data);
-  }
+    async fetchSprintConfig(sprintId: number): Promise<void> {
+      try {
+        this.sprintConfig = await apiClient.get<SprintConfig>(`/sprint/config/${sprintId}`)
+      } catch {
+        this.sprintConfig = { ...DEFAULT_SPRINT_CONFIG, id: sprintId }
+      }
+    },
 
-async function loadCaf(milestoneId) {
-    try {
-      cafData.value = await local.getCaf(milestoneId);
-    } catch (e) {
-      console.error('Erreur CAF', e);
-    }
-  }
+    async saveSprintConfig(data: Partial<SprintConfig>): Promise<void> {
+      if (!this.selectedMilestoneId) return
+      this.sprintConfig = await apiClient.put<SprintConfig>(`/sprint/config/${this.selectedMilestoneId}`, data)
+    },
 
-  async function saveCaf(memberId, value) {
-    if (!selectedMilestoneId.value) return;
-    await local.saveCaf(selectedMilestoneId.value, memberId, value);
-    await loadCaf(selectedMilestoneId.value);
-  }
+    // ── CAF ──────────────────────────────────────────────────────────
 
-  async function loadMembers() {
-    try {
-      members.value = await local.getMembers(selectedProjectId.value);
-    } catch (e) {
-      console.error('Erreur membres', e);
-    }
-  }
+    async fetchCaf(sprintId: number): Promise<void> {
+      try {
+        this.cafRecords = await apiClient.get<CafRecord[]>(`/caf/${sprintId}`)
+      } catch {
+        this.cafRecords = []
+      }
+    },
 
-  async function refreshStats() {
-    if (selectedMilestoneId.value) {
-      await loadStats(selectedMilestoneId.value);
-    }
-  }
+    async saveCaf(memberId: number, value: number): Promise<void> {
+      if (!this.selectedMilestoneId) return
+      await apiClient.put(`/caf/${this.selectedMilestoneId}/${memberId}`, { value })
+      await this.fetchCaf(this.selectedMilestoneId)
+    },
 
-  return {
-    projects, selectedProjectId, milestones, selectedMilestoneId,
-    members, stats, burndown, sprintConfig, cafData,
-    loading, error, tuleapStatus,
-    selectedProject, selectedMilestone, theoreticalCapacity,
-    loadProjectById, loadProjects, selectProject, loadMilestones, selectMilestone,
-    loadStats, loadBurndown, loadSprintConfig, saveSprintConfig,
-    loadCaf, saveCaf, loadMembers, refreshStats, checkTuleapStatus,
-    theme, setTheme,
-  };
-});
+    async fetchCafHistory(sprintIds: number[]): Promise<CafRecord[]> {
+      if (!sprintIds.length) return []
+      return apiClient.get<CafRecord[]>('/caf-history', { sprint_ids: sprintIds.join(',') })
+    },
+
+    // ── Team members (local roster) ──────────────────────────────────
+
+    async fetchMembers(projectId?: number | null): Promise<void> {
+      this.members = await apiClient.get<TeamMember[]>('/team/members', {
+        project_id: projectId ?? undefined,
+      })
+    },
+
+    async addMember(name: string, tuleapUsername: string | null, projectId: number | null): Promise<void> {
+      await apiClient.post('/team/members', {
+        name,
+        tuleap_username: tuleapUsername,
+        project_id: projectId,
+      })
+      await this.fetchMembers(projectId)
+    },
+
+    async deleteMember(id: number, projectId?: number | null): Promise<void> {
+      await apiClient.delete(`/team/members/${id}`)
+      await this.fetchMembers(projectId)
+    },
+
+    // ── Retrospective ─────────────────────────────────────────────────
+
+    async fetchRetroActions(sprintId: number): Promise<void> {
+      this.retroActions = await apiClient.get<RetroAction[]>(`/retro/${sprintId}`)
+    },
+
+    async fetchPlanActions(projectId: number): Promise<void> {
+      this.planActions = await apiClient.get<RetroAction[]>(`/retro/project/${projectId}/plan-action`)
+    },
+
+    async addRetroAction(sprintId: number, category: string, text: string, projectId?: number | null): Promise<void> {
+      await apiClient.post(`/retro/${sprintId}`, { category, text, project_id: projectId })
+      await this.fetchRetroActions(sprintId)
+    },
+
+    async updateRetroAction(sprintId: number, id: number, data: Partial<Pick<RetroAction, 'text' | 'status'>>): Promise<void> {
+      await apiClient.put(`/retro/${sprintId}/${id}`, data)
+      await this.fetchRetroActions(sprintId)
+    },
+
+    async deleteRetroAction(sprintId: number, id: number): Promise<void> {
+      await apiClient.delete(`/retro/${sprintId}/${id}`)
+      await this.fetchRetroActions(sprintId)
+    },
+
+    // ── System settings (Tuleap connection + cache) ──────────────────
+
+    async fetchAppConfig(): Promise<void> {
+      this.appConfig = await apiClient.get<AppConfig>('/config')
+    },
+
+    async saveAppConfig(data: { tuleap_token?: string; tuleap_user_id?: string }): Promise<void> {
+      this.appConfig = await apiClient.put<AppConfig>('/config', data)
+    },
+
+    async fetchCacheInfo(): Promise<void> {
+      this.cacheInfo = await apiClient.get<CacheEntry[]>('/cache-info')
+    },
+
+    async clearCache(key?: string): Promise<void> {
+      await apiClient.delete(`/cache${key ? `?key=${encodeURIComponent(key)}` : ''}`)
+      await this.fetchCacheInfo()
+    },
+  },
+})

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+﻿﻿<script setup lang="ts">
 // Roles & permissions administration screen. Follows shared UX
 // conventions: create/edit in a v-dialog, deletion via the shared
 // confirm dialog, feedback via toast.
@@ -116,13 +116,17 @@ async function handleDelete(role: Role): Promise<void> {
 }
 
 // Permission matrix helpers
-const categoryNames: Record<string, string> = {
-  users: "User Management",
-  roles: "Role Management",
-  system: "System",
-  settings: "Settings",
-  translations: "Translations",
+const extensionNames: Record<string, string> = {
+  core: "Core",
+  auth: "Core",
+  roles: "Core",
+  users: "Core",
+  system: "Core",
+  settings: "Core",
+  extensions: "Core",
+  translations: "Core",
   gallery: "Gallery",
+  media: "Media",
 };
 
 const actionLabels: Record<string, string> = {
@@ -133,12 +137,12 @@ const actionLabels: Record<string, string> = {
   query: "Write",
 };
 
-function getCategory(permissionName: string): string {
+function getExtension(permissionName: string): string {
   const domain = permissionName.split(".")[0];
-  return categoryNames[domain] ?? domain.charAt(0).toUpperCase() + domain.slice(1);
+  return extensionNames[domain] ?? domain.charAt(0).toUpperCase() + domain.slice(1);
 }
 
-function getAction(permissionName: string): string {
+function getActionLabel(permissionName: string): string {
   const suffix = permissionName.split(".").pop() ?? "";
   return actionLabels[suffix] ?? suffix;
 }
@@ -154,14 +158,22 @@ const filteredRoles = computed(() => {
 // Permission matrix for the edit modal
 const selectedPermissionSet = computed(() => new Set(formPermissions.value));
 
+const allPermissionsSelected = computed(() => {
+  return rolesStore.permissions.every((p) => formPermissions.value.includes(p.name));
+});
+
+const somePermissionsSelected = computed(() => {
+  return rolesStore.permissions.some((p) => formPermissions.value.includes(p.name));
+});
+
 const permissionMatrix = computed(() => {
   if (!editingRole.value) return [];
 
   const categories: Record<string, Record<string, string[]>> = {};
 
   for (const perm of rolesStore.permissions) {
-    const cat = getCategory(perm.name);
-    const act = getAction(perm.name);
+    const cat = getExtension(perm.name);
+    const act = getActionLabel(perm.name);
 
     if (!categories[cat]) {
       categories[cat] = {};
@@ -173,7 +185,7 @@ const permissionMatrix = computed(() => {
   }
 
   const sortedCats = Object.keys(categories).sort((a, b) => {
-    const order = ["Administrator Access", "User Management", "Role Management", "System", "Settings", "Translations", "Gallery"];
+    const order = ["Core", "Gallery", "Media"];
     const idxA = order.indexOf(a);
     const idxB = order.indexOf(b);
     if (idxA === -1 && idxB === -1) return a.localeCompare(b);
@@ -184,7 +196,7 @@ const permissionMatrix = computed(() => {
 
   return sortedCats.map((catName) => {
     const actions = categories[catName];
-    const allActions = ["Read", "Write", "Create"];
+    const allActions = Object.keys(actions);
     const allChecked = allActions.every((act) => {
       const perms = actions[act] ?? [];
       return perms.every((p) => selectedPermissionSet.value.has(p));
@@ -219,7 +231,7 @@ function toggleAction(categoryName: string, action: string): void {
   const row = permissionMatrix.value.find((r) => r.name === categoryName);
   if (!row) return;
 
-  const permissionNames = (row as Record<string, string[]>)[action.toLowerCase()] ?? [];
+  const permissionNames = row.actions[action] ?? [];
   const allSelected = permissionNames.every((p) => formPermissions.value.includes(p));
 
   if (allSelected) {
@@ -238,14 +250,14 @@ function toggleAction(categoryName: string, action: string): void {
 function isActionSelected(categoryName: string, action: string): boolean {
   const row = permissionMatrix.value.find((r) => r.name === categoryName);
   if (!row) return false;
-  const permissionNames = (row as Record<string, string[]>)[action.toLowerCase()] ?? [];
+  const permissionNames = row.actions[action] ?? [];
   return permissionNames.every((p) => formPermissions.value.includes(p));
 }
 
 function isActionIndeterminate(categoryName: string, action: string): boolean {
   const row = permissionMatrix.value.find((r) => r.name === categoryName);
   if (!row) return false;
-  const permissionNames = (row as Record<string, string[]>)[action.toLowerCase()] ?? [];
+  const permissionNames = row.actions[action] ?? [];
   if (permissionNames.length === 0) return false;
   const selected = permissionNames.filter((p) => formPermissions.value.includes(p)).length;
   return selected > 0 && selected < permissionNames.length;
@@ -431,65 +443,73 @@ function isActionIndeterminate(categoryName: string, action: string): boolean {
               <h3 class="text-subtitle-2 mb-2">Role Permissions</h3>
               <v-card variant="outlined" class="mb-2">
                 <v-card-text class="pa-0">
-                  <!-- Administrator Access row with Select All -->
-                  <v-row dense class="pa-3">
-                    <v-col cols="12" sm="4" class="text-caption">Administrator Access</v-col>
-                    <v-col cols="12" sm="8" class="text-end">
-                      <v-checkbox
-                        :model-value="permissionMatrix[0]?.allChecked"
-                        :indeterminate="permissionMatrix[0]?.indeterminate"
-                        label="Select All"
-                        hide-details
-                        density="compact"
-                        class="mt-0"
-                        @update:model-value="toggleAllPermissions"
-                      />
-                    </v-col>
-                  </v-row>
+                  <!--                   <!-- Select All -->
+                  <div class="d-flex justify-end pa-2">
+                    <v-checkbox
+                      :model-value="allPermissionsSelected"
+                      :indeterminate="somePermissionsSelected && !allPermissionsSelected"
+                      label="Select All"
+                      hide-details
+                      density="compact"
+                      @update:model-value="toggleAllPermissions"
+                    />
+                  </div>
 
                   <v-divider />
 
-                  <!-- Category rows -->
-                  <v-row
-                    v-for="row in permissionMatrix"
-                    :key="row.name"
-                    dense
-                    class="pa-3"
-                    :class="{ 'border-t': true }"
-                  >
-                    <v-col cols="12" sm="4" class="text-caption pt-2">{{ row.name }}</v-col>
-                    <v-col cols="12" sm="8">
-                      <div class="d-flex gap-4">
-                        <v-checkbox
-                          :model-value="isActionSelected(row.name, 'Read')"
-                          :indeterminate="isActionIndeterminate(row.name, 'Read')"
-                          label="Read"
-                          hide-details
-                          density="compact"
-                          class="mt-0"
-                          @update:model-value="toggleAction(row.name, 'Read')"
-                        />
-                        <v-checkbox
-                          :model-value="isActionSelected(row.name, 'Write')"
-                          :indeterminate="isActionIndeterminate(row.name, 'Write')"
-                          label="Write"
-                          hide-details
-                          density="compact"
-                          class="mt-0"
-                          @update:model-value="toggleAction(row.name, 'Write')"
-                        />
-                        <v-checkbox
-                          :model-value="isActionSelected(row.name, 'Create')"
-                          :indeterminate="isActionIndeterminate(row.name, 'Create')"
-                          label="Create"
-                          hide-details
-                          density="compact"
-                          class="mt-0"
-                          @update:model-value="toggleAction(row.name, 'Create')"
-                        />
-                      </div>
-                    </v-col>
-                  </v-row>
+                  <!-- Extension groups as expansion panels -->
+                  <v-expansion-panels variant="accordion" multiple>
+                    <v-expansion-panel
+                      v-for="ext in permissionMatrix"
+                      :key="ext.name"
+                      :value="ext.name"
+                    >
+                      <v-expansion-panel-title>
+                        <div class="d-flex align-center">
+                          <v-icon
+                            :icon="ext.name === 'Core' ? 'mdi-cog' : ext.name === 'Gallery' ? 'mdi-image-multiple' : 'mdi-puzzle'"
+                            class="mr-2"
+                          />
+                          <span class="font-weight-medium">{{ ext.name }}</span>
+                          <v-chip size="x-small" class="ml-2" variant="tonal">
+                            {{ ext.permissionCount }}
+                          </v-chip>
+                        </div>
+                      </v-expansion-panel-title>
+
+                      <v-expansion-panel-text>
+                        <div
+                          v-for="(perms, action) in ext.actions"
+                          :key="action"
+                          class="d-flex align-center py-1"
+                        >
+                          <v-checkbox
+                            :model-value="isActionSelected(ext.name, action)"
+                            :indeterminate="isActionIndeterminate(ext.name, action)"
+                            :label="action"
+                            hide-details
+                            density="compact"
+                            @update:model-value="toggleAction(ext.name, action)"
+                          />
+                          <v-chip
+                            v-for="p in perms.slice(0, 3)"
+                            :key="p"
+                            size="x-small"
+                            variant="outlined"
+                            class="ml-1"
+                          >
+                            {{ p }}
+                          </v-chip>
+                          <span
+                            v-if="perms.length > 3"
+                            class="text-caption text-medium-emphasis ml-1"
+                          >
+                            {{ perms.length - 3 }} more
+                          </span>
+                        </div>
+                      </v-expansion-panel-text>
+                    </v-expansion-panel>
+                  </v-expansion-panels>
                 </v-card-text>
               </v-card>
             </div>

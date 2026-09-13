@@ -37,4 +37,11 @@ return [
         ],
     ],
 
+    'tuleap' => [
+        // Base URL of the Tuleap instance (e.g. https://tuleap.example.com).
+        // The access token itself is never stored here: it lives in the
+        // tuleap_app_configs table, set from the System Settings screen.
+        'url' => env('TULEAP_URL'),
+    ],
+
 ];

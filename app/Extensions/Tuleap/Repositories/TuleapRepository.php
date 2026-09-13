@@ -204,4 +204,29 @@ final class TuleapRepository implements TuleapRepositoryInterface
             DB::table('tuleap_cache')->truncate();
         }
     }
+
+    public function getCachedValue(string $key): ?array
+    {
+        $row = DB::table('tuleap_cache')->where('key', $key)->first();
+
+        if (!$row || new \DateTime($row->expires_at) < new \DateTime()) {
+            return null;
+        }
+
+        $decoded = json_decode((string) $row->value, true);
+
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    public function putCachedValue(string $key, array $value, \DateTimeInterface $expiresAt): void
+    {
+        DB::table('tuleap_cache')->updateOrInsert(
+            ['key' => $key],
+            [
+                'value' => json_encode($value),
+                'cached_at' => now(),
+                'expires_at' => $expiresAt,
+            ]
+        );
+    }
 }

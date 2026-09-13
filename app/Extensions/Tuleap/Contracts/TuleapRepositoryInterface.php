@@ -56,4 +56,15 @@ interface TuleapRepositoryInterface
     // Cache
     public function getCacheInfo(): array;
     public function clearCache(?string $key): void;
+
+    /**
+     * @return array<string, mixed>|null Decoded cached value, or null if
+     *                                    missing/expired.
+     */
+    public function getCachedValue(string $key): ?array;
+
+    /**
+     * @param array<string, mixed> $value
+     */
+    public function putCachedValue(string $key, array $value, \DateTimeInterface $expiresAt): void;
 }

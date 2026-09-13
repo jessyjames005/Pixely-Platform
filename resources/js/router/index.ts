@@ -16,6 +16,13 @@ import { useAuthStore } from "@core/auth/store/auth.store";
 import ExtensionsView from "@core/extensions/views/ExtensionsView.vue";
 import TranslationsView from "@extensions/translations/views/TranslationsView.vue";
 import ProfileView from '@core/users/views/ProfileView.vue'
+import TuleapDashboardView from "@extensions/tuleap/views/DashboardView.vue";
+import TuleapSprintPlanningView from "@extensions/tuleap/views/SprintPlanningView.vue";
+import TuleapSprintReviewView from "@extensions/tuleap/views/SprintReviewView.vue";
+import TuleapRetrospectiveView from "@extensions/tuleap/views/RetrospectiveView.vue";
+import TuleapSprintAnalyticsView from "@extensions/tuleap/views/SprintAnalyticsView.vue";
+import TuleapTeamSettingsView from "@extensions/tuleap/views/TeamSettingsView.vue";
+import TuleapSystemSettingsView from "@extensions/tuleap/views/SystemSettingsView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -45,6 +52,13 @@ const routes: RouteRecordRaw[] = [
         component: TranslationsView,
       },
       { path: 'profile', name: 'admin.profile', component: ProfileView },
+      { path: 'tuleap/dashboard', name: 'admin.tuleap.dashboard', component: TuleapDashboardView },
+      { path: 'tuleap/planning', name: 'admin.tuleap.planning', component: TuleapSprintPlanningView },
+      { path: 'tuleap/review', name: 'admin.tuleap.review', component: TuleapSprintReviewView },
+      { path: 'tuleap/retrospective', name: 'admin.tuleap.retrospective', component: TuleapRetrospectiveView },
+      { path: 'tuleap/tendances', name: 'admin.tuleap.tendances', component: TuleapSprintAnalyticsView },
+      { path: 'tuleap/equipe', name: 'admin.tuleap.equipe', component: TuleapTeamSettingsView },
+      { path: 'tuleap/system', name: 'admin.tuleap.system', component: TuleapSystemSettingsView },
     ],
   },
 ];
