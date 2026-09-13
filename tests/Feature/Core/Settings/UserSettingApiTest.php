@@ -20,7 +20,10 @@ it('returns default user settings on first access', function () {
 
     $response
         ->assertOk()
-        ->assertJsonPath('data.locale', null);
+        ->assertJsonPath('data.locale', null)
+        ->assertJsonPath('data.theme', 'system')
+        ->assertJsonPath('data.density', 'default')
+        ->assertJsonPath('data.email_notifications', true);
 });
 
 it('updates the current user own locale preference', function () {
@@ -33,6 +36,62 @@ it('updates the current user own locale preference', function () {
     $response
         ->assertOk()
         ->assertJsonPath('data.locale', 'fr');
+});
+
+it('updates the current user own theme, density and notification preferences', function () {
+    $this->actingAs(User::factory()->create());
+
+    $response = $this->putJson('/api/v1/settings/user', [
+        'theme' => 'dark',
+        'density' => 'compact',
+        'email_notifications' => false,
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.theme', 'dark')
+        ->assertJsonPath('data.density', 'compact')
+        ->assertJsonPath('data.email_notifications', false);
+});
+
+it('rejects an unsupported theme', function () {
+    $this->actingAs(User::factory()->create());
+
+    $response = $this->putJson('/api/v1/settings/user', [
+        'theme' => 'neon',
+    ]);
+
+    $response->assertStatus(422);
+});
+
+it('rejects an unsupported density', function () {
+    $this->actingAs(User::factory()->create());
+
+    $response = $this->putJson('/api/v1/settings/user', [
+        'density' => 'ultra-wide',
+    ]);
+
+    $response->assertStatus(422);
+});
+
+it('backfills newly added preference keys onto an existing settings row', function () {
+    $user = User::factory()->create();
+
+    // Simulate a row saved before theme/density/email_notifications existed.
+    App\Core\Settings\Models\UserSetting::query()->create([
+        'user_id' => $user->id,
+        'settings' => ['locale' => 'fr'],
+    ]);
+
+    $this->actingAs($user);
+    $response = $this->getJson('/api/v1/settings/user');
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.locale', 'fr')
+        ->assertJsonPath('data.theme', 'system')
+        ->assertJsonPath('data.density', 'default')
+        ->assertJsonPath('data.email_notifications', true);
 });
 
 it('scopes settings to the authenticated user', function () {

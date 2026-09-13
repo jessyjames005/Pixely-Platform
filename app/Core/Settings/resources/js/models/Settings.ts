@@ -13,4 +13,7 @@ export interface PlatformSettings {
 // Current user's own settings shape
 export interface UserSettings {
   locale: string | null
+  theme: 'system' | 'light' | 'dark'
+  density: 'default' | 'comfortable' | 'compact'
+  email_notifications: boolean
 }

@@ -33,18 +33,31 @@ final class UserSetting extends Model
     {
         return [
             'locale' => null, // null means "use the platform default"
+            'theme' => 'system', // 'system' | 'light' | 'dark'
+            'density' => 'default', // 'default' | 'comfortable' | 'compact'
+            'email_notifications' => true,
         ];
     }
 
     /**
      * Return the given user's settings row, creating it with
-     * default values if it does not exist yet.
+     * default values if it does not exist yet. Backfills any default
+     * keys missing from an already-existing row (e.g. a user whose
+     * settings predate the introduction of a new preference), so older
+     * rows self-heal instead of returning partial data forever.
      */
     public static function forUser(int $userId): self
     {
-        return static::query()->firstOrCreate(
+        $setting = static::query()->firstOrCreate(
             ['user_id' => $userId],
             ['settings' => self::defaults()],
         );
+
+        $merged = array_merge(self::defaults(), $setting->settings);
+        if ($merged !== $setting->settings) {
+            $setting->update(['settings' => $merged]);
+        }
+
+        return $setting;
     }
 }

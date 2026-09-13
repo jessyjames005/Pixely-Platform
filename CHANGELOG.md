@@ -36,3 +36,23 @@ Versioning follows Semantic Versioning.
 - Added pagination metadata to Gallery API responses.
 - Added automated tests for Gallery API pagination.
 - Documented Gallery API pagination in OpenAPI.
+
+### Added
+
+- Added the Tuleap extension: a sprint management dashboard proxying a Tuleap instance (projects, milestones, sprint stats, burndown, sprint history) alongside locally-owned team/CAF/retrospective data.
+- Added 7 admin views for the Tuleap extension: Dashboard, Sprint Planning, Sprint Review, Retrospective, Sprint Analytics (Tendances), Team Settings, System Settings.
+- Added shared Tuleap components: StatCard, AvatarStack, AlertsPanel, BurndownChart (hand-rolled SVG), ProjectSprintSelector.
+
+### Fixed
+
+- Fixed `TuleapService` not implementing `TuleapServiceInterface` (the class was incomplete and did not even close, causing a fatal error on every request touching the extension). Ported the missing Tuleap API proxy and business logic (sprint stats/alerts, burndown, sprint history with predictability/capacity) from the original Node.js prototype.
+- Fixed Tuleap error responses not matching the platform's standard `{error:{code,message}}` envelope, via new `TuleapUnavailableException` / `TuleapApiException` classes.
+- Fixed the Tuleap extension's frontend not being wired into the application at all (no navigation entry, no routes, store using axios instead of the shared `apiClient`).
+
+### Added
+
+- Added user preferences: theme (system/light/dark), interface density (default/comfortable/compact), and an email notifications opt-out flag, stored on the existing per-user settings row.
+- Added a "Préférences" section to the My Profile self-service screen.
+- Added platform-wide application of the theme/density preference via Vuetify's `useTheme()` and `<v-defaults-provider>`.
+- Added automated tests for the new preference fields, including backfilling them onto settings rows saved before this change.
+

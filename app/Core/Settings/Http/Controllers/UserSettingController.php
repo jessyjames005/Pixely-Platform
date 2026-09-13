@@ -33,6 +33,9 @@ final class UserSettingController
     {
         $validated = $request->validate([
             'locale' => ['sometimes', 'nullable', 'string', 'in:' . implode(',', array_column(config('pixely.locales'), 'code'))],
+            'theme' => ['sometimes', 'string', 'in:system,light,dark'],
+            'density' => ['sometimes', 'string', 'in:default,comfortable,compact'],
+            'email_notifications' => ['sometimes', 'boolean'],
         ]);
 
         $setting = UserSetting::forUser($request->user()->id);

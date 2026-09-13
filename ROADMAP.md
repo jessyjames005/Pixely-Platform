@@ -119,18 +119,22 @@ The original Module concept evolved into the Pixely Extension architecture.
 
 * [x] User model
 * [x] User management
-* [ ] User profile
-* [ ] User preferences
+* [x] User profile
+* [x] User preferences
 
-#### User profile (planned)
+#### User profile
 
-* [ ] Profile fields: display name, bio/title, timezone
-* [ ] Avatar upload, stored via the Files Extension (dependency) rather than ad-hoc upload handling
-* [ ] "My profile" self-service screen, distinct from admin-only Users management
+* [x] Profile fields: display name, bio/title, timezone
+* [x] Avatar upload, stored via the Files Extension
+* [x] "My profile" self-service screen, distinct from admin-only Users management
 
-#### User preferences (planned)
+#### User preferences
 
-* [ ] Per-user preference storage (theme choice, density, notification opt-outs), separate table/model from Core Settings' UserSetting (which is locale-only today) — or extend UserSetting's JSON blob if scope stays small
+* [x] Per-user preference storage: extended UserSetting's existing JSON blob (theme, density, email_notifications) rather than a new table, since scope stayed small
+* [x] Theme preference (system/light/dark), applied via Vuetify's `useTheme()`, "system" following `prefers-color-scheme` live
+* [x] Density preference (default/comfortable/compact), applied via `<v-defaults-provider>` around the admin shell
+* [x] Email notifications opt-out flag — stored and toggleable; no notification-sending system exists yet to actually consume it (see Messaging, future roadmap)
+* [x] Preferences UI on the "My Profile" self-service screen (not a separate nav entry)
 
 ### Roles & Permissions
 
@@ -138,7 +142,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission system
 * [x] Role assignment
 * [x] Permission checks
-* [x] Extension-declared permissions (dynamic, not hardcoded)
+* [ ] Extension-declared permissions (dynamic, not hardcoded) — see detailed checklist below, not started yet despite this having been marked done previously
 
 #### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
 
@@ -928,6 +932,52 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 
 ---
 
+## v1.0.1 - Tuleap Extension (sprint management dashboard)
+
+A business-tooling extension built on top of the platform: a sprint
+management dashboard that proxies a team's Tuleap instance (projects,
+milestones, burndown, sprint history) alongside data the extension owns
+locally (team roster, CAF/capacity, sprint objectives, retrospectives).
+Ported from a standalone Node.js/Vue prototype (`Dashboard_Tuleap/`) that
+predates the Pixely extension model.
+
+### Tuleap Foundation
+
+* [x] Tuleap extension, manifest, service provider
+* [x] Tuleap database structure (Tuleap projects/milestones cache, sprint config, CAF, retro actions, app config, generic cache table)
+* [x] `TuleapRepositoryInterface` / `TuleapRepository` (local persistence)
+* [x] `TuleapServiceInterface` / `TuleapService` (Tuleap API proxy + business logic — was incomplete/non-instantiable before this sprint)
+* [x] `TuleapUnavailableException` / `TuleapApiException` (rendered via the platform-standard `ApiError` envelope)
+
+### Tuleap API
+
+* [x] `GET /api/v1/tuleap/ping`
+* [x] `GET /api/v1/tuleap/projects` (paginated, 30-day cache)
+* [x] `GET /api/v1/tuleap/projects/{id}`
+* [x] `GET /api/v1/tuleap/projects/{id}/members`
+* [x] `GET /api/v1/tuleap/projects/{id}/milestones`
+* [x] `GET /api/v1/tuleap/milestones/{id}/stats` (alerts: stale, no points, no assignee, no GitLab link, orphaned analysis)
+* [x] `GET /api/v1/tuleap/milestones/{id}/burndown`
+* [x] `GET /api/v1/tuleap/projects/{id}/sprint-history` (predictability, commitment respect, capacity — cached per sprint)
+* [x] Local CRUD: team members, sprint config, CAF, retro actions, app config, cache management
+* [ ] Automated feature tests for the Tuleap API (not written yet — no PHP/Docker available to run `php artisan test` while building this)
+
+### Tuleap Frontend
+
+* [x] Dashboard (KPIs, alerts, burndown, per-person breakdown)
+* [x] Sprint Planning (objective, confidence, CAF, theoretical vs. actual capacity)
+* [x] Sprint Review (predictability, commitment respect, burndown, type breakdown)
+* [x] Retrospective (5-column Kanban + automatic carry-over of missed action-plan items)
+* [x] Sprint Analytics / Tendances (historical trend chart, detail table)
+* [x] Team Settings (roster, CAF)
+* [x] System Settings (Tuleap access-token configuration, cache management)
+* [x] Shared components: StatCard, AvatarStack, AlertsPanel, BurndownChart (hand-rolled SVG, no charting library), ProjectSprintSelector
+* [ ] Full-screen "presentation mode" (confetti, animated counters) — deliberately not ported, cosmetic rather than reporting
+* [ ] Microsoft Whiteboard retrospective import — deliberately not ported, would need the `jszip` dependency plus parsing of a proprietary export format
+* [ ] Tuleap login via username/password — replaced by direct personal access token entry, consistent with the existing `ConfigController` design
+
+---
+
 # v1.1.0 - Platform Tooling & Developer Experience
 
 This milestone gathers operational and developer-facing tools that support running, debugging, and extending Pixely once the core administration platform is stable. Each sub-area is independent and can be scheduled as its own sprint.
@@ -1206,25 +1256,40 @@ Implements the Translation Management UI already specified under Administration 
 
 # Current Execution Order
 
-CURRENT
- │
- ▼
-Extension-declared permissions (dynamic, replaces hardcoded seeder)
+DONE (out of the original sequence)
  │
  ▼
 Incremental extension upgrade mechanism (versioned steps, not full zip replace)
  │
  ▼
-Files Extension (upload rules, thumbnails, resize) — dependency for Gallery
+Extension Manager (registration/discovery/state/CRUD, nav tabs, favourites, permission-aware UI — Mediboard-style table view still pending, see detailed checklist)
+ │
+ ▼
+Files Extension (upload/validation/thumbnailing, consumed by Gallery and the profile avatar upload — standalone Files API + admin screen still pending)
  │
  ▼
 Translations Extension
  │
  ▼
-Extension Manager remaining items (version management, dependency graph, nav tabs, favourites, permission-aware UI)
+Users: profile (avatar upload, bio, timezone) — self-service screen shipped
  │
  ▼
-Users: profile, avatar (via Files Extension), preferences
+Tuleap Extension (sprint management dashboard) — delivered out of band, see v1.0.1
+ │
+ ▼
+Users: preferences (theme, density, notification opt-outs) — shipped on the My Profile screen
+ │
+ ▼
+CURRENT
+ │
+ ▼
+Extension-declared permissions (dynamic, replaces hardcoded seeder) — not started; a previous roadmap pass had incorrectly marked this done
+ │
+ ▼
+Extension Manager UI (Mediboard-style Installed/Not installed table)
+ │
+ ▼
+Files API (standalone) + Files administration screen
  │
  ▼
 Extension settings screen
@@ -1239,45 +1304,36 @@ Gallery Administration (visual, albums, tags, search, EXIF)
 
 The Pixely Platform currently has a functional extension foundation with:
 
-* Extension contracts and manifests
-* Extension discovery and registry
-* Extension lifecycle management
-* Dependency management
-* Extension state persistence
-* Extension configuration and persistence
-* Extension commands
-* Gallery extension
-* Gallery photo model
-* Gallery web routes
-* Gallery API
-* Gallery CRUD operations
-* Image upload and storage
-* Automatic stored-file deletion
-* API query parsing
-* API query filtering
-* API query sorting
-* API pagination
-* API relationships
-* Automated tests
+* Extension contracts and manifests, discovery, lifecycle management
+* Incremental (versioned-steps) upgrade path, applied per-transaction, partial success preserved on failure
+* Extension state persistence (atomic, lock-protected)
+* Extension Manager: install/enable/disable/uninstall/update, version management, dependency visualization, nav tabs, per-admin favourites, permission-aware UI
+* Files Extension: upload size/type/batch validation, thumbnail generation, consumed by Gallery and by the profile avatar upload as a shared dependency
+* Translations Extension: full translation management UI, applies to Core and any installed extension's own translation files
+* Gallery extension (CRUD, upload, pagination, filtering, sorting, automated tests)
+* Tuleap extension (sprint management dashboard — see v1.0.1): Tuleap API proxy, sprint stats/burndown/history, local team & retro data, 7 admin views
+* Users: self-service profile screen (avatar, bio, timezone)
+* Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
+* Roles & permissions administration, including nested/child menu support
+* API query parsing, filtering, sorting, pagination, relationships
+* Automated tests for the Gallery API
 
-The current API query layer is stable and its Gallery API tests are green.
+The current API query layer is stable and its Gallery API tests are green. The
+Tuleap extension's backend logic has not yet been exercised by automated
+tests or run against a live Tuleap instance — see the Tuleap API checklist
+above. Extension-declared permissions are still hardcoded in
+`RolePermissionSeeder` — a previous roadmap update had marked this done by
+mistake; it has not actually been started.
 
 The next development focus is:
 
-1. Consolidate the Platform API documentation architecture.
-2. Replace manually maintained OpenAPI documentation with automatic generation from PHP.
-3. Introduce `zircote/swagger-php` and PHP OpenAPI attributes.
-4. Generate `openapi.yml` from the application source code.
-5. Integrate Swagger UI with the generated specification.
-6. Complete the API documentation workflow.
-7. Continue the Extension SDK.
-8. Administration foundation started: Vue.js 3, TypeScript, Vue Router, AdminLayout, DashboardView and navigation are implemented and verified on `/admin`.
-9. Build reusable UI components (buttons, tables, cards, forms) before introducing Vuetify and the Pixely Material Design System.
-10. Introduce the API client architecture to connect the administration to the Platform API.
-11. Introduce Storybook for reusable Vue.js components.
-12. Create administration mockups using Figma or an equivalent free design tool.
-13. Build the Sample Cinema Extension as a developer reference.
-14. Continue the Gallery Extension with its visual administration interface.
+1. Extension-declared permissions (dynamic, replaces the hardcoded seeder) — see the detailed checklist under Roles & Permissions.
+2. Extension Manager UI: the Mediboard-style Installed/Not installed table (still just the raw config editor today).
+3. Files Extension: standalone Files API + administration screen (thumbnailing/validation already ship as a shared dependency, but there's no dedicated UI yet).
+4. Extension settings screen.
+5. Build the Sample Cinema Extension as a developer reference.
+6. Continue the Gallery Extension with its visual administration interface.
+7. Automated tests for the Tuleap extension's backend.
 
 The development process should continue through clearly defined sprints, with each sprint having:
 
