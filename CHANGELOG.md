@@ -72,3 +72,11 @@ Versioning follows Semantic Versioning.
 
 - Removed the unused `ADMIN_DEFAULT_PERMISSIONS` constant from `RolePermissionSeeder` (dead code — `run()` already used `PERMISSIONS` directly).
 
+### Added
+
+- Added Enabled/Disabled tabs to the Extension Manager screen (adapted from the MB reference's Installed/Not installed tabs — Pixely has no catalog of known-but-absent extensions, so that distinction doesn't apply here; every discovered extension is already "installed" by definition).
+
+### Changed
+
+- Removed the "ID" column from the Extension Manager table (name is the human-facing identifier; the id is still used internally).
+

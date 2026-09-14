@@ -1,7 +1,15 @@
 <script setup lang="ts">
 // Extension Manager administration screen: list, enable/disable,
 // configure, install/update/uninstall extensions.
-import { onMounted, ref } from "vue";
+//
+// Reference: MB's modules screen uses "Installed (N)" / "Not
+// installed (N)" tabs, backed by a catalog of every known module
+// whether currently present or not. Pixely has no such catalog — an
+// extension discovered on disk (app/Extensions/*) is registered and,
+// by definition, already installed; the only state that varies from
+// there is Enabled/Disabled. The tabs below use that distinction
+// instead, rather than faking an "installed" concept Pixely doesn't have.
+import { computed, onMounted, ref } from "vue";
 import { useApi } from "@shared/composables/useApi";
 import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
@@ -11,11 +19,10 @@ import ExtensionDependencyGraph from "../components/ExtensionDependencyGraph.vue
 import { useAuthStore } from '@core/auth/store/auth.store'
 
 const headers = [
-  { title: "ID", key: "id" },
   { title: "Name", key: "name" },
   { title: "Version", key: "version" },
   { title: "Dependencies", key: "dependencies" },
-  { title: "Active", key: "enabled", align: "center" as const },
+  { title: "Enabled", key: "enabled", align: "center" as const },
   { title: "", key: "actions", align: "end" as const, sortable: false },
 ];
 
@@ -24,6 +31,11 @@ const authStore = useAuthStore()
 const { confirm } = useConfirmDialog();
 const notify = useNotify();
 const graphDialogOpen = ref(false);
+const activeTab = ref<"enabled" | "disabled">("enabled");
+
+const enabledExtensions = computed(() => extensionsStore.extensions.filter((e) => e.enabled));
+const disabledExtensions = computed(() => extensionsStore.extensions.filter((e) => !e.enabled));
+const visibleExtensions = computed(() => (activeTab.value === "enabled" ? enabledExtensions.value : disabledExtensions.value));
 
 const {
   loading,
@@ -206,7 +218,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
-        Installed extensions
+        Extensions
         <div class="d-flex align-center ga-4">
           <v-switch
             v-if="authStore.can('system.extensions.install')"
@@ -234,18 +246,26 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         </div>
       </v-card-title>
 
-      <v-alert v-if="error" type="error" density="compact" class="mx-4">{{
+      <v-tabs v-model="activeTab" class="px-4">
+        <v-tab value="enabled">Enabled ({{ enabledExtensions.length }})</v-tab>
+        <v-tab value="disabled">Disabled ({{ disabledExtensions.length }})</v-tab>
+      </v-tabs>
+      <v-divider />
+
+      <v-alert v-if="error" type="error" density="compact" class="mx-4 mt-4">{{
         error.message
       }}</v-alert>
 
       <v-data-table
         :headers="headers"
-        :items="extensionsStore.extensions"
+        :items="visibleExtensions"
         :loading="loading"
         item-value="id"
       >
         <template #no-data>
-          <p class="text-medium-emphasis py-6">No extensions installed.</p>
+          <p class="text-medium-emphasis py-6">
+            {{ activeTab === "enabled" ? "No enabled extensions." : "No disabled extensions." }}
+          </p>
         </template>
 
         <template #item.dependencies="{ item }">

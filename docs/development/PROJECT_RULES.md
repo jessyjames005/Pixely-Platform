@@ -754,7 +754,7 @@ Every translation key follows a fixed prefix pattern, regardless of which group/
 
 ## Code Style & Static Analysis
 
-Adapted from the reviewed Mediboard/PhpStorm convention (PSR-12, PHPCS, ESLint, Stylelint) to VS Code tooling, using public packages only (no private `openxtrem/coding-standard` dependency).
+Adapted from the reviewed MB/PhpStorm convention (PSR-12, PHPCS, ESLint, Stylelint) to VS Code tooling, using public packages only (no private `openxtrem/coding-standard` dependency).
 
 ### PHP — PSR-12 via PHP_CodeSniffer (detection) + PHP-CS-Fixer (auto-fix)
 
