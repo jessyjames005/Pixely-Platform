@@ -65,4 +65,10 @@ Versioning follows Semantic Versioning.
 - Added a card-based Roles list (Material 3 / Vuetify), each card showing the role's user count, avatar stack, and Edit/Duplicate/Delete actions, plus an "Add New Role" card.
 - Added an Edit Role modal with permissions grouped by domain (Core sub-domains vs. each extension, derived from each permission's `<domain>.<object>.<action>` name), one row per object with whichever action checkboxes actually exist for it, and a per-group "Select All".
 - Added a "Total users with their roles" table below the card grid (user, role, active/inactive status), built from the roles already loaded rather than a new endpoint.
+- Added an adaptive "Accessibilité" control per permission row in the Edit Role modal: a three-state Interdit/Lecture seule/Lecture et écriture toggle where an object has a `view` action plus another action, otherwise a plain Interdit/Autorisé toggle.
+- Added a read-only "Droits existants" matrix (role × object access level) below the roles list, collapsible, built from data already loaded.
+
+### Changed
+
+- Removed the unused `ADMIN_DEFAULT_PERMISSIONS` constant from `RolePermissionSeeder` (dead code — `run()` already used `PERMISSIONS` directly).
 

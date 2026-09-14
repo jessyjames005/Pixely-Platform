@@ -157,8 +157,9 @@ today. What's left is a friendlier Roles UI built on top of that data.
 * [x] Extension manifest/contract method declaring the extension's permissions (object → available actions) — `ExtensionPermissionsInterface`
 * [x] Automatic permission sync on extension install/enable (create missing Permission rows; never silently delete existing ones on disable/uninstall, to avoid breaking existing role assignments) — `ExtensionPermissionSynchronizer` / `pixely:sync-permissions`
 * [x] Roles UI: per-module/per-object row, not a raw permission checkbox list — `RolesView.vue` groups permissions by domain (Core sub-domains vs. each extension) and renders one row per object within a group, with a dynamic set of action checkboxes (whatever actions actually exist for that object) rather than a fixed grid
-* [ ] Roles UI: friendly two-column control per row — "Accessibilité" (Interdit / Lecture / Écriture, mapping to none / view / manage+delete) and "Visibilité" (Caché / Visible, controlling whether the admin nav section appears at all for that role). Not built as originally envisioned here — permission actions vary per object (some have delete, some don't, some are one-off custom actions like `system.sql.query`), so a rigid two-column scheme doesn't fit every case; the per-object checkbox row above is the adaptation that shipped instead
-* [ ] "Droits existants" summary view: read-only table of every module/profile/user combination and its current access level, for auditing at a glance
+* [x] Roles UI: "Accessibilité" control per row — adaptive: Interdit / Lecture seule / Lecture et écriture (segmented button) for any object that has both a `view` action and at least one other action; a plain Interdit / Autorisé toggle for objects with only one action or no `view` action at all (e.g. `system.sql.query`, `tuleap.retro.manage`) — a rigid three-state scheme doesn't fit those
+* [x] "Visibilité" — deliberately not built as a separate control: a role with zero granted permissions in a domain already has that entire nav section hidden via each `NavItem`'s own `permission` field (see `AdminNav.vue`'s recursive filter), so a second, independent visibility toggle would just duplicate that and could drift out of sync with it
+* [x] "Droits existants" summary view: read-only role × object access matrix, shown as a collapsible table below the roles list (reuses the same domain/object grouping and the roles/permissions already loaded — no new endpoint)
 
 ### Settings
 
@@ -1292,10 +1293,10 @@ Extension-declared permissions sync mechanism (manifest + automatic sync) — al
 Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role modal grouping permissions by Core/Extension with a per-role user list) — shipped; also fixed RolesView.vue being entirely missing (the router imported a file that didn't exist, breaking the admin build)
  │
  ▼
-CURRENT
+Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
  │
  ▼
-Roles UI: Accessibilité/Visibilité two-column control + "Droits existants" summary view — the per-object checkbox row that shipped is a deliberately different adaptation (see detailed checklist), this richer scheme is still open
+CURRENT
  │
  ▼
 Extension Manager UI (Mediboard-style Installed/Not installed table)
@@ -1326,7 +1327,7 @@ The Pixely Platform currently has a functional extension foundation with:
 * Tuleap extension (sprint management dashboard — see v1.0.1): Tuleap API proxy, sprint stats/burndown/history, local team & retro data, 7 admin views
 * Users: self-service profile screen (avatar, bio, timezone)
 * Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
-* Roles & permissions administration, including nested/child menu support and a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain — Core sub-domains vs. each extension)
+* Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
 * API query parsing, filtering, sorting, pagination, relationships
 * Automated tests for the Gallery API
 
@@ -1336,22 +1337,22 @@ tests or run against a live Tuleap instance — see the Tuleap API checklist
 above. Extension-declared permissions actually are synced dynamically
 already (`ExtensionPermissionSynchronizer`, used by Gallery, Tuleap and
 Translations) — a previous roadmap update had incorrectly marked this as
-not started; only the richer Roles UI on top of that data was still open,
-and the card grid / grouped Edit Role modal have now shipped. The grouping
-uses each permission name's domain segment (`<domain>.<object>.<action>`)
-rather than the `is_core` flag — `is_core` also gets set on a couple of
-Translations permissions that pre-date it becoming a full extension, which
-would have grouped them under Core incorrectly.
+not started; the Roles UI on top of that data (card grid, grouped Edit Role
+modal, Accessibilité control, Droits existants matrix) has now shipped too.
+The grouping uses each permission name's domain segment
+(`<domain>.<object>.<action>`) rather than the `is_core` flag — `is_core`
+also gets set on a couple of Translations permissions that pre-date it
+becoming a full extension, which would have grouped them under Core
+incorrectly.
 
 The next development focus is:
 
-1. Roles UI: Accessibilité/Visibilité two-column control + "Droits existants" summary view.
-2. Extension Manager UI: the Mediboard-style Installed/Not installed table (still just the raw config editor today).
-3. Files Extension: standalone Files API + administration screen (thumbnailing/validation already ship as a shared dependency, but there's no dedicated UI yet).
-4. Extension settings screen.
-5. Build the Sample Cinema Extension as a developer reference.
-6. Continue the Gallery Extension with its visual administration interface.
-7. Automated tests for the Tuleap extension's backend.
+1. Extension Manager UI: the Mediboard-style Installed/Not installed table (still just the raw config editor today).
+2. Files Extension: standalone Files API + administration screen (thumbnailing/validation already ship as a shared dependency, but there's no dedicated UI yet).
+3. Extension settings screen.
+4. Build the Sample Cinema Extension as a developer reference.
+5. Continue the Gallery Extension with its visual administration interface.
+6. Automated tests for the Tuleap extension's backend.
 
 The development process should continue through clearly defined sprints, with each sprint having:
 

@@ -68,7 +68,7 @@ const ACTION_LABELS: Record<string, string> = {
 
 interface PermissionRow {
   object: string
-  cells: { permission: Permission; label: string }[]
+  cells: { permission: Permission; action: string; label: string }[]
 }
 interface PermissionGroup {
   domain: string
@@ -89,7 +89,7 @@ const permissionGroups = computed<PermissionGroup[]>(() => {
     if (!byDomain.has(domain)) byDomain.set(domain, new Map())
     const rows = byDomain.get(domain)!
     if (!rows.has(object)) rows.set(object, { object, cells: [] })
-    rows.get(object)!.cells.push({ permission, label: ACTION_LABELS[action] ?? action })
+    rows.get(object)!.cells.push({ permission, action, label: ACTION_LABELS[action] ?? action })
   }
 
   const groups: PermissionGroup[] = []
@@ -151,6 +151,73 @@ function toggleGroup(group: PermissionGroup, value: boolean): void {
 }
 function isGroupFullySelected(group: PermissionGroup): boolean {
   return group.rows.every((row) => row.cells.every((c) => selected[c.permission.name]))
+}
+
+// "Accessibilité" control per row. Permission actions aren't uniform
+// across the platform (some objects have view/manage/delete, some only
+// manage, some a one-off custom action like system.sql.query) — so
+// this adapts instead of forcing every row into the same 3-state shape:
+// - a row with both a 'view' action and at least one other action gets
+//   the full Interdit / Lecture seule / Lecture et écriture control
+// - anything else (a single action, or several actions with no 'view')
+//   gets a plain Interdit / Autorisé toggle over all of that row's actions
+type AccessLevel = 'none' | 'view' | 'write'
+
+function rowHasReadWriteShape(row: PermissionRow): boolean {
+  return row.cells.some((c) => c.action === 'view') && row.cells.some((c) => c.action !== 'view')
+}
+
+function rowAccessLevel(row: PermissionRow): AccessLevel {
+  const anySelected = row.cells.some((c) => selected[c.permission.name])
+  if (!anySelected) return 'none'
+  if (!rowHasReadWriteShape(row)) return 'write' // simple toggle: "on" always reads as the single non-view state
+
+  const viewOnly = row.cells
+    .filter((c) => c.action !== 'view')
+    .every((c) => !selected[c.permission.name])
+  return viewOnly ? 'view' : 'write'
+}
+
+function setRowAccessLevel(row: PermissionRow, level: AccessLevel): void {
+  for (const cell of row.cells) {
+    if (level === 'none') {
+      selected[cell.permission.name] = false
+    } else if (level === 'view') {
+      selected[cell.permission.name] = cell.action === 'view'
+    } else {
+      selected[cell.permission.name] = true
+    }
+  }
+}
+
+// ── "Droits existants" — read-only role × object access matrix ─────────
+// Reuses permissionGroups for row structure; unlike the edit-dialog
+// version above, access level here is read from each role's own granted
+// permissions rather than the in-progress `selected` edit state.
+
+const showRightsOverview = ref(false)
+
+function roleHasPermission(role: Role, permissionName: string): boolean {
+  return role.permissions.some((p) => p.name === permissionName)
+}
+
+function roleRowAccessLevel(role: Role, row: PermissionRow): AccessLevel {
+  const anyGranted = row.cells.some((c) => roleHasPermission(role, c.permission.name))
+  if (!anyGranted) return 'none'
+  if (!rowHasReadWriteShape(row)) return 'write'
+  const hasNonView = row.cells.some((c) => c.action !== 'view' && roleHasPermission(role, c.permission.name))
+  return hasNonView ? 'write' : 'view'
+}
+
+function accessLevelLabel(row: PermissionRow, level: AccessLevel): string {
+  if (level === 'none') return '—'
+  if (!rowHasReadWriteShape(row)) return 'Autorisé'
+  return level === 'view' ? 'Lecture' : 'Écriture'
+}
+
+function accessLevelColor(level: AccessLevel): string | undefined {
+  if (level === 'none') return undefined
+  return level === 'view' ? 'info' : 'success'
 }
 
 async function handleSubmit(): Promise<void> {
@@ -355,6 +422,51 @@ const filteredUsers = computed(() => {
       </v-card-text>
     </v-card>
 
+    <v-divider class="my-8" />
+
+    <div class="d-flex align-center justify-space-between mb-4">
+      <div>
+        <h2 class="text-h6 font-weight-bold">Droits existants</h2>
+        <p class="text-body-2 text-medium-emphasis mt-1">
+          Vue d'ensemble en lecture seule : pour chaque module, le niveau d'accès de chaque rôle.
+          Un rôle sans aucun accès sur un module n'en voit déjà plus l'entrée dans le menu — inutile
+          de gérer la visibilité séparément.
+        </p>
+      </div>
+      <v-btn variant="text" :append-icon="showRightsOverview ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showRightsOverview = !showRightsOverview">
+        {{ showRightsOverview ? 'Masquer' : 'Afficher' }}
+      </v-btn>
+    </div>
+
+    <v-card v-if="showRightsOverview" variant="outlined" rounded="lg">
+      <v-card-text style="overflow-x: auto">
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Objet</th>
+              <th v-for="role in rolesStore.roles" :key="role.id" class="text-center">{{ role.name }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="group in permissionGroups" :key="group.domain">
+              <tr v-for="(row, index) in group.rows" :key="row.object">
+                <td v-if="index === 0" :rowspan="group.rows.length" class="text-body-2 font-weight-medium" style="vertical-align: top">
+                  {{ group.label }}
+                </td>
+                <td class="text-body-2 text-capitalize">{{ row.object.replaceAll('.', ' ') }}</td>
+                <td v-for="role in rolesStore.roles" :key="role.id" class="text-center">
+                  <v-chip :color="accessLevelColor(roleRowAccessLevel(role, row))" size="x-small" variant="tonal">
+                    {{ accessLevelLabel(row, roleRowAccessLevel(role, row)) }}
+                  </v-chip>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </v-table>
+      </v-card-text>
+    </v-card>
+
     <!-- Edit / Add Role dialog -->
     <v-dialog v-model="dialogOpen" max-width="720" scrollable>
       <v-card>
@@ -390,16 +502,33 @@ const filteredUsers = computed(() => {
 
             <div v-for="row in group.rows" class="d-flex align-center py-2" :key="row.object">
               <span class="text-body-2 text-capitalize" style="min-width: 160px">{{ row.object.replaceAll('.', ' ') }}</span>
-              <div class="d-flex flex-wrap ga-4">
-                <v-checkbox
-                  v-for="cell in row.cells"
-                  :key="cell.permission.id"
-                  v-model="selected[cell.permission.name]"
-                  :label="cell.label"
-                  density="compact"
-                  hide-details
-                />
-              </div>
+
+              <v-btn-toggle
+                v-if="rowHasReadWriteShape(row)"
+                :model-value="rowAccessLevel(row)"
+                mandatory
+                density="compact"
+                variant="outlined"
+                divided
+                @update:model-value="(v) => setRowAccessLevel(row, v as AccessLevel)"
+              >
+                <v-btn value="none" size="small">Interdit</v-btn>
+                <v-btn value="view" size="small">Lecture seule</v-btn>
+                <v-btn value="write" size="small">Lecture et écriture</v-btn>
+              </v-btn-toggle>
+
+              <v-btn-toggle
+                v-else
+                :model-value="rowAccessLevel(row)"
+                mandatory
+                density="compact"
+                variant="outlined"
+                divided
+                @update:model-value="(v) => setRowAccessLevel(row, v as AccessLevel)"
+              >
+                <v-btn value="none" size="small">Interdit</v-btn>
+                <v-btn value="write" size="small">Autorisé</v-btn>
+              </v-btn-toggle>
             </div>
           </div>
 

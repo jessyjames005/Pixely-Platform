@@ -46,26 +46,6 @@ final class RolePermissionSeeder extends Seeder
         // system.extensions.install deliberately excluded — grant manually via /admin/roles if truly needed
     ];
 
-    private const ADMIN_DEFAULT_PERMISSIONS = [
-        'gallery.photos.view',
-        'gallery.photos.manage',
-        'gallery.photos.delete',
-        'users.view',
-        'users.manage',
-        'users.delete',
-        'roles.view',
-        'roles.manage',
-        'roles.delete',
-        'system.logs.view',
-        'system.cache.view',
-        'system.cache.clear',
-        'system.database.view',
-        'system.sql.query',
-        'system.extensions.view',
-        'system.extensions.manage',
-        // system.extensions.install deliberately excluded — grant manually via /admin/roles if truly needed
-    ];
-
     public function run(): void
     {
         // Ensure extension-declared permissions (e.g. Gallery) exist
