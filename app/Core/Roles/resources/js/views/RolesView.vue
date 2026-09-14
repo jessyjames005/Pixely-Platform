@@ -1,545 +1,416 @@
-﻿﻿<script setup lang="ts">
-// Roles & permissions administration screen. Follows shared UX
-// conventions: create/edit in a v-dialog, deletion via the shared
-// confirm dialog, feedback via toast.
-import { computed, onMounted, ref } from "vue";
-import { useApi } from "@shared/composables/useApi";
-import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
-import { useNotify } from "@shared/composables/useNotify";
-import { useRolesStore } from "../store/roles.store";
-import type { Role } from "../models/Role";
+<script setup lang="ts">
+// Roles & Permissions — "Roles" tab.
+//
+// Card grid (one card per role: user count + avatar stack + Edit/Duplicate/
+// Delete), an "Add New Role" card, and a flattened "users with their role"
+// table below (derived from the roles already loaded — no extra endpoint).
+//
+// Permission checkboxes in the Edit Role dialog are grouped dynamically by
+// the permission name's domain segment (<domain>.<object>.<action>), split
+// into "Core" domains (users, roles, system, settings) vs. everything else
+// treated as an extension group — so a newly installed extension's
+// permissions show up correctly grouped without any UI change.
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useApi } from '@shared/composables/useApi'
+import { useNotify } from '@shared/composables/useNotify'
+import { useConfirmDialog } from '@shared/composables/useConfirmDialog'
 import { useAuthStore } from '@core/auth/store/auth.store'
+import { useRolesStore } from '../store/roles.store'
+import type { Permission, Role, RoleUser } from '../models/Role'
 
-const authStore = useAuthStore();
-const rolesStore = useRolesStore();
-const { confirm } = useConfirmDialog();
-const notify = useNotify();
+const authStore = useAuthStore()
+const rolesStore = useRolesStore()
+const notify = useNotify()
+const { confirm } = useConfirmDialog()
 
-const {
-  loading: rolesLoading,
-  error: rolesError,
-  execute: fetchRoles,
-} = useApi(rolesStore.fetchRoles);
-const { execute: fetchPermissions } = useApi(rolesStore.fetchPermissions);
+const { loading, error, execute: fetchRoles } = useApi(rolesStore.fetchRoles)
+const { execute: fetchPermissions } = useApi(rolesStore.fetchPermissions)
+const { loading: saving, error: saveError, execute: submitCreate } = useApi(rolesStore.createRole)
+const { loading: updating, error: updateError, execute: submitUpdate } = useApi(rolesStore.updateRole)
 
-const dialogOpen = ref(false);
-const editingRole = ref<Role | null>(null);
-const formName = ref("");
-const formPermissions = ref<string[]>([]);
-const isEditing = computed(() => editingRole.value !== null);
+onMounted(async () => {
+  await Promise.all([fetchRoles(), fetchPermissions()])
+})
 
-const {
-  loading: saving,
-  error: saveError,
-  execute: submitCreate,
-} = useApi(rolesStore.createRole);
-const {
-  loading: updating,
-  error: updateError,
-  execute: submitUpdate,
-} = useApi(rolesStore.updateRole);
-const { loading: deleting, execute: removeRole } = useApi(
-  rolesStore.deleteRole,
-);
+// ── Card grid ─────────────────────────────────────────────────────────
 
-// Search & pagination state
-const search = ref("");
+function initials(name: string): string {
+  return (name || '').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+}
 
-onMounted(() => {
-  fetchRoles();
-  fetchPermissions();
-});
+function avatarColor(name: string): string {
+  let hash = 0
+  for (const c of name || '') hash = c.charCodeAt(0) + ((hash << 5) - hash)
+  return `hsl(${Math.abs(hash) % 360}, 45%, 45%)`
+}
 
-function resetForm(): void {
-  editingRole.value = null;
-  formName.value = "";
-  formPermissions.value = [];
+function visibleUsers(role: Role): RoleUser[] {
+  return (role.users ?? []).slice(0, 4)
+}
+function overflowCount(role: Role): number {
+  return Math.max((role.users?.length ?? role.users_count ?? 0) - 4, 0)
+}
+
+// ── Permission grouping (domain = first segment of "<domain>.<object>.<action>") ──
+
+const CORE_DOMAINS: Record<string, string> = {
+  users: 'Utilisateurs',
+  roles: 'Rôles & Permissions',
+  system: 'Système',
+  settings: 'Paramètres',
+  translations: 'Traductions',
+}
+const ACTION_LABELS: Record<string, string> = {
+  view: 'Voir',
+  manage: 'Gérer',
+  delete: 'Supprimer',
+}
+
+interface PermissionRow {
+  object: string
+  cells: { permission: Permission; label: string }[]
+}
+interface PermissionGroup {
+  domain: string
+  label: string
+  isCore: boolean
+  rows: PermissionRow[]
+}
+
+const permissionGroups = computed<PermissionGroup[]>(() => {
+  const byDomain = new Map<string, Map<string, PermissionRow>>()
+
+  for (const permission of rolesStore.permissions) {
+    const segments = permission.name.split('.')
+    const domain = segments[0] ?? permission.name
+    const action = segments.length > 1 ? segments[segments.length - 1] : segments[0]
+    const object = segments.length > 2 ? segments.slice(1, -1).join('.') : (segments.length === 2 ? segments[0] : 'général')
+
+    if (!byDomain.has(domain)) byDomain.set(domain, new Map())
+    const rows = byDomain.get(domain)!
+    if (!rows.has(object)) rows.set(object, { object, cells: [] })
+    rows.get(object)!.cells.push({ permission, label: ACTION_LABELS[action] ?? action })
+  }
+
+  const groups: PermissionGroup[] = []
+  for (const [domain, rows] of byDomain.entries()) {
+    const isCore = domain in CORE_DOMAINS
+    groups.push({
+      domain,
+      isCore,
+      label: isCore
+        ? `Core — ${CORE_DOMAINS[domain]}`
+        : `Extension — ${domain.charAt(0).toUpperCase()}${domain.slice(1)}`,
+      rows: Array.from(rows.values()),
+    })
+  }
+
+  // Core groups first, then extensions, alphabetically within each bucket.
+  return groups.sort((a, b) => {
+    if (a.isCore !== b.isCore) return a.isCore ? -1 : 1
+    return a.label.localeCompare(b.label)
+  })
+})
+
+// ── Edit/Add Role dialog ─────────────────────────────────────────────
+
+const dialogOpen = ref(false)
+const editingRole = ref<Role | null>(null)
+const formName = ref('')
+const selected = reactive<Record<string, boolean>>({})
+const isEditing = computed(() => editingRole.value !== null)
+const isAdminRole = computed(() => editingRole.value?.name === 'admin')
+
+function resetSelection(role: Role | null): void {
+  for (const key of Object.keys(selected)) delete selected[key]
+  for (const p of role?.permissions ?? []) selected[p.name] = true
 }
 
 function openCreateDialog(): void {
-  resetForm();
-  dialogOpen.value = true;
+  editingRole.value = null
+  formName.value = ''
+  resetSelection(null)
+  dialogOpen.value = true
 }
 
 function openEditDialog(role: Role): void {
-  editingRole.value = role;
-  formName.value = role.name;
-  formPermissions.value = role.permissions.map((permission) => permission.name);
-  dialogOpen.value = true;
+  editingRole.value = role
+  formName.value = role.name
+  resetSelection(role)
+  dialogOpen.value = true
 }
 
 function closeDialog(): void {
-  dialogOpen.value = false;
-  resetForm();
+  dialogOpen.value = false
+}
+
+function toggleGroup(group: PermissionGroup, value: boolean): void {
+  for (const row of group.rows) {
+    for (const cell of row.cells) selected[cell.permission.name] = value
+  }
+}
+function isGroupFullySelected(group: PermissionGroup): boolean {
+  return group.rows.every((row) => row.cells.every((c) => selected[c.permission.name]))
 }
 
 async function handleSubmit(): Promise<void> {
+  const permissions = Object.keys(selected).filter((name) => selected[name])
+
   if (isEditing.value && editingRole.value) {
-    const result = await submitUpdate(editingRole.value.id, {
-      name: formName.value,
-      permissions: formPermissions.value,
-    });
-    if (result) {
-      notify.success("Role updated.");
-      closeDialog();
-      await fetchRoles();
+    await submitUpdate(editingRole.value.id, { name: formName.value, permissions })
+    if (!updateError.value) {
+      notify.success('Rôle mis à jour.')
+      closeDialog()
+      await fetchRoles()
     }
-    return;
+    return
   }
 
-  const result = await submitCreate({
-    name: formName.value,
-    permissions: formPermissions.value,
-  });
+  await submitCreate({ name: formName.value, permissions })
+  if (!saveError.value) {
+    notify.success('Rôle créé.')
+    closeDialog()
+    await fetchRoles()
+  }
+}
 
-  if (result) {
-    notify.success("Role created.");
-    closeDialog();
-    await fetchRoles();
+// ── Duplicate / delete ────────────────────────────────────────────────
+
+async function handleDuplicate(role: Role): Promise<void> {
+  const created = await submitCreate({
+    name: `${role.name} (copie)`,
+    permissions: role.permissions.map((p) => p.name),
+  })
+  if (created) {
+    notify.success(`Rôle "${role.name}" dupliqué.`)
+    await fetchRoles()
+    openEditDialog(created)
   }
 }
 
 async function handleDelete(role: Role): Promise<void> {
   const confirmed = await confirm({
-    title: "Delete role",
-    message: `Delete role "${role.name}"? This cannot be undone.`,
-    confirmText: "Delete",
-  });
+    title: 'Supprimer le rôle',
+    message: `Supprimer le rôle "${role.name}" ? Les utilisateurs qui l'ont perdront ces accès. Cette action est irréversible.`,
+    confirmText: 'Supprimer',
+    color: 'error',
+  })
+  if (!confirmed) return
 
-  if (!confirmed) {
-    return;
-  }
-
-  await removeRole(role.id);
-  notify.success("Role deleted.");
-  await fetchRoles();
+  await rolesStore.deleteRole(role.id)
+  notify.success('Rôle supprimé.')
+  await fetchRoles()
 }
 
-// Permission matrix helpers
-const extensionNames: Record<string, string> = {
-  core: "Core",
-  auth: "Core",
-  roles: "Core",
-  users: "Core",
-  system: "Core",
-  settings: "Core",
-  extensions: "Core",
-  translations: "Core",
-  gallery: "Gallery",
-  media: "Media",
-};
+// ── Users with their role (flattened from already-loaded roles) ────────
 
-const actionLabels: Record<string, string> = {
-  view: "Read",
-  manage: "Write",
-  delete: "Create",
-  clear: "Write",
-  query: "Write",
-};
+const userSearch = ref('')
 
-function getExtension(permissionName: string): string {
-  const domain = permissionName.split(".")[0];
-  return extensionNames[domain] ?? domain.charAt(0).toUpperCase() + domain.slice(1);
-}
-
-function getActionLabel(permissionName: string): string {
-  const suffix = permissionName.split(".").pop() ?? "";
-  return actionLabels[suffix] ?? suffix;
-}
-
-const filteredRoles = computed(() => {
-  const term = search.value.trim().toLowerCase();
-  if (!term) return rolesStore.roles;
-  return rolesStore.roles.filter((role) =>
-    role.name.toLowerCase().includes(term),
-  );
-});
-
-// Permission matrix for the edit modal
-const selectedPermissionSet = computed(() => new Set(formPermissions.value));
-
-const allPermissionsSelected = computed(() => {
-  return rolesStore.permissions.every((p) => formPermissions.value.includes(p.name));
-});
-
-const somePermissionsSelected = computed(() => {
-  return rolesStore.permissions.some((p) => formPermissions.value.includes(p.name));
-});
-
-const permissionMatrix = computed(() => {
-  if (!editingRole.value) return [];
-
-  const categories: Record<string, Record<string, string[]>> = {};
-
-  for (const perm of rolesStore.permissions) {
-    const cat = getExtension(perm.name);
-    const act = getActionLabel(perm.name);
-
-    if (!categories[cat]) {
-      categories[cat] = {};
-    }
-    if (!categories[cat][act]) {
-      categories[cat][act] = [];
-    }
-    categories[cat][act].push(perm.name);
-  }
-
-  const sortedCats = Object.keys(categories).sort((a, b) => {
-    const order = ["Core", "Gallery", "Media"];
-    const idxA = order.indexOf(a);
-    const idxB = order.indexOf(b);
-    if (idxA === -1 && idxB === -1) return a.localeCompare(b);
-    if (idxA === -1) return 1;
-    if (idxB === -1) return -1;
-    return idxA - idxB;
-  });
-
-  return sortedCats.map((catName) => {
-    const actions = categories[catName];
-    const allActions = Object.keys(actions);
-    const allChecked = allActions.every((act) => {
-      const perms = actions[act] ?? [];
-      return perms.every((p) => selectedPermissionSet.value.has(p));
-    });
-    const someChecked = allActions.some((act) => {
-      const perms = actions[act] ?? [];
-      return perms.some((p) => selectedPermissionSet.value.has(p));
-    });
-    const indeterminate = someChecked && !allChecked;
-
-    return {
-      name: catName,
-      read: actions["Read"] ?? [],
-      write: actions["Write"] ?? [],
-      create: actions["Create"] ?? [],
-      allChecked,
-      indeterminate,
-    };
-  });
-});
-
-function toggleAllPermissions(): void {
-  const allChecked = permissionMatrix.value.every((row) => row.allChecked);
-  if (allChecked) {
-    formPermissions.value = [];
-  } else {
-    formPermissions.value = rolesStore.permissions.map((p) => p.name);
-  }
-}
-
-function toggleAction(categoryName: string, action: string): void {
-  const row = permissionMatrix.value.find((r) => r.name === categoryName);
-  if (!row) return;
-
-  const permissionNames = row.actions[action] ?? [];
-  const allSelected = permissionNames.every((p) => formPermissions.value.includes(p));
-
-  if (allSelected) {
-    // Deselect all in this action group
-    formPermissions.value = formPermissions.value.filter((p) => !permissionNames.includes(p));
-  } else {
-    // Select all in this action group
-    for (const perm of permissionNames) {
-      if (!formPermissions.value.includes(perm)) {
-        formPermissions.value.push(perm);
-      }
+const usersWithRoles = computed(() => {
+  const rows: (RoleUser & { role: string })[] = []
+  for (const role of rolesStore.roles) {
+    for (const user of role.users ?? []) {
+      rows.push({ ...user, role: role.name })
     }
   }
-}
+  return rows
+})
 
-function isActionSelected(categoryName: string, action: string): boolean {
-  const row = permissionMatrix.value.find((r) => r.name === categoryName);
-  if (!row) return false;
-  const permissionNames = row.actions[action] ?? [];
-  return permissionNames.every((p) => formPermissions.value.includes(p));
-}
-
-function isActionIndeterminate(categoryName: string, action: string): boolean {
-  const row = permissionMatrix.value.find((r) => r.name === categoryName);
-  if (!row) return false;
-  const permissionNames = row.actions[action] ?? [];
-  if (permissionNames.length === 0) return false;
-  const selected = permissionNames.filter((p) => formPermissions.value.includes(p)).length;
-  return selected > 0 && selected < permissionNames.length;
-}
+const filteredUsers = computed(() => {
+  const term = userSearch.value.trim().toLowerCase()
+  if (!term) return usersWithRoles.value
+  return usersWithRoles.value.filter(
+    (u) => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.role.toLowerCase().includes(term),
+  )
+})
 </script>
 
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5">Roles &amp; Permissions</h1>
-      <v-btn
-        v-if="authStore.can('roles.manage')"
-        color="primary"
-        prepend-icon="mdi-plus"
-        @click="openCreateDialog"
-      >
-        New role
-      </v-btn>
+    <div class="mb-6">
+      <h1 class="text-h5 font-weight-bold">Roles List</h1>
+      <p class="text-body-2 text-medium-emphasis mt-1">
+        A role gives access to a predefined set of permissions. Depending on the role assigned,
+        an administrator can access what they need.
+      </p>
     </div>
 
-    <v-card title="Roles">
-      <v-card-text>
-        <v-alert
-          v-if="rolesError"
-          type="error"
-          density="compact"
-          class="mb-4"
-          >{{ rolesError.message }}</v-alert
-        >
+    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error.message }}</v-alert>
 
-        <v-text-field
-          v-model="search"
-          label="Search roles"
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-          clearable
-          density="compact"
-          class="mb-4"
-          @update:model-value="search = $event"
-        />
+    <v-row v-if="!loading">
+      <v-col v-for="role in rolesStore.roles" :key="role.id" cols="12" sm="6" md="4">
+        <v-card variant="outlined" rounded="lg">
+          <v-card-text>
+            <div class="d-flex align-start justify-space-between mb-6">
+              <span class="text-body-2 text-medium-emphasis">
+                Total {{ role.users_count ?? role.users?.length ?? 0 }} users
+              </span>
+              <div class="d-flex flex-row-reverse align-center">
+                <v-avatar
+                  v-for="user in visibleUsers(role)"
+                  :key="user.id"
+                  size="28"
+                  :color="user.avatar_url ? undefined : avatarColor(user.name)"
+                  class="ml-n2"
+                  style="border: 2px solid rgb(var(--v-theme-surface))"
+                >
+                  <v-img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.name" />
+                  <span v-else class="text-caption font-weight-bold" style="color: white; font-size: 10px">{{ initials(user.name) }}</span>
+                </v-avatar>
+                <v-avatar v-if="overflowCount(role) > 0" size="28" color="surface-variant" class="ml-n2" style="border: 2px solid rgb(var(--v-theme-surface))">
+                  <span class="text-caption font-weight-bold" style="font-size: 9px">+{{ overflowCount(role) }}</span>
+                </v-avatar>
+              </div>
+            </div>
 
-        <v-progress-linear v-if="rolesLoading" indeterminate color="primary" class="mb-4" />
-
-        <!-- Role cards grid -->
-        <v-row v-if="!rolesLoading" dense>
-          <!-- Existing role cards -->
-          <v-col
-            v-for="role in filteredRoles"
-            :key="role.id"
-            cols="12"
-            sm="6"
-            md="4"
-            lg="3"
-          >
-            <v-card
-              variant="outlined"
-              :title="role.name"
-              class="h-100 d-flex flex-column"
-            >
-              <v-card-text class="d-flex flex-column flex-grow-1">
-                <div class="mb-2">
-                  <span class="text-caption text-medium-emphasis">Total users</span>
-                  <div class="d-flex align-center gap-1 mt-1">
-                    <span class="text-h6">{{ role.users_count ?? 0 }}</span>
-                    <v-avatar
-                      v-for="i in Math.min(role.users_count ?? 0, 3)"
-                      :key="i"
-                      size="24"
-                      color="primary"
-                      variant="tonal"
-                      class="ml-n2"
-                    >
-                      <v-icon size="12">mdi-account</v-icon>
-                    </v-avatar>
-                    <v-avatar
-                      v-if="(role.users_count ?? 0) > 3"
-                      size="24"
-                      color="grey-darken-2"
-                      variant="tonal"
-                      class="ml-n2"
-                    >
-                      <v-icon size="12">mdi-plus</v-icon>
-                    </v-avatar>
-                  </div>
-                </div>
-
-                <v-divider class="my-2" />
-
-                <div class="mb-2">
-                  <span class="text-caption text-medium-emphasis">Permissions</span>
-                  <div class="d-flex flex-wrap gap-1 mt-1">
-                    <v-chip
-                      v-for="perm in role.permissions.slice(0, 5)"
-                      :key="perm.id"
-                      size="x-small"
-                      variant="outlined"
-                    >
-                      {{ perm.name }}
-                    </v-chip>
-                    <v-chip
-                      v-if="role.permissions.length > 5"
-                      size="x-small"
-                      color="primary"
-                      variant="tonal"
-                    >
-                      +{{ role.permissions.length - 5 }}
-                    </v-chip>
-                    <span v-if="role.permissions.length === 0" class="text-caption text-medium-emphasis">
-                      None
-                    </span>
-                  </div>
-                </div>
-              </v-card-text>
-
-              <v-card-actions class="justify-space-between pt-0">
+            <div class="d-flex align-end justify-space-between">
+              <div>
+                <div class="text-h6 font-weight-bold">{{ role.name }}</div>
+                <a href="#" class="text-primary text-body-2" @click.prevent="openEditDialog(role)">Edit Role</a>
+              </div>
+              <div v-if="authStore.can('roles.manage')" class="d-flex">
+                <v-btn icon="mdi-content-copy" variant="text" size="small" title="Duplicate role" @click="handleDuplicate(role)" />
                 <v-btn
-                  v-if="authStore.can('roles.manage')"
+                  v-if="role.name !== 'admin'"
+                  icon="mdi-delete-outline"
                   variant="text"
                   size="small"
-                  color="primary"
-                  prepend-icon="mdi-pencil"
-                  @click="openEditDialog(role)"
-                >
-                  Edit Role
-                </v-btn>
-                <div class="d-flex gap-1">
-                  <v-btn
-                    v-if="authStore.can('roles.manage')"
-                    icon="mdi-content-copy"
-                    size="small"
-                    variant="text"
-                    color="grey"
-                  />
-                  <v-btn
-                    v-if="authStore.can('roles.delete')"
-                    icon="mdi-delete"
-                    size="small"
-                    variant="text"
-                    color="error"
-                    :loading="deleting"
-                    @click="handleDelete(role)"
-                  />
-                </div>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-
-          <!-- Add new role card -->
-          <v-col v-if="authStore.can('roles.manage')" cols="12" sm="6" md="4" lg="3">
-            <v-card
-              variant="outlined"
-              class="h-100 d-flex flex-column align-center justify-center cursor-pointer"
-              @click="openCreateDialog"
-            >
-              <v-icon size="48" color="primary" variant="tonal">mdi-plus-circle-outline</v-icon>
-              <div class="text-h6 mt-2 text-primary">Add New Role</div>
-            </v-card>
-          </v-col>
-
-          <v-col v-else cols="12">
-            <div class="text-center text-medium-emphasis py-4">
-              No roles found{{ search ? "" : ". Create one to get started." }}
+                  color="error"
+                  title="Delete role"
+                  @click="handleDelete(role)"
+                />
+              </div>
             </div>
-          </v-col>
-        </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col v-if="authStore.can('roles.manage')" cols="12" sm="6" md="4">
+        <v-card variant="outlined" rounded="lg" class="h-100 d-flex align-center" @click="openCreateDialog" style="cursor: pointer">
+          <v-card-text class="d-flex align-center justify-space-between w-100">
+            <div>
+              <v-btn color="primary" prepend-icon="mdi-plus" @click.stop="openCreateDialog">Add New Role</v-btn>
+              <p class="text-caption text-medium-emphasis mt-3 mb-0">Add a new role, if it doesn't exist.</p>
+            </div>
+            <v-icon icon="mdi-shield-plus-outline" size="56" color="primary" class="opacity-30" />
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-divider class="my-8" />
+
+    <div class="mb-4">
+      <h2 class="text-h6 font-weight-bold">Total users with their roles</h2>
+      <p class="text-body-2 text-medium-emphasis mt-1">Find all administrator accounts and their associated role.</p>
+    </div>
+
+    <v-card variant="outlined" rounded="lg">
+      <v-card-text>
+        <v-text-field
+          v-model="userSearch"
+          label="Search user"
+          prepend-inner-icon="mdi-magnify"
+          density="compact"
+          variant="outlined"
+          hide-details
+          clearable
+          class="mb-4"
+          style="max-width: 320px"
+        />
+
+        <v-table density="comfortable">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in filteredUsers" :key="`${user.role}-${user.id}`">
+              <td>
+                <div class="d-flex align-center ga-3 py-2">
+                  <v-avatar size="32" :color="user.avatar_url ? undefined : avatarColor(user.name)">
+                    <v-img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.name" />
+                    <span v-else class="text-caption font-weight-bold" style="color: white">{{ initials(user.name) }}</span>
+                  </v-avatar>
+                  <div>
+                    <div class="text-body-2 font-weight-medium">{{ user.name }}</div>
+                    <div class="text-caption text-medium-emphasis">{{ user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><v-chip size="small" variant="tonal">{{ user.role }}</v-chip></td>
+              <td>
+                <v-chip :color="user.is_active ? 'success' : 'default'" size="small" variant="tonal">
+                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                </v-chip>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+
+        <div v-if="!filteredUsers.length" class="text-center text-medium-emphasis py-6">No users found.</div>
       </v-card-text>
     </v-card>
 
-    <!-- Create / edit dialog with permission matrix -->
-    <v-dialog v-model="dialogOpen" max-width="720" persistent scrollable>
-      <v-card :title="isEditing ? 'Edit role' : 'Create a role'">
-        <v-card-text>
-          <v-form @submit.prevent="handleSubmit">
-            <v-text-field
-              v-model="formName"
-              label="Role name"
-              :rules="[(v) => !!v || 'Role name is required']"
-              required
-              density="compact"
-            />
+    <!-- Edit / Add Role dialog -->
+    <v-dialog v-model="dialogOpen" max-width="720" scrollable>
+      <v-card>
+        <v-card-title class="text-center pt-6">
+          <div class="text-h5 font-weight-bold">{{ isEditing ? 'Edit Role' : 'Add New Role' }}</div>
+          <div class="text-body-2 text-medium-emphasis font-weight-regular">Set Role Permissions</div>
+        </v-card-title>
 
-            <div v-if="isEditing && permissionMatrix.length > 0" class="mt-4">
-              <h3 class="text-subtitle-2 mb-2">Role Permissions</h3>
-              <v-card variant="outlined" class="mb-2">
-                <v-card-text class="pa-0">
-                  <!--                   <!-- Select All -->
-                  <div class="d-flex justify-end pa-2">
-                    <v-checkbox
-                      :model-value="allPermissionsSelected"
-                      :indeterminate="somePermissionsSelected && !allPermissionsSelected"
-                      label="Select All"
-                      hide-details
-                      density="compact"
-                      @update:model-value="toggleAllPermissions"
-                    />
-                  </div>
+        <v-card-text style="max-height: 60vh">
+          <v-text-field
+            v-model="formName"
+            label="Role Name"
+            variant="outlined"
+            :disabled="isAdminRole"
+            :hint="isAdminRole ? 'The admin role name cannot be changed.' : undefined"
+            persistent-hint
+            class="mb-4"
+          />
 
-                  <v-divider />
+          <div class="text-subtitle-1 font-weight-bold mb-2">Role Permissions</div>
 
-                  <!-- Extension groups as expansion panels -->
-                  <v-expansion-panels variant="accordion" multiple>
-                    <v-expansion-panel
-                      v-for="ext in permissionMatrix"
-                      :key="ext.name"
-                      :value="ext.name"
-                    >
-                      <v-expansion-panel-title>
-                        <div class="d-flex align-center">
-                          <v-icon
-                            :icon="ext.name === 'Core' ? 'mdi-cog' : ext.name === 'Gallery' ? 'mdi-image-multiple' : 'mdi-puzzle'"
-                            class="mr-2"
-                          />
-                          <span class="font-weight-medium">{{ ext.name }}</span>
-                          <v-chip size="x-small" class="ml-2" variant="tonal">
-                            {{ ext.permissionCount }}
-                          </v-chip>
-                        </div>
-                      </v-expansion-panel-title>
-
-                      <v-expansion-panel-text>
-                        <div
-                          v-for="(perms, action) in ext.actions"
-                          :key="action"
-                          class="d-flex align-center py-1"
-                        >
-                          <v-checkbox
-                            :model-value="isActionSelected(ext.name, action)"
-                            :indeterminate="isActionIndeterminate(ext.name, action)"
-                            :label="action"
-                            hide-details
-                            density="compact"
-                            @update:model-value="toggleAction(ext.name, action)"
-                          />
-                          <v-chip
-                            v-for="p in perms.slice(0, 3)"
-                            :key="p"
-                            size="x-small"
-                            variant="outlined"
-                            class="ml-1"
-                          >
-                            {{ p }}
-                          </v-chip>
-                          <span
-                            v-if="perms.length > 3"
-                            class="text-caption text-medium-emphasis ml-1"
-                          >
-                            {{ perms.length - 3 }} more
-                          </span>
-                        </div>
-                      </v-expansion-panel-text>
-                    </v-expansion-panel>
-                  </v-expansion-panels>
-                </v-card-text>
-              </v-card>
+          <div v-for="group in permissionGroups" :key="group.domain" class="mb-5">
+            <div class="d-flex align-center justify-space-between border-b pb-2 mb-2">
+              <span class="text-body-2 font-weight-bold">{{ group.label }}</span>
+              <v-checkbox
+                :model-value="isGroupFullySelected(group)"
+                label="Select All"
+                density="compact"
+                hide-details
+                @update:model-value="(v) => toggleGroup(group, !!v)"
+              />
             </div>
 
-            <v-alert
-              v-if="saveError"
-              type="error"
-              density="compact"
-              class="mt-2"
-              >{{ saveError.message }}</v-alert
-            >
-            <v-alert
-              v-if="updateError"
-              type="error"
-              density="compact"
-              class="mt-2"
-              >{{ updateError.message }}</v-alert
-            >
-          </v-form>
+            <div v-for="row in group.rows" class="d-flex align-center py-2" :key="row.object">
+              <span class="text-body-2 text-capitalize" style="min-width: 160px">{{ row.object.replaceAll('.', ' ') }}</span>
+              <div class="d-flex flex-wrap ga-4">
+                <v-checkbox
+                  v-for="cell in row.cells"
+                  :key="cell.permission.id"
+                  v-model="selected[cell.permission.name]"
+                  :label="cell.label"
+                  density="compact"
+                  hide-details
+                />
+              </div>
+            </div>
+          </div>
+
+          <v-alert v-if="saveError" type="error" density="compact" class="mt-2">{{ saveError.message }}</v-alert>
+          <v-alert v-if="updateError" type="error" density="compact" class="mt-2">{{ updateError.message }}</v-alert>
         </v-card-text>
-        <v-card-actions>
+
+        <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            :loading="saving || updating"
-            @click="handleSubmit"
-          >
-            {{ isEditing ? "Save changes" : "Create role" }}
-          </v-btn>
+          <v-btn color="primary" :loading="saving || updating" @click="handleSubmit">Submit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

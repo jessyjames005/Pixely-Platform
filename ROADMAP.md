@@ -142,16 +142,22 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission system
 * [x] Role assignment
 * [x] Permission checks
-* [ ] Extension-declared permissions (dynamic, not hardcoded) — see detailed checklist below, not started yet despite this having been marked done previously
+* [x] Extension-declared permissions (dynamic, not hardcoded) — sync mechanism is done; the richer Roles UI described below is not, see detailed checklist
 
 #### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
 
-Today, permissions are hardcoded in RolePermissionSeeder. The target model: each installed extension declares its own permission set (view/manage/delete per object, following the established naming convention), synced into the database automatically on install/enable — no more manually editing a seeder for every new extension or object type.
+Today, permission sync is automatic: each extension optionally implements
+`ExtensionPermissionsInterface::declaredPermissions()`, and
+`ExtensionPermissionSynchronizer` (run via the `pixely:sync-permissions`
+command, itself called from `RolePermissionSeeder`) creates any missing
+`Permission` row — additive only, never deletes on disable/uninstall.
+Gallery, Tuleap and Translations all declare their permissions this way
+today. What's left is a friendlier Roles UI built on top of that data.
 
-* [ ] Extension manifest/contract method declaring the extension's permissions (object → available actions)
-* [ ] Automatic permission sync on extension install/enable (create missing Permission rows; never silently delete existing ones on disable/uninstall, to avoid breaking existing role assignments)
-* [ ] Roles UI: per-module/per-object row, not a raw permission checkbox list
-* [ ] Roles UI: friendly two-column control per row — "Accessibilité" (Interdit / Lecture / Écriture, mapping to none / view / manage+delete) and "Visibilité" (Caché / Visible, controlling whether the admin nav section appears at all for that role)
+* [x] Extension manifest/contract method declaring the extension's permissions (object → available actions) — `ExtensionPermissionsInterface`
+* [x] Automatic permission sync on extension install/enable (create missing Permission rows; never silently delete existing ones on disable/uninstall, to avoid breaking existing role assignments) — `ExtensionPermissionSynchronizer` / `pixely:sync-permissions`
+* [x] Roles UI: per-module/per-object row, not a raw permission checkbox list — `RolesView.vue` groups permissions by domain (Core sub-domains vs. each extension) and renders one row per object within a group, with a dynamic set of action checkboxes (whatever actions actually exist for that object) rather than a fixed grid
+* [ ] Roles UI: friendly two-column control per row — "Accessibilité" (Interdit / Lecture / Écriture, mapping to none / view / manage+delete) and "Visibilité" (Caché / Visible, controlling whether the admin nav section appears at all for that role). Not built as originally envisioned here — permission actions vary per object (some have delete, some don't, some are one-off custom actions like `system.sql.query`), so a rigid two-column scheme doesn't fit every case; the per-object checkbox row above is the adaptation that shipped instead
 * [ ] "Droits existants" summary view: read-only table of every module/profile/user combination and its current access level, for auditing at a glance
 
 ### Settings
@@ -1280,10 +1286,16 @@ Tuleap Extension (sprint management dashboard) — delivered out of band, see v1
 Users: preferences (theme, density, notification opt-outs) — shipped on the My Profile screen
  │
  ▼
+Extension-declared permissions sync mechanism (manifest + automatic sync) — already done, corrects a previous roadmap mistake that had this marked as not started
+ │
+ ▼
+Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role modal grouping permissions by Core/Extension with a per-role user list) — shipped; also fixed RolesView.vue being entirely missing (the router imported a file that didn't exist, breaking the admin build)
+ │
+ ▼
 CURRENT
  │
  ▼
-Extension-declared permissions (dynamic, replaces hardcoded seeder) — not started; a previous roadmap pass had incorrectly marked this done
+Roles UI: Accessibilité/Visibilité two-column control + "Droits existants" summary view — the per-object checkbox row that shipped is a deliberately different adaptation (see detailed checklist), this richer scheme is still open
  │
  ▼
 Extension Manager UI (Mediboard-style Installed/Not installed table)
@@ -1314,20 +1326,26 @@ The Pixely Platform currently has a functional extension foundation with:
 * Tuleap extension (sprint management dashboard — see v1.0.1): Tuleap API proxy, sprint stats/burndown/history, local team & retro data, 7 admin views
 * Users: self-service profile screen (avatar, bio, timezone)
 * Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
-* Roles & permissions administration, including nested/child menu support
+* Roles & permissions administration, including nested/child menu support and a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain — Core sub-domains vs. each extension)
 * API query parsing, filtering, sorting, pagination, relationships
 * Automated tests for the Gallery API
 
 The current API query layer is stable and its Gallery API tests are green. The
 Tuleap extension's backend logic has not yet been exercised by automated
 tests or run against a live Tuleap instance — see the Tuleap API checklist
-above. Extension-declared permissions are still hardcoded in
-`RolePermissionSeeder` — a previous roadmap update had marked this done by
-mistake; it has not actually been started.
+above. Extension-declared permissions actually are synced dynamically
+already (`ExtensionPermissionSynchronizer`, used by Gallery, Tuleap and
+Translations) — a previous roadmap update had incorrectly marked this as
+not started; only the richer Roles UI on top of that data was still open,
+and the card grid / grouped Edit Role modal have now shipped. The grouping
+uses each permission name's domain segment (`<domain>.<object>.<action>`)
+rather than the `is_core` flag — `is_core` also gets set on a couple of
+Translations permissions that pre-date it becoming a full extension, which
+would have grouped them under Core incorrectly.
 
 The next development focus is:
 
-1. Extension-declared permissions (dynamic, replaces the hardcoded seeder) — see the detailed checklist under Roles & Permissions.
+1. Roles UI: Accessibilité/Visibilité two-column control + "Droits existants" summary view.
 2. Extension Manager UI: the Mediboard-style Installed/Not installed table (still just the raw config editor today).
 3. Files Extension: standalone Files API + administration screen (thumbnailing/validation already ship as a shared dependency, but there's no dedicated UI yet).
 4. Extension settings screen.

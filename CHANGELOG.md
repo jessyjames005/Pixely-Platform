@@ -56,3 +56,13 @@ Versioning follows Semantic Versioning.
 - Added platform-wide application of the theme/density preference via Vuetify's `useTheme()` and `<v-defaults-provider>`.
 - Added automated tests for the new preference fields, including backfilling them onto settings rows saved before this change.
 
+### Fixed
+
+- Fixed `RolesView.vue` being entirely missing from disk while the router already imported it, breaking the admin build for anyone navigating to Roles & Permissions → Roles.
+
+### Added
+
+- Added a card-based Roles list (Material 3 / Vuetify), each card showing the role's user count, avatar stack, and Edit/Duplicate/Delete actions, plus an "Add New Role" card.
+- Added an Edit Role modal with permissions grouped by domain (Core sub-domains vs. each extension, derived from each permission's `<domain>.<object>.<action>` name), one row per object with whichever action checkboxes actually exist for it, and a per-group "Select All".
+- Added a "Total users with their roles" table below the card grid (user, role, active/inactive status), built from the roles already loaded rather than a new endpoint.
+
