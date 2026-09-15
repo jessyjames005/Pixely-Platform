@@ -49,6 +49,10 @@ final class Kernel implements KernelInterface
             foreach ($extensions as $extension) {
                 $this->extensionManager->register($extension);
 
+                if (! $this->extensionManager->isEnabled($extension->manifest()->id)) {
+                    continue;
+                }
+
                 foreach ($extension->providers() as $provider) {
                     app()->register($provider);
                 }

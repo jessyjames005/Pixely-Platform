@@ -42,10 +42,24 @@ final class AuthController
             );
         }
 
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->is_active) {
+            Auth::logout();
+
+            return $apiErrorResponse->response(
+                new ApiError(
+                    code: 'ACCOUNT_DISABLED',
+                    message: 'This account has been disabled.',
+                ),
+                403,
+            );
+        }
+
         $request->session()->regenerate();
 
         return $apiResponse->response(
-            data: $request->user(),
+            data: $this->serializeUser($user),
         );
     }
 
@@ -67,16 +81,29 @@ final class AuthController
      */
     public function me(Request $request, ApiResponse $apiResponse): JsonResponse
     {
-        $user = $request->user();
-
         return $apiResponse->response(
-            data: [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'permissions' => $user->getAllPermissions()->pluck('name')->values(),
-                'roles' => $user->getRoleNames()->values(),
-            ],
+            data: $this->serializeUser($request->user()),
         );
+    }
+
+    /**
+     * Shared user payload for login() and me() — they must always
+     * return the same shape. login() used to return the raw User
+     * model instead (no permissions/roles at all), which meant every
+     * permission-gated nav item stayed hidden until the user reloaded
+     * the page and a subsequent me() call populated the auth store
+     * properly.
+     *
+     * @return array<string, mixed>
+     */
+    private function serializeUser(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+            'roles' => $user->getRoleNames()->values(),
+        ];
     }
 }

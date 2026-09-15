@@ -28,32 +28,46 @@ final class ExtensionManager
     /**
      * Register a new extension.
      */
+    /**
+     * Register a newly discovered extension.
+     *
+     * Only sets its initial state to Enabled the first time it's ever
+     * seen. Extensions are re-discovered from disk on every request
+     * (PHP has no long-running process state), so unconditionally
+     * writing Enabled here — as this used to do — silently undid any
+     * disable() the moment the very next request came in: this method
+     * runs before the disabled extension's own state could ever be
+     * read back.
+     */
     public function register(ExtensionInterface $extension): void
     {
         $this->registry->register($extension);
 
-        $this->stateRepository->save(
-            new ExtensionState(
-                extension: $extension,
-                status: ExtensionStatus::Enabled,
-            ),
-        );
-    }
+        $id = $extension->manifest()->id;
 
-    /**
-     * Boot all registered extensions.
-     */
-    public function boot(): void
-    {
-        $this->registry->boot();
-
-        foreach ($this->registry->all() as $extension) {
-            $this->stateRepository->update(
+        if ($this->stateRepository->find($id) === null) {
+            $this->stateRepository->save(
                 new ExtensionState(
                     extension: $extension,
                     status: ExtensionStatus::Enabled,
                 ),
             );
+        }
+    }
+
+    /**
+     * Boot every currently enabled extension.
+     *
+     * Only loops over enabled() — it used to boot every registered
+     * extension unconditionally and force its status back to Enabled
+     * in the same pass, which combined with the register() bug above
+     * meant a disabled extension's own boot() (and, in the Kernel,
+     * its service providers) kept running anyway.
+     */
+    public function boot(): void
+    {
+        foreach ($this->enabled() as $extension) {
+            $extension->boot();
         }
     }
 

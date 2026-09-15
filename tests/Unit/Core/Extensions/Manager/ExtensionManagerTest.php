@@ -163,4 +163,47 @@ final class ExtensionManagerTest extends TestCase
             $manager->isEnabled('gallery')
         );
     }
+
+    /**
+     * Regression test: PHP has no long-running process state, so every
+     * request re-discovers and re-registers every extension from
+     * scratch. register() used to unconditionally reset the persisted
+     * status back to Enabled, which silently undid any disable() the
+     * moment the next request's registration ran — before that
+     * request's own code could ever observe the disabled state.
+     */
+    public function test_disabling_an_extension_survives_a_fresh_registration(): void
+    {
+        $sharedState = new InMemoryExtensionStateRepository();
+
+        $firstRequestManager = new ExtensionManager(
+            new ExtensionRegistry(),
+            new ExtensionRepository(
+                new ExtensionDiscoverer(),
+                new ExtensionManifestReader(),
+                new ExtensionDependencyResolver(),
+            ),
+            $sharedState,
+        );
+        $firstRequestManager->register(new FakeExtension());
+        $firstRequestManager->disable('gallery');
+
+        // A new manager instance over the same persisted state,
+        // re-registering the extension — exactly what happens on the
+        // next HTTP request.
+        $secondRequestManager = new ExtensionManager(
+            new ExtensionRegistry(),
+            new ExtensionRepository(
+                new ExtensionDiscoverer(),
+                new ExtensionManifestReader(),
+                new ExtensionDependencyResolver(),
+            ),
+            $sharedState,
+        );
+        $secondRequestManager->register(new FakeExtension());
+
+        $this->assertFalse(
+            $secondRequestManager->isEnabled('gallery'),
+        );
+    }
 }
