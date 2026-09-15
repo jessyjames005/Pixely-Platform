@@ -55,11 +55,16 @@ final class RolePermissionSeeder extends Seeder
         foreach (self::PERMISSIONS as $permission) {
             Permission::firstOrCreate(
                 ['name' => $permission, 'guard_name' => 'web'],
+                ['is_core' => true],
             );
         }
 
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions([...self::PERMISSIONS, 'gallery.photos.view', 'gallery.photos.manage', 'gallery.photos.delete']);
+        $admin->syncPermissions([
+            ...self::PERMISSIONS,
+            'gallery.photos.view', 'gallery.photos.manage', 'gallery.photos.delete',
+            'files.view', 'files.manage', 'files.delete',
+        ]);
 
         $editor = Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web']);
         $editor->syncPermissions(['gallery.photos.view', 'gallery.photos.manage']);

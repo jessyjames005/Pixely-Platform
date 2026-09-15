@@ -23,6 +23,7 @@ import TuleapRetrospectiveView from "@extensions/tuleap/views/RetrospectiveView.
 import TuleapSprintAnalyticsView from "@extensions/tuleap/views/SprintAnalyticsView.vue";
 import TuleapTeamSettingsView from "@extensions/tuleap/views/TeamSettingsView.vue";
 import TuleapSystemSettingsView from "@extensions/tuleap/views/SystemSettingsView.vue";
+import FilesView from "@extensions/files/views/FilesView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -59,6 +60,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'tuleap/tendances', name: 'admin.tuleap.tendances', component: TuleapSprintAnalyticsView },
       { path: 'tuleap/equipe', name: 'admin.tuleap.equipe', component: TuleapTeamSettingsView },
       { path: 'tuleap/system', name: 'admin.tuleap.system', component: TuleapSystemSettingsView },
+      { path: 'files', name: 'admin.files', component: FilesView },
     ],
   },
 ];

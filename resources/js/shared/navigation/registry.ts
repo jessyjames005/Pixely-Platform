@@ -12,12 +12,14 @@ import { extensionsNavItem } from '@core/extensions/nav'
 import { galleryNavItem } from '@extensions/gallery/nav'
 import { translationsNavItem } from '@extensions/translations/nav'
 import { tuleapNavItem } from '@extensions/tuleap/nav'
+import { filesNavItem } from '@extensions/files/nav'
 import type { NavItem } from './types'
 
 export const navRegistry: NavItem[] = [
   dashboardNavItem,
   galleryNavItem,
   tuleapNavItem,
+  filesNavItem,
   usersNavItem,
   rolesNavItem,
   settingsNavItem,

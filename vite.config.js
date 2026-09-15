@@ -48,6 +48,9 @@ export default defineConfig({
       "@extensions/translations": fileURLToPath(
         new URL("./app/Extensions/Translations/resources/js", import.meta.url),
       ),
+      "@extensions/files": fileURLToPath(
+        new URL("./app/Extensions/Files/Resources/js", import.meta.url),
+      ),
     },
   },
   server: {

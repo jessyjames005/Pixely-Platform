@@ -74,9 +74,16 @@ Versioning follows Semantic Versioning.
 
 ### Added
 
-- Added Enabled/Disabled tabs to the Extension Manager screen (adapted from the MB reference's Installed/Not installed tabs — Pixely has no catalog of known-but-absent extensions, so that distinction doesn't apply here; every discovered extension is already "installed" by definition).
+- Added Enabled/Disabled tabs to the Extension Manager screen (adapted from the Mediboard reference's Installed/Not installed tabs — Pixely has no catalog of known-but-absent extensions, so that distinction doesn't apply here; every discovered extension is already "installed" by definition).
 
 ### Changed
 
 - Removed the "ID" column from the Extension Manager table (name is the human-facing identifier; the id is still used internally).
+
+### Added
+
+- Added a standalone Files API (`GET/POST /files`, `GET/DELETE /files/{file}`) with its own `files` table tracking uploads made through it, independent of Gallery's and the profile avatar's own separate storage.
+- Added a Files administration screen (`/admin/files`): grid view with image thumbnails or a type icon otherwise, upload, delete, pagination.
+- Added `files.view`/`files.manage`/`files.delete` permissions, declared via `ExtensionPermissionsInterface` and granted to the admin role.
+- Added Pest coverage for the Files API (auth required, upload validation, list pagination, show, delete).
 

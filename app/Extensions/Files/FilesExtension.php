@@ -7,14 +7,16 @@ namespace App\Extensions\Files;
 use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
+use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
 use App\Extensions\Files\Providers\FilesServiceProvider;
 
 /**
  * Files extension: shared upload validation and processing rules
  * (max size, allowed types, batch limits, thumbnails), consumed by
- * other extensions via a declared dependency.
+ * other extensions via a declared dependency — plus its own standalone
+ * API and admin screen for browsing/uploading/deleting files directly.
  */
-final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface
+final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionPermissionsInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -39,6 +41,18 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
             'max_files_per_upload' => 5,
             'thumbnail_width' => 300,
             'thumbnail_height' => 300,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function declaredPermissions(): array
+    {
+        return [
+            'files.view',
+            'files.manage',
+            'files.delete',
         ];
     }
 

@@ -18,6 +18,7 @@
       "@extensions/tuleap/*": ["app/Extensions/Tuleap/Resources/js/*"],
       "@core/extensions/*": ["app/Core/Extensions/resources/js/*"],
       "@extensions/translations/*": ["app/Extensions/Translations/resources/js/*"],
+      "@extensions/files/*": ["app/Extensions/Files/Resources/js/*"],
     }
   },
   "include": [
