@@ -131,9 +131,21 @@ it('reads and updates an extension configuration', function () {
 
     $this->putJson('/api/v1/extensions/gallery/config', ['max_upload_size' => 5])
         ->assertOk()
-        ->assertJsonPath('data.max_upload_size', 5);
+        ->assertJsonPath('data.values.max_upload_size', 5);
 
     $this->getJson('/api/v1/extensions/gallery/config')
         ->assertOk()
-        ->assertJsonPath('data.max_upload_size', 5);
+        ->assertJsonPath('data.values.max_upload_size', 5)
+        ->assertJsonStructure(['data' => ['defaults', 'values']]);
+});
+
+it('returns declared defaults for a never-configured extension, not an empty payload', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.view');
+    $this->actingAs($user);
+
+    $response = $this->getJson('/api/v1/extensions/files/config')->assertOk();
+
+    $response->assertJsonPath('data.defaults.max_file_size_kb', 5120);
+    $response->assertJsonPath('data.values.max_file_size_kb', 5120);
 });

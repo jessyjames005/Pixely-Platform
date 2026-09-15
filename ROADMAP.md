@@ -1304,10 +1304,10 @@ Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/
 Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
  │
  ▼
-CURRENT
+Extension settings screen — shipped: the config dialog now renders a form generated from each extension's declared defaults (field type inferred from the default value's own JS type: boolean/number/string/string-array get a proper widget, anything else falls back to a per-field JSON textarea) instead of one big raw JSON blob; also fixed GET /extensions/{id}/config returning only stored overrides (empty for a never-configured extension) instead of merging in the declared defaults
  │
  ▼
-Extension settings screen
+CURRENT
  │
  ▼
 Sample Cinema Extension + frontend training
@@ -1332,6 +1332,8 @@ The Pixely Platform currently has a functional extension foundation with:
 * Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
 * Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
+* Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
+* Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
 * API query parsing, filtering, sorting, pagination, relationships
 * Automated tests for the Gallery API
 
@@ -1351,10 +1353,9 @@ incorrectly.
 
 The next development focus is:
 
-1. Extension settings screen.
-2. Build the Sample Cinema Extension as a developer reference.
-3. Continue the Gallery Extension with its visual administration interface.
-4. Automated tests for the Tuleap extension's backend.
+1. Build the Sample Cinema Extension as a developer reference.
+2. Continue the Gallery Extension with its visual administration interface.
+3. Automated tests for the Tuleap extension's backend.
 
 The development process should continue through clearly defined sprints, with each sprint having:
 

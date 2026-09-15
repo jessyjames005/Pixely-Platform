@@ -11,3 +11,8 @@ export interface ExtensionDetail extends ExtensionSummary {
   path: string
   providers: string[]
 }
+
+export interface ExtensionConfigPayload {
+  defaults: Record<string, unknown>
+  values: Record<string, unknown>
+}

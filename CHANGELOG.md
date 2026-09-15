@@ -87,3 +87,11 @@ Versioning follows Semantic Versioning.
 - Added `files.view`/`files.manage`/`files.delete` permissions, declared via `ExtensionPermissionsInterface` and granted to the admin role.
 - Added Pest coverage for the Files API (auth required, upload validation, list pagination, show, delete).
 
+### Changed
+
+- Changed the Extension Manager's config dialog to render a form generated from each extension's declared defaults (proper widget per field type — switch, number, text, chips for a string array — falling back to a per-field JSON textarea for anything else) instead of one raw JSON textarea for the whole config.
+
+### Fixed
+
+- Fixed `GET /extensions/{id}/config` returning only stored overrides — empty for an extension that had never been configured, giving no indication of what was even configurable. It now returns `{defaults, values}`, values being defaults merged with any overrides.
+

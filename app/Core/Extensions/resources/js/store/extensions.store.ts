@@ -3,17 +3,19 @@
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
 import type { ApiCollectionResponse, ApiResponse } from '@shared/types/api'
-import type { ExtensionSummary, ExtensionDetail } from '../models/Extension'
+import type { ExtensionSummary, ExtensionDetail, ExtensionConfigPayload } from '../models/Extension'
 
 interface ExtensionsState {
   extensions: ExtensionSummary[]
-  config: Record<string, unknown> | null
+  configDefaults: Record<string, unknown> | null
+  configValues: Record<string, unknown> | null
 }
 
 export const useExtensionsStore = defineStore('extensions', {
   state: (): ExtensionsState => ({
     extensions: [],
-    config: null,
+    configDefaults: null,
+    configValues: null,
   }),
 
   actions: {
@@ -36,13 +38,15 @@ export const useExtensionsStore = defineStore('extensions', {
     },
 
     async fetchConfig(id: string): Promise<void> {
-      const result = await apiClient.get<ApiResponse<Record<string, unknown>>>(`/extensions/${id}/config`)
-      this.config = result.data
+      const result = await apiClient.get<ApiResponse<ExtensionConfigPayload>>(`/extensions/${id}/config`)
+      this.configDefaults = result.data.defaults
+      this.configValues = result.data.values
     },
 
     async updateConfig(id: string, config: Record<string, unknown>): Promise<void> {
-      const result = await apiClient.put<ApiResponse<Record<string, unknown>>>(`/extensions/${id}/config`, config)
-      this.config = result.data
+      const result = await apiClient.put<ApiResponse<ExtensionConfigPayload>>(`/extensions/${id}/config`, config)
+      this.configDefaults = result.data.defaults
+      this.configValues = result.data.values
     },
 
     async install(file: File): Promise<{ id: string; name: string; version: string }> {

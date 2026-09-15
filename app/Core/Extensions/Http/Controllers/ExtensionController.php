@@ -7,6 +7,7 @@ namespace App\Core\Extensions\Http\Controllers;
 use App\Core\Api\Response\ApiCollectionResponse;
 use App\Core\Api\Response\ApiResponse;
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
+use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
@@ -106,7 +107,10 @@ final class ExtensionController
     }
 
     /**
-     * Display an extension's stored configuration overrides.
+     * Display an extension's configuration: its declared defaults (if
+     * any) alongside the current effective values (defaults merged with
+     * any stored overrides) — enough for the frontend to render a form
+     * without needing to already know the extension's config shape.
      */
     public function showConfig(string $id, ApiResponse $apiResponse): JsonResponse
     {
@@ -114,7 +118,16 @@ final class ExtensionController
             abort(404, 'Extension not found.');
         }
 
-        return $apiResponse->response(data: $this->configRepository->load($id));
+        $extension = $this->manager->all()[$id];
+        $defaults = $extension instanceof ExtensionConfigurableInterface
+            ? $extension->defaultConfiguration()
+            : [];
+        $overrides = $this->configRepository->load($id);
+
+        return $apiResponse->response(data: [
+            'defaults' => $defaults,
+            'values' => [...$defaults, ...$overrides],
+        ]);
     }
 
     /**
@@ -130,7 +143,15 @@ final class ExtensionController
 
         $this->configRepository->save($id, $configuration);
 
-        return $apiResponse->response(data: $this->configRepository->load($id));
+        $extension = $this->manager->all()[$id];
+        $defaults = $extension instanceof ExtensionConfigurableInterface
+            ? $extension->defaultConfiguration()
+            : [];
+
+        return $apiResponse->response(data: [
+            'defaults' => $defaults,
+            'values' => [...$defaults, ...$this->configRepository->load($id)],
+        ]);
     }
 
     /**

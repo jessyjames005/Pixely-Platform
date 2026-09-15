@@ -2,14 +2,14 @@
 // Extension Manager administration screen: list, enable/disable,
 // configure, install/update/uninstall extensions.
 //
-// Reference: MB's modules screen uses "Installed (N)" / "Not
+// Reference: Mediboard's modules screen uses "Installed (N)" / "Not
 // installed (N)" tabs, backed by a catalog of every known module
 // whether currently present or not. Pixely has no such catalog — an
 // extension discovered on disk (app/Extensions/*) is registered and,
 // by definition, already installed; the only state that varies from
 // there is Enabled/Disabled. The tabs below use that distinction
 // instead, rather than faking an "installed" concept Pixely doesn't have.
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useApi } from "@shared/composables/useApi";
 import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
@@ -71,10 +71,24 @@ const {
   execute: submitUpdate,
 } = useApi(extensionsStore.update);
 
-// Config dialog
+// Config dialog — renders a form generated from the extension's
+// declared defaults (field type inferred from the default value's own
+// JS type) instead of a raw JSON textarea. A nested object/array of
+// non-strings has no simple widget, so it falls back to a per-field
+// JSON textarea rather than forcing every extension's config into a
+// flat shape.
+type ConfigFieldKind = "boolean" | "number" | "string" | "string-array" | "json";
+
+interface ConfigField {
+  key: string;
+  kind: ConfigFieldKind;
+}
+
 const configDialogOpen = ref(false);
 const configTargetId = ref<string | null>(null);
-const configText = ref("{}");
+const formValues = reactive<Record<string, unknown>>({});
+const jsonDrafts = reactive<Record<string, string>>({});
+
 const { loading: loadingConfig, execute: fetchConfig } = useApi(
   extensionsStore.fetchConfig,
 );
@@ -83,6 +97,39 @@ const {
   error: configError,
   execute: submitConfig,
 } = useApi(extensionsStore.updateConfig);
+
+function fieldKindFor(value: unknown): ConfigFieldKind {
+  if (typeof value === "boolean") return "boolean";
+  if (typeof value === "number") return "number";
+  if (typeof value === "string") return "string";
+  if (Array.isArray(value) && value.every((v) => typeof v === "string")) return "string-array";
+  return "json";
+}
+
+function labelFor(key: string): string {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const configFields = computed<ConfigField[]>(() =>
+  Object.entries(extensionsStore.configDefaults ?? {}).map(([key, value]) => ({
+    key,
+    kind: fieldKindFor(value),
+  })),
+);
+
+function syncFormValues(): void {
+  for (const key of Object.keys(formValues)) delete formValues[key];
+  for (const key of Object.keys(jsonDrafts)) delete jsonDrafts[key];
+
+  const values = extensionsStore.configValues ?? {};
+  for (const field of configFields.value) {
+    if (field.kind === "json") {
+      jsonDrafts[field.key] = JSON.stringify(values[field.key] ?? null, null, 2);
+    } else {
+      formValues[field.key] = values[field.key];
+    }
+  }
+}
 
 // Details dialog
 const detailsDialogOpen = ref(false);
@@ -174,23 +221,27 @@ async function handleUninstall(extension: ExtensionSummary): Promise<void> {
 async function openConfigDialog(extension: ExtensionSummary): Promise<void> {
   configTargetId.value = extension.id;
   await fetchConfig(extension.id);
-  configText.value = JSON.stringify(extensionsStore.config ?? {}, null, 2);
+  syncFormValues();
   configDialogOpen.value = true;
 }
 
 async function handleSaveConfig(): Promise<void> {
   if (!configTargetId.value) return;
 
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(configText.value);
-  } catch {
-    notify.error("Invalid JSON.");
-    return;
+  const payload: Record<string, unknown> = { ...formValues };
+
+  for (const field of configFields.value) {
+    if (field.kind !== "json") continue;
+    try {
+      payload[field.key] = JSON.parse(jsonDrafts[field.key] ?? "null");
+    } catch {
+      notify.error(`Invalid JSON for "${labelFor(field.key)}".`);
+      return;
+    }
   }
 
-  const result = await submitConfig(configTargetId.value, parsed);
-  if (result) {
+  await submitConfig(configTargetId.value, payload);
+  if (!configError.value) {
     notify.success("Configuration saved.");
     configDialogOpen.value = false;
   }
@@ -402,13 +453,56 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
       <v-card :title="`Configuration — ${configTargetId}`">
         <v-card-text>
           <p v-if="loadingConfig">Loading…</p>
-          <v-textarea
-            v-else
-            v-model="configText"
-            rows="12"
-            font="monospace"
-            label="Configuration (JSON)"
-          />
+
+          <p v-else-if="!configFields.length" class="text-medium-emphasis">
+            This extension has no configurable settings.
+          </p>
+
+          <template v-else>
+            <div v-for="field in configFields" :key="field.key" class="mb-4">
+              <v-switch
+                v-if="field.kind === 'boolean'"
+                v-model="formValues[field.key]"
+                :label="labelFor(field.key)"
+                density="compact"
+                hide-details
+              />
+              <v-text-field
+                v-else-if="field.kind === 'number'"
+                v-model.number="formValues[field.key]"
+                :label="labelFor(field.key)"
+                type="number"
+                density="compact"
+              />
+              <v-text-field
+                v-else-if="field.kind === 'string'"
+                v-model="formValues[field.key]"
+                :label="labelFor(field.key)"
+                density="compact"
+              />
+              <v-combobox
+                v-else-if="field.kind === 'string-array'"
+                v-model="formValues[field.key]"
+                :label="labelFor(field.key)"
+                multiple
+                chips
+                closable-chips
+                density="compact"
+                hint="Press enter after each value"
+                persistent-hint
+              />
+              <v-textarea
+                v-else
+                v-model="jsonDrafts[field.key]"
+                :label="`${labelFor(field.key)} (JSON)`"
+                rows="4"
+                font="monospace"
+                hint="No simple form control for this shape — edit as JSON"
+                persistent-hint
+              />
+            </div>
+          </template>
+
           <v-alert
             v-if="configError"
             type="error"
