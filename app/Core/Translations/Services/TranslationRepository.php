@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Extensions\Translations\Services;
+namespace App\Core\Translations\Services;
 
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Translations\ExtensionTranslatableInterface;

@@ -16,6 +16,7 @@ import { useNotify } from '@shared/composables/useNotify'
 import { useConfirmDialog } from '@shared/composables/useConfirmDialog'
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { useRolesStore } from '../store/roles.store'
+import { translate as t } from '@shared/plugins/i18n'
 import type { Permission, Role, RoleUser } from '../models/Role'
 
 const authStore = useAuthStore()
@@ -53,17 +54,23 @@ function overflowCount(role: Role): number {
 
 // ── Permission grouping (domain = first segment of "<domain>.<object>.<action>") ──
 
-const CORE_DOMAINS: Record<string, string> = {
-  users: 'Utilisateurs',
-  roles: 'Rôles & Permissions',
-  system: 'Système',
-  settings: 'Paramètres',
-  translations: 'Traductions',
+function coreDomainLabel(domain: string): string | null {
+  const labels: Record<string, string> = {
+    users: t('core.roles.msg.domain_users', 'Users'),
+    roles: t('core.roles.msg.domain_roles', 'Roles & Permissions'),
+    system: t('core.roles.msg.domain_system', 'System'),
+    settings: t('core.roles.msg.domain_settings', 'Settings'),
+    translations: t('core.roles.msg.domain_translations', 'Translations'),
+  }
+  return labels[domain] ?? null
 }
-const ACTION_LABELS: Record<string, string> = {
-  view: 'Voir',
-  manage: 'Gérer',
-  delete: 'Supprimer',
+function actionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    view: t('common.action.view', 'View'),
+    manage: t('common.action.manage', 'Manage'),
+    delete: t('common.action.delete', 'Delete'),
+  }
+  return labels[action] ?? action
 }
 
 interface PermissionRow {
@@ -84,23 +91,24 @@ const permissionGroups = computed<PermissionGroup[]>(() => {
     const segments = permission.name.split('.')
     const domain = segments[0] ?? permission.name
     const action = segments.length > 1 ? segments[segments.length - 1] : segments[0]
-    const object = segments.length > 2 ? segments.slice(1, -1).join('.') : (segments.length === 2 ? segments[0] : 'général')
+    const object = segments.length > 2 ? segments.slice(1, -1).join('.') : (segments.length === 2 ? segments[0] : t('common.msg.general', 'General'))
 
     if (!byDomain.has(domain)) byDomain.set(domain, new Map())
     const rows = byDomain.get(domain)!
     if (!rows.has(object)) rows.set(object, { object, cells: [] })
-    rows.get(object)!.cells.push({ permission, action, label: ACTION_LABELS[action] ?? action })
+    rows.get(object)!.cells.push({ permission, action, label: actionLabel(action) })
   }
 
   const groups: PermissionGroup[] = []
   for (const [domain, rows] of byDomain.entries()) {
-    const isCore = domain in CORE_DOMAINS
+    const coreLabel = coreDomainLabel(domain)
+    const isCore = coreLabel !== null
     groups.push({
       domain,
       isCore,
       label: isCore
-        ? `Core — ${CORE_DOMAINS[domain]}`
-        : `Extension — ${domain.charAt(0).toUpperCase()}${domain.slice(1)}`,
+        ? `${t('core.roles.msg.group_prefix_core', 'Core')} — ${coreLabel}`
+        : `${t('core.roles.msg.group_prefix_extension', 'Extension')} — ${domain.charAt(0).toUpperCase()}${domain.slice(1)}`,
       rows: Array.from(rows.values()),
     })
   }
@@ -211,8 +219,8 @@ function roleRowAccessLevel(role: Role, row: PermissionRow): AccessLevel {
 
 function accessLevelLabel(row: PermissionRow, level: AccessLevel): string {
   if (level === 'none') return '—'
-  if (!rowHasReadWriteShape(row)) return 'Autorisé'
-  return level === 'view' ? 'Lecture' : 'Écriture'
+  if (!rowHasReadWriteShape(row)) return t('core.roles.msg.access_allowed', 'Allowed')
+  return level === 'view' ? t('core.roles.msg.access_view', 'View only') : t('core.roles.msg.access_write', 'Read & write')
 }
 
 function accessLevelColor(level: AccessLevel): string | undefined {
@@ -226,7 +234,7 @@ async function handleSubmit(): Promise<void> {
   if (isEditing.value && editingRole.value) {
     await submitUpdate(editingRole.value.id, { name: formName.value, permissions })
     if (!updateError.value) {
-      notify.success('Rôle mis à jour.')
+      notify.success(t('core.roles.msg.role_updated', 'Role updated.'))
       closeDialog()
       await fetchRoles()
     }
@@ -235,7 +243,7 @@ async function handleSubmit(): Promise<void> {
 
   await submitCreate({ name: formName.value, permissions })
   if (!saveError.value) {
-    notify.success('Rôle créé.')
+    notify.success(t('core.roles.msg.role_created', 'Role created.'))
     closeDialog()
     await fetchRoles()
   }
@@ -245,11 +253,11 @@ async function handleSubmit(): Promise<void> {
 
 async function handleDuplicate(role: Role): Promise<void> {
   const created = await submitCreate({
-    name: `${role.name} (copie)`,
+    name: `${role.name} ${t('core.roles.msg.duplicate_suffix', '(copy)')}`,
     permissions: role.permissions.map((p) => p.name),
   })
   if (created) {
-    notify.success(`Rôle "${role.name}" dupliqué.`)
+    notify.success(t('core.roles.msg.role_duplicated', 'Role ":name" duplicated.', { name: role.name }))
     await fetchRoles()
     openEditDialog(created)
   }
@@ -257,15 +265,19 @@ async function handleDuplicate(role: Role): Promise<void> {
 
 async function handleDelete(role: Role): Promise<void> {
   const confirmed = await confirm({
-    title: 'Supprimer le rôle',
-    message: `Supprimer le rôle "${role.name}" ? Les utilisateurs qui l'ont perdront ces accès. Cette action est irréversible.`,
-    confirmText: 'Supprimer',
+    title: t('core.roles.title.confirm_delete_role', 'Delete role'),
+    message: t(
+      'core.roles.msg.confirm_delete_role',
+      'Delete role ":name"? Users who have it will lose that access. This cannot be undone.',
+      { name: role.name },
+    ),
+    confirmText: t('common.action.delete', 'Delete'),
     color: 'error',
   })
   if (!confirmed) return
 
   await rolesStore.deleteRole(role.id)
-  notify.success('Rôle supprimé.')
+  notify.success(t('core.roles.msg.role_deleted', 'Role deleted.'))
   await fetchRoles()
 }
 
@@ -295,10 +307,9 @@ const filteredUsers = computed(() => {
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-h5 font-weight-bold">Roles List</h1>
+      <h1 class="text-h5 font-weight-bold">{{ $t('core.roles.title.roles_list', 'Roles List') }}</h1>
       <p class="text-body-2 text-medium-emphasis mt-1">
-        A role gives access to a predefined set of permissions. Depending on the role assigned,
-        an administrator can access what they need.
+        {{ $t('core.roles.msg.roles_list_description', 'A role gives access to a predefined set of permissions. Depending on the role assigned, an administrator can access what they need.') }}
       </p>
     </div>
 
@@ -310,7 +321,7 @@ const filteredUsers = computed(() => {
           <v-card-text>
             <div class="d-flex align-start justify-space-between mb-6">
               <span class="text-body-2 text-medium-emphasis">
-                Total {{ role.users_count ?? role.users?.length ?? 0 }} users
+                {{ $t('core.roles.msg.total_users', 'Total :count users', { count: role.users_count ?? role.users?.length ?? 0 }) }}
               </span>
               <div class="d-flex flex-row-reverse align-center">
                 <v-avatar
@@ -333,17 +344,17 @@ const filteredUsers = computed(() => {
             <div class="d-flex align-end justify-space-between">
               <div>
                 <div class="text-h6 font-weight-bold">{{ role.name }}</div>
-                <a href="#" class="text-primary text-body-2" @click.prevent="openEditDialog(role)">Edit Role</a>
+                <a href="#" class="text-primary text-body-2" @click.prevent="openEditDialog(role)">{{ $t('core.roles.action.edit_role', 'Edit Role') }}</a>
               </div>
               <div v-if="authStore.can('roles.manage')" class="d-flex">
-                <v-btn icon="mdi-content-copy" variant="text" size="small" title="Duplicate role" @click="handleDuplicate(role)" />
+                <v-btn icon="mdi-content-copy" variant="text" size="small" :title="$t('core.roles.action.duplicate_role', 'Duplicate role')" @click="handleDuplicate(role)" />
                 <v-btn
                   v-if="role.name !== 'admin'"
                   icon="mdi-delete-outline"
                   variant="text"
                   size="small"
                   color="error"
-                  title="Delete role"
+                  :title="$t('core.roles.action.delete_role', 'Delete role')"
                   @click="handleDelete(role)"
                 />
               </div>
@@ -356,8 +367,8 @@ const filteredUsers = computed(() => {
         <v-card variant="outlined" rounded="lg" class="h-100 d-flex align-center" @click="openCreateDialog" style="cursor: pointer">
           <v-card-text class="d-flex align-center justify-space-between w-100">
             <div>
-              <v-btn color="primary" prepend-icon="mdi-plus" @click.stop="openCreateDialog">Add New Role</v-btn>
-              <p class="text-caption text-medium-emphasis mt-3 mb-0">Add a new role, if it doesn't exist.</p>
+              <v-btn color="primary" prepend-icon="mdi-plus" @click.stop="openCreateDialog">{{ $t('core.roles.action.add_new_role', 'Add New Role') }}</v-btn>
+              <p class="text-caption text-medium-emphasis mt-3 mb-0">{{ $t('core.roles.msg.add_new_role_hint', "Add a new role, if it doesn't exist.") }}</p>
             </div>
             <v-icon icon="mdi-shield-plus-outline" size="56" color="primary" class="opacity-30" />
           </v-card-text>
@@ -368,15 +379,15 @@ const filteredUsers = computed(() => {
     <v-divider class="my-8" />
 
     <div class="mb-4">
-      <h2 class="text-h6 font-weight-bold">Total users with their roles</h2>
-      <p class="text-body-2 text-medium-emphasis mt-1">Find all administrator accounts and their associated role.</p>
+      <h2 class="text-h6 font-weight-bold">{{ $t('core.roles.title.users_with_roles', 'Total users with their roles') }}</h2>
+      <p class="text-body-2 text-medium-emphasis mt-1">{{ $t('core.roles.msg.users_with_roles_description', 'Find all administrator accounts and their associated role.') }}</p>
     </div>
 
     <v-card variant="outlined" rounded="lg">
       <v-card-text>
         <v-text-field
           v-model="userSearch"
-          label="Search user"
+          :label="$t('core.roles.action.search_user', 'Search user')"
           prepend-inner-icon="mdi-magnify"
           density="compact"
           variant="outlined"
@@ -389,9 +400,9 @@ const filteredUsers = computed(() => {
         <v-table density="comfortable">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Status</th>
+              <th>{{ $t('core.roles.msg.user_column', 'User') }}</th>
+              <th>{{ $t('core.roles.msg.role_column', 'Role') }}</th>
+              <th>{{ $t('core.roles.msg.status_column', 'Status') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -411,14 +422,14 @@ const filteredUsers = computed(() => {
               <td><v-chip size="small" variant="tonal">{{ user.role }}</v-chip></td>
               <td>
                 <v-chip :color="user.is_active ? 'success' : 'default'" size="small" variant="tonal">
-                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                  {{ user.is_active ? $t('common.msg.active', 'Active') : $t('common.msg.inactive', 'Inactive') }}
                 </v-chip>
               </td>
             </tr>
           </tbody>
         </v-table>
 
-        <div v-if="!filteredUsers.length" class="text-center text-medium-emphasis py-6">No users found.</div>
+        <div v-if="!filteredUsers.length" class="text-center text-medium-emphasis py-6">{{ $t('core.roles.msg.no_users_found', 'No users found.') }}</div>
       </v-card-text>
     </v-card>
 
@@ -426,15 +437,13 @@ const filteredUsers = computed(() => {
 
     <div class="d-flex align-center justify-space-between mb-4">
       <div>
-        <h2 class="text-h6 font-weight-bold">Droits existants</h2>
+        <h2 class="text-h6 font-weight-bold">{{ $t('core.roles.title.rights_overview', 'Existing rights') }}</h2>
         <p class="text-body-2 text-medium-emphasis mt-1">
-          Vue d'ensemble en lecture seule : pour chaque module, le niveau d'accès de chaque rôle.
-          Un rôle sans aucun accès sur un module n'en voit déjà plus l'entrée dans le menu — inutile
-          de gérer la visibilité séparément.
+          {{ $t('core.roles.msg.rights_overview_description', "Read-only overview: for each module, every role's access level. A role with no access at all to a module already has that entry hidden from the menu — no separate visibility control needed.") }}
         </p>
       </div>
       <v-btn variant="text" :append-icon="showRightsOverview ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showRightsOverview = !showRightsOverview">
-        {{ showRightsOverview ? 'Masquer' : 'Afficher' }}
+        {{ showRightsOverview ? $t('common.action.hide', 'Hide') : $t('common.action.show', 'Show') }}
       </v-btn>
     </div>
 
@@ -443,8 +452,8 @@ const filteredUsers = computed(() => {
         <v-table density="compact">
           <thead>
             <tr>
-              <th>Module</th>
-              <th>Objet</th>
+              <th>{{ $t('core.roles.msg.module_column', 'Module') }}</th>
+              <th>{{ $t('core.roles.msg.object_column', 'Object') }}</th>
               <th v-for="role in rolesStore.roles" :key="role.id" class="text-center">{{ role.name }}</th>
             </tr>
           </thead>
@@ -471,29 +480,29 @@ const filteredUsers = computed(() => {
     <v-dialog v-model="dialogOpen" max-width="720" scrollable>
       <v-card>
         <v-card-title class="text-center pt-6">
-          <div class="text-h5 font-weight-bold">{{ isEditing ? 'Edit Role' : 'Add New Role' }}</div>
-          <div class="text-body-2 text-medium-emphasis font-weight-regular">Set Role Permissions</div>
+          <div class="text-h5 font-weight-bold">{{ isEditing ? $t('core.roles.title.edit_role', 'Edit Role') : $t('core.roles.title.add_new_role', 'Add New Role') }}</div>
+          <div class="text-body-2 text-medium-emphasis font-weight-regular">{{ $t('core.roles.msg.set_permissions_subtitle', 'Set Role Permissions') }}</div>
         </v-card-title>
 
         <v-card-text style="max-height: 60vh">
           <v-text-field
             v-model="formName"
-            label="Role Name"
+            :label="$t('core.entities.object.role.name', 'Role name')"
             variant="outlined"
             :disabled="isAdminRole"
-            :hint="isAdminRole ? 'The admin role name cannot be changed.' : undefined"
+            :hint="isAdminRole ? $t('core.roles.msg.admin_role_locked_hint', 'The admin role name cannot be changed.') : undefined"
             persistent-hint
             class="mb-4"
           />
 
-          <div class="text-subtitle-1 font-weight-bold mb-2">Role Permissions</div>
+          <div class="text-subtitle-1 font-weight-bold mb-2">{{ $t('core.roles.title.role_permissions', 'Role Permissions') }}</div>
 
           <div v-for="group in permissionGroups" :key="group.domain" class="mb-5">
             <div class="d-flex align-center justify-space-between border-b pb-2 mb-2">
               <span class="text-body-2 font-weight-bold">{{ group.label }}</span>
               <v-checkbox
                 :model-value="isGroupFullySelected(group)"
-                label="Select All"
+                :label="$t('core.roles.action.select_all', 'Select All')"
                 density="compact"
                 hide-details
                 @update:model-value="(v) => toggleGroup(group, !!v)"
@@ -512,9 +521,9 @@ const filteredUsers = computed(() => {
                 divided
                 @update:model-value="(v) => setRowAccessLevel(row, v as AccessLevel)"
               >
-                <v-btn value="none" size="small">Interdit</v-btn>
-                <v-btn value="view" size="small">Lecture seule</v-btn>
-                <v-btn value="write" size="small">Lecture et écriture</v-btn>
+                <v-btn value="none" size="small">{{ $t('core.roles.msg.access_none', 'Forbidden') }}</v-btn>
+                <v-btn value="view" size="small">{{ $t('core.roles.msg.access_view', 'View only') }}</v-btn>
+                <v-btn value="write" size="small">{{ $t('core.roles.msg.access_write', 'Read & write') }}</v-btn>
               </v-btn-toggle>
 
               <v-btn-toggle
@@ -526,8 +535,8 @@ const filteredUsers = computed(() => {
                 divided
                 @update:model-value="(v) => setRowAccessLevel(row, v as AccessLevel)"
               >
-                <v-btn value="none" size="small">Interdit</v-btn>
-                <v-btn value="write" size="small">Autorisé</v-btn>
+                <v-btn value="none" size="small">{{ $t('core.roles.msg.access_none', 'Forbidden') }}</v-btn>
+                <v-btn value="write" size="small">{{ $t('core.roles.msg.access_allowed', 'Allowed') }}</v-btn>
               </v-btn-toggle>
             </div>
           </div>
@@ -538,8 +547,8 @@ const filteredUsers = computed(() => {
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
-          <v-btn color="primary" :loading="saving || updating" @click="handleSubmit">Submit</v-btn>
+          <v-btn variant="text" @click="closeDialog">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
+          <v-btn color="primary" :loading="saving || updating" @click="handleSubmit">{{ $t('common.action.submit', 'Submit') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

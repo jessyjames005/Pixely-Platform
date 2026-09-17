@@ -94,4 +94,18 @@ Versioning follows Semantic Versioning.
 ### Fixed
 
 - Fixed `GET /extensions/{id}/config` returning only stored overrides — empty for an extension that had never been configured, giving no indication of what was even configurable. It now returns `{defaults, values}`, values being defaults merged with any overrides.
+- Fixed extension disabling being purely cosmetic: `Kernel::boot()` registered every extension's service providers on every request regardless of enabled/disabled state, and `ExtensionManager::register()` reset the persisted status back to Enabled on every call — extensions are re-discovered from disk on every stateless PHP request, so a disable() was silently undone the moment the next request's registration ran.
+- Fixed the admin menu showing only permission-free items (Dashboard, Settings) right after login until a page reload: `AuthController::login()` returned the raw `User` model with no `permissions`/`roles` at all, unlike `/auth/me` which built an enriched payload including both. Both endpoints now share the same response builder.
+- Fixed the existing login tests posting to `/api/v1/login` (a route that doesn't exist) instead of `/api/v1/auth/login` — they were already failing before this change.
+
+### Added
+
+- Added a frontend translation foundation: `useI18nStore` loads a merged `{module: {group: {key}}}` catalog from a new public `GET /api/v1/locales/{locale}` (Core), and a lightweight `$t()`/`t()` helper (no vue-i18n dependency) renders it, with `:name`-style placeholder substitution.
+- Added a language preference (English/French) to the My Profile → Preferences screen, switching `$t()` immediately on save.
+- Added `resources/lang/en/*.php` and `resources/lang/fr/*.php` for `common`, `entities`, `profile`, and `roles`, following the key convention from `.claude/skills/PP_translation/SKILL.md` (`object`/`action`/`title`/`msg`/`preference`/`permission` categories).
+- Fully translated `ProfileView.vue` and `RolesView.vue` as the reference implementation, including HTML `title=""` tooltips on form fields (translated the same way as any other string).
+
+### Changed
+
+- Moved `TranslationRepository` from the Translations extension into Core (`App\Core\Translations\Services`) — it only ever depended on Core classes (`ExtensionManager`, `ExtensionTranslatableInterface`), so it was misplaced: Core must never depend on an extension, and this repository is needed for i18n to function regardless of whether the Translations *management* extension is even installed.
 

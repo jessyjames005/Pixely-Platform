@@ -6,7 +6,7 @@ namespace App\Extensions\Translations\Http\Controllers;
 
 use App\Core\Api\Response\ApiCollectionResponse;
 use App\Core\Api\Response\ApiResponse;
-use App\Extensions\Translations\Services\TranslationRepository;
+use App\Core\Translations\Services\TranslationRepository;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

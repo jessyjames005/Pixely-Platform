@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Extensions\Translations\Services\TranslationRepository;
+use App\Core\Translations\Services\TranslationRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 

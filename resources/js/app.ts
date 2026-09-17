@@ -8,6 +8,7 @@ import SwaggerUIStandalonePreset from "swagger-ui-dist/swagger-ui-standalone-pre
 import App from "./App.vue";
 import router from "./router";
 import { vuetify } from "./shared/plugins/vuetify";
+import { i18nPlugin } from "./shared/plugins/i18n";
 
 window.SwaggerUIBundle = SwaggerUIBundle;
 window.SwaggerUIStandalonePreset = SwaggerUIStandalonePreset;
@@ -15,5 +16,5 @@ window.SwaggerUIStandalonePreset = SwaggerUIStandalonePreset;
 const appElement = document.getElementById("app");
 
 if (appElement) {
-  createApp(App).use(createPinia()).use(router).use(vuetify).mount(appElement);
+  createApp(App).use(createPinia()).use(router).use(vuetify).use(i18nPlugin).mount(appElement);
 }

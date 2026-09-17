@@ -1162,6 +1162,25 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Transport API
 * [ ] Transport administration
 
+## Internationalization (i18n)
+
+Frontend translation foundation — the Translations extension's admin
+tool (file discovery/read/write, per-module lang directories) already
+existed, but nothing in the admin UI actually consumed it: every view
+had hardcoded English or French strings baked in directly, with no
+mechanism to switch language at all.
+
+* [x] `TranslationRepository` moved from the Translations extension into Core (`App\Core\Translations\Services`) — it only ever depended on `ExtensionManager` and other Core classes, so it was misplaced: Core must never depend on an extension, and this repository is needed for basic i18n to function regardless of whether the Translations *management* extension is even installed
+* [x] Public, unauthenticated `GET /api/v1/locales/{locale}` (`LocaleCatalogController`, Core) — merges every module's every translation group for a locale into one nested `{module: {group: {key: value}}}` payload. Deliberately separate from the Translations extension's own gated API (`translations.strings.view/manage`, for the *editing* screen) — this one has to work before login too, since the login screen itself needs translated text
+* [x] Frontend: `useI18nStore` (Pinia) loads and caches the catalog; a lightweight custom `$t(key, fallback, replacements?)` — no vue-i18n dependency, a flat key lookup with `:name`-style placeholder substitution was all that was needed. Registered as a global property (`$t(...)` directly in any template, no per-component import) plus an exported `translate` function for use inside `<script setup>` as `t(...)`
+* [x] Locale resolution: browser language guess on first load (so the login screen is translated too) → the user's own saved `locale` preference (Users → My Profile → Preferences, already existed as a UserSetting field) once authenticated and loaded
+* [x] Convention: **not invented for this sprint** — `.claude/skills/PP_translation/SKILL.md` already specified one (missed at first, corrected once found). Every key is `<module>.<group>.<category>.<name>`: module = `core` or an extension id, group = the lang file name, category is one of `object` (an entity's field label, e.g. `core.entities.object.role.name`, nesting a `.hint` sibling key for its tooltip — the one category allowed to nest), `action` (a button/link, e.g. `core.roles.action.edit_role`), `title` (a page/dialog/section heading), `msg` (a toast, confirm-dialog body, or any other display text), `preference` (a user preference field), or `permission` (a human-readable label for one exact permission string — not built out yet, see below). A handful of truly universal words (Save, Cancel, Delete, View, Manage...) live once in `core.common.action.*` / `core.common.msg.*` rather than being repeated in every group
+* [x] Convention: every new UI string gets an entry in **both** `lang/en/<group>.php` and `lang/fr/<group>.php` at the time it's written, not after — going forward, adding only one locale's file is treated as an incomplete change
+* [x] Tooltips/descriptions: plain HTML `title="..."` attributes (native browser tooltip) on interactive elements, translated the same way as any other string, rather than a separate Vuetify `v-tooltip` per element
+* [x] Fully retrofitted as the reference implementation: `ProfileView.vue` (including a new language selector, wired to switch `$t` immediately on save) and `RolesView.vue` (page header, role cards, the users-with-roles table, the Droits existants matrix, and the full Edit Role dialog including the dynamically-grouped permission labels)
+* [ ] `permission.<name>` category (one human-readable label per exact permission string, e.g. `permission.gallery_photos_manage`) — not built at all. The Roles UI's Accessibilité control shows a generic action word (View/Manage/Delete) next to the object name instead, which reads fine and didn't need this category yet; a flatter permission list (the pre-existing Permissions screen, `PermissionsView.vue`) would benefit from it more directly
+* [ ] Retrofitting every other admin view (Tuleap's 7 views, Extensions, Files, Settings, Users, Gallery, Permissions, Login, AdminNav's own labels) — large, mechanical, repetitive work, not attempted yet beyond the two reference views above
+
 ## Files Extension
 
 A reusable file-handling extension, meant to be a dependency of other extensions (Gallery, future Shop, etc.) rather than each one reimplementing upload rules independently.

@@ -10,11 +10,13 @@ import AdminNav from '../components/AdminNav.vue'
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { useProfileStore } from '@core/users/store/profile.store'
 import { useSettingsStore } from '@core/settings/store/settings.store'
+import { useI18nStore } from '@shared/store/i18n.store'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
 const settingsStore = useSettingsStore()
+const i18nStore = useI18nStore()
 const theme = useTheme()
 const drawer = ref(true)
 
@@ -42,6 +44,11 @@ onMounted(async () => {
   if (!settingsStore.userSettings) {
     await settingsStore.fetchUserSettings().catch(() => undefined)
     applyTheme()
+
+    const preferredLocale = settingsStore.userSettings?.locale
+    if (preferredLocale) {
+      i18nStore.setLocale(preferredLocale).catch(() => undefined)
+    }
   }
 })
 
