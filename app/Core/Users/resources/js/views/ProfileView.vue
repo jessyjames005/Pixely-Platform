@@ -134,6 +134,22 @@ async function handleSavePreferences(): Promise<void> {
 }
 
 const avatarPreviewUrl = computed(() => profileStore.profile?.avatar_url)
+
+// Extracted to script (rather than an inline $t(...) call in the
+// template) because these fallback strings contain apostrophes: HTML
+// attribute values have no escape syntax of their own, so a JS string
+// with an apostrophe can't safely be embedded as a literal inside a
+// double-quoted template attribute.
+const uploadPhotoTooltip = computed(() =>
+  t('core.profile.action.upload_photo_hint', "Remplace l'avatar actuel par la photo choisie."),
+)
+const localeTooltip = computed(() =>
+  t('core.profile.preference.locale_hint', "Langue de l'interface d'administration."),
+)
+const densityLabel = computed(() => t('core.profile.preference.density', "Densité de l'interface"))
+const densityTooltip = computed(() =>
+  t('core.profile.preference.density_hint', "Espacement des éléments de l'interface (tableaux, formulaires)."),
+)
 </script>
 
 <template>
@@ -165,7 +181,7 @@ const avatarPreviewUrl = computed(() => profileStore.profile?.avatar_url)
                 color="primary"
                 :loading="uploading"
                 :disabled="!getSelectedFile()"
-                :title="$t('core.profile.action.upload_photo_hint', \"Remplace l'avatar actuel par la photo choisie.\")"
+                :title="uploadPhotoTooltip"
                 @click="handleUploadAvatar"
               >
                 {{ $t('core.profile.action.upload_photo', 'Téléverser une nouvelle photo') }}
@@ -226,7 +242,7 @@ const avatarPreviewUrl = computed(() => profileStore.profile?.avatar_url)
                 v-model="preferences.locale"
                 :items="localeOptions"
                 :label="$t('core.profile.preference.locale', 'Langue')"
-                :title="$t('core.profile.preference.locale_hint', \"Langue de l'interface d'administration.\")"
+                :title="localeTooltip"
                 density="comfortable"
               />
             </v-col>
@@ -235,7 +251,7 @@ const avatarPreviewUrl = computed(() => profileStore.profile?.avatar_url)
                 v-model="preferences.theme"
                 :items="themeOptions"
                 :label="$t('core.profile.preference.theme', 'Thème')"
-                :title="$t('core.profile.preference.theme_hint', \"Apparence claire, sombre, ou celle du système.\")"
+                :title="$t('core.profile.preference.theme_hint', 'Apparence claire, sombre, ou celle du système.')"
                 density="comfortable"
               />
             </v-col>
@@ -243,8 +259,8 @@ const avatarPreviewUrl = computed(() => profileStore.profile?.avatar_url)
               <v-select
                 v-model="preferences.density"
                 :items="densityOptions"
-                :label="$t('core.profile.preference.density', \"Densité de l'interface\")"
-                :title="$t('core.profile.preference.density_hint', \"Espacement des éléments de l'interface (tableaux, formulaires).\")"
+                :label="densityLabel"
+                :title="densityTooltip"
                 density="comfortable"
               />
             </v-col>

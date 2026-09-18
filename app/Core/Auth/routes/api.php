@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Route;
  * the same per-module routing convention as extensions.
  */
 
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::middleware('web')->post('/auth/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['web', 'auth:sanctum'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 });

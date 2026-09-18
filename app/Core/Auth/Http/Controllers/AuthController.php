@@ -44,7 +44,7 @@ final class AuthController
 
         /** @var User $user */
         $user = Auth::user();
-        if ($user->is_active) {
+        if (!$user->is_active) {
             Auth::logout();
 
             return $apiErrorResponse->response(
