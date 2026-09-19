@@ -32,11 +32,27 @@ final class DatabaseController
     }
 
     /**
+     * Name of the connection the browser queries.
+     *
+     * Outside of MySQL — e.g. the in-memory SQLite database the test
+     * suite runs on, where credential-level SELECT-only grants don't
+     * exist — the dedicated 'mysql_readonly' connection cannot be used,
+     * so the default connection is queried instead. In MySQL
+     * environments, 'mysql_readonly' remains the enforced layer.
+     */
+    private function connectionName(): string
+    {
+        return config('database.default') === 'mysql'
+            ? self::READONLY_CONNECTION
+            : (string) config('database.default');
+    }
+
+    /**
      * List tables in the database.
      */
     public function tables(ApiCollectionResponse $apiResponse): JsonResponse
     {
-        $tables = Schema::connection(self::READONLY_CONNECTION)->getTables();
+        $tables = Schema::connection($this->connectionName())->getTables();
 
         $names = array_map(
             static fn (array $table): array => [
@@ -61,7 +77,7 @@ final class DatabaseController
         $this->validator->assertSafe("SELECT * FROM {$table} LIMIT 0"); // reuses table-name safety checks below
         $this->assertTableExists($table);
 
-        $columns = Schema::connection(self::READONLY_CONNECTION)->getColumns($table);
+        $columns = Schema::connection($this->connectionName())->getColumns($table);
 
         return $apiResponse->response(
             data: array_map(
@@ -86,9 +102,9 @@ final class DatabaseController
         $perPage = max(1, min(100, (int) $request->integer('per_page', 20)));
         $offset = ($page - 1) * $perPage;
 
-        $total = DB::connection(self::READONLY_CONNECTION)->table($table)->count();
+        $total = DB::connection($this->connectionName())->table($table)->count();
 
-        $rows = DB::connection(self::READONLY_CONNECTION)
+        $rows = DB::connection($this->connectionName())
             ->table($table)
             ->offset($offset)
             ->limit($perPage)
@@ -132,7 +148,7 @@ final class DatabaseController
 
         $safeSql = $this->validator->enforceLimit($validated['sql'], self::MAX_ROWS);
 
-        $connection = DB::connection(self::READONLY_CONNECTION);
+        $connection = DB::connection($this->connectionName());
         $connection->getPdo()->setAttribute(\PDO::ATTR_TIMEOUT, self::TIMEOUT_SECONDS);
 
         try {
@@ -168,7 +184,7 @@ final class DatabaseController
      */
     private function assertTableExists(string $table): void
     {
-        $tables = array_column(Schema::connection(self::READONLY_CONNECTION)->getTables(), 'name');
+        $tables = array_column(Schema::connection($this->connectionName())->getTables(), 'name');
 
         if (! in_array($table, $tables, true)) {
             abort(404, 'Table not found.');

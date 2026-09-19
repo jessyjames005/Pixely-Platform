@@ -23,13 +23,18 @@ final class RoleController
      */
     public function index(ApiCollectionResponse $apiResponse): JsonResponse
     {
-        $roles = Role::with('permissions', 'users')->orderBy('name')->get();
+        $roles = Role::with('permissions')->orderBy('name')->get();
+
+        // Count users through loadCount() instead of eager loading the
+        // 'users' relation: spatie resolves that relation's user model
+        // from the *current* default guard, and the auth:sanctum
+        // middleware switches it to the provider-less 'sanctum' guard —
+        // eager loading would then resolve a null model class and fail.
+        // The loaded roles carry their own guard_name.
+        $roles->loadCount('users');
 
         return $apiResponse->response(
-            data: $roles->map(function (Role $role) {
-                $role->users_count = $role->users->count();
-                return $role;
-            }),
+            data: $roles,
             meta: ['total' => $roles->count()],
         );
     }
