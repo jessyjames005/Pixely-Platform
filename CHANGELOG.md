@@ -118,3 +118,14 @@ Versioning follows Semantic Versioning.
 
 - Fixed `entities.php`'s `object.*` keys being flat strings — the actual convention (matching the pre-existing `app/Extensions/Gallery/lang/{en,fr}/gallery.php`) nests a `label` sub-key under each property, with `hint` as an optional sibling. Every `core.entities.object.*` reference now ends in `.label`.
 
+### Added
+
+- Added extension-scoped database migration runner.
+- Added `pixely:extension:migrate` command.
+- Added `pixely:extension:migration-status` command.
+- Added extension migration status reporting.
+- Integrated extension migrations into the extension installation flow.
+
+### Changed
+
+- Extension installation now executes only the migrations belonging to the installed extension.

@@ -332,11 +332,11 @@ The Extension SDK provides a stable foundation for building independent Pixely e
 
 ### Database
 
-* [ ] Extension migrations
-* [ ] Migration versioning
+* [x] Extension migrations
+* [x] Migration versioning
 * [ ] Extension database isolation
 * [ ] Migration rollback
-* [ ] Migration status
+* [x] Migration status
 * [ ] Migration compatibility checks
 
 ### Assets

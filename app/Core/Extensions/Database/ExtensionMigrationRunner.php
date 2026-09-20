@@ -12,8 +12,7 @@ final class ExtensionMigrationRunner
     public function __construct(
         private readonly Migrator $migrator,
         private readonly Filesystem $files,
-    ) {
-    }
+    ) {}
 
     public function migrate(string $extensionId): void
     {
@@ -53,16 +52,14 @@ final class ExtensionMigrationRunner
         }
 
         $files = $this->migrator->getMigrationFiles($path);
-        $pending = $this->migrator->pendingMigrations($path);
 
-        $pendingNames = array_fill_keys($pending, true);
+        // Laravel stores executed migrations in the global migrations table.
+        $ran = $this->migrator->getRepository()->getRan();
 
         return array_map(
-            static fn (string $migration): array => [
+            static fn(string $migration): array => [
                 'migration' => $migration,
-                'status' => isset($pendingNames[$migration])
-                    ? 'Pending'
-                    : 'Ran',
+                'status' => in_array($migration, $ran, true) ? 'Ran' : 'Pending',
             ],
             array_keys($files),
         );
