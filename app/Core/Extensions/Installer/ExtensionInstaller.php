@@ -9,7 +9,7 @@ use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 use App\Core\Extensions\Versioning\ExtensionUpgradeRunner;
 use App\Core\Extensions\Versioning\ExtensionVersionRepository;
-use Illuminate\Support\Facades\Artisan;
+use App\Core\Extensions\Database\ExtensionMigrationRunner;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
 
@@ -29,6 +29,7 @@ final class ExtensionInstaller
         private readonly ExtensionAuditLogger $auditLogger,
         private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
         private readonly ExtensionUpgradeRunner $upgradeRunner,
+        private readonly ExtensionMigrationRunner $migrationRunner,
     ) {
     }
 
@@ -141,7 +142,7 @@ final class ExtensionInstaller
                 File::deleteDirectory($backupPath);
             }
 
-            $this->runPendingMigrations();
+            $this->migrationRunner->migrate($manifest['id']);
 
             if ($mode === 'install') {
                 $this->upgradeRunner->recordFreshInstall($manifest['id'], $manifest['version']);
@@ -202,15 +203,6 @@ final class ExtensionInstaller
         if (! $process->isSuccessful()) {
             throw new \RuntimeException('Failed to refresh the autoloader: ' . $process->getErrorOutput());
         }
-    }
-
-    /**
-     * Runs any pending migrations, including ones just introduced by
-     * a newly installed/updated extension's service provider.
-     */
-    private function runPendingMigrations(): void
-    {
-        Artisan::call('migrate', ['--force' => true]);
     }
 
     /**
