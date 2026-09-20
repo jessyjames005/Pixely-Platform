@@ -5,22 +5,39 @@ declare(strict_types=1);
 return [
     'object' => [
         'user' => [
-            'name' => 'Name',
-            'name_hint' => "The user's full display name.",
-            'email' => 'Email',
-            'email_hint' => 'Used to sign in; cannot be changed here.',
-            'timezone' => 'Timezone',
-            'timezone_hint' => 'Used to display dates and times throughout the admin.',
-            'bio' => 'Bio',
-            'bio_hint' => 'A short description shown on the profile.',
+            'name' => [
+                'label' => 'Name',
+                'hint' => "The user's full display name.",
+            ],
+            'email' => [
+                'label' => 'Email',
+                'hint' => 'Used to sign in; cannot be changed here.',
+            ],
+            'timezone' => [
+                'label' => 'Timezone',
+                'hint' => 'Used to display dates and times throughout the admin.',
+            ],
+            'bio' => [
+                'label' => 'Bio',
+                'hint' => 'A short description shown on the profile.',
+            ],
+            'password' => [
+                'label' => 'Password',
+            ],
         ],
         'role' => [
-            'name' => 'Role name',
-            'name_hint' => 'A short, unique name identifying this role.',
-            'users_count' => 'Users',
+            'name' => [
+                'label' => 'Role name',
+                'hint' => 'A short, unique name identifying this role.',
+            ],
+            'users_count' => [
+                'label' => 'Users',
+            ],
         ],
         'permission' => [
-            'name' => 'Permission',
+            'name' => [
+                'label' => 'Permission',
+            ],
         ],
     ],
 ];

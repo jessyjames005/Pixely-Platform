@@ -20,4 +20,7 @@ return [
     'msg' => [
         'confirm_delete_photo' => 'Delete this photo? This cannot be undone.',
     ],
+    'tab' => [
+        'gallery' => 'Gallery',
+    ],
 ];

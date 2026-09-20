@@ -27,4 +27,7 @@ return [
         'inactive' => 'Inactif',
         'general' => 'Général',
     ],
+    'tab' => [
+        'dashboard' => 'Tableau de bord',
+    ],
 ];

@@ -52,4 +52,9 @@ return [
         'module_column' => 'Module',
         'object_column' => 'Objet',
     ],
+    'tab' => [
+        'roles' => 'Rôles',
+        'permissions' => 'Permissions',
+        'roles_permissions' => 'Rôles & Permissions',
+    ],
 ];

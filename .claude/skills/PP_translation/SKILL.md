@@ -51,24 +51,19 @@ Returns a (possibly nested) associative array — the standard Laravel PHP trans
 
 ## Implementation notes (learned building the frontend catalog/`$t()` layer)
 
-- `object.<object>.<property>.hint` is stored as a **sibling key with a
-  literal dot in its own string**, not as a deeper nested array —
-  e.g. `['user' => ['name' => 'Name', 'name.hint' => "..."]]`, not
-  `['user' => ['name' => ['hint' => "..."]]]`. `Arr::dot()` (used by
-  `LocalTranslationFileSystem::read()`) flattens either shape to the
-  same `object.user.name` / `object.user.name.hint` keys on read, but
-  only the sibling-key form keeps `object.user.name` itself as a
-  string label. Editing a hint through the Translations admin screen
-  and saving re-serializes via `Arr::undot()`, which reconstructs the
-  deeper-nested shape instead — if that ever happens, the label at
-  `object.user.name` would need re-adding by hand. Worth knowing before
-  building an edit form for hints specifically.
-- The "`.hint` nesting is for `object.*` only" rule is real: `action.*`,
-  `title.*`, `msg.*`, `tab.*`, `preference.*`, `permission.*` don't
-  support it structurally (same array-key collision as above, with no
-  base label to protect). For a tooltip/description on one of those,
-  use a separate flat key instead, e.g. `preference.theme_hint` (not
-  `preference.theme.hint`) — still one prefix, still flat.
+- `object.<object>.<property>` resolves to a **nested array with a
+  `label` sub-key** (and, optionally, a `hint` sibling for the
+  tooltip) — e.g. `['user' => ['name' => ['label' => 'Name', 'hint' => "..."]]]`,
+  flattening to `object.user.name.label` / `object.user.name.hint`.
+  This is the pattern already used by the (pre-existing, if sparse)
+  `app/Extensions/Gallery/lang/{en,fr}/gallery.php` — always append
+  `.label` when reading an object property's own text, not just
+  `object.<object>.<property>`.
+- The "no nesting outside `object.*`" rule still holds for the other
+  five categories: `action.*`, `title.*`, `msg.*`, `tab.*`,
+  `preference.*`, `permission.*` don't get a `label`/`hint` split —
+  for a tooltip on one of those, use a separate flat key instead, e.g.
+  `preference.theme_hint` (not `preference.theme.hint`).
 - Frontend consumption: `useI18nStore` (Pinia) loads
   `GET /api/v1/locales/{locale}` (public, Core) into a nested
   `{module: {group: {...}}}` catalog; `$t('core.roles.title.roles_list', 'fallback')`

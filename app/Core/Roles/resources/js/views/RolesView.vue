@@ -487,7 +487,7 @@ const filteredUsers = computed(() => {
         <v-card-text style="max-height: 60vh">
           <v-text-field
             v-model="formName"
-            :label="$t('core.entities.object.role.name', 'Role name')"
+            :label="$t('core.entities.object.role.name.label', 'Role name')"
             variant="outlined"
             :disabled="isAdminRole"
             :hint="isAdminRole ? $t('core.roles.msg.admin_role_locked_hint', 'The admin role name cannot be changed.') : undefined"

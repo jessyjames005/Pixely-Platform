@@ -8,6 +8,7 @@ use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
+use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
 use App\Extensions\Files\Providers\FilesServiceProvider;
 
 /**
@@ -16,7 +17,7 @@ use App\Extensions\Files\Providers\FilesServiceProvider;
  * other extensions via a declared dependency — plus its own standalone
  * API and admin screen for browsing/uploading/deleting files directly.
  */
-final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionPermissionsInterface
+final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionPermissionsInterface, ExtensionTranslatableInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -66,5 +67,10 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
     public function boot(): void
     {
         // Nothing to boot.
+    }
+
+    public function translationsPath(): string
+    {
+        return base_path('app/Extensions/Files/lang');
     }
 }

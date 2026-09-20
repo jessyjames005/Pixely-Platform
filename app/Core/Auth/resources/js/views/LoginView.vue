@@ -26,19 +26,19 @@ async function handleSubmit(): Promise<void> {
   <v-container class="fill-height" fluid>
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
-        <v-card title="Sign in">
+        <v-card :title="$t('core.auth.title.sign_in', 'Sign in')">
           <v-card-text>
             <v-form @submit.prevent="handleSubmit">
               <v-text-field
                 v-model="email"
-                label="Email"
+                :label="$t('core.entities.object.user.email.label', 'Email')"
                 type="email"
                 autocomplete="username"
                 required
               />
               <v-text-field
                 v-model="password"
-                label="Password"
+                :label="$t('core.entities.object.user.password.label', 'Password')"
                 type="password"
                 autocomplete="current-password"
                 required
@@ -48,7 +48,7 @@ async function handleSubmit(): Promise<void> {
                 {{ error.message }}
               </v-alert>
 
-              <v-btn type="submit" color="primary" block :loading="loading">Sign in</v-btn>
+              <v-btn type="submit" color="primary" block :loading="loading">{{ $t('core.auth.action.sign_in', 'Sign in') }}</v-btn>
             </v-form>
           </v-card-text>
         </v-card>

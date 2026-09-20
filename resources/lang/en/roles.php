@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 return [
     'title' => [
-        'roles_list' => 'Roles List',
-        'users_with_roles' => 'Total users with their roles',
+        'roles_list' => 'Roles List',        'users_with_roles' => 'Total users with their roles',
         'rights_overview' => 'Existing rights',
         'edit_role' => 'Edit Role',
         'add_new_role' => 'Add New Role',
@@ -51,5 +50,10 @@ return [
         'status_column' => 'Status',
         'module_column' => 'Module',
         'object_column' => 'Object',
+    ],
+    'tab' => [
+        'roles' => 'Roles',
+        'permissions' => 'Permissions',
+        'roles_permissions' => 'Roles & Permissions',
     ],
 ];

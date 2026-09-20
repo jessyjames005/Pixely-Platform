@@ -27,4 +27,7 @@ return [
         'inactive' => 'Inactive',
         'general' => 'General',
     ],
+    'tab' => [
+        'dashboard' => 'Dashboard',
+    ],
 ];

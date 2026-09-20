@@ -6,6 +6,7 @@ import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { useExtensionsStore } from '@core/extensions/store/extensions.store'
 import { navRegistry } from '@shared/navigation/registry'
+import { navLabel } from '@shared/navigation/types'
 import type { NavItem } from '@shared/navigation/types'
 
 const authStore = useAuthStore()
@@ -59,13 +60,13 @@ function hasChildren(item: NavItem): boolean {
       <!-- Nested submenu -->
       <v-list-group
         v-if="hasChildren(item)"
-        :value="item.label"
+        :value="item.to"
       >
         <template #activator="{ props }">
           <v-list-item
             v-bind="props"
             :prepend-icon="item.icon"
-            :title="item.label"
+            :title="navLabel(item)"
           />
         </template>
         <v-list-item
@@ -73,7 +74,7 @@ function hasChildren(item: NavItem): boolean {
           :key="child.to"
           :to="child.to"
           :prepend-icon="child.icon"
-          :title="child.label"
+          :title="navLabel(child)"
           density="compact"
         />
       </v-list-group>
@@ -83,7 +84,7 @@ function hasChildren(item: NavItem): boolean {
         v-else
         :to="item.to"
         :prepend-icon="item.icon"
-        :title="item.label"
+        :title="navLabel(item)"
       />
     </template>
   </v-list>

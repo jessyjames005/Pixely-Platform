@@ -7,6 +7,7 @@ namespace App\Extensions\Tuleap;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
+use App\Core\Extensions\Translations\ExtensionTranslatableInterface;
 use App\Extensions\Tuleap\Providers\TuleapServiceProvider;
 
 /**
@@ -16,7 +17,7 @@ use App\Extensions\Tuleap\Providers\TuleapServiceProvider;
  * and retrospective actions. Stores local sprint configuration in Laravel
  * database and proxies Tuleap API calls server-side.
  */
-final class TuleapExtension implements ExtensionInterface, ExtensionPermissionsInterface
+final class TuleapExtension implements ExtensionInterface, ExtensionPermissionsInterface, ExtensionTranslatableInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -55,5 +56,10 @@ final class TuleapExtension implements ExtensionInterface, ExtensionPermissionsI
     public function boot(): void
     {
         // Nothing to boot.
+    }
+
+    public function translationsPath(): string
+    {
+        return base_path('app/Extensions/Tuleap/lang');
     }
 }

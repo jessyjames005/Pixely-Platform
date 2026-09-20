@@ -204,21 +204,21 @@ const densityTooltip = computed(() =>
         <v-form @submit.prevent="handleSave">
           <v-row>
             <v-col cols="12" md="6">
-              <v-text-field v-model="formName" :label="$t('core.entities.object.user.name', 'Nom')" density="comfortable" />
+              <v-text-field v-model="formName" :label="$t('core.entities.object.user.name.label', 'Nom')" density="comfortable" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field :model-value="profileStore.profile?.email" :label="$t('core.entities.object.user.email', 'E-mail')" density="comfortable" readonly />
+              <v-text-field :model-value="profileStore.profile?.email" :label="$t('core.entities.object.user.email.label', 'E-mail')" density="comfortable" readonly />
             </v-col>
             <v-col cols="12" md="6">
               <v-select
                 v-model="formTimezone"
                 :items="commonTimezones"
-                :label="$t('core.entities.object.user.timezone', 'Fuseau horaire')"
+                :label="$t('core.entities.object.user.timezone.label', 'Fuseau horaire')"
                 density="comfortable"
               />
             </v-col>
             <v-col cols="12">
-              <v-textarea v-model="formBio" :label="$t('core.entities.object.user.bio', 'Biographie')" density="comfortable" rows="3" />
+              <v-textarea v-model="formBio" :label="$t('core.entities.object.user.bio.label', 'Biographie')" density="comfortable" rows="3" />
             </v-col>
           </v-row>
 

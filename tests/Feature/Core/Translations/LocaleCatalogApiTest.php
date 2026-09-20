@@ -8,7 +8,7 @@ it('serves the merged translation catalog for a locale without authentication', 
     $response
         ->assertOk()
         ->assertJsonPath('data.core.common.action.save', 'Save')
-        ->assertJsonPath('data.core.entities.object.user.name', 'Name')
+        ->assertJsonPath('data.core.entities.object.user.name.label', 'Name')
         ->assertJsonPath('data.core.roles.title.roles_list', 'Roles List');
 });
 

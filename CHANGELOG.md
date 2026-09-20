@@ -109,3 +109,12 @@ Versioning follows Semantic Versioning.
 
 - Moved `TranslationRepository` from the Translations extension into Core (`App\Core\Translations\Services`) — it only ever depended on Core classes (`ExtensionManager`, `ExtensionTranslatableInterface`), so it was misplaced: Core must never depend on an extension, and this repository is needed for i18n to function regardless of whether the Translations *management* extension is even installed.
 
+### Added
+
+- Added translations for `LoginView.vue` and every admin nav label (Dashboard, Users, Roles & Permissions, Settings, Extensions, Gallery, Files, Tuleap, Translations) — `NavItem.label` can now be a function, re-evaluated on every render so the sidebar updates immediately on a locale switch.
+- Added `ExtensionTranslatableInterface` to the Tuleap and Files extensions — neither had it, so their lang files would never have been discovered by the catalog.
+
+### Fixed
+
+- Fixed `entities.php`'s `object.*` keys being flat strings — the actual convention (matching the pre-existing `app/Extensions/Gallery/lang/{en,fr}/gallery.php`) nests a `label` sub-key under each property, with `hint` as an optional sibling. Every `core.entities.object.*` reference now ends in `.label`.
+
