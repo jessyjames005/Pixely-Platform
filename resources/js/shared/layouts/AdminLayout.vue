@@ -11,6 +11,7 @@ import { useAuthStore } from '@core/auth/store/auth.store'
 import { useProfileStore } from '@core/users/store/profile.store'
 import { useSettingsStore } from '@core/settings/store/settings.store'
 import { useI18nStore } from '@shared/store/i18n.store'
+import { translate as t } from '@shared/plugins/i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -56,6 +57,17 @@ async function handleLogout(): Promise<void> {
   await authStore.logout()
   router.push({ name: 'login' })
 }
+
+const LOCALE_FLAGS: Record<string, string> = { en: '🇬🇧', fr: '🇫🇷' }
+
+async function switchLocale(locale: string): Promise<void> {
+  if (i18nStore.locale === locale) return
+  await i18nStore.setLocale(locale)
+  // Persist as the user's own preference, same field the full
+  // Preferences form on My Profile edits — best-effort, the quick
+  // switch above already applied regardless of whether this succeeds.
+  settingsStore.updateUserSettings({ locale }).catch(() => undefined)
+}
 </script>
 
 <template>
@@ -67,6 +79,12 @@ async function handleLogout(): Promise<void> {
     <v-app-bar>
       <v-app-bar-title>Pixely Platform</v-app-bar-title>
       <v-spacer />
+
+      <v-btn-toggle :model-value="i18nStore.locale" mandatory density="compact" variant="text" class="mr-3" @update:model-value="switchLocale">
+        <v-btn v-for="(flag, loc) in LOCALE_FLAGS" :key="loc" :value="loc" :title="loc === 'fr' ? 'Français' : 'English'" size="small">
+          <span style="font-size: 20px">{{ flag }}</span>
+        </v-btn>
+      </v-btn-toggle>
 
       <v-menu>
         <template #activator="{ props }">
@@ -80,9 +98,9 @@ async function handleLogout(): Promise<void> {
         </template>
 
         <v-list density="compact">
-          <v-list-item to="/admin/profile" prepend-icon="mdi-account" title="My Profile" />
+          <v-list-item to="/admin/profile" prepend-icon="mdi-account" :title="t('core.profile.action.my_profile', 'My Profile')" />
           <v-divider />
-          <v-list-item prepend-icon="mdi-logout" title="Log out" @click="handleLogout" />
+          <v-list-item prepend-icon="mdi-logout" :title="t('core.auth.action.log_out', 'Log out')" @click="handleLogout" />
         </v-list>
       </v-menu>
     </v-app-bar>

@@ -16,6 +16,7 @@ return [
         'reset_hint' => 'Annule la sélection de photo en cours.',
         'save_changes' => 'Enregistrer les modifications',
         'save_preferences' => 'Enregistrer les préférences',
+        'my_profile' => 'Mon profil',
     ],
     'msg' => [
         'allowed_types_hint' => "Types d'image autorisés, selon les réglages de l'extension Files.",

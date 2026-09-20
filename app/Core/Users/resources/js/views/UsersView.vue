@@ -10,14 +10,15 @@ import { useUsersStore } from "../store/users.store";
 import { useRolesStore } from "@core/roles/store/roles.store";
 import type { User } from "../models/User";
 import { useAuthStore } from "@core/auth/store/auth.store";
+import { translate as t } from "@shared/plugins/i18n";
 
-const headers = [
-  { title: "ID", key: "id", align: "center" as const, sortable: false },
-  { title: "Name", key: "name", sortable: false },
-  { title: "Email", key: "email", sortable: false },
-  { title: "Role", key: "role", sortable: false },
+const headers = computed(() => [
+  { title: t("users.msg.id_column", "ID"), key: "id", align: "center" as const, sortable: false },
+  { title: t("core.entities.object.user.name.label", "Name"), key: "name", sortable: false },
+  { title: t("core.entities.object.user.email.label", "Email"), key: "email", sortable: false },
+  { title: t("users.msg.role_column", "Role"), key: "role", sortable: false },
   { title: "", key: "actions", align: "end" as const, sortable: false },
-];
+]);
 
 const perPage = 20;
 const currentPage = ref(1);
@@ -102,7 +103,7 @@ async function handleSubmit(): Promise<void> {
 
     const result = await submitUpdate(editingUser.value.id, payload);
     if (result) {
-      notify.success("User updated.");
+      notify.success(t("users.msg.user_updated", "User updated."));
       closeDialog();
       await fetchUsers(currentPage.value, perPage);
     }
@@ -116,7 +117,7 @@ async function handleSubmit(): Promise<void> {
   });
 
   if (result) {
-    notify.success("User created.");
+    notify.success(t("users.msg.user_created", "User created."));
     closeDialog();
     currentPage.value = 1;
     await fetchUsers(1, perPage);
@@ -125,9 +126,9 @@ async function handleSubmit(): Promise<void> {
 
 async function handleDelete(user: User): Promise<void> {
   const confirmed = await confirm({
-    title: "Delete user",
-    message: `Delete user "${user.name}"? This cannot be undone.`,
-    confirmText: "Delete",
+    title: t("users.title.confirm_delete_user", "Delete user"),
+    message: t("users.msg.confirm_delete_user", 'Delete user ":name"? This cannot be undone.', { name: user.name }),
+    confirmText: t("common.action.delete", "Delete"),
   });
 
   if (!confirmed) {
@@ -135,7 +136,7 @@ async function handleDelete(user: User): Promise<void> {
   }
 
   await removeUser(user.id);
-  notify.success("User deleted.");
+  notify.success(t("users.msg.user_deleted", "User deleted."));
   await fetchUsers(currentPage.value, perPage);
 }
 
@@ -147,7 +148,7 @@ async function handleAssignRole(
     return;
   }
   await submitAssign(userId, roleName);
-  notify.success("Role assigned.");
+  notify.success(t("users.msg.role_assigned", "Role assigned."));
   await fetchUsers(currentPage.value, perPage);
 }
 </script>
@@ -155,27 +156,27 @@ async function handleAssignRole(
 <template>
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5">Users</h1>
+      <h1 class="text-h5">{{ $t('users.title.users_list', 'Users') }}</h1>
       <v-btn
         v-if="authStore.can('users.manage')"
         color="primary"
         prepend-icon="mdi-plus"
         @click="openCreateDialog"
       >
-        New user
+        {{ $t('users.action.new_user', 'New user') }}
       </v-btn>
     </div>
 
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
-        Users
+        {{ $t('users.title.users_list', 'Users') }}
         <v-btn
           size="small"
           variant="tonal"
           :loading="loading"
           @click="handlePageChange(currentPage)"
         >
-          Refresh
+          {{ $t('common.action.refresh', 'Refresh') }}
         </v-btn>
       </v-card-title>
 
@@ -193,7 +194,7 @@ async function handleAssignRole(
       >
         <template #no-data>
           <p class="text-medium-emphasis py-6">
-            No users yet. Create one to get started.
+            {{ $t('users.msg.no_users_yet', 'No users yet. Create one to get started.') }}
           </p>
         </template>
 
@@ -243,27 +244,27 @@ async function handleAssignRole(
 
     <!-- Create / edit dialog -->
     <v-dialog v-model="dialogOpen" max-width="480" persistent>
-      <v-card :title="isEditing ? 'Edit user' : 'Create a user'">
+      <v-card :title="isEditing ? $t('users.title.edit_user', 'Edit user') : $t('users.title.create_user', 'Create a user')">
         <v-card-text>
           <v-form @submit.prevent="handleSubmit">
             <v-text-field
               v-model="formName"
-              label="Name"
-              :rules="[(v) => !!v || 'Name is required']"
+              :label="$t('core.entities.object.user.name.label', 'Name')"
+              :rules="[(v) => !!v || $t('users.msg.name_required', 'Name is required')]"
               required
             />
             <v-text-field
               v-model="formEmail"
-              label="Email"
+              :label="$t('core.entities.object.user.email.label', 'Email')"
               type="email"
-              :rules="[(v) => !!v || 'Email is required']"
+              :rules="[(v) => !!v || $t('users.msg.email_required', 'Email is required')]"
               required
             />
             <v-text-field
               v-model="formPassword"
-              :label="isEditing ? 'New password (optional)' : 'Password'"
+              :label="isEditing ? $t('users.msg.new_password_label', 'New password (optional)') : $t('core.entities.object.user.password.label', 'Password')"
               type="password"
-              :rules="isEditing ? [] : [(v) => !!v || 'Password is required']"
+              :rules="isEditing ? [] : [(v) => !!v || $t('users.msg.password_required', 'Password is required')]"
               :required="!isEditing"
             />
 
@@ -285,13 +286,13 @@ async function handleAssignRole(
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
+          <v-btn variant="text" @click="closeDialog">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
           <v-btn
             color="primary"
             :loading="saving || updating"
             @click="handleSubmit"
           >
-            {{ isEditing ? "Save changes" : "Create user" }}
+            {{ isEditing ? $t('users.action.save_changes', 'Save changes') : $t('users.action.create_user', 'Create user') }}
           </v-btn>
         </v-card-actions>
       </v-card>

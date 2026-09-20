@@ -16,6 +16,7 @@ return [
         'reset_hint' => 'Cancels the current photo selection.',
         'save_changes' => 'Save Changes',
         'save_preferences' => 'Save preferences',
+        'my_profile' => 'My Profile',
     ],
     'msg' => [
         'allowed_types_hint' => 'Allowed image types, per Files extension settings.',

@@ -8,5 +8,6 @@ return [
     ],
     'action' => [
         'sign_in' => 'Sign in',
+        'log_out' => 'Log out',
     ],
 ];

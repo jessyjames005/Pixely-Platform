@@ -25,7 +25,7 @@
         "name": "Tuleap",
         "version": "1.0.0",
         "class": "App\\Extensions\\Tuleap\\TuleapExtension",
-        "status": "disabled"
+        "status": "enabled"
     },
     "media": {
         "id": "media",
