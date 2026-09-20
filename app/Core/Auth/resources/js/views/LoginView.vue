@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/auth.store'
 
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -19,6 +20,10 @@ async function handleSubmit(): Promise<void> {
   if (!error.value) {
     router.push({ name: 'admin.dashboard' })
   }
+}
+
+function togglePasswordVisibility(): void {
+  showPassword.value = !showPassword.value
 }
 </script>
 
@@ -39,9 +44,11 @@ async function handleSubmit(): Promise<void> {
               <v-text-field
                 v-model="password"
                 :label="$t('core.entities.object.user.password.label', 'Password')"
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
                 required
+                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                @click:append-inner="togglePasswordVisibility"
               />
 
               <v-alert v-if="error" type="error" density="compact" class="mb-4">
