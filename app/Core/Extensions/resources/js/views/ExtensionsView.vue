@@ -17,14 +17,15 @@ import { useExtensionsStore } from "../store/extensions.store";
 import type { ExtensionSummary, ExtensionDetail } from "../models/Extension";
 import ExtensionDependencyGraph from "../components/ExtensionDependencyGraph.vue";
 import { useAuthStore } from '@core/auth/store/auth.store'
+import { translate as t } from '@shared/plugins/i18n'
 
-const headers = [
-  { title: "Name", key: "name" },
-  { title: "Version", key: "version" },
-  { title: "Dependencies", key: "dependencies" },
-  { title: "Enabled", key: "enabled", align: "center" as const },
+const headers = computed(() => [
+  { title: t("extensions.msg.name_column", "Name"), key: "name" },
+  { title: t("extensions.msg.version_column", "Version"), key: "version" },
+  { title: t("extensions.msg.dependencies_column", "Dependencies"), key: "dependencies" },
+  { title: t("extensions.msg.enabled_column", "Enabled"), key: "enabled", align: "center" as const },
   { title: "", key: "actions", align: "end" as const, sortable: false },
-];
+]);
 
 const extensionsStore = useExtensionsStore();
 const authStore = useAuthStore()
@@ -153,14 +154,14 @@ function getSelectedFile(fileRef: File | File[] | null): File | undefined {
 async function handleToggle(extension: ExtensionSummary): Promise<void> {
   if (extension.enabled) {
     await toggleDisable(extension.id);
-    notify.success(`${extension.name} disabled.`);
+    notify.success(t("extensions.msg.extension_disabled", ":name disabled.", { name: extension.name }));
   } else {
     const result = await toggleEnable(extension.id);
     if (result === null) {
-      notify.error("Could not enable extension — check its dependencies.");
+      notify.error(t("extensions.msg.enable_failed", "Could not enable extension — check its dependencies."));
       return;
     }
-    notify.success(`${extension.name} enabled.`);
+    notify.success(t("extensions.msg.extension_enabled", ":name enabled.", { name: extension.name }));
   }
   await fetchExtensions();
 }
@@ -176,7 +177,7 @@ async function handleInstall(): Promise<void> {
 
   const result = await submitInstall(file);
   if (result) {
-    notify.success(`Extension "${result.name}" installed.`);
+    notify.success(t("extensions.msg.extension_installed", 'Extension ":name" installed.', { name: result.name }));
     installDialogOpen.value = false;
     await fetchExtensions();
   }
@@ -194,7 +195,7 @@ async function handleUpdate(): Promise<void> {
 
   const result = await submitUpdate(updateTargetId.value, file);
   if (result) {
-    notify.success(`Extension "${result.name}" updated to v${result.version}.`);
+    notify.success(t("extensions.msg.extension_updated", 'Extension ":name" updated to v:version.', { name: result.name, version: result.version }));
     updateDialogOpen.value = false;
     await fetchExtensions();
   }
@@ -202,19 +203,23 @@ async function handleUpdate(): Promise<void> {
 
 async function handleUninstall(extension: ExtensionSummary): Promise<void> {
   const confirmed = await confirm({
-    title: "Uninstall extension",
-    message: `Uninstall "${extension.name}"? This removes its files only — database tables and data are NOT deleted automatically.`,
-    confirmText: "Uninstall",
+    title: t("extensions.title.uninstall_extension", "Uninstall extension"),
+    message: t(
+      "extensions.msg.confirm_uninstall",
+      'Uninstall ":name"? This removes its files only — database tables and data are NOT deleted automatically.',
+      { name: extension.name },
+    ),
+    confirmText: t("extensions.action.uninstall", "Uninstall"),
   });
 
   if (!confirmed) return;
 
   const result = await submitUninstall(extension.id);
   if (result === null) {
-    notify.error("Could not uninstall extension.");
+    notify.error(t("extensions.msg.uninstall_failed", "Could not uninstall extension."));
     return;
   }
-  notify.success(`${extension.name} uninstalled.`);
+  notify.success(t("extensions.msg.extension_uninstalled", ":name uninstalled.", { name: extension.name }));
   await fetchExtensions();
 }
 
@@ -235,14 +240,14 @@ async function handleSaveConfig(): Promise<void> {
     try {
       payload[field.key] = JSON.parse(jsonDrafts[field.key] ?? "null");
     } catch {
-      notify.error(`Invalid JSON for "${labelFor(field.key)}".`);
+      notify.error(t("extensions.msg.invalid_json", 'Invalid JSON for ":field".', { field: labelFor(field.key) }));
       return;
     }
   }
 
   await submitConfig(configTargetId.value, payload);
   if (!configError.value) {
-    notify.success("Configuration saved.");
+    notify.success(t("extensions.msg.config_saved", "Configuration saved."));
     configDialogOpen.value = false;
   }
 }
@@ -256,25 +261,25 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 <template>
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5">Extensions</h1>
+      <h1 class="text-h5">{{ $t('extensions.title.extensions_list', 'Extensions') }}</h1>
       <v-btn
         v-if="authStore.can('system.extensions.install')"
         color="primary"
         prepend-icon="mdi-plus"
         @click="openInstallDialog"
       >
-        Install extension
+        {{ $t('extensions.action.install', 'Install extension') }}
       </v-btn>
     </div>
 
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
-        Extensions
+        {{ $t('extensions.title.extensions_list', 'Extensions') }}
         <div class="d-flex align-center ga-4">
           <v-switch
             v-if="authStore.can('system.extensions.install')"
             v-model="deletionUnlocked"
-            label="Enable uninstall"
+            :label="$t('extensions.action.enable_uninstall', 'Enable uninstall')"
             density="compact"
             color="error"
             hide-details
@@ -284,7 +289,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             variant="tonal"
             :loading="loading"
             @click="fetchExtensions"
-            >Refresh</v-btn
+            >{{ $t('common.action.refresh', 'Refresh') }}</v-btn
           >
           <v-btn
             size="small"
@@ -292,14 +297,14 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             prepend-icon="mdi-graph"
             @click="graphDialogOpen = true"
           >
-            Dependency graph
+            {{ $t('extensions.action.dependency_graph', 'Dependency graph') }}
           </v-btn>
         </div>
       </v-card-title>
 
       <v-tabs v-model="activeTab" class="px-4">
-        <v-tab value="enabled">Enabled ({{ enabledExtensions.length }})</v-tab>
-        <v-tab value="disabled">Disabled ({{ disabledExtensions.length }})</v-tab>
+        <v-tab value="enabled">{{ $t('extensions.msg.enabled_tab', 'Enabled') }} ({{ enabledExtensions.length }})</v-tab>
+        <v-tab value="disabled">{{ $t('extensions.msg.disabled_tab', 'Disabled') }} ({{ disabledExtensions.length }})</v-tab>
       </v-tabs>
       <v-divider />
 
@@ -315,7 +320,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
       >
         <template #no-data>
           <p class="text-medium-emphasis py-6">
-            {{ activeTab === "enabled" ? "No enabled extensions." : "No disabled extensions." }}
+            {{ activeTab === "enabled" ? $t('extensions.msg.no_enabled', 'No enabled extensions.') : $t('extensions.msg.no_disabled', 'No disabled extensions.') }}
           </p>
         </template>
 
@@ -382,11 +387,11 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 
     <!-- Install dialog -->
     <v-dialog v-model="installDialogOpen" max-width="480" persistent>
-      <v-card title="Install a new extension">
+      <v-card :title="$t('extensions.title.install_extension', 'Install a new extension')">
         <v-card-text>
           <v-file-input
             v-model="installFile"
-            label="Extension package (.zip)"
+            :label="$t('extensions.msg.package_label', 'Extension package (.zip)')"
             accept=".zip"
             :disabled="installing"
           />
@@ -401,7 +406,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="installDialogOpen = false"
-            >Cancel</v-btn
+            >{{ $t('common.action.cancel', 'Cancel') }}</v-btn
           >
           <v-btn
             color="primary"
@@ -409,7 +414,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             :disabled="!getSelectedFile(installFile)"
             @click="handleInstall"
           >
-            Install
+            {{ $t('extensions.action.install_confirm', 'Install') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -417,11 +422,11 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 
     <!-- Update dialog -->
     <v-dialog v-model="updateDialogOpen" max-width="480" persistent>
-      <v-card :title="`Update ${updateTargetId}`">
+      <v-card :title="$t('extensions.title.update_extension', 'Update :name', { name: updateTargetId ?? '' })">
         <v-card-text>
           <v-file-input
             v-model="updateFile"
-            label="New package (.zip)"
+            :label="$t('extensions.msg.new_package_label', 'New package (.zip)')"
             accept=".zip"
             :disabled="updating"
           />
@@ -435,14 +440,14 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="updateDialogOpen = false">Cancel</v-btn>
+          <v-btn variant="text" @click="updateDialogOpen = false">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
           <v-btn
             color="primary"
             :loading="updating"
             :disabled="!getSelectedFile(updateFile)"
             @click="handleUpdate"
           >
-            Update
+            {{ $t('extensions.action.update_confirm', 'Update') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -450,12 +455,12 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 
     <!-- Config dialog -->
     <v-dialog v-model="configDialogOpen" max-width="600" persistent>
-      <v-card :title="`Configuration — ${configTargetId}`">
+      <v-card :title="$t('extensions.title.config_extension', 'Configuration — :name', { name: configTargetId ?? '' })">
         <v-card-text>
-          <p v-if="loadingConfig">Loading…</p>
+          <p v-if="loadingConfig">{{ $t('common.msg.loading', 'Loading…') }}</p>
 
           <p v-else-if="!configFields.length" class="text-medium-emphasis">
-            This extension has no configurable settings.
+            {{ $t('extensions.msg.no_config', 'This extension has no configurable settings.') }}
           </p>
 
           <template v-else>
@@ -488,7 +493,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
                 chips
                 closable-chips
                 density="compact"
-                hint="Press enter after each value"
+                :hint="$t('extensions.msg.press_enter_hint', 'Press enter after each value')"
                 persistent-hint
               />
               <v-textarea
@@ -497,7 +502,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
                 :label="`${labelFor(field.key)} (JSON)`"
                 rows="4"
                 font="monospace"
-                hint="No simple form control for this shape — edit as JSON"
+                :hint="$t('extensions.msg.json_fallback_hint', 'No simple form control for this shape — edit as JSON')"
                 persistent-hint
               />
             </div>
@@ -513,12 +518,12 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="configDialogOpen = false">Cancel</v-btn>
+          <v-btn variant="text" @click="configDialogOpen = false">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
           <v-btn
             color="primary"
             :loading="savingConfig"
             @click="handleSaveConfig"
-            >Save</v-btn
+            >{{ $t('common.action.save', 'Save') }}</v-btn
           >
         </v-card-actions>
       </v-card>
@@ -526,22 +531,22 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 
     <!-- Details dialog -->
     <v-dialog v-model="detailsDialogOpen" max-width="600">
-      <v-card :title="`Details — ${detailsData?.id ?? ''}`">
+      <v-card :title="$t('extensions.title.details_extension', 'Details — :id', { id: detailsData?.id ?? '' })">
         <v-card-text>
-          <p v-if="loadingDetails">Loading…</p>
+          <p v-if="loadingDetails">{{ $t('common.msg.loading', 'Loading…') }}</p>
           <v-list v-else-if="detailsData" density="compact">
-            <v-list-item title="Name" :subtitle="detailsData.name" />
-            <v-list-item title="Version" :subtitle="detailsData.version" />
-            <v-list-item title="Path" :subtitle="detailsData.path" />
+            <v-list-item :title="$t('extensions.msg.detail_name', 'Name')" :subtitle="detailsData.name" />
+            <v-list-item :title="$t('extensions.msg.detail_version', 'Version')" :subtitle="detailsData.version" />
+            <v-list-item :title="$t('extensions.msg.detail_path', 'Path')" :subtitle="detailsData.path" />
             <v-list-item
-              title="Enabled"
-              :subtitle="detailsData.enabled ? 'Yes' : 'No'"
+              :title="$t('extensions.msg.detail_enabled', 'Enabled')"
+              :subtitle="detailsData.enabled ? $t('extensions.msg.detail_yes', 'Yes') : $t('extensions.msg.detail_no', 'No')"
             />
             <v-list-item
-              title="Dependencies"
-              :subtitle="detailsData.dependencies.join(', ') || 'None'"
+              :title="$t('extensions.msg.detail_dependencies', 'Dependencies')"
+              :subtitle="detailsData.dependencies.join(', ') || $t('extensions.msg.detail_none', 'None')"
             />
-            <v-list-item title="Service providers">
+            <v-list-item :title="$t('extensions.msg.detail_providers', 'Service providers')">
               <v-list-item-subtitle
                 v-for="provider in detailsData.providers"
                 :key="provider"
@@ -553,20 +558,20 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="detailsDialogOpen = false">Close</v-btn>
+          <v-btn variant="text" @click="detailsDialogOpen = false">{{ $t('common.action.close', 'Close') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Dependency graph dialog -->
     <v-dialog v-model="graphDialogOpen" max-width="900">
-      <v-card title="Extension dependency graph">
+      <v-card :title="$t('extensions.title.dependency_graph', 'Extension dependency graph')">
         <v-card-text>
           <ExtensionDependencyGraph :extensions="extensionsStore.extensions" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="graphDialogOpen = false">Close</v-btn>
+          <v-btn variant="text" @click="graphDialogOpen = false">{{ $t('common.action.close', 'Close') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

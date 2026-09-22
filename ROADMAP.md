@@ -43,10 +43,20 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 
 ### CI/CD
 
-* [ ] Continuous integration
-* [ ] Automated test execution
+* [x] Continuous integration foundation
+* [x] MySQL service
+* [x] Redis service
+* [ ] Backend unit test job
+* [ ] Backend functional test job
+* [ ] Frontend unit test job
+* [ ] Frontend functional test job
+* [ ] Playwright end-to-end test job
 * [ ] Static analysis
-* [ ] Code style checks
+* [ ] PHP code style checks
+* [ ] Frontend code style checks
+* [ ] PHP coverage report with phpcov
+* [ ] 80% minimum PHP coverage gate
+* [ ] Production quality gate
 * [ ] Continuous deployment
 
 ---
@@ -198,6 +208,17 @@ The Administration layer provides the first visual interface for managing the Pi
 * [x] Administration layout
 * [x] Administration navigation
 * [x] Administration route protection
+
+### Administration Navigation
+
+* [ ] Collapsible administration sidebar
+* [ ] Persist collapsed/expanded state
+* [ ] Icon-only collapsed navigation
+* [ ] Hover submenu for collapsed navigation
+* [ ] Nested navigation support
+* [ ] Keyboard navigation
+* [ ] Responsive navigation behaviour
+* [ ] Accessibility support
 
 ### Material Design System
 
@@ -376,6 +397,32 @@ Today, `update()` replaces an extension's entire directory from a new zip. The t
 * [ ] Extension frontend guidelines
 * [ ] Extension Design System guidelines
 * [ ] Extension Storybook guidelines
+
+### Extension Quality & Testing
+
+Every Pixely extension and platform feature must provide automated tests covering
+backend, frontend and end-to-end behaviour.
+
+* [ ] Backend unit tests
+* [ ] Backend functional tests
+* [ ] Frontend unit tests
+* [ ] Frontend functional tests
+* [ ] End-to-end tests with Playwright
+* [ ] All test suites runnable locally
+* [ ] All test suites runnable in CI/CD
+* [ ] Test commands separated by category
+* [ ] Extension testing helpers
+* [ ] Extension test fixtures
+* [ ] Extension testing documentation
+
+#### Coverage Quality Gate
+
+PHP backend coverage is measured with `phpcov`.
+
+* [ ] Generate PHP coverage reports
+* [ ] Enforce minimum 80% PHP coverage
+* [ ] Fail CI when coverage is below 80%
+* [ ] Block production eligibility when coverage is below 80%
 
 ---
 
@@ -1207,6 +1254,23 @@ Implements the Translation Management UI already specified under Administration 
 
 * [x] Same feature set as already detailed in "Translation Management UI" (module/language filter, completion percentage, inline editing, per-category save)
 * [x] Applies uniformly to Core strings and any installed extension's own translation files, discovered dynamically rather than hardcoded per module
+
+### File List UI
+
+* [ ] Visual file list
+* [ ] Image thumbnails
+* [ ] File type icons
+* [ ] File name and metadata
+* [ ] File size display
+* [ ] Upload progress
+* [ ] Upload status
+* [ ] File actions
+* [ ] Multi-file selection
+* [ ] Drag and drop upload
+* [ ] Vuetify Inset File List inspired design
+* [ ] Responsive file list
+* [ ] Empty state
+* [ ] Error state
 
 ---
 
