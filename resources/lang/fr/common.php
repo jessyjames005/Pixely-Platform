@@ -19,6 +19,8 @@ return [
         'yes' => 'Oui',
         'no' => 'Non',
         'confirm' => 'Confirmer',
+        'light_mode' => 'Mode clair',
+        'dark_mode' => 'Mode sombre',
     ],
     'msg' => [
         'loading' => 'Chargement…',

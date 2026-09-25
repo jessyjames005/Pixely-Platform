@@ -58,7 +58,22 @@ async function handleLogout(): Promise<void> {
   router.push({ name: 'login' })
 }
 
-const LOCALE_FLAGS: Record<string, string> = { en: '🇬🇧', fr: '🇫🇷' }
+const isDark = computed(() => theme.global.name.value === 'pixelyDark')
+
+async function toggleTheme(): Promise<void> {
+  const next = isDark.value ? 'light' : 'dark'
+  theme.global.name.value = next === 'dark' ? 'pixelyDark' : 'pixelyLight'
+  settingsStore.updateUserSettings({ theme: next }).catch(() => undefined)
+}
+
+const LOCALES = [
+  { code: 'en', flag: '🇬🇧', name: 'English', native: 'UK' },
+  { code: 'fr', flag: '🇫🇷', name: 'français', native: 'French' },
+]
+
+function currentLocaleFlag(): string {
+  return LOCALES.find((l) => l.code === i18nStore.locale)?.flag ?? '🌐'
+}
 
 async function switchLocale(locale: string): Promise<void> {
   if (i18nStore.locale === locale) return
@@ -80,11 +95,30 @@ async function switchLocale(locale: string): Promise<void> {
       <v-app-bar-title>Pixely Platform</v-app-bar-title>
       <v-spacer />
 
-      <v-btn-toggle :model-value="i18nStore.locale" mandatory density="compact" variant="text" class="mr-3" @update:model-value="switchLocale">
-        <v-btn v-for="(flag, loc) in LOCALE_FLAGS" :key="loc" :value="loc" :title="loc === 'fr' ? 'Français' : 'English'" size="small">
-          <span style="font-size: 20px">{{ flag }}</span>
-        </v-btn>
-      </v-btn-toggle>
+      <v-btn icon :title="isDark ? t('common.action.light_mode', 'Light mode') : t('common.action.dark_mode', 'Dark mode')" @click="toggleTheme">
+        <v-icon :icon="isDark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'" />
+      </v-btn>
+
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn v-bind="props" icon :title="t('core.profile.preference.locale', 'Language')">
+            <span style="font-size: 20px">{{ currentLocaleFlag() }}</span>
+          </v-btn>
+        </template>
+        <v-list density="compact" min-width="200">
+          <v-list-item
+            v-for="locale in LOCALES"
+            :key="locale.code"
+            :active="i18nStore.locale === locale.code"
+            @click="switchLocale(locale.code)"
+          >
+            <template #prepend>
+              <span style="font-size: 20px" class="mr-3">{{ locale.flag }}</span>
+            </template>
+            <v-list-item-title>{{ locale.name }} <span class="text-medium-emphasis">({{ locale.native }})</span></v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
       <v-menu>
         <template #activator="{ props }">

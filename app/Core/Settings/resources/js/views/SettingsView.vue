@@ -1,10 +1,16 @@
 <script setup lang="ts">
 // Settings screen: platform-wide settings and the current user's own
 // locale preference, both backed by the Core Settings Pinia store.
+//
+// Note: "My preferences" here duplicates the language field already on
+// My Profile → Preferences (and the quick flag switcher in the top
+// bar) — all three write the same UserSetting.locale. Left as-is since
+// consolidating it wasn't asked for; translated as it stands.
 import { onMounted, ref } from "vue";
 import { useApi } from "@shared/composables/useApi";
 import { useSettingsStore } from "../store/settings.store";
 import { useAuthStore } from "@core/auth/store/auth.store";
+import { translate as t } from "@shared/plugins/i18n";
 
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
@@ -64,11 +70,11 @@ async function handleSaveUserSettings(): Promise<void> {
 
 <template>
   <div>
-    <h1 class="text-h5 mb-4">Settings</h1>
+    <h1 class="text-h5 mb-4">{{ $t('core.settings.title.settings', 'Settings') }}</h1>
 
     <v-card
       v-if="authStore.can('settings.platform.view')"
-      title="Platform settings"
+      :title="$t('core.settings.title.platform_settings', 'Platform settings')"
       class="mb-6"
     >
       <v-card-text>
@@ -78,7 +84,7 @@ async function handleSaveUserSettings(): Promise<void> {
         >
           <v-text-field
             v-model="siteName"
-            label="Site name"
+            :label="$t('core.settings.object.platform.site_name.label', 'Site name')"
             density="compact"
             style="max-width: 240px"
             hide-details
@@ -95,7 +101,7 @@ async function handleSaveUserSettings(): Promise<void> {
                 value: locale.code,
               }))
             "
-            label="Default locale"
+            :label="$t('core.settings.object.platform.locale.label', 'Default locale')"
             density="compact"
             style="max-width: 220px"
             hide-details
@@ -110,7 +116,7 @@ async function handleSaveUserSettings(): Promise<void> {
             color="primary"
             :loading="savingPlatform"
           >
-            Save platform settings
+            {{ $t('core.settings.action.save_platform_settings', 'Save platform settings') }}
           </v-btn>
         </v-form>
 
@@ -124,7 +130,7 @@ async function handleSaveUserSettings(): Promise<void> {
       </v-card-text>
     </v-card>
 
-    <v-card title="My preferences">
+    <v-card :title="$t('core.settings.title.my_preferences', 'My preferences')">
       <v-card-text>
         <v-form
           class="d-flex align-end ga-4 flex-wrap"
@@ -138,7 +144,7 @@ async function handleSaveUserSettings(): Promise<void> {
                 value: locale.code,
               }))
             "
-            label="My language"
+            :label="$t('core.profile.preference.locale', 'Language')"
             density="compact"
             style="max-width: 220px"
             hide-details
@@ -148,7 +154,7 @@ async function handleSaveUserSettings(): Promise<void> {
           >
             <template #prepend-item>
               <v-list-item
-                title="Use platform default"
+                :title="$t('core.settings.msg.use_platform_default', 'Use platform default')"
                 @click="userLocale = null"
               />
               <v-divider class="mt-2" />
@@ -156,7 +162,7 @@ async function handleSaveUserSettings(): Promise<void> {
           </v-select>
 
           <v-btn type="submit" color="primary" :loading="savingUserSettings"
-            >Save my preferences</v-btn
+            >{{ $t('core.profile.action.save_preferences', 'Save preferences') }}</v-btn
           >
         </v-form>
 

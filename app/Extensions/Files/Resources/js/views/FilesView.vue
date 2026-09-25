@@ -8,6 +8,7 @@ import { useNotify } from '@shared/composables/useNotify'
 import { useConfirmDialog } from '@shared/composables/useConfirmDialog'
 import { useFilesStore } from '../store/files.store'
 import type { FileRecord } from '../models/FileRecord'
+import { translate as t } from '@shared/plugins/i18n'
 
 const filesStore = useFilesStore()
 const notify = useNotify()
@@ -38,7 +39,7 @@ async function handleUpload(): Promise<void> {
 
   const created = await submitUpload(file)
   if (created) {
-    notify.success(`"${created.original_name}" uploaded.`)
+    notify.success(t('files.msg.file_uploaded', '":name" uploaded.', { name: created.original_name }))
     pendingFile.value = null
     await fetchFiles(currentPage.value, perPage)
   }
@@ -46,15 +47,15 @@ async function handleUpload(): Promise<void> {
 
 async function handleDelete(file: FileRecord): Promise<void> {
   const confirmed = await confirm({
-    title: 'Delete file',
-    message: `Delete "${file.original_name}"? This cannot be undone.`,
-    confirmText: 'Delete',
+    title: t('files.title.confirm_delete_file', 'Delete file'),
+    message: t('files.msg.confirm_delete_file', 'Delete ":name"? This cannot be undone.', { name: file.original_name }),
+    confirmText: t('common.action.delete', 'Delete'),
     color: 'error',
   })
   if (!confirmed) return
 
   await filesStore.deleteFile(file.id)
-  notify.success('File deleted.')
+  notify.success(t('files.msg.file_deleted', 'File deleted.'))
   await fetchFiles(currentPage.value, perPage)
 }
 
@@ -80,24 +81,21 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const totalLabel = computed(() => {
-  const total = filesStore.meta?.total ?? 0
-  return `${total} file${total === 1 ? '' : 's'}`
-})
+const totalLabel = computed(() => t('files.msg.total_files', ':count file(s)', { count: filesStore.meta?.total ?? 0 }))
 </script>
 
 <template>
   <div>
     <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-3">
       <div>
-        <h1 class="text-h5 font-weight-bold">Files</h1>
+        <h1 class="text-h5 font-weight-bold">{{ $t('files.title.files_list', 'Files') }}</h1>
         <p class="text-body-2 text-medium-emphasis mt-1">{{ totalLabel }}</p>
       </div>
 
       <div class="d-flex align-center ga-2">
         <v-file-input
           v-model="pendingFile"
-          label="Choose a file"
+          :label="$t('files.action.choose_file', 'Choose a file')"
           density="compact"
           variant="outlined"
           hide-details
@@ -105,7 +103,7 @@ const totalLabel = computed(() => {
           :disabled="uploading"
         />
         <v-btn color="primary" :loading="uploading" :disabled="!getSelectedFile()" @click="handleUpload">
-          Upload
+          {{ $t('files.action.upload', 'Upload') }}
         </v-btn>
       </div>
     </div>
@@ -115,11 +113,11 @@ const totalLabel = computed(() => {
 
     <div v-if="loading" class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center">
       <v-progress-circular indeterminate size="20" width="2" />
-      Loading files…
+      {{ $t('files.msg.loading_files', 'Loading files…') }}
     </div>
 
     <v-alert v-else-if="!filesStore.files.length" type="info" variant="tonal">
-      No files yet — upload one above.
+      {{ $t('files.msg.no_files_yet', 'No files yet — upload one above.') }}
     </v-alert>
 
     <v-row v-else>
@@ -139,9 +137,9 @@ const totalLabel = computed(() => {
           </v-card-text>
 
           <v-card-actions class="pa-1 pt-0">
-            <v-btn :href="file.url" target="_blank" size="x-small" variant="text" icon="mdi-open-in-new" title="Open" />
+            <v-btn :href="file.url" target="_blank" size="x-small" variant="text" icon="mdi-open-in-new" :title="$t('files.action.open', 'Open')" />
             <v-spacer />
-            <v-btn size="x-small" variant="text" color="error" icon="mdi-delete-outline" title="Delete" @click="handleDelete(file)" />
+            <v-btn size="x-small" variant="text" color="error" icon="mdi-delete-outline" :title="$t('common.action.delete', 'Delete')" @click="handleDelete(file)" />
           </v-card-actions>
         </v-card>
       </v-col>

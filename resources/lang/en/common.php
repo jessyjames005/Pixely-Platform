@@ -19,6 +19,8 @@ return [
         'yes' => 'Yes',
         'no' => 'No',
         'confirm' => 'Confirm',
+        'light_mode' => 'Light mode',
+        'dark_mode' => 'Dark mode',
     ],
     'msg' => [
         'loading' => 'Loading…',

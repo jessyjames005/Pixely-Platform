@@ -7,12 +7,16 @@ namespace App\Core\Extensions\Database;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
+use App\Core\Extensions\Database\ExtensionMigrationCompatibilityChecker;
+use App\Core\Versioning\KernelVersionProvider;
 
 final class ExtensionMigrationRunner
 {
     public function __construct(
         private readonly Migrator $migrator,
         private readonly Filesystem $files,
+        private readonly ExtensionMigrationCompatibilityChecker $compatibilityChecker,
+        private readonly KernelVersionProvider $kernelVersionProvider,
     ) {}
 
     public function migrate(string $extensionId): void
@@ -23,9 +27,36 @@ final class ExtensionMigrationRunner
             return;
         }
 
+        $manifest = $this->extensionManifest($extensionId);
+
+        $this->compatibilityChecker->check(
+            $manifest,
+            $this->kernelVersionProvider->getVersion(),
+        );
+
         $this->migrator->run([$path], [
             'pretend' => false,
         ]);
+    }
+
+    /**
+     * Load the extension manifest used for migration compatibility checks.
+     *
+     * @return array<string, mixed>
+     */
+    private function extensionManifest(string $extensionId): array
+    {
+        $manifestPath = base_path(
+            'app/Extensions/' . ucfirst($extensionId) . '/extension.php'
+        );
+
+        if (! $this->files->isFile($manifestPath)) {
+            return [];
+        }
+
+        $manifest = require $manifestPath;
+
+        return is_array($manifest) ? $manifest : [];
     }
 
     public function rollback(string $extensionId): void
