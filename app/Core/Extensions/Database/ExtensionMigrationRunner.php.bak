@@ -6,6 +6,7 @@ namespace App\Core\Extensions\Database;
 
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\DB;
 use App\Core\Extensions\Database\ExtensionMigrationCompatibilityChecker;
 use App\Core\Versioning\KernelVersionProvider;
 
@@ -16,7 +17,6 @@ final class ExtensionMigrationRunner
         private readonly Filesystem $files,
         private readonly ExtensionMigrationCompatibilityChecker $compatibilityChecker,
         private readonly KernelVersionProvider $kernelVersionProvider,
-        private readonly ExtensionMigrationRepository $migrationRepository,
     ) {}
 
     public function migrate(string $extensionId): void
@@ -34,36 +34,9 @@ final class ExtensionMigrationRunner
             $this->kernelVersionProvider->getVersion(),
         );
 
-        $files = $this->migrator->getMigrationFiles($path);
-        $ran = $this->migrationRepository->getRan($extensionId);
-        $batch = $this->migrationRepository->getNextBatchNumber($extensionId);
-
-        foreach ($files as $migrationName => $migrationFile) {
-            if (in_array($migrationName, $ran, true)) {
-                continue;
-            }
-
-            require_once $migrationFile;
-
-            $className = $this->migrationClassName($migrationFile);
-
-            if (! class_exists($className)) {
-                throw new \RuntimeException(
-                    sprintf('Migration class not found: %s', $className),
-                );
-            }
-
-            /** @var \Illuminate\Database\Migrations\Migration $migration */
-            $migration = new $className();
-
-            $migration->up();
-
-            $this->migrationRepository->record(
-                $extensionId,
-                $migrationName,
-                $batch,
-            );
-        }
+        $this->migrator->run([$path], [
+            'pretend' => false,
+        ]);
     }
 
     /**
@@ -95,7 +68,7 @@ final class ExtensionMigrationRunner
         }
 
         $files = $this->migrator->getMigrationFiles($path);
-        $ran = $this->migrationRepository->getRan($extensionId);
+        $ran = $this->migrator->getRepository()->getRan();
 
         $ranExtensionMigrations = array_values(
             array_filter(
@@ -126,10 +99,16 @@ final class ExtensionMigrationRunner
 
         $migration->down();
 
-        $this->migrationRepository->delete(
-            $extensionId,
-            $migrationName,
-        );
+        $batch = DB::table('migrations')
+            ->where('migration', $migrationName)
+            ->value('batch');
+
+        $this->migrator
+            ->getRepository()
+            ->delete((object) [
+                'migration' => $migrationName,
+                'batch' => $batch,
+            ]);
     }
 
     private function migrationClassName(string $migrationFile): string
@@ -160,7 +139,7 @@ final class ExtensionMigrationRunner
         $files = $this->migrator->getMigrationFiles($path);
 
         // Laravel stores executed migrations in the global migrations table.
-        $ran = $this->migrationRepository->getRan($extensionId);
+        $ran = $this->migrator->getRepository()->getRan();
 
         return array_map(
             static fn(string $migration): array => [

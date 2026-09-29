@@ -7,13 +7,17 @@ namespace Tests\Unit\Core\Extensions\Database;
 use App\Core\Extensions\Database\ExtensionMigrationCompatibilityChecker;
 use App\Core\Extensions\Database\ExtensionMigrationRunner;
 use App\Core\Versioning\KernelVersionProvider;
+use App\Core\Extensions\Database\ExtensionMigrationRepository;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 
 final class ExtensionMigrationRunnerTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_migrate_checks_extension_kernel_compatibility(): void
     {
         $migrator = Mockery::mock(Migrator::class);
@@ -35,19 +39,22 @@ final class ExtensionMigrationRunnerTest extends TestCase
             ->andReturn(true);
 
         $migrator
-            ->shouldReceive('run')
+            ->shouldReceive('getMigrationFiles')
             ->once()
-            ->with(
-                [$extensionPath],
-                ['pretend' => false],
-            );
+            ->with($extensionPath)
+            ->andReturn([]);
+
+        $migrationRepository = new ExtensionMigrationRepository();
 
         $runner = new ExtensionMigrationRunner(
             $migrator,
             $files,
             new ExtensionMigrationCompatibilityChecker(),
             new KernelVersionProvider(),
+            $migrationRepository,
         );
+
+        $this->artisan('migrate');
 
         $runner->migrate('Gallery');
 
