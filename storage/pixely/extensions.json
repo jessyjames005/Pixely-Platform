@@ -33,5 +33,12 @@
         "version": "1.0.0",
         "class": "Tests\\Fakes\\Extensions\\MediaExtension",
         "status": "enabled"
+    },
+    "cinema-movie": {
+        "id": "cinema-movie",
+        "name": "CinemaMovie",
+        "version": "1.0.0",
+        "class": "App\\Extensions\\CinemaMovie\\CinemaMovieExtension",
+        "status": "enabled"
     }
 }

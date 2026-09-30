@@ -25,6 +25,7 @@ final class GalleryExtension implements
             id: 'gallery',
             name: 'Gallery',
             version: '1.0.0',
+            minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Gallery',
             dependencies: [

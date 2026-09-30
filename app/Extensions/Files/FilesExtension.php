@@ -25,6 +25,7 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
             id: 'files',
             name: 'Files',
             version: '1.0.0',
+            minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Files',
             dependencies: [],

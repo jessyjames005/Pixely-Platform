@@ -28,6 +28,10 @@ final readonly class ExtensionManifest
          */
         public string $version,
         /**
+         * Extension minimum kernel version.
+         */
+        public string $minimum_kernel_version,
+        /**
          * Extension entrypoint class.
          */
         public string $class,

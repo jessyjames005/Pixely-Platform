@@ -17,6 +17,7 @@ final class ExtensionManifestTest extends TestCase
             version: '1.0.0',
             class: 'App\\Extensions\\Gallery\\GalleryExtension',
             path: 'app/Extensions/Gallery',
+            minimum_kernel_version: '1.0.0',
         );
 
         $this->assertSame(
@@ -33,6 +34,7 @@ final class ExtensionManifestTest extends TestCase
             version: '1.0.0',
             class: 'App\\Extensions\\Gallery\\GalleryExtension',
             path: 'app/Extensions/Gallery',
+            minimum_kernel_version: '1.0.0',
             dependencies: [
                 'media',
             ],

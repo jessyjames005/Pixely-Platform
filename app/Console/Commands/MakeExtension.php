@@ -57,6 +57,9 @@ final class MakeExtension extends Command
             "{$basePath}/lang/en",
             "{$basePath}/lang/fr",
             "{$basePath}/tests",
+            "{$basePath}/tests/Unit",
+            "{$basePath}/tests/Functional",
+            "{$basePath}/tests/E2E",
         ];
 
         foreach ($dirs as $dir) {
@@ -70,6 +73,9 @@ final class MakeExtension extends Command
         File::put("{$basePath}/routes/api.php", $this->routesStub($studly, $id));
         File::put("{$basePath}/lang/en/{$id}.php", $this->langStub());
         File::put("{$basePath}/lang/fr/{$id}.php", $this->langStub());
+        File::put("{$basePath}/tests/Unit/{$studly}ExtensionTest.php", $this->unitTestStub($studly, $id));
+        File::put("{$basePath}/tests/Functional/{$studly}ApiTest.php", $this->functionalTestStub($studly, $id));
+        File::put("{$basePath}/tests/E2E/{$studly}.spec.ts", $this->e2eTestStub($studly, $id));
 
         // Keep otherwise-empty directories tracked by git
         foreach (["{$basePath}/Models", "{$basePath}/Database/Migrations", "{$basePath}/Upgrades", "{$basePath}/tests"] as $emptyDir) {
@@ -110,6 +116,7 @@ final class MakeExtension extends Command
             'id' => '{$id}',
             'name' => '{$studly}',
             'version' => '1.0.0',
+            'minimum_kernel_version' => '1.0.0',
             'class' => App\\Extensions\\{$studly}\\{$studly}Extension::class,
         ];
 
@@ -147,6 +154,7 @@ final class MakeExtension extends Command
                     id: '{$id}',
                     name: '{$studly}',
                     version: '1.0.0',
+                    minimum_kernel_version: '1.0.0',
                     class: self::class,
                     path: 'app/Extensions/{$studly}',
                     dependencies: [],
@@ -200,7 +208,7 @@ final class MakeExtension extends Command
         use Illuminate\\Support\\ServiceProvider;
 
         /**
-         * Registers {$studly} extension API routes and migrations.
+         * Registers {$studly} extension API routes.
          */
         final class {$studly}ServiceProvider extends ServiceProvider
         {
@@ -212,10 +220,6 @@ final class MakeExtension extends Command
                     ->group(
                         __DIR__ . '/../routes/api.php'
                     );
-
-                \$this->loadMigrationsFrom(
-                    __DIR__ . '/../Database/Migrations'
-                );
             }
         }
 
@@ -292,6 +296,59 @@ final class MakeExtension extends Command
         ];
 
         PHP;
+    }
+
+    private function unitTestStub(string $studly, string $id): string
+    {
+        return <<<PHP
+        <?php
+
+        declare(strict_types=1);
+
+        use App\\Extensions\\{$studly}\\{$studly}Extension;
+
+        it('declares the {$id} extension manifest', function () {
+            \$manifest = (new {$studly}Extension())->manifest();
+
+            expect(\$manifest->id)->toBe('{$id}')
+                ->and(\$manifest->name)->toBe('{$studly}')
+                ->and(\$manifest->minimum_kernel_version)->toBe('1.0.0');
+        });
+
+        PHP;
+    }
+
+    private function functionalTestStub(string $studly, string $id): string
+    {
+        return <<<PHP
+        <?php
+
+        declare(strict_types=1);
+
+        use Tests\\TestCase;
+
+        uses(TestCase::class);
+
+        it('requires authentication to list {$studly} items', function () {
+            // Enable the {$id} extension before running this API feature test.
+            \$this->getJson('/api/v1/{$id}')->assertUnauthorized();
+        });
+
+        PHP;
+    }
+
+    private function e2eTestStub(string $studly, string $id): string
+    {
+        return <<<TS
+        import { expect, test } from '@playwright/test'
+
+        test('opens the {$studly} administration screen', async ({ page }) => {
+          await page.goto('/admin/{$id}')
+
+          await expect(page.getByRole('heading', { name: '{$studly}' })).toBeVisible()
+        })
+
+        TS;
     }
 
     private function frontendModelStub(string $studly): string
@@ -398,7 +455,8 @@ final class MakeExtension extends Command
         $this->line("   import { {$camel}NavItem } from '@extensions/{$id}/nav'");
         $this->line("3. Add the route in resources/js/router/index.ts (import {$studly}View, add to children[]).");
         $this->line("4. Add {$id}.items.view/manage/delete to database/seeders/RolePermissionSeeder.php (or rely on ExtensionPermissionSynchronizer at enable time).");
-        $this->line('5. Run: php artisan migrate  (once you add migrations to Database/Migrations/).');
-        $this->line('6. Run: php artisan pixely:extensions  to confirm discovery.');
+        $this->line("5. Run: docker compose exec app php artisan pixely:extension:migrate {$id}  (once you add migrations to Database/Migrations/).");
+        $this->line("6. Run: docker compose exec app php artisan pixely:extension:migration-status {$id}");
+        $this->line('7. Run: docker compose exec app php artisan pixely:extensions  to confirm discovery.');
     }
 }

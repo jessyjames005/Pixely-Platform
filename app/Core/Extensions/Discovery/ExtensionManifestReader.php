@@ -35,6 +35,7 @@ final class ExtensionManifestReader
         $id = $data['id'] ?? null;
         $name = $data['name'] ?? null;
         $version = $data['version'] ?? null;
+        $minimumKernelVersion = $data['minimum_kernel_version'] ?? '1.0.0';
         $class = $data['class'] ?? null;
         $dependencies = $data['requires'] ?? [];
 
@@ -42,6 +43,7 @@ final class ExtensionManifestReader
             !is_string($id)
             || !is_string($name)
             || !is_string($version)
+            || !is_string($minimumKernelVersion)
             || !is_string($class)
             || !is_array($dependencies)
         ) {
@@ -60,6 +62,7 @@ final class ExtensionManifestReader
             id: $id,
             name: $name,
             version: $version,
+            minimum_kernel_version: $minimumKernelVersion,
             class: $class,
             path: $path,
             dependencies: $dependencies,
