@@ -51,6 +51,9 @@ export default defineConfig({
       "@extensions/files": fileURLToPath(
         new URL("./app/Extensions/Files/Resources/js", import.meta.url),
       ),
+      "@extensions/cinema-movie": fileURLToPath(
+        new URL("./app/Extensions/CinemaMovie/resources/js", import.meta.url),
+      ),
     },
   },
   server: {

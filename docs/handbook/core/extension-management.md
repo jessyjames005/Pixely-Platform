@@ -181,6 +181,60 @@ If a dependency is missing or disabled, `ExtensionDependencyException` is thrown
 
 ---
 
+## Creating an Extension
+
+Use the extension generator to create a complete starting structure:
+
+```bash
+docker compose exec app php artisan make:extension CinemaMovie
+```
+
+The generator creates the PHP `extension.php` manifest, extension class and provider, API controller and routes, extension migration and upgrade directories, language files, and frontend model, store, view, and navigation item. It also creates starter tests under `tests/Unit`, `tests/Functional`, and `tests/E2E` inside the extension directory. See [Extension Manifest](../../architecture/extension-manifest.md) for the manifest contract.
+
+The generator prints the frontend integration steps that are specific to the application build: add the Vite and TypeScript aliases, register the navigation item, and add the Vue Router route.
+
+Run the generated Playwright E2E tests with the opt-in Docker runner after starting the application services and seeding the local test account:
+
+```bash
+docker compose up -d app nginx mysql redis
+docker compose exec app php artisan migrate --seed
+docker compose --profile e2e run --rm e2e
+```
+
+The CI workflow runs the same browser suite in its dedicated frontend E2E job.
+
+## Extension Migrations
+
+Extension migrations are run by Pixely's extension migration runner and tracked separately from Laravel's global migration repository. Do not register extension migration directories with `loadMigrationsFrom()` and do not use `php artisan migrate` to run them.
+
+Run an extension's migrations and inspect their status with:
+
+```bash
+docker compose exec app php artisan pixely:extension:migrate cinema-movie
+docker compose exec app php artisan pixely:extension:migration-status cinema-movie
+```
+
+Rollback the most recent migration for an extension with:
+
+```bash
+docker compose exec app php artisan pixely:extension:migration-rollback cinema-movie
+```
+
+Before applying migrations, the runner checks the extension's declared `minimum_kernel_version` against the current Kernel version. Keep the value in `extension.php` accurate when an extension starts depending on newer platform capabilities.
+
+## Extension Test Layout
+
+The generated test starters are grouped by test type:
+
+```text
+app/Extensions/<Name>/tests/
+├── Unit/
+├── Functional/
+└── E2E/
+```
+
+Unit tests cover extension-level logic, Functional tests exercise the Laravel application and API, and E2E tests use Playwright against the administration interface. Backend CI runs Unit and Functional suites separately and discovers these extension-local directories.
+
 # Artisan Commands
 
 ## List registered extensions

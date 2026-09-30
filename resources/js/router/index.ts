@@ -24,6 +24,7 @@ import TuleapSprintAnalyticsView from "@extensions/tuleap/views/SprintAnalyticsV
 import TuleapTeamSettingsView from "@extensions/tuleap/views/TeamSettingsView.vue";
 import TuleapSystemSettingsView from "@extensions/tuleap/views/SystemSettingsView.vue";
 import FilesView from "@extensions/files/views/FilesView.vue";
+import CinemaMovieView from "@extensions/cinema-movie/views/CinemaMovieView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -61,6 +62,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'tuleap/equipe', name: 'admin.tuleap.equipe', component: TuleapTeamSettingsView },
       { path: 'tuleap/system', name: 'admin.tuleap.system', component: TuleapSystemSettingsView },
       { path: 'files', name: 'admin.files', component: FilesView },
+      { path: 'cinema-movie', name: 'admin.cinema-movie', component: CinemaMovieView },
     ],
   },
 ];

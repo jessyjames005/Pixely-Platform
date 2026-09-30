@@ -97,7 +97,7 @@ final class MakeExtension extends Command
         }
 
         File::put("{$jsBase}/models/" . $studly . '.ts', $this->frontendModelStub($studly));
-        File::put("{$jsBase}/store/" . Str::camel($id) . '.store.ts', $this->frontendStoreStub($studly, $id));
+        File::put("{$jsBase}/store/{$id}.store.ts", $this->frontendStoreStub($studly, $id));
         File::put("{$jsBase}/views/{$studly}View.vue", $this->frontendViewStub($studly, $id));
         File::put("{$basePath}/resources/js/nav.ts", $this->frontendNavStub($studly, $id));
     }
@@ -342,7 +342,20 @@ final class MakeExtension extends Command
         return <<<TS
         import { expect, test } from '@playwright/test'
 
-        test('opens the {$studly} administration screen', async ({ page }) => {
+        test('logs in and opens the {$studly} administration screen', async ({ page }) => {
+          const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
+          const password = process.env.E2E_USER_PASSWORD ?? 'password'
+
+          await page.goto('/login')
+          const csrfResponsePromise = page.waitForResponse('/sanctum/csrf-cookie')
+          await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
+          const csrfResponse = await csrfResponsePromise
+          expect(csrfResponse.status()).toBe(204)
+          await expect.poll(async () => (await page.context().cookies()).some((cookie) => cookie.name === 'XSRF-TOKEN')).toBe(true)
+          await page.locator('input[autocomplete="username"]').fill(email)
+          await page.locator('input[autocomplete="current-password"]').fill(password)
+          await page.locator('form button[type="submit"]').click()
+
           await page.goto('/admin/{$id}')
 
           await expect(page.getByRole('heading', { name: '{$studly}' })).toBeVisible()

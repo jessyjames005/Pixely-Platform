@@ -1,6 +1,6 @@
 import type { NavItem } from '@shared/navigation/types'
 
-export const {Str::camel(cinema-movie)}NavItem: NavItem = {
+export const cinemaMovieNavItem: NavItem = {
   label: 'CinemaMovie',
   to: '/admin/cinema-movie',
   icon: 'mdi-puzzle-outline',

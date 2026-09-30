@@ -7,6 +7,10 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: pixely_app
     working_dir: /var/www
+    environment:
+      DEBUGBAR_ENABLED: "false"
+      SANCTUM_STATEFUL_DOMAINS: "localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,nginx,nginx:80"
+      SESSION_DOMAIN: "null"
     volumes:
       - ./:/var/www
     networks:
@@ -42,6 +46,23 @@ services:
     networks:
       - pixely
 
+  # One-shot Playwright runner (opt in with --profile e2e).
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.63.0-noble
+    working_dir: /var/www
+    command: ["bash", "-lc", "npm ci && npm run build && npm run test:e2e"]
+    profiles:
+      - e2e
+    depends_on:
+      - nginx
+      - mysql
+      - redis
+    volumes:
+      - ./:/var/www
+      - e2e_node_modules:/var/www/node_modules
+    networks:
+      - pixely
+
   # MySQL database.
   mysql:
     image: mysql:8.0
@@ -73,5 +94,6 @@ networks:
   pixely:
 
 volumes:
+  e2e_node_modules:
   mysql_data:
   node_modules:

@@ -46,11 +46,11 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 * [x] Continuous integration foundation
 * [x] MySQL service
 * [x] Redis service
-* [ ] Backend unit test job
-* [ ] Backend functional test job
+* [x] Backend unit test job
+* [x] Backend functional test job
 * [ ] Frontend unit test job
 * [ ] Frontend functional test job
-* [ ] Playwright end-to-end test job
+* [x] Playwright end-to-end test job
 * [ ] Static analysis
 * [ ] PHP code style checks
 * [ ] Frontend code style checks
@@ -389,7 +389,7 @@ Today, `update()` replaces an extension's entire directory from a new zip. The t
 
 ### Developer Experience
 
-* [ ] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an empty, valid extension: `extension.php` manifest, main class implementing `ExtensionInterface`, `Providers/`, `Http/Controllers/`, `routes/api.php`, `Database/Migrations/`, `resources/js/{store,models,views,tests}` following the established domain-driven frontend structure
+* [x] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an extension manifest with `minimum_kernel_version`, extension entrypoint and provider, API routes, isolated migration directories, frontend store/model/view/navigation files, language files, and Unit/Functional/Playwright E2E test starters
 * [ ] Extension development template
 * [ ] Extension testing helpers
 * [ ] Extension SDK documentation
@@ -405,12 +405,15 @@ backend, frontend and end-to-end behaviour.
 
 * [ ] Backend unit tests
 * [ ] Backend functional tests
+* [x] Generator creates extension-local Unit and Functional test starters
+* [x] Generator creates extension-local Playwright E2E test starters
 * [ ] Frontend unit tests
 * [ ] Frontend functional tests
 * [ ] End-to-end tests with Playwright
 * [ ] All test suites runnable locally
 * [ ] All test suites runnable in CI/CD
-* [ ] Test commands separated by category
+* [x] Backend Unit and Functional CI jobs separated and extension-local tests collected
+* [x] End-to-end test command and CI job
 * [ ] Extension testing helpers
 * [ ] Extension test fixtures
 * [ ] Extension testing documentation

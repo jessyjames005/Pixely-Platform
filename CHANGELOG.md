@@ -12,6 +12,18 @@ Versioning follows Semantic Versioning.
 - Project vision
 - Roadmap
 - Architecture Decision Records
+- Added the `minimum_kernel_version` field to normalized extension manifests and compatibility checks before extension migrations.
+- Added a complete `make:extension` scaffold, including extension routes, frontend files, and Unit, Functional, and Playwright E2E test starters.
+- Added the generated CinemaMovie extension as a validated example of the extension scaffold.
+- Split Laravel CI into separate backend Unit and Functional jobs and included extension-local test directories.
+- Added a dedicated Playwright end-to-end CI job with a seeded test account and Chromium browser setup.
+
+### Changed
+- Extension scaffold instructions use the extension migration commands instead of Laravel's global migration command.
+- Generated frontend store filenames use the extension's kebab-case identifier so generated views resolve their store imports.
+
+### Fixed
+- Updated direct `ExtensionManifest` construction sites to provide the minimum Kernel version required by the manifest value object.
 
 ## [0.1.0] - In Progress
 

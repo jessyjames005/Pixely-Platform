@@ -28,8 +28,7 @@ Detailed domain knowledge lives in `.claude/agents/` (invoked automatically), `.
 - **NEVER commit or push without explicit user authorization.**
   Past authorization does not carry over to the next task. Each `git commit` and `git push` requires separate, explicit authorization. After modifying files, always present a summary of changes and wait for an explicit "ok commit" / "ok push".
 
-- **Encoding — NEVER use Edit/Write on non-ASCII files (ISO-8859-1).**
-  Check with `file <path>`. Modify them with `cli/edit-legacy-file.php` — see skill `PP_edit-legacy-file` and `.claude/rules/encoding.md`. Never compose a Python bytes-mode script on your own initiative; if the tool is absent from the branch, stop and ask (see `.claude/rules/encoding.md`).
+- **Encoding — keep project files in UTF-8.** Use UTF-8-aware tools and preserve existing text when editing. Do not transcode a file unless its encoding has been verified. If a file is confirmed to use a legacy encoding and no compatible editing utility is available, stop and ask before changing it. Do not use ad hoc byte-level rewrites.
 
 - **Docker required — never run PHP or Node locally.**
   ```bash

@@ -25,12 +25,13 @@ it('scaffolds a complete extension and prints its Docker lifecycle commands', fu
             ->and(File::get($extensionPath . '/Providers/CinemaMovieServiceProvider.php'))->not->toContain('loadMigrationsFrom')
             ->and(File::get($extensionPath . '/routes/api.php'))->toContain("permission:cinema-movie.items.view")
             ->and(File::exists($extensionPath . '/resources/js/models/CinemaMovie.ts'))->toBeTrue()
-            ->and(File::exists($extensionPath . '/resources/js/store/cinemaMovie.store.ts'))->toBeTrue()
+            ->and(File::exists($extensionPath . '/resources/js/store/cinema-movie.store.ts'))->toBeTrue()
+            ->and(File::get($extensionPath . '/resources/js/views/CinemaMovieView.vue'))->toContain("../store/cinema-movie.store")
             ->and(File::exists($extensionPath . '/resources/js/views/CinemaMovieView.vue'))->toBeTrue()
             ->and(File::exists($extensionPath . '/resources/js/nav.ts'))->toBeTrue()
             ->and(File::get($extensionPath . '/tests/Unit/CinemaMovieExtensionTest.php'))->toContain("declares the cinema-movie extension manifest", "->toBe('cinema-movie')")
             ->and(File::get($extensionPath . '/tests/Functional/CinemaMovieApiTest.php'))->toContain('use Tests\\TestCase;', 'uses(TestCase::class);', "requires authentication to list CinemaMovie items", "getJson('/api/v1/cinema-movie')")
-            ->and(File::get($extensionPath . '/tests/E2E/CinemaMovie.spec.ts'))->toContain("from '@playwright/test'", "page.goto('/admin/cinema-movie')", "name: 'CinemaMovie'");
+            ->and(File::get($extensionPath . '/tests/E2E/CinemaMovie.spec.ts'))->toContain("from '@playwright/test'", "process.env.E2E_USER_EMAIL", "process.env.E2E_USER_PASSWORD", "page.goto('/login')", "page.goto('/admin/cinema-movie')", "name: 'CinemaMovie'");
     } finally {
         app()->setBasePath($originalBasePath);
         File::deleteDirectory($temporaryBasePath);

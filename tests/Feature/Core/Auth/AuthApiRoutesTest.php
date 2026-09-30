@@ -34,6 +34,10 @@ it('logs in an active user with valid credentials', function () {
     $response->assertJsonPath('data.permissions', ['gallery.photos.view']);
 
     expect(auth()->check())->toBeTrue();
+
+    $this->getJson('/api/v1/auth/me')
+        ->assertOk()
+        ->assertJsonPath('data.email', 'jane@example.com');
 });
 
 it('rejects invalid credentials', function () {

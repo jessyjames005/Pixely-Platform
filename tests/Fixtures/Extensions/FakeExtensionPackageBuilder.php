@@ -49,6 +49,7 @@ final class FakeExtensionPackageBuilder
                     id: '{$className}',
                     name: 'Demo Extension',
                     version: '1.0.0',
+                    minimum_kernel_version: '1.0.0',
                     class: self::class,
                     path: 'app/Extensions/Demo',
                     dependencies: [],

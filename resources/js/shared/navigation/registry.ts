@@ -13,6 +13,7 @@ import { galleryNavItem } from '@extensions/gallery/nav'
 import { translationsNavItem } from '@extensions/translations/nav'
 import { tuleapNavItem } from '@extensions/tuleap/nav'
 import { filesNavItem } from '@extensions/files/nav'
+import { cinemaMovieNavItem } from '@extensions/cinema-movie/nav'
 import type { NavItem } from './types'
 
 export const navRegistry: NavItem[] = [
@@ -20,6 +21,7 @@ export const navRegistry: NavItem[] = [
   galleryNavItem,
   tuleapNavItem,
   filesNavItem,
+  cinemaMovieNavItem,
   usersNavItem,
   rolesNavItem,
   settingsNavItem,
