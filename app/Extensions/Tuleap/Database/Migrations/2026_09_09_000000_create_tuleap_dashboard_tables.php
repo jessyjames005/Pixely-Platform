@@ -39,14 +39,14 @@ return new class extends Migration
         Schema::create('tuleap_sprint_configs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('milestone_id')->nullable()->constrained('tuleap_milestones');
-            $table->text('objective')->default('');
+            $table->text('objective');
             $table->integer('confidence_index')->nullable();
             $table->integer('pct_evolution')->default(50);
             $table->integer('pct_analysis')->default(30);
             $table->integer('pct_bug')->default(20);
             $table->integer('working_days')->default(10);
             $table->float('velocity_per_day')->default(1.0);
-            $table->text('review_comment')->default('');
+            $table->text('review_comment');
             $table->timestamps();
             $table->softDeletes();
         });
