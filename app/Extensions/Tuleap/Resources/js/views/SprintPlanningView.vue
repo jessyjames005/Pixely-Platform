@@ -4,14 +4,14 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import ProjectSprintSelector from '../components/ProjectSprintSelector.vue'
 import { useTuleapStore } from '../store/tuleap.store'
-import type { SprintConfig } from '../models/tuleap'
+import type { SprintConfigAttributes } from '../models/tuleap'
 
 const store = useTuleapStore()
 
 let refreshInterval: ReturnType<typeof setInterval> | undefined
 const autoRefreshActive = ref(false)
 
-const localConfig = ref<SprintConfig>({
+const localConfig = ref<SprintConfigAttributes & { confidence_index: number }>({
   working_days: 10,
   objective: '',
   confidence_index: 0,
@@ -25,7 +25,7 @@ const localConfig = ref<SprintConfig>({
 watch(
   () => store.sprintConfig,
   (cfg) => {
-    if (cfg) localConfig.value = { ...localConfig.value, ...cfg }
+    if (cfg) localConfig.value = { ...localConfig.value, ...cfg, confidence_index: cfg.confidence_index ?? 0 }
   },
   { immediate: true },
 )
@@ -58,12 +58,11 @@ function initials(name: string): string {
 
 // ── CAF ──────────────────────────────────────────────────────────────
 
-function getCaf(memberId: number): number {
-  const found = store.cafRecords.find((c) => c.member_id === memberId)
-  return found?.value ?? localConfig.value.working_days ?? 10
+function getCaf(memberId: string): number {
+  return store.cafValueForMember(memberId) ?? localConfig.value.working_days ?? 10
 }
 
-async function setCaf(memberId: number, value: number): Promise<void> {
+async function setCaf(memberId: string, value: number): Promise<void> {
   await store.saveCaf(memberId, value)
 }
 
@@ -80,7 +79,7 @@ const suggestedVelocity = computed(() => {
   return null
 })
 
-function personCapacity(memberId: number): number {
+function personCapacity(memberId: string): number {
   return Math.round(velocityPerDay.value * getCaf(memberId) * 10) / 10
 }
 

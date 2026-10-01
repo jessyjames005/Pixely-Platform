@@ -2,7 +2,7 @@
 // Named FileRecord (not "File") to avoid shadowing the browser's
 // native File type, which the upload form also needs.
 export interface FileRecord {
-  id: number
+  id: string
   disk: string
   path: string
   thumbnail_path: string | null

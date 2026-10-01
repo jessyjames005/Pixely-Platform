@@ -2,13 +2,27 @@
 // configuration, and install/update/uninstall (zip upload).
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
-import type { ApiCollectionResponse, ApiResponse } from '@shared/types/api'
-import type { ExtensionSummary, ExtensionDetail, ExtensionConfigPayload } from '../models/Extension'
+import { decodeJsonApiId, type JsonApiDocument, type JsonApiResource } from '@shared/types/api'
+import type {
+  ExtensionSummary,
+  ExtensionDetail,
+  ExtensionConfigAttributes,
+  ExtensionConfigPayload,
+  ExtensionInstallResult,
+} from '../models/Extension'
+
+interface ExtensionAttributes {
+  name: string
+  version: string
+  dependencies: string[]
+  enabled: boolean
+}
 
 interface ExtensionsState {
   extensions: ExtensionSummary[]
   configDefaults: Record<string, unknown> | null
   configValues: Record<string, unknown> | null
+  configId: string | null
 }
 
 export const useExtensionsStore = defineStore('extensions', {
@@ -16,61 +30,75 @@ export const useExtensionsStore = defineStore('extensions', {
     extensions: [],
     configDefaults: null,
     configValues: null,
+    configId: null,
   }),
 
   actions: {
     async fetchExtensions(): Promise<void> {
-      const result = await apiClient.get<ApiCollectionResponse<ExtensionSummary>>('/extensions')
-      this.extensions = result.data
+      const result = await apiClient.getCollection<ExtensionAttributes>('/extensions')
+      this.extensions = result.resources
     },
 
     async fetchDetail(id: string): Promise<ExtensionDetail> {
-      const result = await apiClient.get<ApiResponse<ExtensionDetail>>(`/extensions/${id}`)
-      return result.data
+      const result = await apiClient.getResource<ExtensionAttributes>(`/extensions/${id}`)
+      if (!result) throw new Error('The extension detail response did not include a resource.')
+      return result
     },
 
     async enable(id: string): Promise<void> {
-      await apiClient.post<ApiResponse<ExtensionSummary>>(`/extensions/${id}/enable`)
+      await apiClient.post<JsonApiDocument<JsonApiResource<ExtensionAttributes>>>(`/extensions/${id}/enable`)
     },
 
     async disable(id: string): Promise<void> {
-      await apiClient.post<ApiResponse<ExtensionSummary>>(`/extensions/${id}/disable`)
+      await apiClient.post<JsonApiDocument<JsonApiResource<ExtensionAttributes>>>(`/extensions/${id}/disable`)
     },
 
     async fetchConfig(id: string): Promise<void> {
-      const result = await apiClient.get<ApiResponse<ExtensionConfigPayload>>(`/extensions/${id}/config`)
-      this.configDefaults = result.data.defaults
-      this.configValues = result.data.values
+      const result = await apiClient.getResource<ExtensionConfigAttributes>(`/extensions/${id}/config`)
+      if (!result) throw new Error('The extension configuration response did not include a resource.')
+      this.configId = result.id
+      this.configDefaults = result.defaults
+      this.configValues = result.values
     },
 
     async updateConfig(id: string, config: Record<string, unknown>): Promise<void> {
-      const result = await apiClient.put<ApiResponse<ExtensionConfigPayload>>(`/extensions/${id}/config`, config)
-      this.configDefaults = result.data.defaults
-      this.configValues = result.data.values
+      if (!this.configId) await this.fetchConfig(id)
+      const result = await apiClient.putResource<ExtensionConfigAttributes>(
+        `/extensions/${id}/config`,
+        'extension-configurations',
+        { values: config },
+        this.configId ?? undefined,
+      )
+      if (!result) throw new Error('The extension configuration response did not include a resource.')
+      this.configId = result.id
+      this.configDefaults = result.defaults
+      this.configValues = result.values
     },
 
-    async install(file: File): Promise<{ id: string; name: string; version: string }> {
+    async install(file: File): Promise<ExtensionInstallResult> {
       const formData = new FormData()
       formData.append('package', file)
-      const result = await apiClient.post<ApiResponse<{ id: string; name: string; version: string }>>(
-        '/extensions/install',
-        formData,
+      const result = await apiClient.postFormResource<Pick<ExtensionAttributes, 'name' | 'version'>>(
+        '/extensions/install', formData,
       )
-      return result.data
+      if (!result) throw new Error('The extension install response did not include a resource.')
+      return result
     },
 
-    async update(id: string, file: File): Promise<{ id: string; name: string; version: string }> {
+    async update(id: string, file: File): Promise<ExtensionInstallResult> {
       const formData = new FormData()
       formData.append('package', file)
-      const result = await apiClient.post<ApiResponse<{ id: string; name: string; version: string }>>(
-        `/extensions/${id}/update`,
-        formData,
+      const result = await apiClient.postFormResource<Pick<ExtensionAttributes, 'name' | 'version'>>(
+        `/extensions/${id}/update`, formData,
       )
-      return result.data
+      if (!result) throw new Error('The extension update response did not include a resource.')
+      return result
     },
 
     async uninstall(id: string): Promise<void> {
-      await apiClient.delete<void>(`/extensions/${id}`)
+      const parts = decodeJsonApiId(id, 2)
+      if (!parts || parts[0] !== 'extension' || !parts[1]) throw new Error('Invalid extension resource ID.')
+      await apiClient.delete<void>(`/extensions/${parts[1]}`)
     },
   },
 })

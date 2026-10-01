@@ -1,6 +1,8 @@
 // Photo resource shape as returned by the API
 export interface Photo {
-  id: number
+  id: string
+  type: 'photos'
   title: string | null
   filename: string
+  thumbnailFilename: string | null
 }

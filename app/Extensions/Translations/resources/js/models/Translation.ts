@@ -1,7 +1,13 @@
+import type { JsonApiModel } from '@shared/types/api'
+
 export interface TranslatableModule {
-  id: string
   locales: string[]
+  id: string
+  type: string
 }
+
+export type TranslationModule = JsonApiModel<{ locales: string[] }>
+export type TranslationGroupResource = JsonApiModel<{ module: string; group: string; locale: string }>
 
 export interface TranslationEntry {
   key: string

@@ -145,10 +145,10 @@ const totalLabel = computed(() => t('files.msg.total_files', ':count file(s)', {
       </v-col>
     </v-row>
 
-    <div v-if="filesStore.meta && filesStore.meta.last_page > 1" class="d-flex justify-center mt-6">
+    <div v-if="(filesStore.meta?.last_page ?? 1) > 1" class="d-flex justify-center mt-6">
       <v-pagination
-        :model-value="filesStore.meta.current_page"
-        :length="filesStore.meta.last_page"
+        :model-value="filesStore.meta?.current_page ?? currentPage"
+        :length="filesStore.meta?.last_page ?? 1"
         @update:model-value="handlePageChange"
       />
     </div>

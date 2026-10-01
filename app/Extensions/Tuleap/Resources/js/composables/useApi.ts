@@ -1,45 +1,84 @@
-import { apiClient } from '@shared/services/apiClient';
+import { useTuleapStore } from '../store/tuleap.store'
+import type { SprintHistoryRange } from '../models/tuleap'
+
+function store() {
+  return useTuleapStore()
+}
 
 export const tuleap = {
-  ping: () => apiClient.get('/tuleap/ping').then(r => r.data),
-  getProject: (id) => apiClient.get(`/tuleap/projects/${id}`).then(r => r.data),
-  getProjects: () => apiClient.get('/tuleap/projects').then(r => r.data),
-  getProjectMembers: (projectId) => apiClient.get(`/tuleap/projects/${projectId}/members`).then(r => r.data),
-  getMilestones: (projectId) => apiClient.get(`/tuleap/projects/${projectId}/milestones`).then(r => r.data),
-  getStats: (milestoneId) => apiClient.get(`/tuleap/milestones/${milestoneId}/stats`).then(r => r.data),
-  getBurndown: (milestoneId) => apiClient.get(`/tuleap/milestones/${milestoneId}/burndown`).then(r => r.data),
-  getSprintHistory: (projectId, range = '6m', force = false) =>
-    apiClient.get(`/tuleap/projects/${projectId}/sprint-history`, {
-      params: { range, ...(force ? { force: 1 } : {}) },
-    }).then(r => r.data),
-};
+  async ping() {
+    await store().checkTuleapStatus()
+    return store().tuleapStatus
+  },
+  async getProject(id: string) {
+    await store().fetchProjects()
+    return store().projects.find((project) => project.id === id) ?? null
+  },
+  async getProjects() {
+    await store().fetchProjects()
+    return store().projects
+  },
+  async getProjectMembers(projectId: string) {
+    await store().fetchProjectMembers(projectId)
+    return store().projectMembers
+  },
+  async getMilestones(projectId: string) {
+    await store().fetchMilestones(projectId)
+    return store().milestones
+  },
+  async getStats(milestoneId: string) {
+    await store().fetchStats(milestoneId)
+    return store().stats
+  },
+  async getBurndown(milestoneId: string) {
+    await store().fetchBurndown(milestoneId)
+    return store().burndown
+  },
+  async getSprintHistory(projectId: string, range: SprintHistoryRange = '6m', force = false) {
+    await store().fetchSprintHistory(projectId, range, force)
+    return store().sprintHistory
+  },
+}
 
 export const local = {
-  getMembers: (projectId) => apiClient.get('/team/members', {
-    project_id: projectId ?? undefined,
-  }).then(r => r.data),
-  addMember: (name, tuleap_username, projectId) =>
-    apiClient.post('/team/members', { name, tuleap_username, project_id: projectId || null }).then(r => r.data),
-  deleteMember: (id) => apiClient.delete(`/team/members/${id}`).then(r => r.data),
-
-  getSprintConfig: (sprintId) => apiClient.get(`/sprint/config/${sprintId}`).then(r => r.data),
-  saveSprintConfig: (sprintId, data) => apiClient.put(`/sprint/config/${sprintId}`, data).then(r => r.data),
-
-  getCaf: (sprintId) => apiClient.get(`/caf/${sprintId}`).then(r => r.data),
-  saveCaf: (sprintId, memberId, value) => apiClient.put(`/caf/${sprintId}/${memberId}`, { value }).then(r => r.data),
-  getCafHistory: (sprintIds) => apiClient.get('/caf-history', {
-    sprint_ids: sprintIds.join(','),
-  }).then(r => r.data),
-
-  getRetro: (sprintId) => apiClient.get(`/retro/${sprintId}`).then(r => r.data),
-  getRetroActionPlan: (projectId) => apiClient.get(`/retro/project/${projectId}/plan-action`).then(r => r.data),
-  addRetroAction: (sprintId, data) => apiClient.post(`/retro/${sprintId}`, data).then(r => r.data),
-  updateRetroAction: (sprintId, id, data) => apiClient.put(`/retro/${sprintId}/${id}`, data).then(r => r.data),
-  deleteRetroAction: (sprintId, id) => apiClient.delete(`/retro/${sprintId}/${id}`).then(r => r.data),
-
-  getConfig: () => apiClient.get('/config').then(r => r.data),
-  saveConfig: (data) => apiClient.put('/config', data).then(r => r.data),
-
-  getCacheInfo: () => apiClient.get('/cache-info').then(r => r.data),
-  clearCache: (key) => apiClient.delete('/cache', { params: key ? { key } : {} }).then(r => r.data),
-};
+  async getMembers(projectId: string | null) {
+    await store().fetchMembers(projectId)
+    return store().members
+  },
+  addMember: (name: string, tuleapUsername: string | null, projectId: string | null) =>
+    store().addMember(name, tuleapUsername, projectId),
+  deleteMember: (id: string) => store().deleteMember(id),
+  async getSprintConfig(sprintId: string) {
+    await store().fetchSprintConfig(sprintId)
+    return store().sprintConfig
+  },
+  saveSprintConfig: (data: Parameters<ReturnType<typeof store>['saveSprintConfig']>[0]) => store().saveSprintConfig(data),
+  async getCaf(sprintId: string) {
+    await store().fetchCaf(sprintId)
+    return store().cafRecords
+  },
+  saveCaf: (memberId: string, value: number) => store().saveCaf(memberId, value),
+  fetchCafHistory: (sprintIds: string[]) => store().fetchCafHistory(sprintIds),
+  async getRetro(sprintId: string) {
+    return store().getRetroActions(sprintId)
+  },
+  async getRetroActionPlan(projectId: string) {
+    await store().fetchPlanActions(projectId)
+    return store().planActions
+  },
+  addRetroAction: (sprintId: string, data: { category: string; text: string; project_id?: number | null }) =>
+    store().createRetroAction(sprintId, data),
+  updateRetroAction: (sprintId: string | number, id: string, data: { text?: string; status?: 'pending' | 'done' | 'missed' }) =>
+    store().saveRetroAction(sprintId, id, data),
+  deleteRetroAction: (sprintId: string | number, id: string) => store().removeRetroAction(sprintId, id),
+  async getConfig() {
+    await store().fetchAppConfig()
+    return store().appConfig
+  },
+  saveConfig: (data: { tuleap_token?: string; tuleap_user_id?: string }) => store().saveAppConfig(data),
+  async getCacheInfo() {
+    await store().fetchCacheInfo()
+    return store().cacheInfo
+  },
+  clearCache: (key?: string) => store().clearCache(key),
+}

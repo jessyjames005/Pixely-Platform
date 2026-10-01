@@ -3,7 +3,6 @@
 // which is admin-only management of other users.
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
-import type { ApiResponse } from '@shared/types/api'
 import type { Profile, UpdateProfilePayload } from '../models/User'
 
 interface ProfileState {
@@ -17,20 +16,22 @@ export const useProfileStore = defineStore('profile', {
 
   actions: {
     async fetchProfile(): Promise<void> {
-      const result = await apiClient.get<ApiResponse<Profile>>('/profile')
-      this.profile = result.data
+      this.profile = await apiClient.getResource<Omit<Profile, 'id' | 'type'>>('/profile')
     },
 
     async updateProfile(payload: UpdateProfilePayload): Promise<void> {
-      const result = await apiClient.put<ApiResponse<Profile>>('/profile', payload)
-      this.profile = result.data
+      this.profile = await apiClient.putResource<Omit<Profile, 'id' | 'type'>>(
+        '/profile',
+        'users',
+        payload,
+        this.profile?.id,
+      )
     },
 
     async uploadAvatar(file: File): Promise<void> {
       const formData = new FormData()
       formData.append('avatar', file)
-      const result = await apiClient.post<ApiResponse<Profile>>('/profile/avatar', formData)
-      this.profile = result.data
+      this.profile = await apiClient.postFormResource<Omit<Profile, 'id' | 'type'>>('/profile/avatar', formData)
     },
   },
 })

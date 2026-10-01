@@ -31,7 +31,7 @@ async function addMember(): Promise<void> {
   newUsername.value = ''
 }
 
-async function removeMember(id: number): Promise<void> {
+async function removeMember(id: string): Promise<void> {
   await store.deleteMember(id, store.selectedProjectId)
 }
 
@@ -61,16 +61,15 @@ async function importFromProject(): Promise<void> {
   }
 }
 
-function getCaf(memberId: number): number {
-  const found = store.cafRecords.find((c) => c.member_id === memberId)
-  return found?.value ?? store.sprintConfig?.working_days ?? 10
+function getCaf(memberId: string): number {
+  return store.cafValueForMember(memberId) ?? store.sprintConfig?.working_days ?? 10
 }
 
-async function setCaf(memberId: number, value: number): Promise<void> {
+async function setCaf(memberId: string, value: number): Promise<void> {
   await store.saveCaf(memberId, value)
 }
 
-function cafPct(memberId: number): number {
+function cafPct(memberId: string): number {
   const days = store.sprintConfig?.working_days ?? 10
   if (!days) return 0
   return Math.round((getCaf(memberId) / days) * 100)

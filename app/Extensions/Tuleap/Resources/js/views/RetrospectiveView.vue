@@ -9,7 +9,6 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import ProjectSprintSelector from '../components/ProjectSprintSelector.vue'
 import { useTuleapStore } from '../store/tuleap.store'
-import { apiClient } from '@shared/services/apiClient'
 import type { RetroAction, RetroCategory, RetroStatus } from '../models/tuleap'
 
 const store = useTuleapStore()
@@ -24,7 +23,7 @@ const columns: { key: RetroCategory; label: string; icon: string; color: string 
 
 const actions = ref<RetroAction[]>([])
 const newTexts = ref<Record<string, string>>({ bien: '', ameliorer: '', fait: '', souhait: '', plan_action: '' })
-const editingId = ref<number | null>(null)
+const editingId = ref<string | null>(null)
 const editText = ref('')
 
 const prevActions = ref<RetroAction[]>([])
@@ -35,13 +34,13 @@ function actionsByCategory(cat: string): RetroAction[] {
   return actions.value.filter((a) => a.category === cat)
 }
 
-async function getRetro(sprintId: number): Promise<RetroAction[]> {
-  return apiClient.get<RetroAction[]>(`/retro/${sprintId}`)
+async function getRetro(sprintId: string | number): Promise<RetroAction[]> {
+  return store.getRetroActions(sprintId)
 }
 
 async function load(): Promise<void> {
   if (!store.selectedMilestoneId) return
-  actions.value = await getRetro(store.selectedMilestoneId)
+  actions.value = await store.getRetroActions(store.selectedMilestoneId)
   await loadPrevActions()
 }
 
@@ -61,25 +60,21 @@ watch(() => store.selectedMilestoneId, load, { immediate: true })
 async function addAction(category: string): Promise<void> {
   const text = newTexts.value[category]?.trim()
   if (!text || !store.selectedMilestoneId) return
-  const action = await apiClient.post<RetroAction>(`/retro/${store.selectedMilestoneId}`, {
-    category,
-    text,
-    project_id: store.selectedProjectId || null,
-  })
+  const action = await store.addRetroAction(store.selectedMilestoneId, category, text, store.selectedProjectId)
   actions.value.push(action)
   newTexts.value[category] = ''
 }
 
 async function deleteAction(action: RetroAction): Promise<void> {
   if (!store.selectedMilestoneId) return
-  await apiClient.delete(`/retro/${store.selectedMilestoneId}/${action.id}`)
+  await store.removeRetroAction(store.selectedMilestoneId, action.id)
   actions.value = actions.value.filter((a) => a.id !== action.id)
 }
 
 async function setStatus(action: RetroAction, status: RetroStatus): Promise<void> {
   if (!store.selectedMilestoneId) return
   const wasAlreadyMissed = action.status === 'missed'
-  const updated = await apiClient.put<RetroAction>(`/retro/${store.selectedMilestoneId}/${action.id}`, { status })
+  const updated = await store.saveRetroAction(store.selectedMilestoneId, action.id, { status })
   const idx = actions.value.findIndex((a) => a.id === action.id)
   if (idx !== -1) actions.value[idx] = updated
 
@@ -89,11 +84,7 @@ async function setStatus(action: RetroAction, status: RetroStatus): Promise<void
     const currentIdx = milestones.findIndex((m) => m.id === store.selectedMilestoneId)
     const nextSprint = milestones[currentIdx - 1] // next sprint = lower index (more recent)
     if (nextSprint) {
-      await apiClient.post(`/retro/${nextSprint.id}`, {
-        category: 'plan_action',
-        text: `↩ ${action.text}`,
-        project_id: store.selectedProjectId || null,
-      })
+      await store.addRetroAction(nextSprint.id, 'plan_action', `↩ ${action.text}`, store.selectedProjectId)
     }
   }
 }
@@ -101,18 +92,14 @@ async function setStatus(action: RetroAction, status: RetroStatus): Promise<void
 async function setPrevStatus(action: RetroAction, status: RetroStatus): Promise<void> {
   const wasAlreadyMissed = action.status === 'missed'
   const newStatus = action.status === status ? 'pending' : status
-  const updated = await apiClient.put<RetroAction>(`/retro/${action.sprint_id}/${action.id}`, { status: newStatus })
+  const updated = await store.saveRetroAction(action.sprint_id, action.id, { status: newStatus })
   const idx = prevActions.value.findIndex((a) => a.id === action.id)
   if (idx !== -1) prevActions.value[idx] = updated
 
   // Report onto the current sprint the first time it's marked "missed".
   if (newStatus === 'missed' && !wasAlreadyMissed && store.selectedMilestoneId) {
-    await apiClient.post(`/retro/${store.selectedMilestoneId}`, {
-      category: 'plan_action',
-      text: `↩ ${action.text}`,
-      project_id: store.selectedProjectId || null,
-    })
-    actions.value = await getRetro(store.selectedMilestoneId)
+    await store.addRetroAction(store.selectedMilestoneId, 'plan_action', `↩ ${action.text}`, store.selectedProjectId)
+    actions.value = await store.getRetroActions(store.selectedMilestoneId)
   }
 }
 
@@ -134,7 +121,7 @@ async function saveEdit(action: RetroAction): Promise<void> {
   const text = editText.value.trim()
   editingId.value = null
   if (!text || text === action.text) return
-  const updated = await apiClient.put<RetroAction>(`/retro/${store.selectedMilestoneId}/${action.id}`, { text })
+  const updated = await store.saveRetroAction(store.selectedMilestoneId, action.id, { text })
   const idx = actions.value.findIndex((a) => a.id === action.id)
   if (idx !== -1) actions.value[idx] = updated
 }

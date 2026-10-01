@@ -92,9 +92,8 @@ const commitmentColor = computed(() => {
 })
 
 // Capacity = points done / team's total CAF (same fallback logic as Planning).
-function getCafValue(memberId: number): number {
-  const found = store.cafRecords.find((c) => c.member_id === memberId)
-  return found?.value ?? store.sprintConfig?.working_days ?? 10
+function getCafValue(memberId: string): number {
+  return store.cafValueForMember(memberId) ?? store.sprintConfig?.working_days ?? 10
 }
 const totalCaf = computed(() => store.members.reduce((s, m) => s + getCafValue(m.id), 0))
 const dailyCapacity = computed(() => {

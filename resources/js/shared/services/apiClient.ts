@@ -140,9 +140,10 @@ function put<T>(path: string, body?: unknown): Promise<T> {
 }
 
 // Sends a DELETE request
-function del<T>(path: string): Promise<T> {
+function del<T>(path: string, body?: unknown): Promise<T> {
   return request<T>(path, {
     method: 'DELETE',
+    ...buildBody(body),
   })
 }
 
@@ -172,7 +173,7 @@ async function postResource<TAttributes extends object>(
   path: string,
   type: string,
   attributes: Partial<TAttributes>,
-  id?: string | number,
+  id?: string,
 ): Promise<JsonApiModel<TAttributes> | null> {
   const document = await post<JsonApiDocument<JsonApiResource<TAttributes>>>(
     path,
@@ -193,7 +194,7 @@ async function putResource<TAttributes extends object>(
   path: string,
   type: string,
   attributes: Partial<TAttributes>,
-  id?: string | number,
+  id?: string,
 ): Promise<JsonApiModel<TAttributes> | null> {
   const document = await put<JsonApiDocument<JsonApiResource<TAttributes>>>(
     path,
@@ -210,7 +211,7 @@ async function patchResource<TAttributes extends object>(
   path: string,
   type: string,
   attributes: Partial<TAttributes>,
-  id?: string | number,
+  id?: string,
 ): Promise<JsonApiModel<TAttributes> | null> {
   const document = await patch<JsonApiDocument<JsonApiResource<TAttributes>>>(
     path,

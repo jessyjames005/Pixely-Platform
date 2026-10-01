@@ -4,6 +4,7 @@ import { apiClient, ApiClientError, fetchCsrfCookie } from './apiClient'
 import {
   deserializeCollection,
   deserializeDocument,
+  decodeJsonApiId,
   serializeRelationship,
   serializeResource,
 } from '../types/api'
@@ -184,5 +185,23 @@ describe('JSON:API resource helpers', () => {
     expect(serializeRelationship([{ type: 'roles', id: 'admin' }])).toEqual({
       data: [{ type: 'roles', id: 'admin' }],
     })
+    expect(serializeResource('users', { name: 'Ada' })).toEqual({
+      data: { type: 'users', attributes: { name: 'Ada' } },
+    })
+  })
+
+  it('decodes canonical DocumentIds only when their expected part count matches', () => {
+    const projectId = 'WyJ0dWxlYXAtcHJvamVjdHMiLCI0MiJd'
+
+    expect(decodeJsonApiId(projectId, 2)).toEqual(['tuleap-projects', '42'])
+    expect(decodeJsonApiId(projectId, 3)).toBeNull()
+    expect(decodeJsonApiId(btoa('["tuleap-projects", "42"]'), 2)).toBeNull()
+    expect(decodeJsonApiId(btoa('["tuleap-projects", ""]'), 2)).toBeNull()
+
+    const pathId = btoa(String.raw`["tuleap-projects","a\/b"]`)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')
+    expect(decodeJsonApiId(pathId, 2)).toEqual(['tuleap-projects', 'a/b'])
   })
 })

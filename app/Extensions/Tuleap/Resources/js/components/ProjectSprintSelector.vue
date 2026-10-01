@@ -26,11 +26,11 @@ const statusMeta = computed(() => {
 
 let statusInterval: ReturnType<typeof setInterval> | undefined
 
-async function onProjectChange(projectId: number): Promise<void> {
+async function onProjectChange(projectId: string): Promise<void> {
   await store.selectProject(projectId)
 }
 
-async function onMilestoneChange(milestoneId: number): Promise<void> {
+async function onMilestoneChange(milestoneId: string): Promise<void> {
   await store.selectMilestone(milestoneId)
 }
 
@@ -83,9 +83,9 @@ onUnmounted(() => {
       <template #item="{ props: itemProps, item }">
         <v-list-item v-bind="itemProps" :title="undefined">
           <template #prepend>
-            <v-icon v-if="item.raw.is_member_of" icon="mdi-star" size="14" color="warning" class="mr-1" />
+            <v-icon v-if="item.is_member_of" icon="mdi-star" size="14" color="warning" class="mr-1" />
           </template>
-          {{ item.raw.label ?? item.raw.shortname }}
+          {{ item.label ?? item.shortname }}
         </v-list-item>
       </template>
     </v-autocomplete>

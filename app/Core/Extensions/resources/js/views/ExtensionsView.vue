@@ -111,6 +111,17 @@ function labelFor(key: string): string {
   return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function stringArrayValue(key: string): string[] {
+  const value = formValues[key];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function setStringArrayValue(key: string, value: unknown): void {
+  formValues[key] = Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
 const configFields = computed<ConfigField[]>(() =>
   Object.entries(extensionsStore.configDefaults ?? {}).map(([key, value]) => ({
     key,
@@ -487,7 +498,8 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
               />
               <v-combobox
                 v-else-if="field.kind === 'string-array'"
-                v-model="formValues[field.key]"
+                :model-value="stringArrayValue(field.key)"
+                @update:model-value="(value) => setStringArrayValue(field.key, value)"
                 :label="labelFor(field.key)"
                 multiple
                 chips
@@ -537,7 +549,6 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
           <v-list v-else-if="detailsData" density="compact">
             <v-list-item :title="$t('extensions.msg.detail_name', 'Name')" :subtitle="detailsData.name" />
             <v-list-item :title="$t('extensions.msg.detail_version', 'Version')" :subtitle="detailsData.version" />
-            <v-list-item :title="$t('extensions.msg.detail_path', 'Path')" :subtitle="detailsData.path" />
             <v-list-item
               :title="$t('extensions.msg.detail_enabled', 'Enabled')"
               :subtitle="detailsData.enabled ? $t('extensions.msg.detail_yes', 'Yes') : $t('extensions.msg.detail_no', 'No')"
@@ -546,14 +557,6 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
               :title="$t('extensions.msg.detail_dependencies', 'Dependencies')"
               :subtitle="detailsData.dependencies.join(', ') || $t('extensions.msg.detail_none', 'None')"
             />
-            <v-list-item :title="$t('extensions.msg.detail_providers', 'Service providers')">
-              <v-list-item-subtitle
-                v-for="provider in detailsData.providers"
-                :key="provider"
-              >
-                {{ provider }}
-              </v-list-item-subtitle>
-            </v-list-item>
           </v-list>
         </v-card-text>
         <v-card-actions>

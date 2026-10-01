@@ -3,6 +3,7 @@
 // from it (stats, burndown, local sprint config, CAF, retro actions).
 import { defineStore } from 'pinia'
 import { apiClient, ApiClientError } from '@shared/services/apiClient'
+import { decodeJsonApiId, serializeResource } from '@shared/types/api'
 import type {
   AppConfig,
   BurndownData,
@@ -18,13 +19,17 @@ import type {
   TuleapMilestone,
   TuleapPingResult,
   TuleapProject,
+  SprintConfigAttributes,
+  SprintStatsAttributes,
+  BurndownDataAttributes,
+  SprintAggregateAttributes,
 } from '../models/tuleap'
 
 interface TuleapState {
   projects: TuleapProject[]
-  selectedProjectId: number | null
+  selectedProjectId: string | null
   milestones: TuleapMilestone[]
-  selectedMilestoneId: number | null
+  selectedMilestoneId: string | null
   members: TeamMember[]
   projectMembers: TuleapAssignee[]
   stats: SprintStats | null
@@ -48,6 +53,8 @@ interface TuleapState {
 }
 
 const DEFAULT_SPRINT_CONFIG: SprintConfig = {
+  id: '',
+  type: 'tuleap-sprint-configs',
   objective: '',
   confidence_index: null,
   pct_evolution: 50,
@@ -56,6 +63,23 @@ const DEFAULT_SPRINT_CONFIG: SprintConfig = {
   working_days: 10,
   velocity_per_day: 1,
   review_comment: '',
+}
+
+function routeId(
+  resourceId: string,
+  resourceType: string,
+  expectedParts: number | readonly number[],
+): number {
+  const parts = decodeJsonApiId(resourceId, expectedParts)
+  const value = parts?.[0] === resourceType ? parts.at(-1) : undefined
+  const id = value !== undefined && /^(0|[1-9]\d*)$/.test(value) ? Number(value) : Number.NaN
+  if (!Number.isSafeInteger(id)) throw new Error(`Invalid ${resourceType} resource ID.`)
+  return id
+}
+
+function requiredResource<T extends object>(resource: T | null): T {
+  if (!resource) throw new Error('The API response did not include a resource.')
+  return resource
 }
 
 // The VPN-down case is the one error worth a persistent, dedicated
@@ -109,7 +133,7 @@ export const useTuleapStore = defineStore('tuleap', {
 
   actions: {
     async checkTuleapStatus(): Promise<void> {
-      const result = await apiClient.get<TuleapPingResult>('/tuleap/ping')
+      const result = requiredResource(await apiClient.getResource<Omit<TuleapPingResult, 'id' | 'type'>>('/tuleap/ping'))
       this.tuleapStatus = result.status
     },
 
@@ -117,7 +141,7 @@ export const useTuleapStore = defineStore('tuleap', {
       this.loading.projects = true
       this.error = null
       try {
-        this.projects = await apiClient.get<TuleapProject[]>('/tuleap/projects')
+        this.projects = (await apiClient.getCollection<Omit<TuleapProject, 'id' | 'type'>>('/tuleap/projects')).resources
         this.tuleapStatus = 'connected'
       } catch (e) {
         this.error = describeError(e)
@@ -129,7 +153,7 @@ export const useTuleapStore = defineStore('tuleap', {
       }
     },
 
-    async selectProject(projectId: number): Promise<void> {
+    async selectProject(projectId: string): Promise<void> {
       this.selectedProjectId = projectId
       this.milestones = []
       this.selectedMilestoneId = null
@@ -137,11 +161,14 @@ export const useTuleapStore = defineStore('tuleap', {
       await this.fetchProjectMembers(projectId)
     },
 
-    async fetchMilestones(projectId: number): Promise<void> {
+    async fetchMilestones(projectId: string): Promise<void> {
       this.loading.milestones = true
       this.error = null
       try {
-        this.milestones = await apiClient.get<TuleapMilestone[]>(`/tuleap/projects/${projectId}/milestones`)
+        const projectRouteId = routeId(projectId, 'tuleap-projects', 2)
+        this.milestones = (await apiClient.getCollection<Omit<TuleapMilestone, 'id' | 'type'>>(
+          `/tuleap/projects/${projectRouteId}/milestones`,
+        )).resources
 
         const todayStr = new Date().toISOString().slice(0, 10)
         const current = this.milestones.find((m) => {
@@ -162,15 +189,18 @@ export const useTuleapStore = defineStore('tuleap', {
       }
     },
 
-    async fetchProjectMembers(projectId: number): Promise<void> {
+    async fetchProjectMembers(projectId: string): Promise<void> {
       try {
-        this.projectMembers = await apiClient.get<TuleapAssignee[]>(`/tuleap/projects/${projectId}/members`)
+        const projectRouteId = routeId(projectId, 'tuleap-projects', 2)
+        this.projectMembers = (await apiClient.getCollection<Omit<TuleapAssignee, 'id' | 'type'>>(
+          `/tuleap/projects/${projectRouteId}/members`,
+        )).resources
       } catch {
         this.projectMembers = []
       }
     },
 
-    async selectMilestone(milestoneId: number): Promise<void> {
+    async selectMilestone(milestoneId: string): Promise<void> {
       this.selectedMilestoneId = milestoneId
       this.stats = null
       this.burndown = null
@@ -181,10 +211,11 @@ export const useTuleapStore = defineStore('tuleap', {
       ])
     },
 
-    async fetchStats(milestoneId: number): Promise<void> {
+    async fetchStats(milestoneId: string): Promise<void> {
       this.loading.stats = true
       try {
-        this.stats = await apiClient.get<SprintStats>(`/tuleap/milestones/${milestoneId}/stats`)
+        const sprintRouteId = routeId(milestoneId, 'tuleap-milestones', 3)
+        this.stats = requiredResource(await apiClient.getResource<SprintStatsAttributes>(`/tuleap/milestones/${sprintRouteId}/stats`))
       } catch (e) {
         this.error = describeError(e)
       } finally {
@@ -198,10 +229,11 @@ export const useTuleapStore = defineStore('tuleap', {
       }
     },
 
-    async fetchBurndown(milestoneId: number): Promise<void> {
+    async fetchBurndown(milestoneId: string): Promise<void> {
       this.loading.burndown = true
       try {
-        this.burndown = await apiClient.get<BurndownData>(`/tuleap/milestones/${milestoneId}/burndown`)
+        const sprintRouteId = routeId(milestoneId, 'tuleap-milestones', 3)
+        this.burndown = requiredResource(await apiClient.getResource<BurndownDataAttributes>(`/tuleap/milestones/${sprintRouteId}/burndown`))
       } catch (e) {
         this.error = describeError(e)
       } finally {
@@ -209,13 +241,14 @@ export const useTuleapStore = defineStore('tuleap', {
       }
     },
 
-    async fetchSprintHistory(projectId: number, range: SprintHistoryRange = '6m', force = false): Promise<void> {
+    async fetchSprintHistory(projectId: string, range: SprintHistoryRange = '6m', force = false): Promise<void> {
       this.loading.history = true
       try {
-        this.sprintHistory = await apiClient.get<SprintAggregate[]>(`/tuleap/projects/${projectId}/sprint-history`, {
+        const projectRouteId = routeId(projectId, 'tuleap-projects', 2)
+        this.sprintHistory = (await apiClient.getCollection<SprintAggregateAttributes>(`/tuleap/projects/${projectRouteId}/sprint-history`, {
           range,
           force: force ? 1 : undefined,
-        })
+        })).resources
       } catch (e) {
         this.error = describeError(e)
       } finally {
@@ -225,103 +258,174 @@ export const useTuleapStore = defineStore('tuleap', {
 
     // ── Local sprint configuration ──────────────────────────────────
 
-    async fetchSprintConfig(sprintId: number): Promise<void> {
+    async fetchSprintConfig(sprintId: string): Promise<void> {
       try {
-        this.sprintConfig = await apiClient.get<SprintConfig>(`/sprint/config/${sprintId}`)
+        const sprintRouteId = routeId(sprintId, 'tuleap-milestones', 3)
+        this.sprintConfig = requiredResource(await apiClient.getResource<SprintConfigAttributes>(`/sprint/config/${sprintRouteId}`))
       } catch {
-        this.sprintConfig = { ...DEFAULT_SPRINT_CONFIG, id: sprintId }
+        this.sprintConfig = { ...DEFAULT_SPRINT_CONFIG }
       }
     },
 
     async saveSprintConfig(data: Partial<SprintConfig>): Promise<void> {
       if (!this.selectedMilestoneId) return
-      this.sprintConfig = await apiClient.put<SprintConfig>(`/sprint/config/${this.selectedMilestoneId}`, data)
+      const sprintRouteId = routeId(this.selectedMilestoneId, 'tuleap-milestones', 3)
+      this.sprintConfig = requiredResource(await apiClient.putResource<SprintConfigAttributes>(
+        `/sprint/config/${sprintRouteId}`,
+        'tuleap-sprint-configs',
+        data,
+        this.sprintConfig?.id,
+      ))
     },
 
     // ── CAF ──────────────────────────────────────────────────────────
 
-    async fetchCaf(sprintId: number): Promise<void> {
+    async fetchCaf(sprintId: string): Promise<void> {
       try {
-        this.cafRecords = await apiClient.get<CafRecord[]>(`/caf/${sprintId}`)
+        const sprintRouteId = routeId(sprintId, 'tuleap-milestones', 3)
+        this.cafRecords = (await apiClient.getCollection<Omit<CafRecord, 'id' | 'type'>>(`/caf/${sprintRouteId}`)).resources
       } catch {
         this.cafRecords = []
       }
     },
 
-    async saveCaf(memberId: number, value: number): Promise<void> {
+    async saveCaf(memberId: string, value: number): Promise<void> {
       if (!this.selectedMilestoneId) return
-      await apiClient.put(`/caf/${this.selectedMilestoneId}/${memberId}`, { value })
+      const sprintRouteId = routeId(this.selectedMilestoneId, 'tuleap-milestones', 3)
+      const memberRouteId = routeId(memberId, 'tuleap-team-members', [2, 3])
+      await apiClient.putResource(`/caf/${sprintRouteId}/${memberRouteId}`, 'tuleap-caf-records', { value })
       await this.fetchCaf(this.selectedMilestoneId)
     },
 
-    async fetchCafHistory(sprintIds: number[]): Promise<CafRecord[]> {
+    cafValueForMember(memberId: string): number | undefined {
+      const memberRouteId = routeId(memberId, 'tuleap-team-members', [2, 3])
+      return this.cafRecords.find((record) => record.member_id === memberRouteId)?.value
+    },
+
+    async fetchCafHistory(sprintIds: string[]): Promise<CafRecord[]> {
       if (!sprintIds.length) return []
-      return apiClient.get<CafRecord[]>('/caf-history', { sprint_ids: sprintIds.join(',') })
+      const ids = sprintIds.map((id) => routeId(id, 'tuleap-milestones', 3)).join(',')
+      return (await apiClient.getCollection<Omit<CafRecord, 'id' | 'type'>>('/caf-history', { sprint_ids: ids })).resources
     },
 
     // ── Team members (local roster) ──────────────────────────────────
 
-    async fetchMembers(projectId?: number | null): Promise<void> {
-      this.members = await apiClient.get<TeamMember[]>('/team/members', {
-        project_id: projectId ?? undefined,
-      })
+    async fetchMembers(projectId?: string | null): Promise<void> {
+      const projectRouteId = projectId ? routeId(projectId, 'tuleap-projects', 2) : undefined
+      this.members = (await apiClient.getCollection<Omit<TeamMember, 'id' | 'type'>>('/team/members', {
+        project_id: projectRouteId,
+      })).resources
     },
 
-    async addMember(name: string, tuleapUsername: string | null, projectId: number | null): Promise<void> {
-      await apiClient.post('/team/members', {
+    async addMember(name: string, tuleapUsername: string | null, projectId: string | null): Promise<void> {
+      const projectRouteId = projectId ? routeId(projectId, 'tuleap-projects', 2) : null
+      await apiClient.postResource('/team/members', 'tuleap-team-members', {
         name,
         tuleap_username: tuleapUsername,
-        project_id: projectId,
+        project_id: projectRouteId,
       })
       await this.fetchMembers(projectId)
     },
 
-    async deleteMember(id: number, projectId?: number | null): Promise<void> {
-      await apiClient.delete(`/team/members/${id}`)
+    async deleteMember(id: string, projectId?: string | null): Promise<void> {
+      const memberRouteId = routeId(id, 'tuleap-team-members', [2, 3])
+      await apiClient.delete(`/team/members/${memberRouteId}`)
       await this.fetchMembers(projectId)
     },
 
     // ── Retrospective ─────────────────────────────────────────────────
 
-    async fetchRetroActions(sprintId: number): Promise<void> {
-      this.retroActions = await apiClient.get<RetroAction[]>(`/retro/${sprintId}`)
+    async fetchRetroActions(sprintId: string | number): Promise<void> {
+      this.retroActions = await this.getRetroActions(sprintId)
     },
 
-    async fetchPlanActions(projectId: number): Promise<void> {
-      this.planActions = await apiClient.get<RetroAction[]>(`/retro/project/${projectId}/plan-action`)
+    async fetchPlanActions(projectId: string): Promise<void> {
+      const projectRouteId = routeId(projectId, 'tuleap-projects', 2)
+      this.planActions = (await apiClient.getCollection<Omit<RetroAction, 'id' | 'type'>>(
+        `/retro/project/${projectRouteId}/plan-action`,
+      )).resources
     },
 
-    async addRetroAction(sprintId: number, category: string, text: string, projectId?: number | null): Promise<void> {
-      await apiClient.post(`/retro/${sprintId}`, { category, text, project_id: projectId })
+    async getRetroActions(sprintId: string | number): Promise<RetroAction[]> {
+      const sprintRouteId = typeof sprintId === 'number' ? sprintId : routeId(sprintId, 'tuleap-milestones', 3)
+      return (await apiClient.getCollection<Omit<RetroAction, 'id' | 'type'>>(`/retro/${sprintRouteId}`)).resources
+    },
+
+    async createRetroAction(
+      sprintId: string | number,
+      attributes: { category: string; text: string; project_id?: number | null; member_id?: number | null },
+    ): Promise<RetroAction> {
+      const sprintRouteId = typeof sprintId === 'number' ? sprintId : routeId(sprintId, 'tuleap-milestones', 3)
+      return requiredResource(await apiClient.postResource<Omit<RetroAction, 'id' | 'type'>>(
+        `/retro/${sprintRouteId}`,
+        'tuleap-retro-actions',
+        attributes,
+      )) as RetroAction
+    },
+
+    async saveRetroAction(
+      sprintId: string | number,
+      actionId: string,
+      attributes: Partial<Pick<RetroAction, 'text' | 'status'>>,
+    ): Promise<RetroAction> {
+      const sprintRouteId = typeof sprintId === 'number' ? sprintId : routeId(sprintId, 'tuleap-milestones', 3)
+      const actionRouteId = routeId(actionId, 'tuleap-retro-actions', [2, 3])
+      return requiredResource(await apiClient.putResource<Omit<RetroAction, 'id' | 'type'>>(
+        `/retro/${sprintRouteId}/${actionRouteId}`,
+        'tuleap-retro-actions',
+        attributes,
+        actionId,
+      )) as RetroAction
+    },
+
+    async removeRetroAction(sprintId: string | number, actionId: string): Promise<void> {
+      const sprintRouteId = typeof sprintId === 'number' ? sprintId : routeId(sprintId, 'tuleap-milestones', 3)
+      const actionRouteId = routeId(actionId, 'tuleap-retro-actions', [2, 3])
+      await apiClient.delete(`/retro/${sprintRouteId}/${actionRouteId}`)
+    },
+
+    async addRetroAction(sprintId: string, category: string, text: string, projectId?: string | null): Promise<RetroAction> {
+      const action = await this.createRetroAction(sprintId, {
+        category,
+        text,
+        project_id: projectId ? routeId(projectId, 'tuleap-projects', 2) : null,
+      })
       await this.fetchRetroActions(sprintId)
+      return action
     },
 
-    async updateRetroAction(sprintId: number, id: number, data: Partial<Pick<RetroAction, 'text' | 'status'>>): Promise<void> {
-      await apiClient.put(`/retro/${sprintId}/${id}`, data)
+    async updateRetroAction(sprintId: string | number, id: string, data: Partial<Pick<RetroAction, 'text' | 'status'>>): Promise<RetroAction> {
+      const action = await this.saveRetroAction(sprintId, id, data)
       await this.fetchRetroActions(sprintId)
+      return action
     },
 
-    async deleteRetroAction(sprintId: number, id: number): Promise<void> {
-      await apiClient.delete(`/retro/${sprintId}/${id}`)
+    async deleteRetroAction(sprintId: string | number, id: string): Promise<void> {
+      await this.removeRetroAction(sprintId, id)
       await this.fetchRetroActions(sprintId)
     },
 
     // ── System settings (Tuleap connection + cache) ──────────────────
 
     async fetchAppConfig(): Promise<void> {
-      this.appConfig = await apiClient.get<AppConfig>('/config')
+      this.appConfig = requiredResource(await apiClient.getResource<Omit<AppConfig, 'id' | 'type'>>('/config'))
     },
 
     async saveAppConfig(data: { tuleap_token?: string; tuleap_user_id?: string }): Promise<void> {
-      this.appConfig = await apiClient.put<AppConfig>('/config', data)
+      this.appConfig = requiredResource(await apiClient.putResource<Omit<AppConfig, 'id' | 'type'>>(
+        '/config',
+        'tuleap-configs',
+        data,
+        this.appConfig?.id,
+      ))
     },
 
     async fetchCacheInfo(): Promise<void> {
-      this.cacheInfo = await apiClient.get<CacheEntry[]>('/cache-info')
+      this.cacheInfo = (await apiClient.getCollection<Omit<CacheEntry, 'id' | 'type'>>('/cache-info')).resources
     },
 
     async clearCache(key?: string): Promise<void> {
-      await apiClient.delete(`/cache${key ? `?key=${encodeURIComponent(key)}` : ''}`)
+      await apiClient.delete('/cache', serializeResource('tuleap-cache-info', { key: key ?? null }))
       await this.fetchCacheInfo()
     },
   },

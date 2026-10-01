@@ -15,12 +15,15 @@ import { useApi } from '@shared/composables/useApi'
 import { useNotify } from '@shared/composables/useNotify'
 import { useConfirmDialog } from '@shared/composables/useConfirmDialog'
 import { useAuthStore } from '@core/auth/store/auth.store'
+import { useUsersStore } from '@core/users/store/users.store'
 import { useRolesStore } from '../store/roles.store'
 import { translate as t } from '@shared/plugins/i18n'
 import type { Permission, Role, RoleUser } from '../models/Role'
 
 const authStore = useAuthStore()
 const rolesStore = useRolesStore()
+const usersStore = useUsersStore()
+const roleUsers = ref<RoleUser[]>([])
 const notify = useNotify()
 const { confirm } = useConfirmDialog()
 
@@ -30,8 +33,23 @@ const { loading: saving, error: saveError, execute: submitCreate } = useApi(role
 const { loading: updating, error: updateError, execute: submitUpdate } = useApi(rolesStore.updateRole)
 
 onMounted(async () => {
-  await Promise.all([fetchRoles(), fetchPermissions()])
+  await Promise.all([fetchRoles(), fetchPermissions(), fetchRoleUsers()])
 })
+
+async function fetchRoleUsers(): Promise<void> {
+  const users: RoleUser[] = []
+  let page = 1
+  let lastPage = 1
+  do {
+    await usersStore.fetchUsers(page, 100)
+    users.push(...usersStore.users.flatMap((user) =>
+      (user.roles ?? []).map((role) => ({ id: user.id, name: user.name, email: user.email, role })),
+    ))
+    lastPage = usersStore.meta?.last_page ?? page
+    page++
+  } while (page <= lastPage)
+  roleUsers.value = users
+}
 
 // ── Card grid ─────────────────────────────────────────────────────────
 
@@ -46,10 +64,10 @@ function avatarColor(name: string): string {
 }
 
 function visibleUsers(role: Role): RoleUser[] {
-  return (role.users ?? []).slice(0, 4)
+  return roleUsers.value.filter((user) => user.role === role.name).slice(0, 4)
 }
 function overflowCount(role: Role): number {
-  return Math.max((role.users?.length ?? role.users_count ?? 0) - 4, 0)
+  return Math.max(roleUsers.value.filter((user) => user.role === role.name).length - 4, 0)
 }
 
 // ── Permission grouping (domain = first segment of "<domain>.<object>.<action>") ──
@@ -286,13 +304,7 @@ async function handleDelete(role: Role): Promise<void> {
 const userSearch = ref('')
 
 const usersWithRoles = computed(() => {
-  const rows: (RoleUser & { role: string })[] = []
-  for (const role of rolesStore.roles) {
-    for (const user of role.users ?? []) {
-      rows.push({ ...user, role: role.name })
-    }
-  }
-  return rows
+  return roleUsers.value
 })
 
 const filteredUsers = computed(() => {
@@ -321,19 +333,18 @@ const filteredUsers = computed(() => {
           <v-card-text>
             <div class="d-flex align-start justify-space-between mb-6">
               <span class="text-body-2 text-medium-emphasis">
-                {{ $t('core.roles.msg.total_users', 'Total :count users', { count: role.users_count ?? role.users?.length ?? 0 }) }}
+                {{ $t('core.roles.msg.total_users', 'Total :count users', { count: roleUsers.filter((user) => user.role === role.name).length }) }}
               </span>
               <div class="d-flex flex-row-reverse align-center">
                 <v-avatar
                   v-for="user in visibleUsers(role)"
                   :key="user.id"
                   size="28"
-                  :color="user.avatar_url ? undefined : avatarColor(user.name)"
+                  :color="avatarColor(user.name)"
                   class="ml-n2"
                   style="border: 2px solid rgb(var(--v-theme-surface))"
                 >
-                  <v-img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.name" />
-                  <span v-else class="text-caption font-weight-bold" style="color: white; font-size: 10px">{{ initials(user.name) }}</span>
+                  <span class="text-caption font-weight-bold" style="color: white; font-size: 10px">{{ initials(user.name) }}</span>
                 </v-avatar>
                 <v-avatar v-if="overflowCount(role) > 0" size="28" color="surface-variant" class="ml-n2" style="border: 2px solid rgb(var(--v-theme-surface))">
                   <span class="text-caption font-weight-bold" style="font-size: 9px">+{{ overflowCount(role) }}</span>
@@ -402,16 +413,14 @@ const filteredUsers = computed(() => {
             <tr>
               <th>{{ $t('core.roles.msg.user_column', 'User') }}</th>
               <th>{{ $t('core.roles.msg.role_column', 'Role') }}</th>
-              <th>{{ $t('core.roles.msg.status_column', 'Status') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="user in filteredUsers" :key="`${user.role}-${user.id}`">
               <td>
                 <div class="d-flex align-center ga-3 py-2">
-                  <v-avatar size="32" :color="user.avatar_url ? undefined : avatarColor(user.name)">
-                    <v-img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.name" />
-                    <span v-else class="text-caption font-weight-bold" style="color: white">{{ initials(user.name) }}</span>
+                  <v-avatar size="32" :color="avatarColor(user.name)">
+                    <span class="text-caption font-weight-bold" style="color: white">{{ initials(user.name) }}</span>
                   </v-avatar>
                   <div>
                     <div class="text-body-2 font-weight-medium">{{ user.name }}</div>
@@ -420,11 +429,6 @@ const filteredUsers = computed(() => {
                 </div>
               </td>
               <td><v-chip size="small" variant="tonal">{{ user.role }}</v-chip></td>
-              <td>
-                <v-chip :color="user.is_active ? 'success' : 'default'" size="small" variant="tonal">
-                  {{ user.is_active ? $t('common.msg.active', 'Active') : $t('common.msg.inactive', 'Inactive') }}
-                </v-chip>
-              </td>
             </tr>
           </tbody>
         </v-table>

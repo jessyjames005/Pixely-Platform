@@ -1,5 +1,7 @@
 // A single available locale
 export interface Locale {
+  id: string
+  type: string
   code: string
   label: string
 }

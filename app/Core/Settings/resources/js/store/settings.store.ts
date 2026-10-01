@@ -1,7 +1,7 @@
 // Pinia store for Core platform/user settings and locales
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
-import type { ApiCollectionResponse, ApiResponse } from '@shared/types/api'
+import { useAuthStore } from '@core/auth/store/auth.store'
 import type { Locale, PlatformSettings, UserSettings } from '../models/Settings'
 
 interface SettingsState {
@@ -19,28 +19,38 @@ export const useSettingsStore = defineStore('settings', {
 
   actions: {
     async fetchLocales(): Promise<void> {
-      const result = await apiClient.get<ApiCollectionResponse<Locale>>('/locales')
-      this.locales = result.data
+      const result = await apiClient.getCollection<Omit<Locale, 'id' | 'type'>>('/locales')
+      this.locales = result.resources
     },
 
     async fetchPlatformSettings(): Promise<void> {
-      const result = await apiClient.get<ApiResponse<PlatformSettings>>('/settings/platform')
-      this.platformSettings = result.data
+      this.platformSettings = await apiClient.getResource<PlatformSettings>('/platform-settings/current')
     },
 
     async updatePlatformSettings(payload: Partial<PlatformSettings>): Promise<void> {
-      const result = await apiClient.put<ApiResponse<PlatformSettings>>('/settings/platform', payload)
-      this.platformSettings = result.data
+      this.platformSettings = await apiClient.putResource(
+        '/platform-settings/current',
+        'platform-settings',
+        payload,
+        'current',
+      )
     },
 
     async fetchUserSettings(): Promise<void> {
-      const result = await apiClient.get<ApiResponse<UserSettings>>('/settings/user')
-      this.userSettings = result.data
+      const userId = useAuthStore().user?.id
+      if (!userId) throw new Error('A signed-in user is required to load user settings.')
+      this.userSettings = await apiClient.getResource<UserSettings>(`/user-settings/${userId}`)
     },
 
     async updateUserSettings(payload: Partial<UserSettings>): Promise<void> {
-      const result = await apiClient.put<ApiResponse<UserSettings>>('/settings/user', payload)
-      this.userSettings = result.data
+      const userId = useAuthStore().user?.id
+      if (!userId) throw new Error('A signed-in user is required to update user settings.')
+      this.userSettings = await apiClient.putResource(
+        `/user-settings/${userId}`,
+        'user-settings',
+        payload,
+        userId,
+      )
     },
   },
 })

@@ -1,41 +1,30 @@
-// Domain types for the Tuleap dashboard extension.
-// Mirrors the shapes produced by App\Extensions\Tuleap\Services\TuleapService.
+import type { JsonApiModel } from '@shared/types/api'
 
-// ─── Tuleap-native entities (proxied, read-only) ────────────────────────
-
-export interface TuleapProject {
-  id: number
+export type TuleapProject = JsonApiModel<{
   label: string
   shortname?: string
   is_member_of?: boolean
-}
+  uri?: string
+}>
 
-export interface TuleapMilestone {
-  id: number
+export type TuleapMilestone = JsonApiModel<{
   label: string
   start_date?: string | null
   end_date?: string | null
   capacity?: number | null
   status?: string
-}
+  uri?: string
+}>
 
-export interface TuleapAssignee {
-  id: number | null
-  display_name: string
-  username: string
-}
+export type TuleapAssignee = JsonApiModel<{ display_name: string; username: string }>
 
-// ─── Local entities (stored in Pixely's database) ───────────────────────
-
-export interface TeamMember {
-  id: number
+export type TeamMember = JsonApiModel<{
   project_id: number | null
   name: string
   tuleap_username: string | null
-}
+}>
 
-export interface SprintConfig {
-  id?: number
+export interface SprintConfigAttributes {
   objective: string
   confidence_index: number | null
   pct_evolution: number
@@ -46,20 +35,20 @@ export interface SprintConfig {
   review_comment: string
 }
 
-export interface CafRecord {
-  id?: number
+export type SprintConfig = JsonApiModel<SprintConfigAttributes>
+
+export type CafRecord = JsonApiModel<{
   sprint_id: number
   member_id: number
   value: number
   name?: string
   tuleap_username?: string
-}
+}>
 
 export type RetroCategory = 'bien' | 'ameliorer' | 'fait' | 'souhait' | 'plan_action'
-export type RetroStatus = 'pending' | 'done'
+export type RetroStatus = 'pending' | 'done' | 'missed'
 
-export interface RetroAction {
-  id: number
+export type RetroAction = JsonApiModel<{
   sprint_id: number
   project_id: number | null
   member_id: number | null
@@ -67,26 +56,12 @@ export interface RetroAction {
   text: string
   status: RetroStatus
   created_at?: string
-}
+}>
 
-export interface AppConfig {
-  tuleap_logged_in: boolean
-  tuleap_user_id: string | null
-}
+export type AppConfig = JsonApiModel<{ tuleap_logged_in: boolean; tuleap_user_id: string | null }>
+export type CacheEntry = JsonApiModel<{ key: string; cached_at: string; expires_at: string; expired: boolean }>
 
-export interface CacheEntry {
-  key: string
-  cached_at: string
-  expires_at: string
-  expired: boolean
-}
-
-// ─── Computed / aggregate responses ─────────────────────────────────────
-
-export interface ArtifactAvatar {
-  name: string
-}
-
+export interface ArtifactAvatar { name: string }
 export interface AlertArtifact {
   id: number
   title: string | null
@@ -95,7 +70,6 @@ export interface AlertArtifact {
   lastUpdate?: string | null
   daysSince?: number
 }
-
 export interface SprintAlerts {
   noPoints: AlertArtifact[]
   noAssignee: AlertArtifact[]
@@ -103,12 +77,7 @@ export interface SprintAlerts {
   noGitlab: AlertArtifact[]
   analyseOrpheline: AlertArtifact[]
 }
-
-export interface PersonStats {
-  total: number
-  done: number
-}
-
+export interface PersonStats { total: number; done: number }
 export interface ArtifactSummary {
   id: number
   title: string | null
@@ -123,8 +92,7 @@ export interface ArtifactSummary {
   lastUpdate: string | null
   isAddedDuringSprint: boolean
 }
-
-export interface SprintStats {
+export interface SprintStatsAttributes {
   total: number
   done: number
   devDone: number
@@ -134,22 +102,19 @@ export interface SprintStats {
   alerts: SprintAlerts
   artifacts: ArtifactSummary[]
 }
+export type SprintStats = JsonApiModel<SprintStatsAttributes>
 
-export interface BurndownPoint {
-  date: string
-  remaining: number | null
-}
-
-export interface BurndownData {
+export interface BurndownPoint { date: string; remaining: number | null }
+export interface BurndownDataAttributes {
   totalPoints: number
   startDate: string | null
   endDate: string | null
   actual: BurndownPoint[]
   ideal: BurndownPoint[]
 }
+export type BurndownData = JsonApiModel<BurndownDataAttributes>
 
-export interface SprintAggregate {
-  id: number
+export interface SprintAggregateAttributes {
   label: string | null
   start_date: string | null
   end_date: string | null
@@ -167,12 +132,12 @@ export interface SprintAggregate {
   predictability: number | null
   commitmentRespect: number | null
 }
-
+export type SprintAggregate = JsonApiModel<SprintAggregateAttributes>
 export type SprintHistoryRange = '3m' | '6m' | '1y'
 
-export interface TuleapPingResult {
+export type TuleapPingResult = JsonApiModel<{
   ok: boolean
   status: 'connected' | 'unreachable' | 'error' | 'not_configured'
   message?: string
   httpStatus?: number
-}
+}>

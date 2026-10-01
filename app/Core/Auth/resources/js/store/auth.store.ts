@@ -2,7 +2,7 @@
 // Replaces the previous module-level useAuth composable.
 import { defineStore } from "pinia";
 import { apiClient, fetchCsrfCookie } from "@shared/services/apiClient";
-import type { ApiResponse } from "@shared/types/api";
+import { deserializeDocument, type JsonApiDocument, type JsonApiResource } from "@shared/types/api";
 import type { User } from "../models/User";
 
 interface AuthState {
@@ -30,8 +30,7 @@ export const useAuthStore = defineStore("auth", {
     // the router guard before the first navigation.
     async checkAuth(): Promise<User | null> {
       try {
-        const result = await apiClient.get<ApiResponse<User>>("/auth/me");
-        this.user = result.data;
+        this.user = await apiClient.getResource<Omit<User, "id" | "type">>("/auth/me");
       } catch {
         this.user = null;
       } finally {
@@ -44,11 +43,13 @@ export const useAuthStore = defineStore("auth", {
     // Logs a user in: fetches the CSRF cookie, then authenticates via Sanctum.
     async login(email: string, password: string): Promise<void> {
       await fetchCsrfCookie();
-      const result = await apiClient.post<ApiResponse<User>>("/auth/login", {
+      const result = await apiClient.post<JsonApiDocument<JsonApiResource<Omit<User, "id" | "type">>>>("/auth/login", {
         email,
         password,
       });
-      this.user = result.data;
+      const user = deserializeDocument(result);
+      if (!user) throw new Error("The login response did not include a user resource.");
+      this.user = user;
     },
 
     // Logs the current user out and clears local state.

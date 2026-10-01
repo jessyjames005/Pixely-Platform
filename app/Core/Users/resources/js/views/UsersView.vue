@@ -141,14 +141,11 @@ async function handleDelete(user: User): Promise<void> {
 }
 
 async function handleAssignRole(
-  userId: number,
+  userId: string,
   roleName: string | null,
 ): Promise<void> {
-  if (!roleName) {
-    return;
-  }
   await submitAssign(userId, roleName);
-  notify.success(t("users.msg.role_assigned", "Role assigned."));
+  notify.success(t("users.msg.role_assigned", roleName ? "Role assigned." : "Role removed."));
   await fetchUsers(currentPage.value, perPage);
 }
 </script>

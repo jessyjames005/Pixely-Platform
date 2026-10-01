@@ -21,6 +21,15 @@ export interface JsonApiDocument<TData> {
   meta?: Record<string, unknown>
 }
 
+export interface JsonApiWriteDocument<TData> {
+  data: TData
+  links?: Record<string, unknown>
+  meta?: Record<string, unknown>
+}
+
+export type JsonApiResourceInput<TAttributes extends object = Record<string, unknown>> =
+  Omit<JsonApiResource<TAttributes>, 'id'> & { id?: string }
+
 export interface JsonApiErrorSource {
   pointer?: string
   parameter?: string
@@ -70,12 +79,12 @@ export interface PaginationMeta extends Record<string, unknown> {
 export function serializeResource<TAttributes extends object>(
   type: string,
   attributes: TAttributes,
-  id?: string | number,
-): JsonApiDocument<JsonApiResource<TAttributes>> {
+  id?: string,
+): JsonApiWriteDocument<JsonApiResourceInput<TAttributes>> {
   return {
     data: {
       type,
-      ...(id === undefined ? {} : { id: String(id) }),
+      ...(id === undefined ? {} : { id }),
       attributes,
     },
   }
@@ -124,13 +133,25 @@ export function deserializeCollection<TAttributes extends object>(
   }
 }
 
-export function decodeJsonApiId(id: string): string[] | null {
+export function decodeJsonApiId(id: string, expectedParts: number | readonly number[]): string[] | null {
   try {
     const base64 = id.replace(/-/g, '+').replace(/_/g, '/')
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
     const bytes = Uint8Array.from(atob(padded), (character) => character.charCodeAt(0))
     const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes))
-    if (!Array.isArray(parsed) || parsed.some((part) => typeof part !== 'string')) return null
+    const partCounts = typeof expectedParts === 'number' ? [expectedParts] : expectedParts
+    if (
+      !Array.isArray(parsed) ||
+      !partCounts.includes(parsed.length) ||
+      parsed.some((part) => typeof part !== 'string' || part.length === 0)
+    ) return null
+
+    const canonicalJson = JSON.stringify(parsed).replace(/\//g, '\\/')
+    const canonicalBytes = new TextEncoder().encode(canonicalJson)
+    const canonicalBinary = Array.from(canonicalBytes, (byte) => String.fromCharCode(byte)).join('')
+    const canonicalId = btoa(canonicalBinary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    if (canonicalId !== id) return null
+
     return parsed as string[]
   } catch {
     return null

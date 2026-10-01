@@ -4,7 +4,6 @@
 // login screen itself needs translated text.
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
-import type { ApiResponse } from '@shared/types/api'
 
 // Deeply nested: { [module]: { [group]: { [key]: string } } }
 type Catalog = Record<string, unknown>
@@ -26,8 +25,10 @@ export const useI18nStore = defineStore('i18n', {
 
   actions: {
     async load(locale: string): Promise<void> {
-      const result = await apiClient.get<ApiResponse<Catalog>>(`/locales/${locale}`)
-      this.catalog = result.data
+      const result = await apiClient.getResource<{ locale: string; catalog: Catalog }>(
+        `/translation-catalogs/${locale}`,
+      )
+      this.catalog = result?.catalog ?? {}
       this.locale = locale
       this.loaded = true
     },

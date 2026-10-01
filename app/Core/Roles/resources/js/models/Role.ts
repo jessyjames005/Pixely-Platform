@@ -1,19 +1,23 @@
+import type { JsonApiModel } from '@shared/types/api'
+
 // Permission resource shape
-export interface Permission {
-  id: number
+export type Permission = JsonApiModel<{
   name: string
-  guard_name?: string
-  is_core?: boolean
-  created_at?: string
-}
+  isCore?: boolean
+}>
 
 // Role resource shape, including its assigned permissions
-export interface Role {
-  id: number
+export type Role = JsonApiModel<{
   name: string
+}> & {
   permissions: Permission[]
-  users_count?: number
-  created_at?: string
+}
+
+export interface RoleUser {
+  id: string
+  name: string
+  email: string
+  role: string
 }
 
 // Payload accepted when creating or updating a role
@@ -25,5 +29,5 @@ export interface RolePayload {
 // Payload for creating a permission
 export interface PermissionPayload {
   name: string
-  is_core?: boolean
+  isCore?: boolean
 }

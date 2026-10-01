@@ -1,14 +1,18 @@
 // User resource shape as returned by the API
 export interface User {
-  id: number
+  id: string
+  type: string
   name: string
   email: string
-  role: string | null
+  role?: string | null
+  roles?: string[]
+  permissions?: string[]
 }
 
 // Current user's own profile, self-service (distinct from admin User management)
 export interface Profile {
-  id: number
+  id: string
+  type: string
   name: string
   email: string
   bio: string | null

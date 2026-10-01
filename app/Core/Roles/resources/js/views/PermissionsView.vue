@@ -15,9 +15,8 @@ const notify = useNotify()
 const headers = [
   { title: 'ID', key: 'id', align: 'center', sortable: false },
   { title: 'Name', key: 'name', sortable: false },
-  { title: 'Guard', key: 'guard_name', sortable: false },
-  { title: 'Created', key: 'created_at', sortable: false },
-]
+  { title: 'Core', key: 'isCore', sortable: false },
+] as const
 
 const perPage = 20
 const currentPage = ref(1)
@@ -73,14 +72,8 @@ function resetPage(_value?: string): void {
   currentPage.value = 1
 }
 
-function formatDate(date: string | undefined): string {
-  if (!date) {
-    return '—'
-  }
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(date))
+function setPage(page: number): void {
+  currentPage.value = page
 }
 
 const permissionCount = computed(() => filteredPermissions.value.length)
@@ -99,7 +92,7 @@ function openCreateDialog(): void {
 function openEditDialog(permission: Permission): void {
   editingPermission.value = permission
   formName.value = permission.name
-  formIsCore.value = permission.is_core ?? false
+  formIsCore.value = permission.isCore ?? false
   dialogOpen.value = true
 }
 
@@ -112,7 +105,7 @@ async function handleSubmit(): Promise<void> {
   if (isEditing.value && editingPermission.value) {
     const result = await submitUpdate(editingPermission.value.id, {
       name: formName.value,
-      is_core: formIsCore.value,
+      isCore: formIsCore.value,
     })
     if (result) {
       notify.success('Permission updated.')
@@ -124,7 +117,7 @@ async function handleSubmit(): Promise<void> {
 
   const result = await submitCreate({
     name: formName.value,
-    is_core: formIsCore.value,
+    isCore: formIsCore.value,
   })
 
   if (result) {
@@ -145,11 +138,9 @@ async function handleDelete(permission: Permission): Promise<void> {
     return
   }
 
-  const result = await rolesStore.deletePermission(permission.id)
-  if (result !== false) {
-    notify.success('Permission deleted.')
-    await fetchPermissions()
-  }
+  await rolesStore.deletePermission(permission.id)
+  notify.success('Permission deleted.')
+  await fetchPermissions()
 }
 </script>
 
@@ -213,8 +204,8 @@ async function handleDelete(permission: Permission): Promise<void> {
           hide-default-footer
           hover
         >
-          <template #item.created_at="{ item }">
-            {{ formatDate((item.raw as Permission).created_at) }}
+          <template #item.isCore="{ item }">
+            {{ item.isCore ? 'Yes' : 'No' }}
           </template>
 
           <template #item.actions="{ item }">
@@ -223,7 +214,7 @@ async function handleDelete(permission: Permission): Promise<void> {
               icon="mdi-pencil"
               size="small"
               variant="text"
-              @click="openEditDialog(item.raw as Permission)"
+              @click="openEditDialog(item)"
             />
           </template>
 
@@ -242,7 +233,7 @@ async function handleDelete(permission: Permission): Promise<void> {
           :length="totalPages"
           :total-visible="5"
           density="compact"
-          @update:model-value="(page) => (currentPage.value = page)"
+          @update:model-value="setPage"
         />
       </v-card-actions>
     </v-card>

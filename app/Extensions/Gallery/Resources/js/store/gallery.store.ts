@@ -1,7 +1,7 @@
 // Pinia store for the Gallery extension: list, upload, delete, pagination
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
-import type { ApiCollectionResponse, ApiResponse, PaginationMeta } from '@shared/types/api'
+import type { PaginationMeta } from '@shared/types/api'
 import type { Photo } from '../models/Photo'
 
 interface GalleryState {
@@ -17,12 +17,12 @@ export const useGalleryStore = defineStore('gallery', {
 
   actions: {
     async fetchPhotos(page = 1, perPage = 20): Promise<void> {
-      const result = await apiClient.get<ApiCollectionResponse<Photo>>('/gallery', {
-        page,
-        per_page: perPage,
+      const result = await apiClient.getCollection<Omit<Photo, 'id'>>('/photos', {
+        'page[number]': page,
+        'page[size]': perPage,
       })
-      this.photos = result.data
-      this.meta = result.meta
+      this.photos = result.resources
+      this.meta = result.meta ?? null
     },
 
     async uploadPhoto(title: string, image: File): Promise<Photo> {
@@ -32,12 +32,13 @@ export const useGalleryStore = defineStore('gallery', {
       }
       formData.append('image', image)
 
-      const result = await apiClient.post<ApiResponse<Photo>>('/gallery/upload', formData)
-      return result.data
+      const result = await apiClient.postFormResource<Omit<Photo, 'id'>>('/photos/upload', formData)
+      if (!result) throw new Error('The photo upload response did not include a resource.')
+      return result
     },
 
-    async deletePhoto(photoId: number): Promise<void> {
-      await apiClient.delete<void>(`/gallery/${photoId}`)
+    async deletePhoto(photoId: string): Promise<void> {
+      await apiClient.delete<void>(`/photos/${photoId}`)
     },
   },
 })

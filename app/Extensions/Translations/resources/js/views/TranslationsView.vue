@@ -47,7 +47,7 @@ watch([selectedModule, targetLocale], async ([moduleId, locale]) => {
 
 watch([selectedGroup, targetLocale, referenceLocale], async ([group, locale, reference]) => {
   if (selectedModule.value && group && locale && reference) {
-    await fetchGroup(selectedModule.value, group, locale, reference)
+    await fetchGroup(group, reference)
     editableValues.value = Object.fromEntries(
       (translationsStore.current?.entries ?? []).map((entry) => [entry.key, entry.target ?? '']),
     )
@@ -55,13 +55,13 @@ watch([selectedGroup, targetLocale, referenceLocale], async ([group, locale, ref
 })
 
 async function handleSave(): Promise<void> {
-  if (!selectedModule.value || !selectedGroup.value) return
+  if (!selectedGroup.value) return
 
-  await submitSave(selectedModule.value, selectedGroup.value, targetLocale.value, editableValues.value)
+  await submitSave(selectedGroup.value, editableValues.value)
 
   if (!saveError.value) {
     notify.success('Translations saved.')
-    await fetchGroup(selectedModule.value, selectedGroup.value, targetLocale.value, referenceLocale.value)
+    await fetchGroup(selectedGroup.value, referenceLocale.value)
   }
 }
 </script>
@@ -111,10 +111,10 @@ async function handleSave(): Promise<void> {
             <p v-if="loadingGroups" class="px-4 py-2 text-caption text-medium-emphasis">Loading…</p>
             <v-list-item
               v-for="group in translationsStore.groups"
-              :key="group"
-              :active="group === selectedGroup"
-              :title="group"
-              @click="selectedGroup = group"
+              :key="group.id"
+              :active="group.id === selectedGroup"
+              :title="group.group"
+              @click="selectedGroup = group.id"
             />
           </v-list>
         </v-card>
