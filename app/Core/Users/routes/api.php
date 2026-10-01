@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Core\Users\Http\Controllers\UserController;
-use App\Core\Users\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-
 /**
  * Core user management API routes.
  *
@@ -15,14 +9,32 @@ use Illuminate\Support\Facades\Route;
  * All operations require an authenticated administrator.
  */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [UserController::class, 'store']);
-    Route::get('/users/{user}', [UserController::class, 'show']);
-    Route::put('/users/{user}', [UserController::class, 'update']);
-    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+declare(strict_types=1);
 
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
-    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
-});
+use App\Core\Users\Http\Controllers\UserController;
+use App\Core\Users\Http\Controllers\ProfileController;
+use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
+use Illuminate\Support\Facades\Route;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Routing\Relationships;
+use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
+use LaravelJsonApi\Laravel\Routing\Route as JsonApiRoutingRoute;
+
+JsonApiRoute::server('v1')
+    ->middleware(EnsureJsonApiMediaType::class)
+    ->resources(function (ResourceRegistrar $server): void {
+        $server->resource('users', UserController::class)
+            ->middleware('auth:sanctum')
+            ->relationships(function (Relationships $relationships): void {
+                $relationships->hasMany('roles')->only('show', 'update');
+            });
+
+        Route::middleware('auth:sanctum')->group(function (): void {
+            Route::get('/profile', [ProfileController::class, 'show'])
+                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+            Route::put('/profile', [ProfileController::class, 'update'])
+                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+            Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])
+                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+        });
+    });

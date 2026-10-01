@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
-it('logs in an active user with valid credentials', function () {
+$jsonApiHeaders = [
+    'Accept' => 'application/vnd.api+json',
+    'Content-Type' => 'application/json',
+];
+
+it('logs in an active user with valid credentials', function () use ($jsonApiHeaders) {
     $user = User::factory()->create([
         'email' => 'jane@example.com',
         'password' => bcrypt('password123'),
@@ -17,69 +23,98 @@ it('logs in an active user with valid credentials', function () {
     Permission::firstOrCreate(['name' => 'gallery.photos.view', 'guard_name' => 'web']);
     $user->givePermissionTo('gallery.photos.view');
 
-    $response = $this->postJson('/api/v1/auth/login', [
+    $response = $this->json('POST', '/api/v1/auth/login', [
         'email' => 'jane@example.com',
         'password' => 'password123',
-    ]);
+    ], $jsonApiHeaders);
 
     $response
         ->assertOk()
-        ->assertJsonPath('data.email', 'jane@example.com')
-        ->assertJsonStructure(['data' => ['id', 'name', 'email', 'permissions', 'roles']]);
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('data.type', 'users')
+        ->assertJsonPath('data.attributes.email', 'jane@example.com')
+        ->assertJsonStructure(['data' => ['id', 'type', 'attributes' => ['name', 'email', 'permissions', 'roles']]]);
 
     // Regression: login() used to return the raw User model with no
     // permissions/roles at all, so every permission-gated nav item
     // stayed hidden until the page was reloaded and a /auth/me call
     // populated the auth store properly.
-    $response->assertJsonPath('data.permissions', ['gallery.photos.view']);
+    $response->assertJsonPath('data.attributes.permissions', ['gallery.photos.view']);
+    expect($response->getContent())->not->toContain('password', 'remember_token');
 
     expect(auth()->check())->toBeTrue();
 
-    $this->getJson('/api/v1/auth/me')
+    $this->json('GET', '/api/v1/auth/me', [], $jsonApiHeaders)
         ->assertOk()
-        ->assertJsonPath('data.email', 'jane@example.com');
+        ->assertJsonPath('data.type', 'users')
+        ->assertJsonPath('data.attributes.email', 'jane@example.com');
 });
 
-it('rejects invalid credentials', function () {
+it('rejects invalid credentials with a JSON:API error', function () use ($jsonApiHeaders) {
     User::factory()->create(['email' => 'jane@example.com', 'password' => bcrypt('password123')]);
 
-    $response = $this->postJson('/api/v1/auth/login', [
+    $response = $this->json('POST', '/api/v1/auth/login', [
         'email' => 'jane@example.com',
         'password' => 'wrong-password',
-    ]);
+    ], $jsonApiHeaders);
 
-    $response->assertStatus(401);
+    $response
+        ->assertStatus(401)
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('errors.0.code', 'INVALID_CREDENTIALS');
 });
 
-it('rejects login for a deactivated account even with valid credentials', function () {
+it('rejects login for a deactivated account with a JSON:API error', function () use ($jsonApiHeaders) {
     User::factory()->create([
         'email' => 'jane@example.com',
         'password' => bcrypt('password123'),
         'is_active' => false,
     ]);
 
-    $response = $this->postJson('/api/v1/auth/login', [
+    $response = $this->json('POST', '/api/v1/auth/login', [
         'email' => 'jane@example.com',
         'password' => 'password123',
-    ]);
+    ], $jsonApiHeaders);
 
     $response
         ->assertStatus(403)
-        ->assertJsonPath('error.code', 'ACCOUNT_DISABLED');
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('errors.0.code', 'ACCOUNT_DISABLED');
 
-    expect(auth()->check())->toBeFalse();
+    $this->json('GET', '/api/v1/auth/me', [], $jsonApiHeaders)->assertUnauthorized();
 });
 
-it('returns the same shape from /auth/me as from login', function () {
+it('returns the authenticated user as a JSON:API users resource from /auth/me', function () use ($jsonApiHeaders) {
     $user = User::factory()->create(['is_active' => true]);
     Permission::firstOrCreate(['name' => 'gallery.photos.view', 'guard_name' => 'web']);
     $user->givePermissionTo('gallery.photos.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/auth/me');
+    $response = $this->json('GET', '/api/v1/auth/me', [], $jsonApiHeaders);
 
     $response
         ->assertOk()
-        ->assertJsonStructure(['data' => ['id', 'name', 'email', 'permissions', 'roles']])
-        ->assertJsonPath('data.permissions', ['gallery.photos.view']);
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('data.type', 'users')
+        ->assertJsonStructure(['data' => ['id', 'type', 'attributes' => ['name', 'email', 'permissions', 'roles']]])
+        ->assertJsonPath('data.attributes.permissions', ['gallery.photos.view']);
+});
+
+it('logs out and invalidates the authenticated session', function () use ($jsonApiHeaders) {
+    User::factory()->create([
+        'email' => 'jane@example.com',
+        'password' => bcrypt('password123'),
+        'is_active' => true,
+    ]);
+
+    $this->json('POST', '/api/v1/auth/login', [
+        'email' => 'jane@example.com',
+        'password' => 'password123',
+    ], $jsonApiHeaders)->assertOk();
+
+    $this->json('POST', '/api/v1/auth/logout', [], $jsonApiHeaders)->assertNoContent();
+
+    Auth::forgetGuards();
+
+    $this->json('GET', '/api/v1/auth/me', [], $jsonApiHeaders)->assertUnauthorized();
 });

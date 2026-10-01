@@ -7,6 +7,7 @@ use App\Core\Extensions\Enum\ExtensionStatus;
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 use App\Core\Extensions\State\ExtensionState;
+use App\JsonApi\V1\DocumentId;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -16,17 +17,20 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     Permission::firstOrCreate(['name' => 'system.extensions.manage', 'guard_name' => 'web']);
 
-    $this->app->singleton(
+    $this->app->instance(
         ExtensionStateRepositoryInterface::class,
-        InMemoryExtensionStateRepository::class,
+        new InMemoryExtensionStateRepository(),
     );
+    $this->app->forgetInstance(ExtensionManager::class);
 
     $manager = $this->app->make(ExtensionManager::class);
     $galleryExtension = $manager->all()['gallery'];
+    $filesExtension = $manager->all()['files'];
+    $stateRepository = $this->app->make(ExtensionStateRepositoryInterface::class);
 
-    $this->app->make(ExtensionStateRepositoryInterface::class)->save(
-        new ExtensionState(extension: $galleryExtension, status: ExtensionStatus::Disabled),
-    );
+    $stateRepository->save(new ExtensionState(extension: $galleryExtension, status: ExtensionStatus::Disabled));
+    $stateRepository->save(new ExtensionState(extension: $filesExtension, status: ExtensionStatus::Enabled));
+    $this->galleryId = DocumentId::encode('extension', 'gallery');
 });
 
 it('syncs gallery permissions when the extension is enabled via the API', function () {
@@ -39,9 +43,18 @@ it('syncs gallery permissions when the extension is enabled via the API', functi
 
     expect(Permission::where('name', 'gallery.photos.view')->exists())->toBeFalse();
 
-    $response = $this->postJson('/api/v1/extensions/gallery/enable');
+    $response = $this->json(
+        'POST',
+        '/api/v1/extensions/' . $this->galleryId . '/enable',
+        [],
+        ['Accept' => 'application/vnd.api+json', 'Content-Type' => 'application/vnd.api+json'],
+    );
 
-    $response->assertOk();
+    $response
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('data.type', 'extensions')
+        ->assertJsonPath('data.attributes.enabled', true);
 
     expect(Permission::where('name', 'gallery.photos.view')->exists())->toBeTrue();
     expect(Permission::where('name', 'gallery.photos.manage')->exists())->toBeTrue();

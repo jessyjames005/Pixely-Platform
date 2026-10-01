@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Http\Controllers;
 
-use App\Core\Api\Response\ApiCollectionResponse;
+use App\JsonApi\V1\DocumentResource;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 /**
  * Exposes the list of locales available across the platform.
@@ -14,13 +15,19 @@ use Illuminate\Http\JsonResponse;
 #[Group('Settings & Localization', weight: 5)]
 final class LocaleController
 {
-    public function index(ApiCollectionResponse $apiResponse): JsonResponse
+    public function index(Server $server): DataResponse
     {
-        $locales = config('pixely.locales');
-
-        return $apiResponse->response(
-            data: $locales,
-            meta: ['default' => config('pixely.default_locale')],
+        $resources = array_map(
+            fn (array $locale): DocumentResource => DocumentResource::make(
+                $server->schemas()->schemaFor('locales'),
+                $locale['code'],
+                $locale,
+            ),
+            config('pixely.locales'),
         );
+
+        return DataResponse::make($resources)
+            ->withServer('v1')
+            ->withMeta(['default' => config('pixely.default_locale')]);
     }
 }

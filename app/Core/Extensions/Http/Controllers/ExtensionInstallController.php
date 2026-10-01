@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Core\Extensions\Http\Controllers;
 
-use App\Core\Api\Response\ApiResponse;
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
 use App\Core\Extensions\Installer\ExtensionInstaller;
+use App\JsonApi\V1\DocumentId;
+use App\JsonApi\V1\DocumentResource;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Exceptions\JsonApiException;
+use LaravelJsonApi\Core\Responses\DataResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Install, update, and uninstall extensions from an uploaded zip.
@@ -30,7 +34,7 @@ final class ExtensionInstallController
     /**
      * Install a new extension from an uploaded zip package.
      */
-    public function install(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function install(Request $request, Server $server): DataResponse
     {
         $validated = $request->validate([
             'package' => ['required', 'file', 'mimes:zip', 'max:20480'], // 20 MB
@@ -42,19 +46,21 @@ final class ExtensionInstallController
                 $request->user()?->id,
             );
         } catch (\RuntimeException $exception) {
-            return response()->json(
-                ['error' => ['code' => 'INSTALL_FAILED', 'message' => $exception->getMessage()]],
-                422,
-            );
+            throw JsonApiException::error([
+                'status' => 422,
+                'code' => 'INSTALL_FAILED',
+                'title' => 'Unprocessable Entity',
+                'detail' => 'The extension package could not be installed.',
+            ], $exception);
         }
 
-        return $apiResponse->response(data: $result, status: 201);
+        return DataResponse::make($this->extensionResource($server, $result))->didCreate()->withServer('v1');
     }
 
     /**
      * Update an existing extension from an uploaded zip package.
      */
-    public function update(Request $request, string $id, ApiResponse $apiResponse): JsonResponse
+    public function update(Request $request, string $id, Server $server): DataResponse
     {
         $validated = $request->validate([
             'package' => ['required', 'file', 'mimes:zip', 'max:20480'],
@@ -63,17 +69,19 @@ final class ExtensionInstallController
         try {
             $result = $this->installer->update(
                 $validated['package']->getRealPath(),
-                $id,
+                $this->extensionId($id),
                 $request->user()?->id,
             );
         } catch (\RuntimeException $exception) {
-            return response()->json(
-                ['error' => ['code' => 'UPDATE_FAILED', 'message' => $exception->getMessage()]],
-                422,
-            );
+            throw JsonApiException::error([
+                'status' => 422,
+                'code' => 'UPDATE_FAILED',
+                'title' => 'Unprocessable Entity',
+                'detail' => 'The extension package could not be updated.',
+            ], $exception);
         }
 
-        return $apiResponse->response(data: $result);
+        return DataResponse::make($this->extensionResource($server, $result))->withServer('v1');
     }
 
     /**
@@ -82,7 +90,7 @@ final class ExtensionInstallController
      * Does not drop database tables or roll back migrations — see
      * ExtensionInstaller::uninstall() docblock.
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id): Response
     {
         try {
             $this->installer->uninstall($id, request()->user()?->id);
@@ -94,5 +102,36 @@ final class ExtensionInstallController
         }
 
         return response()->json(status: 204);
+    }
+
+    /**
+     * @param array{id: string, name: string, version: string} $result
+     */
+    private function extensionResource(Server $server, array $result): DocumentResource
+    {
+        return DocumentResource::make(
+            $server->schemas()->schemaFor('extensions'),
+            DocumentId::encode('extension', $result['id']),
+            [
+                'name' => $result['name'],
+                'version' => $result['version'],
+            ],
+        );
+    }
+
+    private function extensionId(string $opaqueId): string
+    {
+        $parts = DocumentId::decode($opaqueId, 2);
+
+        if ($parts === null || $parts[0] !== 'extension') {
+            throw JsonApiException::error([
+                'status' => 404,
+                'code' => 'RESOURCE_NOT_FOUND',
+                'title' => 'Not Found',
+                'detail' => 'The requested extension was not found.',
+            ]);
+        }
+
+        return $parts[1];
     }
 }

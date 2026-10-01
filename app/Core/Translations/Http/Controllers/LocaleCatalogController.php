@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Core\Translations\Http\Controllers;
 
-use App\Core\Api\Response\ApiResponse;
 use App\Core\Translations\Services\TranslationRepository;
+use App\JsonApi\V1\DocumentResource;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use stdClass;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 /**
  * Public read-only endpoint serving the merged UI translation catalog
@@ -29,8 +32,9 @@ final class LocaleCatalogController
     ) {
     }
 
-    public function catalog(string $locale, ApiResponse $apiResponse): JsonResponse
+    public function show(Request $request, stdClass $translationCatalog, Server $server): DataResponse
     {
+        $locale = (string) $translationCatalog->id;
         $catalog = [];
 
         foreach ($this->repository->discoverModules() as $moduleId => $modulePath) {
@@ -41,6 +45,10 @@ final class LocaleCatalogController
             }
         }
 
-        return $apiResponse->response(data: $catalog);
+        return DataResponse::make(DocumentResource::make(
+            $server->schemas()->schemaFor('translation-catalogs'),
+            $locale,
+            ['locale' => $locale, 'catalog' => $catalog],
+        ))->withServer('v1');
     }
 }

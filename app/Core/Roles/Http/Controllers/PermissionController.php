@@ -4,98 +4,28 @@ declare(strict_types=1);
 
 namespace App\Core\Roles\Http\Controllers;
 
-use App\Core\Api\Response\ApiCollectionResponse;
-use App\Core\Api\Response\ApiResponse;
-use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
+use LaravelJsonApi\Laravel\Http\Requests\ResourceRequest;
 use Spatie\Permission\Models\Permission;
 
 /**
- * Handles CRUD for permissions.
- *
- * Core permissions are seeded and managed via RolePermissionSeeder.
- * Administrators can extend the set through the API.
+ * Handles JSON:API permission management requests.
  */
-#[Group('Roles & Permissions', weight: 4)]
-final class PermissionController
+final class PermissionController extends JsonApiController
 {
-    /**
-     * Display all available permissions.
-     */
-    public function index(ApiCollectionResponse $apiResponse): JsonResponse
+    public function created(Permission $permission): void
     {
-        $permissions = Permission::orderBy('name')->get();
-
-        return $apiResponse->response(
-            data: $permissions,
-            meta: ['total' => $permissions->count()],
-        );
+        $permission->guard_name = 'web';
+        $permission->save();
     }
 
-    /**
-     * Create a new permission.
-     */
-    public function store(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function deleting(Permission $permission, ResourceRequest $request): void
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:permissions,name'],
-            'guard_name' => ['sometimes', 'string', 'max:255'],
-            'is_core' => ['sometimes', 'boolean'],
-        ]);
-
-        /** @var Permission $permission */
-        $permission = Permission::create([
-            'name' => $validated['name'],
-            'guard_name' => $validated['guard_name'] ?? 'web',
-            'is_core' => $validated['is_core'] ?? false,
-        ]);
-
-        return $apiResponse->response(
-            data: $permission,
-            status: 201,
-        );
-    }
-
-    /**
-     * Update an existing permission.
-     */
-    public function update(Request $request, Permission $permission, ApiResponse $apiResponse): JsonResponse
-    {
-        $validated = $request->validate([
-            'name' => [
-                'sometimes',
-                'string',
-                'max:255',
-                Rule::unique('permissions', 'name')->ignore($permission->id),
-            ],
-            'is_core' => ['sometimes', 'boolean'],
-        ]);
-
-        $permission->update($validated);
-
-        return $apiResponse->response(
-            data: $permission->fresh(),
-        );
-    }
-
-    /**
-     * Delete a permission.
-     */
-    public function destroy(Permission $permission): JsonResponse
-    {
-        if ($permission->is_core ?? false) {
-            return response()->json([
-                'error' => [
-                    'code' => 'CANNOT_DELETE_CORE_PERMISSION',
-                    'message' => 'Core permissions cannot be deleted.',
-                ],
-            ], 422);
+        if ($permission->is_core) {
+            throw ValidationException::withMessages([
+                'id' => ['Core permissions cannot be deleted.'],
+            ]);
         }
-
-        $permission->delete();
-
-        return response()->json(status: 204);
     }
 }

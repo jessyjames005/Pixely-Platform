@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Core\Roles\Http\Controllers\PermissionController;
-use App\Core\Roles\Http\Controllers\RoleController;
-use Illuminate\Support\Facades\Route;
-
 /**
  * Core role and permission management API routes.
  *
@@ -14,15 +8,21 @@ use Illuminate\Support\Facades\Route;
  * Core modules (Auth, Users).
  */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/permissions', [PermissionController::class, 'index']);
-    Route::post('/permissions', [PermissionController::class, 'store']);
-    Route::put('/permissions/{permission}', [PermissionController::class, 'update']);
-    Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy']);
+declare(strict_types=1);
 
-    Route::get('/roles', [RoleController::class, 'index']);
-    Route::post('/roles', [RoleController::class, 'store']);
-    Route::put('/roles/{role}', [RoleController::class, 'update']);
-    Route::delete('/roles/{role}', [RoleController::class, 'destroy']);
-    Route::post('/roles/assign', [RoleController::class, 'assign']);
+use App\Core\Roles\Http\Controllers\PermissionController;
+use App\Core\Roles\Http\Controllers\RoleController;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Routing\Relationships;
+use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
+
+JsonApiRoute::server('v1')->resources(function (ResourceRegistrar $server): void {
+    $server->resource('roles', RoleController::class)
+        ->middleware('auth:sanctum')
+        ->relationships(function (Relationships $relationships): void {
+            $relationships->hasMany('permissions')->only('show', 'update');
+        });
+
+    $server->resource('permissions', PermissionController::class)
+        ->middleware('auth:sanctum');
 });

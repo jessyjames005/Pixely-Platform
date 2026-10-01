@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\JsonApi\V1\DocumentId;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Redis;
 use Spatie\Permission\Models\Permission;
@@ -12,6 +13,10 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     Permission::firstOrCreate(['name' => 'system.cache.view', 'guard_name' => 'web']);
     Permission::firstOrCreate(['name' => 'system.cache.clear', 'guard_name' => 'web']);
+    $this->jsonApiHeaders = [
+        'Accept' => 'application/vnd.api+json',
+        'Content-Type' => 'application/vnd.api+json',
+    ];
     Redis::connection('tooling')->flushdb();
 });
 
@@ -22,9 +27,11 @@ afterEach(function () {
 it('requires the system.cache.view permission to list keys', function () {
     $this->actingAs(User::factory()->create());
 
-    $response = $this->getJson('/api/v1/system/cache');
+    $response = $this->json('GET', '/api/v1/system/cache', [], $this->jsonApiHeaders);
 
-    $response->assertStatus(403);
+    $response->assertForbidden()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title']]]);
 });
 
 it('lists matching keys with type and ttl', function () {
@@ -34,12 +41,20 @@ it('lists matching keys with type and ttl', function () {
 
     Redis::connection('tooling')->set('pixely:test:one', 'value');
 
-    $response = $this->getJson('/api/v1/system/cache?pattern=pixely:test:*');
+    $response = $this->json(
+        'GET',
+        '/api/v1/system/cache?pattern=pixely:test:*',
+        [],
+        $this->jsonApiHeaders,
+    );
 
     $response
         ->assertOk()
-        ->assertJsonPath('data.0.key', 'pixely:test:one')
-        ->assertJsonPath('data.0.type', 'string');
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('data.0.type', 'cache-keys')
+        ->assertJsonPath('data.0.id', DocumentId::encode('cache-key', 'pixely:test:one'))
+        ->assertJsonPath('data.0.attributes.key', 'pixely:test:one')
+        ->assertJsonPath('data.0.attributes.type', 'string');
 });
 
 it('displays a string value', function () {
@@ -49,11 +64,18 @@ it('displays a string value', function () {
 
     Redis::connection('tooling')->set('pixely:test:value', 'hello');
 
-    $response = $this->getJson('/api/v1/system/cache/pixely:test:value');
+    $response = $this->json(
+        'GET',
+        '/api/v1/system/cache/pixely:test:value',
+        [],
+        $this->jsonApiHeaders,
+    );
 
     $response
         ->assertOk()
-        ->assertJsonPath('data.value', 'hello');
+        ->assertJsonPath('data.type', 'cache-keys')
+        ->assertJsonPath('data.id', DocumentId::encode('cache-key', 'pixely:test:value'))
+        ->assertJsonPath('data.attributes.value', 'hello');
 });
 
 it('returns 404 for a missing key', function () {
@@ -61,9 +83,11 @@ it('returns 404 for a missing key', function () {
     $user->givePermissionTo('system.cache.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/system/cache/does-not-exist');
+    $response = $this->json('GET', '/api/v1/system/cache/does-not-exist', [], $this->jsonApiHeaders);
 
-    $response->assertNotFound();
+    $response->assertNotFound()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'code', 'detail']]]);
 });
 
 it('requires system.cache.clear to delete a key, view alone is not enough', function () {
@@ -73,9 +97,14 @@ it('requires system.cache.clear to delete a key, view alone is not enough', func
 
     Redis::connection('tooling')->set('pixely:test:one', 'value');
 
-    $response = $this->deleteJson('/api/v1/system/cache/pixely:test:one');
+    $response = $this->json('DELETE', '/api/v1/system/cache/pixely:test:one', [], $this->jsonApiHeaders);
 
-    $response->assertStatus(403);
+    $response->assertForbidden()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title']]]);
+
+    $flushResponse = $this->json('DELETE', '/api/v1/system/cache', [], $this->jsonApiHeaders);
+    $flushResponse->assertForbidden();
 });
 
 it('deletes a key with system.cache.clear', function () {
@@ -85,7 +114,7 @@ it('deletes a key with system.cache.clear', function () {
 
     Redis::connection('tooling')->set('pixely:test:one', 'value');
 
-    $response = $this->deleteJson('/api/v1/system/cache/pixely:test:one');
+    $response = $this->json('DELETE', '/api/v1/system/cache/pixely:test:one', [], $this->jsonApiHeaders);
 
     $response->assertNoContent();
 
@@ -100,7 +129,7 @@ it('flushes the whole cache with system.cache.clear', function () {
     Redis::connection('tooling')->set('pixely:test:one', 'value');
     Redis::connection('tooling')->set('pixely:test:two', 'value');
 
-    $response = $this->deleteJson('/api/v1/system/cache');
+    $response = $this->json('DELETE', '/api/v1/system/cache', [], $this->jsonApiHeaders);
 
     $response->assertNoContent();
 

@@ -13,21 +13,39 @@ beforeEach(function () {
     Permission::firstOrCreate(['name' => 'settings.platform.manage', 'guard_name' => 'web']);
 });
 
+$jsonApiHeaders = [
+    'Accept' => 'application/vnd.api+json',
+    'Content-Type' => 'application/vnd.api+json',
+];
+
 it('applies the platform default locale for a guest request', function () {
     $this->getJson('/api/v1/locales');
 
     expect(App::getLocale())->toBe('en');
 });
 
-it('applies the user locale preference over the platform default', function () {
+it('applies the user locale preference over the platform default', function () use ($jsonApiHeaders) {
     $user = User::factory()->create();
     $user->givePermissionTo('settings.platform.manage');
     $this->actingAs($user);
 
-    $this->putJson('/api/v1/settings/platform', ['locale' => 'fr'])->assertOk();
-    $this->putJson('/api/v1/settings/user', ['locale' => 'en'])->assertOk();
+    $this->json('PATCH', '/api/v1/platform-settings/current', [
+        'data' => [
+            'type' => 'platform-settings',
+            'id' => 'current',
+            'attributes' => ['locale' => 'fr'],
+        ],
+    ], $jsonApiHeaders)->assertOk();
 
-    $this->getJson('/api/v1/settings/user');
+    $this->json('PATCH', "/api/v1/user-settings/{$user->id}", [
+        'data' => [
+            'type' => 'user-settings',
+            'id' => (string) $user->id,
+            'attributes' => ['locale' => 'en'],
+        ],
+    ], $jsonApiHeaders)->assertOk();
+
+    $this->json('GET', '/api/v1/locales', [], $jsonApiHeaders);
 
     expect(App::getLocale())->toBe('en');
 });

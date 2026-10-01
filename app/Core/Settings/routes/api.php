@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Core\Settings\Http\Controllers\LocaleController;
-use App\Core\Settings\Http\Controllers\PlatformSettingController;
-use App\Core\Settings\Http\Controllers\UserSettingController;
-use Illuminate\Support\Facades\Route;
-
 /**
  * Core settings and localization API routes.
  *
@@ -16,17 +9,29 @@ use Illuminate\Support\Facades\Route;
  * and update their own, no dedicated permission required.
  */
 
-Route::get('/locales', [LocaleController::class, 'index']);
+declare(strict_types=1);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/settings/user', [UserSettingController::class, 'show']);
-    Route::put('/settings/user', [UserSettingController::class, 'update']);
-});
+use App\Core\Settings\Http\Controllers\PlatformSettingController;
+use App\Core\Settings\Http\Controllers\UserSettingController;
+use App\Core\Settings\Http\Controllers\LocaleController;
+use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
-Route::middleware(['auth:sanctum', 'permission:settings.platform.view'])->group(function () {
-    Route::get('/settings/platform', [PlatformSettingController::class, 'show']);
-});
+JsonApiRoute::server('v1')
+    ->middleware(EnsureJsonApiMediaType::class)
+    ->resources(function (ResourceRegistrar $server): void {
+        $server->resource('locales', LocaleController::class)->only('index');
 
-Route::middleware(['auth:sanctum', 'permission:settings.platform.manage'])->group(function () {
-    Route::put('/settings/platform', [PlatformSettingController::class, 'update']);
-});
+        $server->resource('platform-settings', PlatformSettingController::class)
+        ->only('show', 'update')
+        ->middleware([
+            '*' => ['auth:sanctum'],
+            'show' => ['permission:settings.platform.view'],
+            'update' => ['permission:settings.platform.manage'],
+        ]);
+
+        $server->resource('user-settings', UserSettingController::class)
+        ->only('show', 'update')
+        ->middleware(['auth:sanctum']);
+    });

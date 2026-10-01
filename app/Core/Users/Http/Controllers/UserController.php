@@ -4,146 +4,39 @@ declare(strict_types=1);
 
 namespace App\Core\Users\Http\Controllers;
 
-use App\Core\Api\Response\ApiCollectionResponse;
-use App\Core\Api\Response\ApiResponse;
 use App\Models\User;
-use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
+use LaravelJsonApi\Laravel\Http\Requests\ResourceRequest;
 
 /**
- * Handles Core user management API requests.
+ * Handles JSON:API user management requests.
  */
-#[Group('Users', weight: 3)]
-final class UserController
+final class UserController extends JsonApiController
 {
-    /**
-     * Display a paginated list of users.
-     */
-    public function index(
-        Request $request,
-        ApiCollectionResponse $apiResponse,
-    ): JsonResponse {
-        $perPage = (int) $request->integer('per_page', 20);
-        $perPage = max(1, min(100, $perPage));
-
-        $paginator = User::query()
-            ->with('roles')
-            ->orderBy('name')
-            ->paginate($perPage);
-
-        return $apiResponse->response(
-            data: $paginator->getCollection()->map(fn (User $user) => $this->withRole($user)),
-            meta: [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => max(1, $paginator->lastPage()),
-                'per_page' => $perPage,
-                'total' => $paginator->total(),
-            ],
-        );
-    }
-
-    /**
-     * Create a new user.
-     */
-    public function store(
-        Request $request,
-        ApiResponse $apiResponse,
-    ): JsonResponse {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-        ]);
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        return $apiResponse->response(
-            data: $user,
-            status: 201,
-        );
-    }
-
-    /**
-     * Display a single user.
-     */
-    public function show(
-        User $user,
-        ApiResponse $apiResponse,
-    ): JsonResponse {
-        $user->load('roles');
-
-        return $apiResponse->response($this->withRole($user));
-    }
-
-    /**
-     * Update a user's profile.
-     *
-     * The password is only updated when explicitly provided.
-     */
-    public function update(
-        Request $request,
-        User $user,
-        ApiResponse $apiResponse,
-    ): JsonResponse {
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'email' => [
-                'sometimes',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
-            'password' => ['sometimes', 'string', 'min:8'],
-        ]);
-
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        }
-
-        $user->update($validated);
-
-        return $apiResponse->response(
-            data: $user->refresh(),
-        );
-    }
-
-    /**
-     * Delete a user.
-     */
-    public function destroy(Request $request, User $user): JsonResponse
+    public function created(User $user): void
     {
-        if ($request->user()?->id === $user->id) {
-            return response()->json(
-                [
-                    'error' => [
-                        'code' => 'CANNOT_DELETE_SELF',
-                        'message' => 'You cannot delete your own account.',
-                    ],
-                ],
-                422,
-            );
-        }
-
-        $user->delete();
-
-        return response()->json(status: 204);
+        $user->syncRoles($user->roles);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function withRole(User $user): array
+    public function updated(User $user): void
     {
-        return [
-            ...$user->toArray(),
-            'role' => $user->roles->first()?->name,
-        ];
+        if ($user->relationLoaded('roles')) {
+            $user->syncRoles($user->getRelation('roles'));
+        }
+    }
+
+    public function updatedRoles(User $user, iterable $roles): void
+    {
+        $user->syncRoles($roles);
+    }
+
+    public function deleting(User $user, ResourceRequest $request): void
+    {
+        if ($request->user()?->is($user)) {
+            throw ValidationException::withMessages([
+                'id' => ['You cannot delete your own account.'],
+            ]);
+        }
     }
 }

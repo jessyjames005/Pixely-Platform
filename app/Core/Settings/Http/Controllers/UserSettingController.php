@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Http\Controllers;
 
-use App\Core\Api\Response\ApiResponse;
 use App\Core\Settings\Models\UserSetting;
+use App\JsonApi\V1\DocumentResource;
+use App\JsonApi\V1\Settings\UserSettingRequest;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use stdClass;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 /**
  * Handles the current authenticated user's own settings.
@@ -19,30 +22,38 @@ final class UserSettingController
     /**
      * Display the current user's settings.
      */
-    public function show(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function show(Request $request, stdClass $userSetting, Server $server): DataResponse
     {
+        $userSettingId = (string) $userSetting->id;
+        abort_unless((string) $request->user()->id === $userSettingId, 404);
         $setting = UserSetting::forUser($request->user()->id);
 
-        return $apiResponse->response(data: $setting->settings);
+        return DataResponse::make(DocumentResource::make(
+            $server->schemas()->schemaFor('user-settings'),
+            $userSettingId,
+            $setting->settings,
+        ))->withServer('v1');
     }
 
     /**
      * Update the current user's settings.
      */
-    public function update(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function update(UserSettingRequest $request, stdClass $userSetting, Server $server): DataResponse
     {
-        $validated = $request->validate([
-            'locale' => ['sometimes', 'nullable', 'string', 'in:' . implode(',', array_column(config('pixely.locales'), 'code'))],
-            'theme' => ['sometimes', 'string', 'in:system,light,dark'],
-            'density' => ['sometimes', 'string', 'in:default,comfortable,compact'],
-            'email_notifications' => ['sometimes', 'boolean'],
-        ]);
+        $userSettingId = (string) $userSetting->id;
+        abort_unless((string) $request->user()->id === $userSettingId, 404);
+
+        $validated = $request->validated();
 
         $setting = UserSetting::forUser($request->user()->id);
         $setting->update([
             'settings' => array_merge($setting->settings, $validated),
         ]);
 
-        return $apiResponse->response(data: $setting->refresh()->settings);
+        return DataResponse::make(DocumentResource::make(
+            $server->schemas()->schemaFor('user-settings'),
+            $userSettingId,
+            $setting->refresh()->settings,
+        ))->withServer('v1');
     }
 }

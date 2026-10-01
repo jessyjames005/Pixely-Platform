@@ -10,37 +10,48 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-it('requires an image for API upload', function () {
+it('returns JSON:API validation errors when an upload image is missing', function () {
     $this->actingAs(User::factory()->create());
 
-    $response = $this->postJson('/api/v1/gallery/upload', [
+    $response = $this->post('/api/v1/photos/upload', [
         'title' => 'Sunset',
+    ], [
+        'Accept' => 'application/vnd.api+json',
     ]);
 
-    $response->assertStatus(422);
+    $response
+        ->assertUnprocessable()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'source' => ['pointer']]]])
+        ->assertJsonPath('errors.0.source.pointer', '/image');
 });
 
-it('uploads an image and creates a photo', function () {
+it('uploads an image and creates a JSON:API photo resource', function () {
     $this->actingAs(User::factory()->create());
 
     Storage::fake('public');
 
     $image = UploadedFile::fake()->image('sunset.jpg');
 
-    $response = $this->postJson('/api/v1/gallery/upload', [
+    $response = $this->post('/api/v1/photos/upload', [
         'title' => 'Sunset',
         'image' => $image,
+    ], [
+        'Accept' => 'application/vnd.api+json',
     ]);
 
     $response
         ->assertCreated()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonStructure([
             'data' => [
                 'id',
-                'title',
-                'filename',
+                'type',
+                'attributes' => ['title', 'filename', 'thumbnailFilename'],
             ],
-        ]);
+        ])
+        ->assertJsonPath('data.type', 'photos')
+        ->assertJsonPath('data.attributes.title', 'Sunset');
 
     expect(Photo::query()->count())
         ->toBe(1);
@@ -52,24 +63,24 @@ it('uploads an image and creates a photo', function () {
     Storage::disk('public')->assertExists(
         Photo::first()->filename,
     );
+    Storage::disk('public')->assertExists(
+        Photo::first()->thumbnail_filename,
+    );
 });
 
-it('returns a consistent validation error response', function () {
+it('returns a JSON:API validation error when an upload title is missing', function () {
     $this->actingAs(User::factory()->create());
+    Storage::fake('public');
 
-    $response = $this->postJson('/api/v1/gallery/upload', [
-        'title' => 'Sunset',
+    $response = $this->post('/api/v1/photos/upload', [
+        'image' => UploadedFile::fake()->image('sunset.jpg'),
+    ], [
+        'Accept' => 'application/vnd.api+json',
     ]);
 
     $response
-        ->assertStatus(422)
-        ->assertJsonStructure([
-            'error' => [
-                'code',
-                'message',
-                'details' => [
-                    'image',
-                ],
-            ],
-        ]);
+        ->assertUnprocessable()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'source' => ['pointer']]]])
+        ->assertJsonPath('errors.0.source.pointer', '/title');
 });

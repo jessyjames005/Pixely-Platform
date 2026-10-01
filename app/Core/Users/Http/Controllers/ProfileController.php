@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Core\Users\Http\Controllers;
 
-use App\Core\Api\Response\ApiResponse;
 use App\Extensions\Files\Services\FileUploadService;
+use App\JsonApi\V1\Users\UserActionResource;
+use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Exceptions\JsonApiException;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 /**
  * Self-service profile management: the current user's own name,
@@ -26,52 +31,64 @@ final class ProfileController
     /**
      * Display the current user's own profile.
      */
-    public function show(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function show(Request $request, Server $server): DataResponse
     {
-        return $apiResponse->response(data: $request->user());
+        /** @var User $user */
+        $user = $request->user();
+
+        return $this->profileResponse($server, $user);
     }
 
     /**
      * Update the current user's own profile fields.
      */
-    public function update(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function update(Request $request, Server $server): DataResponse
     {
+        $contentType = strtolower(trim(explode(';', (string) $request->header('Content-Type'), 2)[0]));
+        if ($contentType !== 'application/vnd.api+json') {
+            throw JsonApiException::error([
+                'status' => 415,
+                'code' => 'UNSUPPORTED_MEDIA_TYPE',
+                'title' => 'Unsupported Media Type',
+                'detail' => 'Profile updates require the application/vnd.api+json media type.',
+            ]);
+        }
+
+        /** @var User $user */
+        $user = $request->user();
         $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'bio' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'timezone' => ['sometimes', 'string', 'timezone'],
+            'data' => ['required', 'array'],
+            'data.type' => ['required', Rule::in(['users'])],
+            'data.id' => ['sometimes', 'string', Rule::in([(string) $user->getKey()])],
+            'data.attributes' => ['required', 'array:name,bio,timezone', 'min:1'],
+            'data.attributes.name' => ['sometimes', 'string', 'max:255'],
+            'data.attributes.bio' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'data.attributes.timezone' => ['sometimes', 'string', 'timezone'],
         ]);
 
-        $user = $request->user();
-        $user->update($validated);
+        $user->update($validated['data']['attributes']);
 
-        return $apiResponse->response(data: $user->refresh());
+        return $this->profileResponse($server, $user->refresh());
     }
 
     /**
      * Upload (or replace) the current user's own avatar.
      */
-    public function uploadAvatar(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function uploadAvatar(Request $request, Server $server): DataResponse
     {
         $validated = $request->validate([
             'avatar' => ['required', 'file'],
         ]);
 
+        /** @var User $user */
         $user = $request->user();
 
         try {
             $result = $this->fileUploadService->upload($validated['avatar'], 'avatars', generateThumbnail: false);
         } catch (\InvalidArgumentException $exception) {
-            return response()->json(
-                [
-                    'error' => [
-                        'code' => 'VALIDATION_ERROR',
-                        'message' => 'The given data was invalid.',
-                        'details' => ['avatar' => [$exception->getMessage()]],
-                    ],
-                ],
-                422,
-            );
+            throw ValidationException::withMessages([
+                'avatar' => [$exception->getMessage()],
+            ]);
         }
 
         if ($user->avatar_filename) {
@@ -80,6 +97,21 @@ final class ProfileController
 
         $user->update(['avatar_filename' => $result['path']]);
 
-        return $apiResponse->response(data: $user->refresh());
+        return $this->profileResponse($server, $user->refresh());
+    }
+
+    private function profileResponse(Server $server, User $user): DataResponse
+    {
+        return DataResponse::make(new UserActionResource(
+            $server->schemas()->schemaFor('users'),
+            $user,
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'bio' => $user->bio,
+                'timezone' => $user->timezone,
+                'avatar_url' => $user->avatar_url,
+            ],
+        ))->withServer('v1');
     }
 }

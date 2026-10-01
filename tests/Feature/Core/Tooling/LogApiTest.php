@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\JsonApi\V1\DocumentId;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 
@@ -10,20 +11,28 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Permission::firstOrCreate(['name' => 'system.logs.view', 'guard_name' => 'web']);
+    $this->jsonApiHeaders = [
+        'Accept' => 'application/vnd.api+json',
+        'Content-Type' => 'application/vnd.api+json',
+    ];
 });
 
 it('requires authentication to list log files', function () {
-    $response = $this->getJson('/api/v1/system/logs');
+    $response = $this->json('GET', '/api/v1/system/logs', [], $this->jsonApiHeaders);
 
-    $response->assertStatus(401);
+    $response->assertUnauthorized()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title']]]);
 });
 
 it('requires the system.logs.view permission', function () {
     $this->actingAs(User::factory()->create());
 
-    $response = $this->getJson('/api/v1/system/logs');
+    $response = $this->json('GET', '/api/v1/system/logs', [], $this->jsonApiHeaders);
 
-    $response->assertStatus(403);
+    $response->assertForbidden()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title']]]);
 });
 
 it('lists log files for a user with permission', function () {
@@ -36,9 +45,14 @@ it('lists log files for a user with permission', function () {
     @mkdir(dirname($logPath), 0755, true);
     file_put_contents($logPath, "[2026-08-29 10:00:00] local.INFO: Test message\n");
 
-    $response = $this->getJson('/api/v1/system/logs');
+    $response = $this->json('GET', '/api/v1/system/logs', [], $this->jsonApiHeaders);
 
-    $response->assertOk();
+    $response
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('data.0.type', 'log-files')
+        ->assertJsonPath('data.0.id', DocumentId::encode('log-file', 'test.log'))
+        ->assertJsonPath('data.0.attributes.filename', 'test.log');
 
     @unlink($logPath);
 });
@@ -56,13 +70,21 @@ it('returns parsed entries filtered by level', function () {
         "with a stack trace line\n",
     );
 
-    $response = $this->getJson('/api/v1/system/logs/filter-test.log?level=error');
+    $response = $this->json(
+        'GET',
+        '/api/v1/system/logs/filter-test.log?level=error',
+        [],
+        $this->jsonApiHeaders,
+    );
 
     $response
         ->assertOk()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.level', 'error')
-        ->assertJsonPath('data.0.message', "Error message\nwith a stack trace line");
+        ->assertJsonPath('data.0.type', 'log-entries')
+        ->assertJsonPath('data.0.id', DocumentId::encode('log-entry', 'filter-test.log', '1'))
+        ->assertJsonPath('data.0.attributes.level', 'error')
+        ->assertJsonPath('data.0.attributes.message', "Error message\nwith a stack trace line");
 
     @unlink($logPath);
 });
@@ -72,9 +94,16 @@ it('returns 404 for a non-existent log file', function () {
     $user->givePermissionTo('system.logs.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/system/logs/does-not-exist.log');
+    $response = $this->json(
+        'GET',
+        '/api/v1/system/logs/does-not-exist.log',
+        [],
+        $this->jsonApiHeaders,
+    );
 
-    $response->assertNotFound();
+    $response->assertNotFound()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'detail']]]);
 });
 
 it('prevents directory traversal in the filename', function () {
@@ -82,7 +111,23 @@ it('prevents directory traversal in the filename', function () {
     $user->givePermissionTo('system.logs.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/system/logs/' . urlencode('../../.env'));
+    $response = $this->json(
+        'GET',
+        '/api/v1/system/logs/' . urlencode('../../.env'),
+        [],
+        $this->jsonApiHeaders,
+    );
 
     $response->assertNotFound();
+});
+
+it('enforces JSON:API Accept negotiation', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.logs.view');
+    $this->actingAs($user);
+
+    $this->json('GET', '/api/v1/system/logs', [], ['Accept' => 'application/json'])
+        ->assertNotAcceptable()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'code', 'detail']]]);
 });

@@ -1,40 +1,25 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Extensions\Gallery\Http\Controllers\Api\GalleryController;
-use Illuminate\Support\Facades\Route;
-
 /**
  * Gallery API routes.
  */
 
-Route::get(
-    '/gallery',
-    [GalleryController::class, 'index'],
-);
+declare(strict_types=1);
 
-Route::get(
-    '/gallery/{photo}',
-    [GalleryController::class, 'show'],
-);
+use App\Extensions\Gallery\Http\Controllers\Api\GalleryController;
+use Illuminate\Support\Facades\Route;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post(
-        '/gallery/upload',
-        [GalleryController::class, 'store'],
-    );
-
-    Route::put(
-        '/gallery/{photo}',
-        [GalleryController::class, 'update'],
-    );
-
-    /**
-     * Delete a gallery photo.
-     */
-    Route::delete(
-        '/gallery/{photo}',
-        [GalleryController::class, 'destroy'],
-    );
+JsonApiRoute::server('v1')->resources(function (ResourceRegistrar $server): void {
+    $server->resource('photos', GalleryController::class)->middleware([
+        'store' => 'auth:sanctum',
+        'update' => 'auth:sanctum',
+        'destroy' => 'auth:sanctum',
+    ]);
 });
+
+Route::post(
+    '/photos/upload',
+    [GalleryController::class, 'upload'],
+)->middleware(['jsonapi:v1', 'auth:sanctum']);

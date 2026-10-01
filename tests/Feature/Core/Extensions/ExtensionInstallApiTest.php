@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\JsonApi\V1\DocumentId;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -13,6 +14,10 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     Permission::firstOrCreate(['name' => 'system.extensions.install', 'guard_name' => 'web']);
     Permission::firstOrCreate(['name' => 'system.extensions.view', 'guard_name' => 'web']);
+    $this->jsonApiHeaders = [
+        'Accept' => 'application/vnd.api+json',
+        'Content-Type' => 'application/vnd.api+json',
+    ];
 });
 
 afterEach(function () {
@@ -24,9 +29,12 @@ afterEach(function () {
 });
 
 it('requires authentication to install an extension', function () {
-    $response = $this->postJson('/api/v1/extensions/install');
+    $response = $this->json('POST', '/api/v1/extensions/install', [], ['Accept' => 'application/vnd.api+json']);
 
-    $response->assertStatus(401);
+    $response
+        ->assertUnauthorized()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title']]]);
 });
 
 it('requires system.extensions.install specifically, view alone is not enough', function () {
@@ -36,11 +44,11 @@ it('requires system.extensions.install specifically, view alone is not enough', 
 
     $zipPath = FakeExtensionPackageBuilder::validPackage();
 
-    $response = $this->postJson('/api/v1/extensions/install', [
+    $response = $this->withHeaders(['Accept' => 'application/vnd.api+json'])->post('/api/v1/extensions/install', [
         'package' => new UploadedFile($zipPath, 'demo.zip', 'application/zip', null, true),
     ]);
 
-    $response->assertStatus(403);
+    $response->assertForbidden()->assertHeader('Content-Type', 'application/vnd.api+json');
 });
 
 it('rejects an install without a package file', function () {
@@ -48,9 +56,12 @@ it('rejects an install without a package file', function () {
     $user->givePermissionTo('system.extensions.install');
     $this->actingAs($user);
 
-    $response = $this->postJson('/api/v1/extensions/install', []);
+    $response = $this->json('POST', '/api/v1/extensions/install', [], $this->jsonApiHeaders);
 
-    $response->assertStatus(422);
+    $response
+        ->assertUnprocessable()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'source' => ['pointer']]]]);
 });
 
 it('rejects a package with a zip-slip path traversal attempt', function () {
@@ -60,13 +71,15 @@ it('rejects a package with a zip-slip path traversal attempt', function () {
 
     $zipPath = FakeExtensionPackageBuilder::zipSlipPackage();
 
-    $response = $this->postJson('/api/v1/extensions/install', [
+    $response = $this->withHeaders(['Accept' => 'application/vnd.api+json'])->post('/api/v1/extensions/install', [
         'package' => new UploadedFile($zipPath, 'evil.zip', 'application/zip', null, true),
     ]);
 
     $response
         ->assertStatus(422)
-        ->assertJsonPath('error.code', 'INSTALL_FAILED');
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('errors.0.code', 'INSTALL_FAILED')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'code', 'detail']]]);
 
     expect(file_exists(base_path('../evil.php')))->toBeFalse();
 });
@@ -78,11 +91,14 @@ it('rejects a package with no manifest', function () {
 
     $zipPath = FakeExtensionPackageBuilder::missingManifestPackage();
 
-    $response = $this->postJson('/api/v1/extensions/install', [
+    $response = $this->withHeaders(['Accept' => 'application/vnd.api+json'])->post('/api/v1/extensions/install', [
         'package' => new UploadedFile($zipPath, 'nomanifest.zip', 'application/zip', null, true),
     ]);
 
-    $response->assertStatus(422);
+    $response
+        ->assertStatus(422)
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['errors' => [['status', 'title']]]);
 });
 
 it('rolls back and reports an error when the declared class is invalid', function () {
@@ -92,13 +108,14 @@ it('rolls back and reports an error when the declared class is invalid', functio
 
     $zipPath = FakeExtensionPackageBuilder::invalidClassPackage('broken');
 
-    $response = $this->postJson('/api/v1/extensions/install', [
+    $response = $this->withHeaders(['Accept' => 'application/vnd.api+json'])->post('/api/v1/extensions/install', [
         'package' => new UploadedFile($zipPath, 'broken.zip', 'application/zip', null, true),
     ]);
 
     $response
         ->assertStatus(422)
-        ->assertJsonPath('error.code', 'INSTALL_FAILED');
+        ->assertJsonPath('errors.0.code', 'INSTALL_FAILED')
+        ->assertHeader('Content-Type', 'application/vnd.api+json');
 
     expect(is_dir(base_path('app/Extensions/Broken')))->toBeFalse();
 })->skip('Requires composer dump-autoload to run inside the test process; covered by manual QA — see note below.');
@@ -110,13 +127,43 @@ it('prevents installing an extension whose id already exists', function () {
 
     $zipPath = FakeExtensionPackageBuilder::validPackage('gallery');
 
-    $response = $this->postJson('/api/v1/extensions/install', [
+    $response = $this->withHeaders(['Accept' => 'application/vnd.api+json'])->post('/api/v1/extensions/install', [
         'package' => new UploadedFile($zipPath, 'gallery.zip', 'application/zip', null, true),
     ]);
 
     $response
         ->assertStatus(422)
-        ->assertJsonPath('error.code', 'INSTALL_FAILED');
+        ->assertJsonPath('errors.0.code', 'INSTALL_FAILED')
+        ->assertHeader('Content-Type', 'application/vnd.api+json');
+});
+
+it('requires the install permission to update an extension package', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.view');
+    $this->actingAs($user);
+
+    $opaqueId = DocumentId::encode('extension', 'demo');
+    $this->json('POST', '/api/v1/extensions/' . $opaqueId . '/update', [], $this->jsonApiHeaders)
+        ->assertForbidden()
+        ->assertHeader('Content-Type', 'application/vnd.api+json');
+});
+
+it('returns a JSON:API error for an invalid opaque package-update id', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.install');
+    $this->actingAs($user);
+
+    $zipPath = FakeExtensionPackageBuilder::validPackage('demo');
+    $response = $this->withHeaders(['Accept' => 'application/vnd.api+json'])->post(
+        '/api/v1/extensions/gallery/update',
+        ['package' => new UploadedFile($zipPath, 'demo.zip', 'application/zip', null, true)],
+    );
+
+    $response
+        ->assertNotFound()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('errors.0.code', 'RESOURCE_NOT_FOUND')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'code', 'detail']]]);
 });
 
 it('requires system.extensions.install to uninstall, not system.extensions.manage', function () {

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Core\Auth\Http\Controllers;
 
-use App\Core\Api\Error\ApiError;
-use App\Core\Api\Error\ApiErrorResponse;
-use App\Core\Api\Response\ApiResponse;
+use App\JsonApi\V1\Users\UserActionResource;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Exceptions\JsonApiException;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 /**
  * Handles session-based authentication for the administration SPA.
@@ -24,66 +25,62 @@ final class AuthController
      */
     public function login(
         Request $request,
-        ApiResponse $apiResponse,
-        ApiErrorResponse $apiErrorResponse,
-    ): JsonResponse {
+        Server $server,
+    ): DataResponse {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
         if (! Auth::attempt($credentials)) {
-            return $apiErrorResponse->response(
-                new ApiError(
-                    code: 'INVALID_CREDENTIALS',
-                    message: 'The provided credentials are incorrect.',
-                ),
-                401,
-            );
+            throw JsonApiException::error([
+                'status' => 401,
+                'code' => 'INVALID_CREDENTIALS',
+                'title' => 'Unauthorized',
+                'detail' => 'The provided credentials are incorrect.',
+            ]);
         }
 
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             Auth::logout();
 
-            return $apiErrorResponse->response(
-                new ApiError(
-                    code: 'ACCOUNT_DISABLED',
-                    message: 'This account has been disabled.',
-                ),
-                403,
-            );
+            throw JsonApiException::error([
+                'status' => 403,
+                'code' => 'ACCOUNT_DISABLED',
+                'title' => 'Forbidden',
+                'detail' => 'This account has been disabled.',
+            ]);
         }
 
         $request->session()->regenerate();
 
-        return $apiResponse->response(
-            data: $this->serializeUser($user),
-        );
+        return $this->userResponse($server, $user);
     }
 
     /**
      * Log the current user out and invalidate the session.
      */
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request): Response
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(status: 204);
+        return response()->noContent();
     }
 
     /**
      * Return the currently authenticated user.
      */
-    public function me(Request $request, ApiResponse $apiResponse): JsonResponse
+    public function me(Request $request, Server $server): DataResponse
     {
-        return $apiResponse->response(
-            data: $this->serializeUser($request->user()),
-        );
+        /** @var User $user */
+        $user = $request->user();
+
+        return $this->userResponse($server, $user);
     }
 
     /**
@@ -94,16 +91,19 @@ final class AuthController
      * the page and a subsequent me() call populated the auth store
      * properly.
      *
-     * @return array<string, mixed>
+    * @return DataResponse
      */
-    private function serializeUser(User $user): array
+    private function userResponse(Server $server, User $user): DataResponse
     {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'permissions' => $user->getAllPermissions()->pluck('name')->values(),
-            'roles' => $user->getRoleNames()->values(),
-        ];
+        return DataResponse::make(new UserActionResource(
+            $server->schemas()->schemaFor('users'),
+            $user,
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+                'roles' => $user->getRoleNames()->values(),
+            ],
+        ))->withServer('v1');
     }
 }

@@ -3,14 +3,32 @@
 declare(strict_types=1);
 
 use App\Extensions\Translations\Http\Controllers\TranslationController;
-use Illuminate\Support\Facades\Route;
+use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
-Route::middleware(['auth:sanctum', 'permission:translations.strings.view'])->prefix('translations')->group(function () {
-    Route::get('/modules', [TranslationController::class, 'modules']);
-    Route::get('/{module}/groups', [TranslationController::class, 'groups']);
-    Route::get('/{module}/{group}', [TranslationController::class, 'show']);
-});
+JsonApiRoute::server('v1')
+    ->middleware(EnsureJsonApiMediaType::class)
+    ->resources(function (ResourceRegistrar $server): void {
+        $server->resource('translation-modules', TranslationController::class)
+        ->only('index')
+        ->middleware([
+            '*' => ['auth:sanctum'],
+            'index' => ['permission:translations.strings.view'],
+        ]);
 
-Route::middleware(['auth:sanctum', 'permission:translations.strings.manage'])->prefix('translations')->group(function () {
-    Route::put('/{module}/{group}', [TranslationController::class, 'update']);
-});
+        $server->resource('translation-groups', TranslationController::class)
+        ->only('index', 'update')
+        ->middleware([
+            '*' => ['auth:sanctum'],
+            'index' => ['permission:translations.strings.view'],
+            'update' => ['permission:translations.strings.manage'],
+        ]);
+
+        $server->resource('translation-strings', TranslationController::class)
+        ->only('index')
+        ->middleware([
+            '*' => ['auth:sanctum'],
+            'index' => ['permission:translations.strings.view'],
+        ]);
+    });

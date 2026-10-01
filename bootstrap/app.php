@@ -27,6 +27,15 @@ return Application::configure(basePath: dirname(__DIR__))
             fn(Request $request) => $request->is('api/*'),
         );
 
+        $exceptions->dontReport(
+            \LaravelJsonApi\Core\Exceptions\JsonApiException::class,
+        );
+        $exceptions->render(
+            \LaravelJsonApi\Exceptions\ExceptionParser::make()
+                ->acceptsMiddleware('jsonapi:v1')
+                ->renderable(),
+        );
+
         $exceptions->renderable(function (\Throwable $exception, Request $request) {
             if (! $request->is('api/*')) {
                 return null;

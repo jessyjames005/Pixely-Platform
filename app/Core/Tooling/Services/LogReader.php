@@ -53,13 +53,26 @@ final class LogReader
     /**
      * Read parsed entries from a log file, filtered by level, paginated.
      *
-     * @return array{entries: array<int, array{timestamp: string, level: string, message: string}>, total: int}
+        * @return array{
+        *     entries: array<int, array{
+        *         timestamp: string,
+        *         level: string,
+        *         message: string,
+        *         ordinal: int
+        *     }>,
+        *     total: int
+        * }
      */
     public function readEntries(string $filename, ?string $level, int $page, int $perPage): array
     {
         $path = $this->resolvePath($filename);
 
         $entries = $this->parseEntries($path);
+
+        foreach ($entries as $ordinal => &$entry) {
+            $entry['ordinal'] = $ordinal;
+        }
+        unset($entry);
 
         if ($level !== null) {
             $entries = array_values(array_filter(
@@ -96,7 +109,7 @@ final class LogReader
     }
 
     /**
-     * @return array<int, array{timestamp: string, level: string, message: string}>
+        * @return array<int, array{timestamp: string, level: string, message: string}>
      */
     private function parseEntries(string $path): array
     {
@@ -105,7 +118,8 @@ final class LogReader
         $current = null;
 
         $levelPattern = implode('|', self::LEVELS);
-        $headerPattern = '/^\[(?P<timestamp>\d{4}-\d{2}-\d{2}[^\]]+)\]\s+\S+\.(?P<level>' . $levelPattern . '):\s*(?P<message>.*)$/i';
+        $headerPattern = '/^\[(?P<timestamp>\d{4}-\d{2}-\d{2}[^\]]+)\]\s+\S+\.'
+            . '(?P<level>' . $levelPattern . '):\s*(?P<message>.*)$/i';
 
         foreach ($lines as $line) {
             if (preg_match($headerPattern, $line, $matches) === 1) {
