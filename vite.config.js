@@ -37,7 +37,7 @@ export default defineConfig({
         new URL("./app/Core/Settings/resources/js", import.meta.url),
       ),
       "@extensions/gallery": fileURLToPath(
-        new URL("./app/Extensions/Gallery/resources/js", import.meta.url),
+        new URL("./app/Extensions/Gallery/Resources/js", import.meta.url),
       ),
       "@core/extensions": fileURLToPath(
         new URL("./app/Core/Extensions/resources/js", import.meta.url),
