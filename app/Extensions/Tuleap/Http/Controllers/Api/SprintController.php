@@ -5,19 +5,23 @@ declare(strict_types=1);
 namespace App\Extensions\Tuleap\Http\Controllers\Api;
 
 use App\Extensions\Tuleap\Contracts\TuleapServiceInterface;
-use Illuminate\Http\JsonResponse;
+use App\Extensions\Tuleap\Http\Support\TuleapDocumentRequest;
+use App\Extensions\Tuleap\Http\Support\TuleapJsonApiResponse;
 use Illuminate\Http\Request;
+use LaravelJsonApi\Contracts\Server\Server;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 final class SprintController
 {
-    public function __construct(private TuleapServiceInterface $service) {}
+    public function __construct(private TuleapServiceInterface $service)
+    {
+    }
 
-    public function getConfig(int $sprintId): JsonResponse
+    public function getConfig(int $sprintId, Server $server): DataResponse
     {
         $config = $this->service->getSprintConfig($sprintId);
         if (!$config) {
-            return response()->json([
-                'sprint_id' => $sprintId,
+            $config = [
                 'objective' => '',
                 'confidence_index' => null,
                 'pct_evolution' => 50,
@@ -26,43 +30,87 @@ final class SprintController
                 'working_days' => 10,
                 'velocity_per_day' => 1.0,
                 'review_comment' => '',
-            ]);
+            ];
         }
-        return response()->json($config);
+
+        return TuleapJsonApiResponse::one($server, 'tuleap-sprint-configs', $config, $sprintId);
     }
 
-    public function saveConfig(int $sprintId, Request $request): JsonResponse
+    public function saveConfig(int $sprintId, Request $request, Server $server): DataResponse
     {
-        $config = $this->service->saveSprintConfig($sprintId, $request->all());
-        return response()->json($config);
+        $attributes = TuleapDocumentRequest::attributes($request, 'tuleap-sprint-configs', [
+            'objective', 'confidence_index', 'pct_evolution', 'pct_analysis', 'pct_bug',
+            'working_days', 'velocity_per_day', 'review_comment',
+        ]);
+        $config = $this->service->saveSprintConfig($sprintId, $attributes);
+
+        return TuleapJsonApiResponse::one($server, 'tuleap-sprint-configs', $config, $sprintId);
     }
 
-    public function getCaf(int $sprintId): JsonResponse
+    public function getCaf(int $sprintId, Server $server): DataResponse
     {
-        return response()->json($this->service->getCaf($sprintId));
+        return TuleapJsonApiResponse::many(
+            $server,
+            'tuleap-caf-records',
+            $this->service->getCaf($sprintId),
+            [$sprintId],
+        );
     }
 
-    public function saveCaf(int $sprintId, int $memberId, Request $request): JsonResponse
+    public function saveCaf(int $sprintId, int $memberId, Request $request, Server $server): DataResponse
     {
-        $this->service->saveCaf($sprintId, $memberId, $request->float('value'));
-        return response()->json(['ok' => true]);
+        $attributes = TuleapDocumentRequest::attributes(
+            $request,
+            'tuleap-caf-records',
+            ['value'],
+            ['value' => ['required', 'numeric', 'min:0']],
+        );
+        $value = (float) $attributes['value'];
+        $this->service->saveCaf($sprintId, $memberId, $value);
+
+        return TuleapJsonApiResponse::one($server, 'tuleap-caf-records', [
+            'sprint_id' => $sprintId,
+            'member_id' => $memberId,
+            'value' => $value,
+        ], "{$sprintId}:{$memberId}");
     }
 
-    public function getCafHistory(): JsonResponse
+    public function getCafHistory(Server $server): DataResponse
     {
         $sprintIds = explode(',', request()->query('sprint_ids', ''));
         $ids = array_filter(array_map('intval', $sprintIds));
-        return response()->json($this->service->getCafHistory($ids));
+        return TuleapJsonApiResponse::many($server, 'tuleap-caf-history', $this->service->getCafHistory($ids));
     }
 
-    public function getBurndown(int $sprintId): JsonResponse
+    public function getBurndown(int $sprintId, Server $server): DataResponse
     {
-        return response()->json($this->service->getBurndownCache($sprintId));
+        $points = [];
+        foreach ($this->service->getBurndownCache($sprintId) as $row) {
+            $row = is_object($row) ? get_object_vars($row) : $row;
+            if (isset($row['day'], $row['remaining_points'])) {
+                $points[(string) $row['day']] = (float) $row['remaining_points'];
+            }
+        }
+
+        return TuleapJsonApiResponse::one($server, 'tuleap-burndown-caches', [
+            'sprint_id' => $sprintId,
+            'points' => $points,
+        ], $sprintId);
     }
 
-    public function saveBurndown(int $sprintId, Request $request): JsonResponse
+    public function saveBurndown(int $sprintId, Request $request, Server $server): DataResponse
     {
-        $this->service->saveBurndownCache($sprintId, $request->all());
-        return response()->json(['ok' => true]);
+        $attributes = TuleapDocumentRequest::attributes(
+            $request,
+            'tuleap-burndown-caches',
+            ['points'],
+            ['points' => ['required', 'array']],
+        );
+        $this->service->saveBurndownCache($sprintId, $attributes['points']);
+
+        return TuleapJsonApiResponse::one($server, 'tuleap-burndown-caches', [
+            'sprint_id' => $sprintId,
+            'points' => $attributes['points'],
+        ], $sprintId);
     }
 }

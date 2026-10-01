@@ -23,6 +23,22 @@ use App\JsonApi\V1\Tooling\DatabaseRowSchema;
 use App\JsonApi\V1\Tooling\DatabaseTableSchema;
 use App\JsonApi\V1\Tooling\LogEntrySchema;
 use App\JsonApi\V1\Tooling\LogFileSchema;
+use App\JsonApi\V1\CinemaMovie\CinemaMovieItemSchema;
+use App\JsonApi\V1\Tuleap\TuleapBurndownCacheSchema;
+use App\JsonApi\V1\Tuleap\TuleapCacheInfoSchema;
+use App\JsonApi\V1\Tuleap\TuleapCafHistorySchema;
+use App\JsonApi\V1\Tuleap\TuleapCafRecordSchema;
+use App\JsonApi\V1\Tuleap\TuleapConfigSchema;
+use App\JsonApi\V1\Tuleap\TuleapMilestoneBurndownSchema;
+use App\JsonApi\V1\Tuleap\TuleapMilestoneSchema;
+use App\JsonApi\V1\Tuleap\TuleapMilestoneStatsSchema;
+use App\JsonApi\V1\Tuleap\TuleapPingSchema;
+use App\JsonApi\V1\Tuleap\TuleapProjectMemberSchema;
+use App\JsonApi\V1\Tuleap\TuleapProjectSchema;
+use App\JsonApi\V1\Tuleap\TuleapRetroActionSchema;
+use App\JsonApi\V1\Tuleap\TuleapSprintConfigSchema;
+use App\JsonApi\V1\Tuleap\TuleapSprintHistorySchema;
+use App\JsonApi\V1\Tuleap\TuleapTeamMemberSchema;
 use App\JsonApi\V1\Users\UserSchema;
 use LaravelJsonApi\Core\Server\Server as BaseServer;
 
@@ -53,6 +69,22 @@ final class Server extends BaseServer
             DatabaseTableSchema::class,
             DatabaseColumnSchema::class,
             DatabaseRowSchema::class,
+            CinemaMovieItemSchema::class,
+            TuleapProjectSchema::class,
+            TuleapProjectMemberSchema::class,
+            TuleapMilestoneSchema::class,
+            TuleapMilestoneStatsSchema::class,
+            TuleapMilestoneBurndownSchema::class,
+            TuleapSprintHistorySchema::class,
+            TuleapSprintConfigSchema::class,
+            TuleapTeamMemberSchema::class,
+            TuleapCafRecordSchema::class,
+            TuleapCafHistorySchema::class,
+            TuleapBurndownCacheSchema::class,
+            TuleapRetroActionSchema::class,
+            TuleapConfigSchema::class,
+            TuleapCacheInfoSchema::class,
+            TuleapPingSchema::class,
         ];
     }
 }

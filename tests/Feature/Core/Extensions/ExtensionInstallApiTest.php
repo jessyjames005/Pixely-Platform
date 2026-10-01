@@ -171,19 +171,33 @@ it('requires system.extensions.install to uninstall, not system.extensions.manag
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->deleteJson('/api/v1/extensions/does-not-exist');
+    $response = $this->withHeaders($this->jsonApiHeaders)->delete('/api/v1/extensions/does-not-exist');
 
     $response->assertStatus(403);
 });
 
-it('returns an error when uninstalling a non-installed extension', function () {
+it('returns a JSON:API error when uninstalling a non-installed extension', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('system.extensions.install');
     $this->actingAs($user);
 
-    $response = $this->deleteJson('/api/v1/extensions/does-not-exist');
+    $response = $this->withHeaders($this->jsonApiHeaders)->delete('/api/v1/extensions/does-not-exist');
 
     $response
         ->assertStatus(422)
-        ->assertJsonPath('error.code', 'UNINSTALL_FAILED');
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('errors.0.code', 'UNINSTALL_FAILED')
+        ->assertJsonStructure(['errors' => [['status', 'title', 'code', 'detail']]]);
+});
+
+it('negotiates the uninstall response as JSON:API', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.install');
+    $this->actingAs($user);
+
+    $this->delete('/api/v1/extensions/does-not-exist', [], ['Accept' => 'application/json'])
+        ->assertStatus(406)
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonPath('errors.0.code', 'NOT_ACCEPTABLE')
+        ->assertJsonStructure(['errors' => [['status', 'code', 'detail']]]);
 });

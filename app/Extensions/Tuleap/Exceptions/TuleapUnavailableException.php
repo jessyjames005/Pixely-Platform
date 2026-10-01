@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Extensions\Tuleap\Exceptions;
 
-use App\Core\Api\Error\ApiError;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
 use Throwable;
@@ -23,9 +22,14 @@ final class TuleapUnavailableException extends RuntimeException
 
     public function render(): JsonResponse
     {
-        return response()->json(
-            (new ApiError('TULEAP_UNAVAILABLE', $this->getMessage(), ['vpn' => true]))->toArray(),
-            503,
-        );
+        return response()->json([
+            'errors' => [[
+                'status' => '503',
+                'code' => 'TULEAP_UNAVAILABLE',
+                'title' => 'Service Unavailable',
+                'detail' => $this->getMessage(),
+                'meta' => ['vpn' => true],
+            ]],
+        ], 503, ['Content-Type' => 'application/vnd.api+json']);
     }
 }

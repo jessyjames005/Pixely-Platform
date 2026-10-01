@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Extensions\Tuleap\Exceptions;
 
-use App\Core\Api\Error\ApiError;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
 
@@ -21,9 +20,13 @@ final class TuleapApiException extends RuntimeException
 
     public function render(): JsonResponse
     {
-        return response()->json(
-            (new ApiError('TULEAP_API_ERROR', $this->getMessage()))->toArray(),
-            $this->status,
-        );
+        return response()->json([
+            'errors' => [[
+                'status' => (string) $this->status,
+                'code' => 'TULEAP_API_ERROR',
+                'title' => 'Tuleap API Error',
+                'detail' => $this->getMessage(),
+            ]],
+        ], $this->status, ['Content-Type' => 'application/vnd.api+json']);
     }
 }

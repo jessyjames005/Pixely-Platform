@@ -95,13 +95,15 @@ final class ExtensionInstallController
         try {
             $this->installer->uninstall($id, request()->user()?->id);
         } catch (\RuntimeException $exception) {
-            return response()->json(
-                ['error' => ['code' => 'UNINSTALL_FAILED', 'message' => $exception->getMessage()]],
-                422,
-            );
+            throw JsonApiException::error([
+                'status' => 422,
+                'code' => 'UNINSTALL_FAILED',
+                'title' => 'Unprocessable Entity',
+                'detail' => 'The extension could not be uninstalled.',
+            ], $exception);
         }
 
-        return response()->json(status: 204);
+        return response()->noContent();
     }
 
     /**

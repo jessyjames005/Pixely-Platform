@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Extensions\CinemaMovie\Http\Controllers\Api;
 
-use App\Core\Api\Response\ApiCollectionResponse;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
+use LaravelJsonApi\Core\Responses\DataResponse;
 
 /**
  * Handles CinemaMovie API requests.
@@ -18,8 +17,10 @@ use Illuminate\Http\JsonResponse;
 #[Group('CinemaMovie', weight: 10)]
 final class CinemaMovieController
 {
-    public function index(ApiCollectionResponse $apiResponse): JsonResponse
+    public function index(): DataResponse
     {
-        return $apiResponse->response(data: [], meta: ['total' => 0]);
+        return DataResponse::make([])
+            ->withServer('v1')
+            ->withMeta(['total' => 0]);
     }
 }
