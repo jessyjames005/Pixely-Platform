@@ -1,0 +1,301 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Core\\Extensions\\Database\\ExtensionMigrationRunner\:\:migrate\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Console/Commands/ExtensionMigrateCommand.php
+
+		-
+			message: '#^Constant App\\Core\\Api\\Query\\ApiQueryParser\:\:DEFAULT_PAGE is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Core/Api/Query/ApiQueryParser.php
+
+		-
+			message: '#^Method App\\Core\\Api\\Query\\ApiQueryParser\:\:parsePerPage\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Core/Api/Query/ApiQueryParser.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Auth/Providers/AuthServiceProvider.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Core/Extensions/Configuration/ExtensionConfiguration.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Migrations\\Migration\:\:down\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Core/Extensions/Database/ExtensionMigrationRunner.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Migrations\\Migration\:\:up\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Core/Extensions/Database/ExtensionMigrationRunner.php
+
+		-
+			message: '#^Variable \$extension in PHPDoc tag @var does not exist\.$#'
+			identifier: varTag.variableNotFound
+			count: 1
+			path: app/Core/Extensions/Discovery/ExtensionRepository.php
+
+		-
+			message: '#^Property App\\Core\\Extensions\\Http\\Controllers\\ExtensionInstallController\:\:\$auditLogger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Core/Extensions/Http/Controllers/ExtensionInstallController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Extensions/Providers/ExtensionManagementServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Roles/Providers/RoleServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Settings/Providers/SettingsServiceProvider.php
+
+		-
+			message: '#^Missing parameter \$meta \(array\<string, mixed\>\) in call to method App\\Core\\Api\\Response\\ApiCollectionResponse\:\:response\(\)\.$#'
+			identifier: argument.missing
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/DatabaseController.php
+
+		-
+			message: '#^Offset ''rows'' on array\{name\: string, schema\: string\|null, schema_qualified_name\: string, size\: int\|null, comment\: string\|null, collation\: string\|null, engine\: string\|null\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/DatabaseController.php
+
+		-
+			message: '#^Argument of an invalid type string supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Match arm comparison between \(int\|Redis\|false\) and ''hash'' is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Match arm comparison between \(int\|Redis\|false\) and ''list'' is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Match arm comparison between \(int\|Redis\|false\) and ''set'' is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Match arm comparison between \(int\|Redis\|false\) and ''string'' is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Match arm comparison between \(int\|Redis\|false\) and ''zset'' is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Parameter \#2 \$pattern of method Redis\:\:scan\(\) expects string\|null, array\<string, int\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Core/Tooling/Http/Controllers/RedisController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Tooling/Providers/ToolingServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Translations/Providers/CoreTranslationsServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Users/Http/Controllers/UserController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Users/Providers/UserServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/CinemaMovie/Providers/CinemaMovieServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:getJson\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Extensions/CinemaMovie/tests/Functional/CinemaMovieApiTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Files/Providers/FilesServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$filename\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Gallery/Http/Controllers/Api/GalleryController.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$thumbnail_filename\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Gallery/Http/Controllers/Api/GalleryController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Gallery/Providers/GalleryServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$filename\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Gallery/Services/GalleryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$filename\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Extensions/Gallery/Upgrades/AddSlugAndFileSizeStep.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Translations/Providers/TranslationsServiceProvider.php
+
+		-
+			message: '#^Parameter \#2 \$value of method App\\Extensions\\Tuleap\\Contracts\\TuleapServiceInterface\:\:setAppConfig\(\) expects string, Illuminate\\Support\\Stringable given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Extensions/Tuleap/Http/Controllers/Api/ConfigController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Tuleap/Providers/TuleapServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Tuleap\\Models\\AppConfig\:\:\$value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Tuleap/Repositories/TuleapRepository.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Tuleap\\Models\\CafRecord\:\:\$member_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Tuleap\\Models\\CafRecord\:\:\$sprint_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Access to an undefined property App\\Extensions\\Tuleap\\Models\\CafRecord\:\:\$value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Offset ''analyse''\|''defect''\|''story'' on array\{story\: \(float\|int\), analyse\: \(float\|int\), defect\: \(float\|int\)\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<non\-empty\-array\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:throw\(\) expects \(callable\(\)\: mixed\)\|null, false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Parameter \#2 \$childrenByParent of method App\\Extensions\\Tuleap\\Services\\TuleapService\:\:isAnalyseOrphanCandidate\(\) expects array\<string, mixed\>, array\<int, array\<int, array\<string, mixed\>\>\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Parameter \#2 \$value of method App\\Extensions\\Tuleap\\Contracts\\TuleapRepositoryInterface\:\:putCachedValue\(\) expects array\<string, mixed\>, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^Parameter \#3 \$linkedChildrenByStory of method App\\Extensions\\Tuleap\\Services\\TuleapService\:\:isAnalyseOrphanCandidate\(\) expects array\<string, mixed\>, array\<int, array\<int, array\<string, mixed\>\>\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Extensions/Tuleap/Services/TuleapService.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\User\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Class App\\Providers\\ExtensionServiceProvider not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: bootstrap/providers.php

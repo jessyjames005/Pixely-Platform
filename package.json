@@ -4,13 +4,17 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "build:front": "vite build",
         "dev": "vite",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test",
-        "lint": "eslint . --ext .ts,.vue",
-        "lint:fix": "eslint . --ext .ts,.vue --fix"
+        "security:audit:front": "npm audit",
+        "lint": "eslint resources/js app/Core app/Extensions --ext .ts,.vue",
+        "lint:fix": "eslint resources/js app/Core app/Extensions --ext .ts,.vue --fix",
+        "typecheck": "vue-tsc --noEmit",
+        "stylelint": "stylelint \"resources/**/*.{css,scss}\" \"app/Core/**/*.{css,scss}\" \"app/Extensions/**/*.{css,scss}\""
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",

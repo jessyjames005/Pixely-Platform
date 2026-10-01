@@ -49,25 +49,25 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 
 #### 1. Security
 
-* [ ] Backend dependency security audit: `security:audit:back` (Composer CVE checks)
-* [ ] Frontend dependency security audit: `security:audit:front` (npm CVE checks)
-* [ ] Secret detection in CI to identify leaked credentials
+* [x] Backend dependency security audit: `security:audit:back` (Composer CVE checks)
+* [x] Frontend dependency security audit: `security:audit:front` (npm CVE checks)
+* [x] Secret detection in CI to identify leaked credentials
 
 #### 2. Build
 
-* [ ] Backend build: `build:back`
-* [ ] Frontend build: `build:front`
-* [ ] Fresh-install build validation: `build:fresh-install`
+* [x] Backend build: `build:back`
+* [x] Frontend build: `build:front`
+* [x] Fresh-install build validation: `build:fresh-install`
 
 #### 3. Tests and Quality
 
-* [ ] Frontend lint (ESLint)
-* [ ] PHP lint (`phplint`)
-* [ ] PHP static analysis (PHPStan)
+* [x] Frontend lint (ESLint)
+* [x] PHP lint (`php -l`)
+* [x] PHP static analysis (PHPStan, with an explicit baseline for existing findings)
 * [x] PHP functional test job
 * [x] PHP unit test job
-* [ ] SCSS lint (Stylelint)
-* [ ] Frontend unit test job (Vitest)
+* [x] CSS/SCSS lint (Stylelint)
+* [x] Frontend unit test job (Vitest)
 * [ ] Frontend functional test job
 * [x] Playwright end-to-end test job
 * [ ] PHP coverage report with phpcov
@@ -75,7 +75,7 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 
 #### 4. Production and Review Apps
 
-* [ ] Production quality gate
+* [x] Production quality gate
 * [ ] Continuous deployment
 * [ ] Review app generation for pull requests
 

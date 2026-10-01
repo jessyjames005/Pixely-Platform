@@ -22,7 +22,10 @@ export default [
       '@typescript-eslint': tsPlugin,
     },
     rules: {
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
+      'vue/valid-v-slot': ['error', { allowModifiers: true }],
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'warn',
     },

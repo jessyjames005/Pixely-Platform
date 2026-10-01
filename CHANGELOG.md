@@ -17,6 +17,9 @@ Versioning follows Semantic Versioning.
 - Added the generated CinemaMovie extension as a validated example of the extension scaffold.
 - Split Laravel CI into separate backend Unit and Functional jobs and included extension-local test directories.
 - Added a dedicated Playwright end-to-end CI job with a seeded test account and Chromium browser setup.
+- Added a CI security gate for Composer/npm vulnerability audits and TruffleHog secret detection; updated dependency lockfiles to clear the reported advisories.
+- Added ordered backend, frontend and fresh-install build jobs, plus PHP syntax lint, PHPStan with an explicit baseline, ESLint, Stylelint and Vitest checks.
+- Added a production quality gate that runs after all CI test and quality jobs succeed.
 
 ### Changed
 - Extension scaffold instructions use the extension migration commands instead of Laravel's global migration command.

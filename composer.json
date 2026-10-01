@@ -20,6 +20,7 @@
         "fakerphp/faker": "^1.23",
         "friendsofphp/php-cs-fixer": "^3.95",
         "fruitcake/laravel-debugbar": "^4.4",
+        "larastan/larastan": "^3.12",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
@@ -45,10 +46,13 @@
     },
     "scripts": {
         "openapi": "@php artisan scramble:export",
+        "phpstan": "phpstan analyse --configuration=phpstan.neon --memory-limit=1G",
         "cs:check": "phpcs",
         "cs:fix": "phpcbf",
         "cs:fix-auto": "php-cs-fixer fix",
         "cs:fix-auto-dry": "php-cs-fixer fix --dry-run --diff",
+        "security:audit:back": "composer audit",
+        "build:back": "@php artisan optimize",
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

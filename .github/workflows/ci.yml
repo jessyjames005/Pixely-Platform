@@ -13,8 +13,234 @@ permissions:
   contents: read
 
 jobs:
+  security:
+    name: Security audits and secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Audit PHP dependencies
+        run: composer security:audit:back
+
+      - name: Set up Node.js
+        if: ${{ !cancelled() }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Audit frontend dependencies
+        if: ${{ !cancelled() }}
+        run: npm run security:audit:front
+
+      - name: Scan for leaked secrets
+        if: ${{ !cancelled() }}
+        uses: trufflesecurity/trufflehog@v3.97.9
+        with:
+          version: 3.97.9
+          path: ./
+          extra_args: --results=verified,unknown
+
+  build-back:
+    name: Build backend
+    needs: security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Build backend
+        run: composer build:back
+
+  build-front:
+    name: Build frontend
+    needs: security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build:front
+
+  build-fresh-install:
+    name: Build fresh install
+    needs: [build-back, build-front]
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: pixely
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: pixely
+          MYSQL_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: pixely
+      DB_USERNAME: pixely
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, pdo_mysql, redis
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=mysql|' .env
+          sed -i 's|^# DB_HOST=.*|DB_HOST=127.0.0.1|' .env
+          sed -i 's|^# DB_PORT=.*|DB_PORT=3306|' .env
+          sed -i 's|^# DB_DATABASE=.*|DB_DATABASE=pixely|' .env
+          sed -i 's|^# DB_USERNAME=.*|DB_USERNAME=pixely|' .env
+          sed -i 's|^# DB_PASSWORD=.*|DB_PASSWORD=root|' .env
+          php artisan key:generate
+
+      - name: Run migrations and seed database
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --force
+
+      - name: Build backend
+        run: composer build:back
+
+      - name: Build frontend
+        run: npm run build:front
+
+  php-lint:
+    name: PHP syntax lint
+    needs: [build-back, build-front, build-fresh-install]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Check PHP syntax
+        run: find app bootstrap config database routes tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  phpstan:
+    name: PHPStan analysis
+    needs: [build-back, build-front, build-fresh-install]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+  frontend-quality:
+    name: Frontend quality checks
+    needs: [build-back, build-front, build-fresh-install]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Stylelint
+        run: npm run stylelint
+
+      - name: Run Vitest
+        run: npm test
+
   backend-unit:
     name: Backend unit tests
+    needs: [build-back, build-front, build-fresh-install]
     runs-on: ubuntu-latest
 
     steps:
@@ -56,6 +282,7 @@ jobs:
 
   backend-functional:
     name: Backend functional tests
+    needs: [build-back, build-front, build-fresh-install]
     runs-on: ubuntu-latest
 
     services:
@@ -151,6 +378,7 @@ jobs:
 
   frontend-e2e:
     name: Frontend end-to-end tests
+    needs: [build-back, build-front, build-fresh-install]
     runs-on: ubuntu-latest
 
     services:
@@ -259,3 +487,45 @@ jobs:
 
       - name: Run Playwright E2E tests
         run: npm run test:e2e
+
+  production-quality:
+    name: Production quality gate
+    needs: [php-lint, phpstan, frontend-quality, backend-unit, backend-functional, frontend-e2e]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install production PHP dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Optimize production backend
+        run: composer build:back
+        env:
+          APP_ENV: production
+          APP_DEBUG: 'false'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build production frontend
+        run: npm run build:front
