@@ -51,7 +51,7 @@
         "cs:fix": "phpcbf",
         "cs:fix-auto": "php-cs-fixer fix",
         "cs:fix-auto-dry": "php-cs-fixer fix --dry-run --diff",
-        "security:audit:back": "composer audit",
+        "security:audit:back": "composer audit --locked",
         "build:back": "@php artisan optimize",
         "setup": [
             "composer install",
