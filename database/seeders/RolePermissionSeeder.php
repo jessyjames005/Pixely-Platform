@@ -53,7 +53,7 @@ final class RolePermissionSeeder extends Seeder
         app(\Illuminate\Contracts\Console\Kernel::class)->call('pixely:sync-permissions');
 
         foreach (self::PERMISSIONS as $permission) {
-            Permission::firstOrCreate(
+            Permission::updateOrCreate(
                 ['name' => $permission, 'guard_name' => 'web'],
                 ['is_core' => true],
             );
