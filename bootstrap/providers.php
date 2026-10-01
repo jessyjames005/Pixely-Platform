@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     App\Core\Auth\Providers\AuthServiceProvider::class,
     App\Core\Extensions\Providers\ExtensionManagementServiceProvider::class,
@@ -11,5 +13,7 @@ return [
     App\Core\Users\Providers\UserServiceProvider::class,
     App\Providers\AppServiceProvider::class,
     App\Providers\ExtensionServiceProvider::class,
-    App\Providers\TelescopeServiceProvider::class,
+    ...(class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class)
+        ? [App\Providers\TelescopeServiceProvider::class]
+        : []),
 ];
