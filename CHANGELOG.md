@@ -24,6 +24,8 @@ Versioning follows Semantic Versioning.
 
 ### Fixed
 - Updated direct `ExtensionManifest` construction sites to provide the minimum Kernel version required by the manifest value object.
+- Fixed fresh database seeding failing because the `permissions` table did not include the `is_core` column; added a migration and ensured existing core permissions are marked correctly.
+- Fixed the Linux production build failing to resolve Gallery view and navigation imports due to a case mismatch in the Vite alias.
 
 ## [0.1.0] - In Progress
 

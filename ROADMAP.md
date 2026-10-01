@@ -46,18 +46,38 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 * [x] Continuous integration foundation
 * [x] MySQL service
 * [x] Redis service
-* [x] Backend unit test job
-* [x] Backend functional test job
-* [ ] Frontend unit test job
+
+#### 1. Security
+
+* [ ] Backend dependency security audit: `security:audit:back` (Composer CVE checks)
+* [ ] Frontend dependency security audit: `security:audit:front` (npm CVE checks)
+* [ ] Secret detection in CI to identify leaked credentials
+
+#### 2. Build
+
+* [ ] Backend build: `build:back`
+* [ ] Frontend build: `build:front`
+* [ ] Fresh-install build validation: `build:fresh-install`
+
+#### 3. Tests and Quality
+
+* [ ] Frontend lint (ESLint)
+* [ ] PHP lint (`phplint`)
+* [ ] PHP static analysis (PHPStan)
+* [x] PHP functional test job
+* [x] PHP unit test job
+* [ ] SCSS lint (Stylelint)
+* [ ] Frontend unit test job (Vitest)
 * [ ] Frontend functional test job
 * [x] Playwright end-to-end test job
-* [ ] Static analysis
-* [ ] PHP code style checks
-* [ ] Frontend code style checks
 * [ ] PHP coverage report with phpcov
 * [ ] 80% minimum PHP coverage gate
+
+#### 4. Production and Review Apps
+
 * [ ] Production quality gate
 * [ ] Continuous deployment
+* [ ] Review app generation for pull requests
 
 ---
 
