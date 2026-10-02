@@ -519,17 +519,33 @@ PHP backend coverage is measured with `phpcov`.
 * [ ] API relationship documentation
 * [ ] API validation standardisation
 
-### JSON:API Migration (future)
+### JSON:API Migration (in progress)
 
-The current API response format (`{ data }`, `{ data, meta }`, `{ error }`) is stable and used across the frontend. A future migration to strict JSON:API compliance is planned but deferred to avoid blocking frontend progress.
+Strict JSON:API compliance is being adopted incrementally, not deferred. The
+`laravel-json-api/laravel` + `laravel-json-api/non-eloquent` stack is in
+`composer.json` and the controllers are on the JSON:API pipeline.
 
-* [ ] JSON:API resource object format (`type`, `id`, `attributes`, `relationships`)
-* [ ] JSON:API error array format (`errors[]` with `status`, `code`, `title`, `detail`, `source`)
+Status by component:
+- **Tuleap** — already strict: `TuleapJsonApiResponse::one/many($server, type, …)`
+  build proper `type`/`id`/`attributes` resource objects; `TuleapController`
+  extends the JSON:API server pipeline and throws `JsonApiException`-style errors.
+- **Gallery** and **Files** — moved onto `JsonApiController` / `DataResponse`,
+  content-negotiation guard forces `application/vnd.api+json` on upload, and
+  errors use JSON:API fields — but their response envelopes are **still the
+  legacy `{ data }` / `{ data, meta }`/`{ error }` shape**, not strict resource
+  objects. These extensions follow the Tuleap path next.
+- The remaining extensions still use the original custom envelope.
+
+Done:
+* [x] Adopt `laravel-json-api` backend (`Tuleap`, `Gallery`, `Files`, `CinemaMovie`)
+* [x] Tuleap API: strict resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json`
+* [x] JSON:API-style error fields (`status`/`code`/`title`/`detail`) via `JsonApiException`
+
+Still pending (the strict-global contract):
+* [ ] Rewrite `ApiResponse` / `ApiCollectionResponse` / `ApiError` for strict JSON:API envelopes (Gallery/Files/global still legacy `{ data }`)
 * [ ] JSON:API `links` (self, pagination `next`/`prev`)
-* [ ] `Content-Type: application/vnd.api+json` content negotiation
-* [ ] Rewrite `ApiResponse` / `ApiCollectionResponse` / `ApiError` for JSON:API
-* [ ] Update `openapi.yml` schemas for JSON:API
-* [ ] Update frontend API client and types for JSON:API
+* [ ] `Content-Type: application/vnd.api+json` content negotiation on all resource responses
+* [ ] Update `openapi.yml` schemas for JSON:API (currently `application/json`, `{ data: Photo }` flat)
 * [ ] Migration tests
 
 ### API Authentication
