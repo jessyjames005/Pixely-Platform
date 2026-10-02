@@ -1,93 +1,11 @@
-# Cline Rules — Pixely Platform
+# Cline — Project Rules
 
-This file imports all shared rules from `.claude/rules/` for use with Cline.
+Project-wide AI agent rules live in **`AGENTS.md`** (the single source of truth
+for every AI tool on this repo) and in
+**`docs/development/PROJECT_RULES.md`** (detailed architecture, API, frontend,
+testing, git and Docker rules).
 
-## Rule Imports
-
-All path-scoped rules from the shared `.claude/rules/` directory are imported below:
-
-### API Design Rules
-`#include: .claude/rules/api-design.md`
-
-### Extension Structure Rules
-`#include: .claude/rules/extension-structure.md`
-
-### Frontend Code Style Rules
-`#include: .claude/rules/frontend-code-style.md`
-
-### Permission Naming Rules
-`#include: .claude/rules/permission-naming.md`
-
-### PHP Code Style Rules
-`#include: .claude/rules/php-code-style.md`
-
-## Additional Cline-Specific Notes
-
-- **Strict rules**: See `.claude/CLAUDE.md` for strict rules (no unauthorized commits, encoding, Docker requirement, etc.)
-- **Agents**: Use `.claude/agents/backend-dev.md`, `.claude/agents/frontend-dev.md`, `.claude/agents/workflow-helper.md`
-- **Skills**: Use `.claude/skills/PP_*/SKILL.md` for executable workflows
-- **References**: Use `.claude/references/*.md` for architectural patterns
-
-## Project Commands (run via Docker)
-
-```bash
-# PHP (via docker-php-1)
-composer install
-php artisan test
-php artisan config:clear
-composer cs:check
-
-# Node (via docker-node-1)
-npm install
-npm run build
-npm run test:unit
-npm run check    # runs lint + typecheck
-npm run lint
-```
-
-## Key Conventions Summary
-
-### Backend (Laravel)
-- Controllers orchestrate; business logic in Services
-- Extension routes in `app/Extensions/<Name>/Http/routes.php`
-- Permissions: `<domain>.<object>.<action>` (e.g., `gallery.photos.manage`)
-- API: `/api/v1/...` with OpenAPI via Scramble
-- Auth: Laravel Sanctum (SPA mode, session cookies)
-
-### Frontend (Vue 3)
-- Vue 3 + TypeScript + Vuetify 4 + Vite 8
-- Pinia for state management
-- Components: `resources/js/extensions/<domain>/{components,views,store,models,types}`
-- Styles in `.scss` under `styles/`, not inline
-- API via composable `useApi()`
-
-### Extension Architecture
-- Extensions in `app/Extensions/<ExtensionName>/`
-- Each has: Http/, Models/, Services/, Database/, Resources/, manifest.json
-- Lifecycle: Discover → Register → Install → Enable → Boot → Run → Disable → Uninstall
-
-# RTK
-
-Prefix every shell command with `rtk`: `rtk git status`, `rtk cargo test`,
-`rtk npm run build`, `rtk ls src/`. Keep the prefix inside chains:
-`rtk git add . && rtk git commit -m "msg"`. Commands RTK has no filter for
-run as-is, so the prefix is always safe.
-
-# Command output
-
-Command output here is condensed to save tokens, keeping every signal and
-dropping costly noise. Treat it as the complete result: run commands
-normally, and batch related commands into one call to avoid extra turns.
-Truncated results state their recovery path in their own output. Re-run a
-command as `rtk proxy <cmd>` only when its result is unusable: empty when
-output was clearly expected, contradicting its exit code, or garbled.
-
-## About RTK
-
-RTK (Rust Token Killer) is a CLI proxy that filters command output to save
-tokens; behavior and exit code are unchanged.
-
-- `rtk gain` / `rtk gain --history` — token savings, overall and per command.
-- `rtk proxy <cmd>` — run a command unfiltered, still tracked.
-- `RTK_DISABLED=1 <cmd>` — skip RTK for one command.
-- `rtk discover` — find past commands RTK could have condensed.
+Please read `AGENTS.md` before acting. Key points:
+- PHP & Node must run in Docker dev containers (no local PHP/Node).
+- Prefix Git, test, and search commands with `rtk`.
+- Never commit/push without explicit user authorization.
