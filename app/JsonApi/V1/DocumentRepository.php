@@ -8,7 +8,7 @@ use LaravelJsonApi\NonEloquent\AbstractRepository;
 
 final class DocumentRepository extends AbstractRepository
 {
-    public function find(string $resourceId): ?object
+    public function find(string $resourceId): object
     {
         return (object) [
             'id' => $resourceId,

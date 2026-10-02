@@ -40,7 +40,7 @@ final class PhotoSchema extends Schema
         ];
     }
 
-    public function pagination(): ?Paginator
+    public function pagination(): Paginator
     {
         return PagePagination::make()->withDefaultPerPage(20);
     }

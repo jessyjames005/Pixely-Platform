@@ -15,6 +15,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property-read string|null $avatar_url
+ */
 #[Fillable(['name', 'email', 'password', 'bio', 'timezone', 'avatar_filename'])]
 #[Hidden(['password', 'remember_token'])]
 final class User extends Authenticatable

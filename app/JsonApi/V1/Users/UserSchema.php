@@ -41,7 +41,7 @@ final class UserSchema extends Schema
         return $query->where('guard_name', 'web');
     }
 
-    public function pagination(): ?Paginator
+    public function pagination(): Paginator
     {
         return PagePagination::make()->withDefaultPerPage(20);
     }
