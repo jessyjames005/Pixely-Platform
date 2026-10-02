@@ -2,6 +2,45 @@
 
 This roadmap defines the planned evolution of Pixely Platform from the initial platform foundation to a stable, extensible platform with a complete administration interface, developer tooling and multiple example extensions.
 
+## Target Architecture (modular platform)
+
+Pixely is a **modular application platform**: a small generic Core, business
+Extensions, and dedicated front-end Applications consuming the same JSON:API.
+
+```text
+     Applications: Admin · Gallery (public) · Converter (public)
+                                │
+                             JSON:API
+                                │
+                         ┌──────▼───────┐
+                         │      CORE    │  Auth/ACL · Extensions · Events ·
+                         │   Laravel 13 │  Jobs · Settings · API · Logging
+                         └──────┬───────┘
+                 ┌──────────────┼──────────────┐
+               Files           Gallery       Converter
+                 │           depends on       depends on
+                 └───────────────────────────── Files
+```
+
+Rules every phase of this roadmap obeys:
+
+- The **Core never depends on a business extension** — it only provides the
+  generic contracts and capabilities extensions need.
+- **`Files` is the generic storage layer.** No extension duplicates file
+  storage fields (`disk`, `path`, `mime`, `size`, thumbnails). `Gallery` and
+  `Converter` both declare `requires: ["files"]`.
+- **Heavy work never runs inside an HTTP request.** Variant generation and
+  conversions are dispatched to dedicated Redis queues (`media`, `documents`)
+  and processed by workers (FFmpeg, ImageMagick, PDF tools).
+- **Modular monolith, not microservices.** Component isolation through
+  extensions, contracts, events and queues; a separate processing service is
+  only revisited if one concern truly outgrows the monolith.
+- **Scope note** — the full target design also includes public apps
+  (photos.*, convert.*), CDN/S3 storage, WebSocket progress, quotas and
+  multi-tenancy. Those are deliberately deferred: they are not entered in
+  this roadmap until the four foundation phases land
+  (Files → Gallery model → Events/Jobs → Converter).
+
 ---
 
 ## v0.1.0 - Foundation
@@ -917,6 +956,14 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [x] Gallery photo model
 * [x] Gallery database structure
 
+> **Target data model** (modular platform architecture): the flat `photos`
+> table is being superseded by `Album → Media → File`. A `Media` row keeps
+> only gallery business data (title, description, position, published_at)
+> and points at `files.id` — no duplicated storage fields. Gallery keeps
+> delegating storage to the Files extension it already declares as a
+> dependency. Existing rows are migrated (`photos` → `files` + `media`)
+> before the old model is dropped.
+
 ### Gallery Web
 
 * [x] Gallery web route
@@ -947,12 +994,13 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [x] Stored file verification
 * [x] Stored file deletion
 * [x] Upload API tests
-* [ ] Image resizing
-* [ ] Thumbnail generation
-* [ ] Image optimization
+* [ ] Image resizing (asynchronous variant generation via Files: thumbnail / medium / large / webp, dispatched to the `media` queue instead of blocking the upload request)
+* [x] Thumbnail generation (delegated to the Files extension)
+* [ ] Image optimization (WebP/AVIF derivatives, on demand)
 
 ### Albums
 
+* [ ] Data model refactor: `Album → Media → File` — replace the flat `photos` table with `albums` + `media` (`media.file_id` → `files.id`), migrate existing photos into `files` + `media`, then drop the duplicated `photos.filename` / `photos.thumbnail_filename` columns
 * [ ] Album model
 * [ ] Album creation
 * [ ] Album editing
@@ -962,15 +1010,18 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Album interface
 * [ ] Album administration
 
-### Photos
+### Media (was: Photos)
 
-* [x] Photo model
-* [x] Photo creation
+After the `Album → Media → File` refactor, `Media` is the gallery's business
+object on top of a shared `File`:
+
+* [x] Photo model (migrated to `Media` during the model refactor)
+* [x] Photo creation (→ media creation, storage delegated to Files)
 * [x] Photo retrieval
 * [x] Photo update
-* [x] Photo deletion
-* [ ] Photo metadata
-* [ ] Photo visibility
+* [x] Photo deletion (removes the File through the Files extension, including its variants)
+* [ ] Photo metadata (via the Files metadata layer, not a photo column)
+* [ ] Photo visibility (maps to File visibility: private / public / unlisted / shared)
 * [ ] Photo ordering
 
 ### Comments
@@ -1002,11 +1053,12 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 
 ### EXIF
 
-* [ ] EXIF extraction
+* [ ] EXIF extraction (async job on upload, stored in the Files metadata layer)
 * [ ] EXIF storage
 * [ ] Camera information
 * [ ] GPS metadata
 * [ ] EXIF privacy controls
+* [ ] EXIF strip on public derivatives — the original keeps its full EXIF, public versions are sanitized
 * [ ] EXIF administration
 
 ---
@@ -1195,12 +1247,13 @@ Pixely Platform is designed to support multiple independent extensions.
 
 ## Media Extension
 
-* [ ] Media library
-* [ ] File management
-* [ ] Storage abstraction
-* [ ] Image processing
-* [ ] File metadata
-* [ ] Media administration
+> Superseded by the Files extension target model ("Generic storage layer"
+> above): media library, file management, storage abstraction, image
+> processing and file metadata all live in `Files` as the platform's generic
+> storage layer. This entry is kept as a marker and will be removed once
+> Files reaches the target model.
+
+* [ ] Media administration (moved to the Files extension admin screen)
 
 ## Music Extension
 
@@ -1212,15 +1265,82 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Music administration
 * [ ] Music frontend player
 
-## Media Conversion Extension
+## Converter Extension
+
+Media/document conversion extension depending on Files. A source is either
+an uploaded `File` resource or a remote media URL (YouTube, TikTok,
+Instagram…) downloaded through a pluggable extractor; in both cases the
+pipeline first materialises a `File`, then a conversion produces one or
+more output `File` resources. Processing happens asynchronously on a
+dedicated queue — never inside the HTTP request.
+
+### Conversion core
+
+* [ ] Converter extension scaffolding (manifest, provider, routes, `requires: ["files"]`)
+* [ ] `Conversion` model: `source_file_id`, `source_format`, `target_format`, `options`, `status`, `progress`, `output_file_id`, `error`, `started_at`, `completed_at`
+* [ ] Conversion lifecycle: `created → queued → processing → completed | failed | cancelled`
+* [ ] `POST /api/v1/conversions` — create the conversion, dispatch the queue job, return `202 Accepted` (never process synchronously)
+* [ ] `GET /api/v1/conversions` / `GET /api/v1/conversions/{id}` — history + live progress
+* [ ] Conversion cancellation for queued items
+* [ ] Conversion API tests
+
+### URL sources (media extraction)
+
+Reference UX (notube.lol): paste a video URL, pick a target format
+(MP3 / MP3 HD / M4A / MP4…), get a downloadable result. The public
+Converter app is modelled on that flow.
+
+* [ ] `ExtractorInterface` contract: `supports(url)`, `probe(url)` (title, duration, available formats), `download(url, target, File)` — drivers swappable like processors
+* [ ] `YtdlpExtractor` driver (yt-dlp) — YouTube, TikTok, Instagram (Reels), Twitter/X; each enabled site is an explicit setting, not hardcoded
+* [ ] SSRF-safe URL validation: source-site allowlist only, no internal/private hostnames
+* [ ] Download pipeline: URL → allowlist check → probe (size/duration caps) → download to `quarantine` → create `File` (`uploaded → validating → ready`) → dispatch the conversion job
+* [ ] Dynamic source-site capabilities — the frontend renders "which sites can be pasted" from the extractor's installed capabilities (never a hardcoded URL scheme in Vue)
+* [ ] Public conversion UI (URL mode): URL/keyword input + format picker (MP3, MP3 HD, M4A, MP4, …) → conversion → live progress → download
+* [ ] Downloaded media is stored as a real `File` (quarantine → originals) and tracked in the admin history like any other source
+
+### Processor architecture
+
+* [ ] `ProcessorInterface` contract: `supports(sourceFormat, targetFormat)` + `process(File $source, Conversion $conversion): File`
+* [ ] Processor registry / service-provider bindings so FFmpeg stays swappable
+* [ ] `FFmpegProcessor` — video/audio transcoding, video thumbnails, audio extraction, metadata
+* [ ] `ImageProcessor` — image-to-image conversion and re-encoding
+* [ ] `PdfProcessor` — document → PDF (Word/LibreOffice formats); PDF → editable document later
+
+### Target formats
 
 * [ ] Video → MP3 conversion
 * [ ] Video → MP4 (re-encode/transcode)
 * [ ] Document → PDF conversion (Word, LibreOffice formats)
 * [ ] PDF → editable document conversion
-* [ ] Conversion job queue and status tracking
-* [ ] Conversion API
-* [ ] Conversion administration
+* [ ] Image format conversion (webp/avif/jpeg)
+* [ ] Transcription (URL/media → full text transcript + key points) — separate processor, deferred until the conversion pipeline is stable
+
+### Dynamic capabilities
+
+* [ ] `GET /api/v1/converters/capabilities` — installed target formats per processor group **and** supported source sites per extractor; the frontend renders format pickers and URL support dynamically instead of hardcoded lists
+
+### Jobs & queues
+
+* [ ] Conversion jobs on the dedicated `media` queue (a heavy video conversion must not block thumbnail generation)
+* [ ] Progress reporting visible in the admin (queued / processing / completed / failed)
+* [ ] Worker timeout + concurrency limits per queue
+* [ ] Outputs written through Files storage and tracked as new `File` rows
+* [ ] Worker image dependencies: FFmpeg + yt-dlp installed in the worker container (never in the web container)
+* [ ] Real-time progress push (WebSocket/broadcast) — deferred, infrastructure phase
+
+### Security & limits
+
+* [ ] Source validation: size cap, allowed MIME types, real content sniffing, server-generated storage names
+* [ ] URL source caps: per-source-site policy, max media duration, max download size, SSRF allowlist enforcement (see URL sources)
+* [ ] Rate limiting: requests/minute, bytes/day, concurrent jobs
+* [ ] Generic quota system (max conversion size, conversions/hour, concurrent jobs; separate anonymous vs authenticated limits later)
+* [ ] Cleanup job: orphan outputs, expired conversions, failed-job artifacts
+
+### Administration
+
+* [ ] Conversions admin screen (history, status, progress, error detail, output download)
+* [ ] Capabilities display (which processors/formats are installed)
+* [ ] Queue/worker status on the platform dashboard
 
 ## Transport Extension
 
@@ -1269,7 +1389,21 @@ A reusable file-handling extension, meant to be a dependency of other extensions
 ### Planned consumers
 
 * [x] Gallery Extension: photo upload delegates validation/thumbnailing to Files Extension instead of its own ad-hoc logic
+* [ ] Converter Extension: source and output files are both `File` resources
 * [ ] Shop Extension (future): product images use Files Extension the same way
+
+### Generic storage layer (target model)
+
+The Files extension is the platform's generic file layer: every consumer
+references `File` resources instead of storing its own copy of file fields.
+
+* [ ] `File` model hardening: `uuid`, `checksum`, `extension`, `visibility` (`private` / `public` / `unlisted` / `shared`), `status` lifecycle (`uploaded → validating → ready → processing → available | rejected`)
+* [ ] `FileVariant` model — derived files per file (original, thumbnail, medium, large, webp, avif); consumers request `file.variant('thumbnail')` without knowing storage details
+* [ ] Metadata layer — width / height / duration / bitrate / codec / pages / author / EXIF / GPS in a `metadata` JSON column (or `file_metadata` table); no media-specific columns on `files`
+* [ ] Storage abstraction via Laravel disks (local now, S3-compatible later) with logical directories: `quarantine`, `originals`, `derivatives`, `temporary`, `outputs`
+* [ ] Upload security pipeline: real MIME sniffing → server-generated storage names (never user-supplied paths) → size/type/batch validation → quarantine directory → move to originals on acceptance
+* [ ] Migration of existing storage into the registry: Gallery photos first (`photos.filename` → `files` + `media.file_id`), then user avatars — after which Gallery drops its own storage columns
+* [ ] Orphan file cleanup job (storage exists / DB row missing, and vice versa)
 
 ## Translations Extension
 
@@ -1316,8 +1450,8 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Multi-language platform
 * [ ] Multi-site support
 * [ ] Configuration management
-* [ ] Event system
-* [ ] Job / queue system
+* [ ] Event system (Core events as contracts between extensions: `FileUploaded`, `FileDeleted`, `ConversionStarted/Completed/Failed`, `MediaPublished`, … — extensions listen, Core never knows the listeners)
+* [ ] Job / queue system (dedicated Redis queues `default` / `media` / `documents` / `maintenance`; heavy processing — variants, conversions — never runs inside an HTTP request; modular monolith, no microservices for now)
 * [ ] Notification system
 * [ ] Caching
 * [ ] Logging and monitoring
@@ -1418,7 +1552,19 @@ Extension settings screen — shipped: the config dialog now renders a form gene
 CURRENT
  │
  ▼
+Files hardening — generic storage layer: uuid / checksum / visibility / status lifecycle, FileVariant, metadata, upload security pipeline + quarantine
+ │
+ ▼
+Gallery data model refactor — Album → Media → File (migrate photos into files + media, drop duplicated storage columns)
+ │
+ ▼
 Sample Cinema Extension + frontend training
+ │
+ ▼
+Core events + queues foundation — FileUploaded/FileDeleted events, dedicated media/documents queues, async variant generation + EXIF strip
+ │
+ ▼
+Converter Extension — Conversion model + lifecycle, ProcessorInterface + FFmpeg, URL extraction (ExtractorInterface + yt-dlp, SSRF allowlist), GET /converters/capabilities, POST /conversions → 202 + queue job, public URL→MP3/MP4 UI, admin history
  │
  ▼
 Gallery Administration (visual, albums, tags, search, EXIF)
@@ -1440,7 +1586,6 @@ The Pixely Platform currently has a functional extension foundation with:
 * Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
 * Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
-* Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
 * API query parsing, filtering, sorting, pagination, relationships
 * Automated tests for the Gallery API
@@ -1459,11 +1604,23 @@ also gets set on a couple of Translations permissions that pre-date it
 becoming a full extension, which would have grouped them under Core
 incorrectly.
 
-The next development focus is:
+The next development focus is (target architecture, phased to keep each step
+small and shippable — public apps, CDN/S3, WebSocket, quotas and
+multi-tenancy are explicitly deferred until the foundation phases land):
 
-1. Build the Sample Cinema Extension as a developer reference.
-2. Continue the Gallery Extension with its visual administration interface.
-3. Automated tests for the Tuleap extension's backend.
+1. Files hardening — uuid / checksum / visibility / status lifecycle,
+   FileVariant, metadata layer, upload security pipeline + quarantine.
+2. Gallery data model refactor — `Album → Media → File`, migrate existing
+   photos, drop duplicated storage columns.
+3. Build the Sample Cinema Extension as a developer reference.
+4. Core events + dedicated-queue foundation; move variant generation to
+   async jobs (`media` / `documents` queues).
+5. Converter Extension — asynchronous conversions (`202 + queue job`),
+   ProcessorInterface + FFmpeg, URL source extraction (ExtractorInterface +
+   yt-dlp driver, SSRF-safe allowlist), dynamic capabilities endpoint,
+   notube-style public URL→MP3/MP4 UI, admin history.
+6. Continue the Gallery Extension with its visual administration interface;
+   automated tests for the Tuleap backend stay on the backlog in parallel.
 
 The development process should continue through clearly defined sprints, with each sprint having:
 

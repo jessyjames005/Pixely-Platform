@@ -5,6 +5,7 @@ import { useRolesStore } from '../store/roles.store'
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { useConfirmDialog } from '@shared/composables/useConfirmDialog'
 import { useNotify } from '@shared/composables/useNotify'
+import { translate as t } from '@shared/plugins/i18n'
 import type { Permission } from '../models/Role'
 
 const authStore = useAuthStore()
@@ -13,9 +14,9 @@ const { confirm } = useConfirmDialog()
 const notify = useNotify()
 
 const headers = [
-  { title: 'ID', key: 'id', align: 'center', sortable: false },
-  { title: 'Name', key: 'name', sortable: false },
-  { title: 'Core', key: 'isCore', sortable: false },
+  { title: t('core.roles.permission_ui.msg.id_column', 'ID'), key: 'id', align: 'center', sortable: false },
+  { title: t('core.roles.permission_ui.msg.name_column', 'Name'), key: 'name', sortable: false },
+  { title: t('core.roles.permission_ui.msg.core_column', 'Core'), key: 'isCore', sortable: false },
 ] as const
 
 const perPage = 20
@@ -108,7 +109,7 @@ async function handleSubmit(): Promise<void> {
       isCore: formIsCore.value,
     })
     if (result) {
-      notify.success('Permission updated.')
+      notify.success(t('core.roles.permission_ui.msg.permission_updated', 'Permission updated.'))
       closeDialog()
       await fetchPermissions()
     }
@@ -121,7 +122,7 @@ async function handleSubmit(): Promise<void> {
   })
 
   if (result) {
-    notify.success('Permission created.')
+    notify.success(t('core.roles.permission_ui.msg.permission_created', 'Permission created.'))
     closeDialog()
     await fetchPermissions()
   }
@@ -129,18 +130,30 @@ async function handleSubmit(): Promise<void> {
 
 async function handleDelete(permission: Permission): Promise<void> {
   const confirmed = await confirm({
-    title: 'Delete permission',
-    message: `Delete permission "${permission.name}"? This cannot be undone.`,
-    confirmText: 'Delete',
+    title: t('core.roles.permission_ui.title.confirm_delete_permission', 'Delete permission'),
+    message: t(
+      'core.roles.permission_ui.msg.confirm_delete_permission',
+      'Delete permission ":name"? This cannot be undone.',
+      { name: permission.name },
+    ),
+    confirmText: t('core.common.action.delete', 'Delete'),
   })
 
   if (!confirmed) {
     return
   }
 
-  await rolesStore.deletePermission(permission.id)
-  notify.success('Permission deleted.')
-  await fetchPermissions()
+  try {
+    await rolesStore.deletePermission(permission.id)
+    notify.success(t('core.roles.permission_ui.msg.permission_deleted', 'Permission deleted.'))
+    await fetchPermissions()
+  } catch (error) {
+    notify.error(
+      error instanceof Error
+        ? error.message
+        : t('core.roles.permission_ui.msg.permission_delete_failed', 'The permission could not be deleted.'),
+    )
+  }
 }
 </script>
 
@@ -148,14 +161,14 @@ async function handleDelete(permission: Permission): Promise<void> {
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
       <div>
-        <h1 class="text-h5 mb-1">Permissions</h1>
+        <h1 class="text-h5 mb-1">{{ $t('core.roles.permission_ui.title.permissions_list', 'Permissions') }}</h1>
         <p class="text-medium-emphasis mb-0">
-          Seeded permissions available for role assignment.
+          {{ $t('core.roles.permission_ui.msg.permissions_description', 'Seeded permissions available for role assignment.') }}
         </p>
       </div>
       <div class="d-flex align-center gap-3">
         <v-chip color="primary" variant="tonal" size="small">
-          {{ permissionCount }} permission{{ permissionCount === 1 ? '' : 's' }}
+          {{ $t('core.roles.permission_ui.msg.permission_count', ':count permission(s)', { count: permissionCount }) }}
         </v-chip>
         <v-btn
           v-if="authStore.can('roles.manage')"
@@ -163,7 +176,7 @@ async function handleDelete(permission: Permission): Promise<void> {
           prepend-icon="mdi-plus"
           @click="openCreateDialog"
         >
-          Add Permission
+          {{ $t('core.roles.permission_ui.action.add_permission', 'Add Permission') }}
         </v-btn>
       </div>
     </div>
@@ -172,7 +185,7 @@ async function handleDelete(permission: Permission): Promise<void> {
       <v-card-text class="pb-0">
         <v-text-field
           v-model="search"
-          label="Search permissions"
+          :label="$t('core.roles.permission_ui.msg.search_permissions_label', 'Search permissions')"
           prepend-inner-icon="mdi-magnify"
           hide-details
           clearable
@@ -205,7 +218,7 @@ async function handleDelete(permission: Permission): Promise<void> {
           hover
         >
           <template #item.isCore="{ item }">
-            {{ item.isCore ? 'Yes' : 'No' }}
+            {{ item.isCore ? $t('core.common.action.yes', 'Yes') : $t('core.common.action.no', 'No') }}
           </template>
 
           <template #item.actions="{ item }">
@@ -220,7 +233,7 @@ async function handleDelete(permission: Permission): Promise<void> {
 
           <template #no-data>
             <div class="text-center py-6 text-medium-emphasis">
-              No permissions found.
+              {{ $t('core.roles.permission_ui.msg.no_permissions_found', 'No permissions found.') }}
             </div>
           </template>
         </v-data-table>
@@ -240,7 +253,7 @@ async function handleDelete(permission: Permission): Promise<void> {
 
     <!-- Add / edit permission dialog -->
     <v-dialog v-model="dialogOpen" max-width="520" persistent>
-      <v-card :title="isEditing ? 'Edit Permission' : 'Add Permission'">
+      <v-card :title="isEditing ? $t('core.roles.permission_ui.title.edit_permission', 'Edit Permission') : $t('core.roles.permission_ui.title.add_permission', 'Add Permission')">
         <v-card-text>
           <v-alert
             type="warning"
@@ -249,21 +262,21 @@ async function handleDelete(permission: Permission): Promise<void> {
             density="compact"
           >
             <v-icon class="me-2">mdi-alert-circle</v-icon>
-            <strong>Warning!</strong><br />
-            By adding the permission name, you might break the system permissions functionality.
+            <strong>{{ $t('core.roles.permission_ui.msg.warning_title', 'Warning!') }}</strong><br />
+            {{ $t('core.roles.permission_ui.msg.warning_text', 'By adding the permission name, you might break the system permissions functionality.') }}
           </v-alert>
 
           <v-form @submit.prevent="handleSubmit">
             <v-text-field
               v-model="formName"
-              label="Enter Permission Name"
-              :rules="[(v) => !!v || 'Permission name is required']"
+              :label="$t('core.roles.permission_ui.msg.enter_permission_name', 'Enter Permission Name')"
+              :rules="[(v) => !!v || $t('core.roles.permission_ui.msg.name_required', 'Permission name is required')]"
               required
             />
 
             <v-checkbox
               v-model="formIsCore"
-              label="Set as core permission"
+              :label="$t('core.roles.permission_ui.msg.set_as_core', 'Set as core permission')"
               hide-details
             />
 
@@ -287,13 +300,13 @@ async function handleDelete(permission: Permission): Promise<void> {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
+          <v-btn variant="text" @click="closeDialog">{{ $t('core.common.action.cancel', 'Cancel') }}</v-btn>
           <v-btn
             color="primary"
             :loading="saving || updating"
             @click="handleSubmit"
           >
-            {{ isEditing ? 'Save' : 'Add' }}
+            {{ isEditing ? $t('core.common.action.save', 'Save') : $t('core.roles.permission_ui.action.add_permission', 'Add Permission') }}
           </v-btn>
         </v-card-actions>
       </v-card>

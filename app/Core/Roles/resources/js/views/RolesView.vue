@@ -39,7 +39,7 @@ onMounted(async () => {
 async function fetchRoleUsers(): Promise<void> {
   const users: RoleUser[] = []
   let page = 1
-  let lastPage = 1
+  let lastPage: number
   do {
     await usersStore.fetchUsers(page, 100)
     users.push(...usersStore.users.flatMap((user) =>
