@@ -44,8 +44,7 @@ After every branch switch, sequentially:
 
 To reduce token consumption, prefix Git, test, and search commands with `rtk`,
 invoking the project's native runner through `rtk` rather than calling it
-directly. The `rtk` wrapper dispatches PHP/Node workloads into the project's
-Docker dev containers, so the Docker mandate above is respected.
+directly (the RTK "Token Killer" wrapper).
 
 - Git: `rtk git status` | `rtk git diff` | `rtk git log` | `rtk git add` | `rtk git commit` | `rtk git push`
 - Tests: `rtk php artisan test` (PHPUnit/Pest) | `rtk npm test` (Vitest)
