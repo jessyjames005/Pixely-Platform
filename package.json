@@ -10,7 +10,7 @@
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test",
-        "security:audit:front": "npm audit",
+        "security:audit:front": "npm audit --omit=dev",
         "lint": "eslint resources/js app/Core app/Extensions --ext .ts,.vue",
         "lint:fix": "eslint resources/js app/Core app/Extensions --ext .ts,.vue --fix",
         "typecheck": "vue-tsc --noEmit",

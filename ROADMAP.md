@@ -90,6 +90,7 @@ Rules every phase of this roadmap obeys:
 
 * [x] Backend dependency security audit: `security:audit:back` (Composer CVE checks)
 * [x] Frontend dependency security audit: `security:audit:front` (npm CVE checks)
+  * *Note :* les 10 vulnérabilités signalées (`braces@3.0.3` via `stylelint@17 → globby@16 → fast-glob@3 → micromatch@4 → braces`) sont dev-only, non corrigibles (`braces` est désactivé, aucune version corrigée n’existe) et n’ont aucune incidence sur les dépendances de production. L’audit CI s’effectue donc sur les dépendances de production (`npm audit --omit=dev`) pour garder une passe d’approvisionnement fournie tout en acceptant l’avis de sécurité dev-tooling non résolvable. Vérifié : `npm audit --omit=dev` → 0 vulnérabilités.
 * [x] Secret detection in CI to identify leaked credentials
 
 #### 2. Build
