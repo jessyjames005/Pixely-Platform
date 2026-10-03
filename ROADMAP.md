@@ -530,23 +530,33 @@ Status by component:
 - **Tuleap** — already strict: `TuleapJsonApiResponse::one/many($server, type, …)`
   build proper `type`/`id`/`attributes` resource objects; `TuleapController`
   extends the JSON:API server pipeline and throws `JsonApiException`-style errors.
-- **Gallery** and **Files** — moved onto `JsonApiController` / `DataResponse`,
-  content-negotiation guard forces `application/vnd.api+json` on upload, and
-  errors use JSON:API fields — but their response envelopes are **still the
-  legacy `{ data }` / `{ data, meta }`/`{ error }` shape**, not strict resource
-  objects. These extensions follow the Tuleap path next.
-- The remaining extensions still use the original custom envelope.
+- **Gallery** and **Files** — already strict: `JsonApiRoute` resources on the
+  `v1` JSON:API server, `JsonApiController` + `DataResponse`, registered Eloquent
+  schemas (`PhotoSchema`, `FileSchema`) in `Server.php`, JSON:API error/media-type
+  negotiation enforced on every route (Files + Core attach `EnsureJsonApiMediaType`;
+  Gallery relies on the `jsonapi:v1` middleware, which likewise enforces
+  `application/vnd.api+json`), and Gallery emits JSON:API pagination `links`
+  (`next`/`prev`). The `photos.thumbnail_filename` column is created by the root
+  migration `database/migrations/2026_09_03_071953_add_thumbnail_filename_to_photos_table.php`.
+- **All other backends** (Core: Auth/Users/Roles/Permissions/Settings/Translations/
+  Extensions/Tooling; CinemaMovie) — already strict: `EnsureJsonApiMediaType` on
+  `/api/*` routes + central JSON:API schemas. No backend uses the legacy
+  `{ data }` / `{ error }` envelope.
 
 Done:
-* [x] Adopt `laravel-json-api` backend (`Tuleap`, `Gallery`, `Files`, `CinemaMovie`)
-* [x] Tuleap API: strict resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json`
-* [x] JSON:API-style error fields (`status`/`code`/`title`/`detail`) via `JsonApiException`
-* [x] Remove legacy global envelope classes `ApiResponse`/`ApiCollectionResponse`/`ApiError`/`ApiErrorResponse` (and their tests); strict global error rendering in `bootstrap/app.php` (`application/vnd.api+json`, JSON:API `errors[]`); `MakeExtension` generator emits strict stubs (`EnsureJsonApiMediaType` + `DataResponse`) and `MakeExtensionTest` updated. Extension data responses (Gallery/Files) still legacy `{ data }`.
+* [x] Adopt `laravel-json-api` backend (`Tuleap`, `Gallery`, `Files`, `CinemaMovie`, Core extensions)
+* [x] Strict resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json` on Tuleap, Gallery, Files, and Core
+* [x] JSON:API-style error fields (`status`/`code`/`title`/`detail`) via `JsonApiException` (runtime `bootstrap/app.php` + laravel-json-api)
+* [x] Remove legacy global envelope classes `ApiResponse`/`ApiCollectionResponse`/`ApiError`/`ApiErrorResponse` (and their tests); strict global error rendering in `bootstrap/app.php`; `MakeExtension` stubs emit `EnsureJsonApiMediaType` + `DataResponse`; `MakeExtensionTest` updated
+* [x] JSON:API `links` (self, pagination `next`/`prev`) — emitted by Gallery pagination (test-verified) and documented in `openapi.yml`
+* [x] `Content-Type: application/vnd.api+json` content negotiation on all `/api/*` responses (global error path + every backend route)
+* [x] Update `openapi.yml` schemas for JSON:API — strict document envelope, `Photo` resource objects (`type`/`id`/`attributes`), JSON:API `errors[]` schema, `application/vnd.api+json` media types; Swagger UI now documents the compliant contract
+* [x] Migration tests — `MakeExtensionTest` (29 assertions) + `tests/Feature/Api/StrictErrorEnvelopeTest` (strict 404 envelope + media type)
+* [x] Frontend dependency security audit: `security:audit:front` green (`npm audit --omit=dev`; the `braces` CVE is dev-only via stylelint, no upstream fix, no production impact)
 
-Still pending (extension data envelopes + runtime links):
-* [ ] Convert extension data responses (`Gallery`, `Files`) from legacy `{ data }` to strict JSON:API resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json` (global error path is already strict via `bootstrap/app.php`)
-* [ ] JSON:API `links` (self, pagination `next`/`prev`)
-* [ ] `Content-Type: application/vnd.api+json` content negotiation on all resource responses (enforced on global error path `bootstrap/app.php` and documented in `openapi.yml`; extension data responses still legacy until converted)
+Still pending (frontend / docs):
+* [x] Frontend shared types (`resources/js/shared/types/api.ts`) already mirror the strict JSON:API document contract (`JsonApiDocument`, `JsonApiResource`, `JsonApiError`, `JsonApiCollectionResult`, `PaginationMeta`); all 12 stores consume `apiClient.getCollection` / `getResource` / `deserializeDocument` via `result.resources` / `result.meta` — 0 references to legacy `ApiResponse` / `ApiCollectionResponse` / `ApiErrorResponse`. Reconciled stale doc references in `frontend-architecture.md` (L61/L134/L162/L165) and `handbook/core/authentication.md` (L60).
+* [ ] Confirm Tuleap resource responses emit JSON:API `links`/pagination (Gallery is covered; Tuleap uses non-Eloquent document resources and may need explicit link/pagination wiring).
 * [x] Update `openapi.yml` schemas for JSON:API — strict document envelope, `Photo` resource objects (`type`/`id`/`attributes`), JSON:API `errors[]` schema, `application/vnd.api+json` media types; Swagger UI now documents the compliant contract
 * [x] Migration tests — added `tests/Feature/Api/StrictErrorEnvelopeTest` covering the strict 404 error envelope + media type (MakeExtensionTest also updated)
 

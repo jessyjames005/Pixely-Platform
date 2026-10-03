@@ -57,7 +57,7 @@ GET   /sanctum/csrf-cookie  (provided by Sanctum)
 
 `AuthController` (`App\Core\Auth\Http\Controllers\AuthController`):
 
-* `login()` — validates credentials, calls `Auth::attempt()`, regenerates the session, and returns the authenticated user via `ApiResponse`. Returns a `401 INVALID_CREDENTIALS` error on failure.
+* `login()` — validates credentials, calls `Auth::attempt()`, regenerates the session, and returns the authenticated user as a strict JSON:API `user` resource object. Returns a `401 INVALID_CREDENTIALS` error on failure.
 * `logout()` — logs out the `web` guard, invalidates the session, regenerates the CSRF token, returns `204`.
 * `me()` — returns the currently authenticated user, or `401` (via the `auth:sanctum` middleware) if there is none.
 

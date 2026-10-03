@@ -58,7 +58,7 @@ resources/js/
     ├── composables/      # Generic composables (useApi)
     ├── layouts/           # Structural page shells (AdminLayout)
     ├── services/          # apiClient (the only HTTP client, used by every domain's store)
-    ├── types/             # Shared API envelope types (ApiResponse, ApiCollectionResponse, ApiErrorResponse)
+    ├── types/             # Shared JSON:API types (document, resource, error, pagination)
     └── views/             # Cross-domain pages that don't belong to one domain (DashboardView)
 ```
 
@@ -131,9 +131,12 @@ export const useGalleryStore = defineStore('gallery', {
   state: (): GalleryState => ({ photos: [], meta: null }),
   actions: {
     async fetchPhotos(page = 1, perPage = 20) {
-      const result = await apiClient.get<ApiCollectionResponse<Photo>>('/gallery', { page, per_page: perPage })
-      this.photos = result.data
-      this.meta = result.meta
+      const result = await apiClient.getCollection<Omit<Photo, 'id'>>('/photos', {
+        'page[number]': page,
+        'page[size]': perPage,
+      })
+      this.photos = result.resources
+      this.meta = result.meta ?? null
     },
     // uploadPhoto, deletePhoto, ...
   },
@@ -159,10 +162,10 @@ The single centralized HTTP client, used by every domain's Pinia store. Responsi
 * always sends `credentials: 'include'` (required for the Sanctum session cookie);
 * attaches the `X-XSRF-TOKEN` header from the `XSRF-TOKEN` cookie on every request;
 * serializes JSON bodies, and passes `FormData` through untouched (for file uploads);
-* normalizes every non-2xx response into a thrown `ApiClientError` (status, code, message, details), built from the API's `{ error: { code, message, details? } }` envelope;
+* normalizes every non-2xx response into a thrown `ApiClientError` (status, code, title, detail, source), built from the API's `{ errors: JsonApiError[] }` JSON:API document;
 * exposes `fetchCsrfCookie()` to prime the Sanctum CSRF cookie before login.
 
-Shared types (`shared/types/api.ts`) mirror the backend's response envelopes exactly and are not JSON:API compliant — a future migration is tracked in the roadmap.
+Shared types (`shared/types/api.ts`) mirror the backend's strict JSON:API document contract exactly (`JsonApiDocument`, `JsonApiResource`, `JsonApiError`, `JsonApiCollectionResult`, `PaginationMeta`) and are JSON:API compliant.
 
 ---
 
