@@ -1,8 +1,10 @@
 openapi: 3.0.3
 info:
   title: 'Pixely Platform API'
-  description: 'Public API for Pixely Platform extensions.'
+  description: 'Public JSON:API (v1.1) for Pixely Platform extensions. All responses use the `application/vnd.api+json` media type and a JSON:API document envelope (`data`, `errors`, `meta`, `links`).'
   version: 0.1.0
+  contact:
+    name: 'Pixely Platform'
 servers:
   -
     url: /
@@ -12,7 +14,7 @@ paths:
       tags:
         - Gallery
       summary: 'List gallery photos'
-      description: 'Display gallery photos.'
+      description: 'Display a paginated list of gallery photos as JSON:API resource objects.'
       operationId: listGalleryPhotos
       parameters:
         -
@@ -36,17 +38,26 @@ paths:
             default: 20
       responses:
         200:
-          description: 'Paginated gallery photos.'
-          content:
-            application/json:
+          description: 'Paginated gallery photos, as a JSON:API document collection.'
+          headers:
+            Content-Type:
               schema:
-                $ref: '#/components/schemas/PhotoListResponse'
+                type: string
+                example: application/vnd.api+json
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/PhotoListDocument'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
   /api/v1/gallery/upload:
     post:
       tags:
         - Gallery
       summary: 'Upload a gallery photo'
-      description: 'Upload a new gallery photo.'
+      description: 'Upload a new gallery photo. The media resource is uploaded as multipart/form-data; the resulting photo is returned as a JSON:API resource object.'
       operationId: uploadGalleryPhoto
       requestBody:
         required: true
@@ -68,23 +79,19 @@ paths:
                   description: 'Image file.'
       responses:
         201:
-          description: 'Gallery photo created.'
+          description: 'Gallery photo created, returned as a JSON:API document.'
           content:
-            application/json:
+            application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/PhotoResponse'
+                $ref: '#/components/schemas/PhotoDocument'
         422:
-          description: 'Validation error.'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
+          $ref: '#/components/responses/ValidationError'
   '/api/v1/gallery/{photo}':
     get:
       tags:
         - Gallery
       summary: 'Get a gallery photo'
-      description: 'Display a single gallery photo.'
+      description: 'Display a single gallery photo as a JSON:API resource object.'
       operationId: getGalleryPhoto
       parameters:
         -
@@ -97,22 +104,22 @@ paths:
             example: 1
       responses:
         200:
-          description: 'Gallery photo.'
+          description: 'Gallery photo, as a JSON:API document.'
           content:
-            application/json:
+            application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/PhotoResponse'
+                $ref: '#/components/schemas/PhotoDocument'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
         404:
-          description: 'Photo not found.'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
+          $ref: '#/components/responses/NotFound'
     put:
       tags:
         - Gallery
       summary: 'Update a gallery photo'
-      description: 'Update a gallery photo title.'
+      description: 'Update a gallery photo title. The request is a JSON:API resource object patch.'
       operationId: updateGalleryPhoto
       parameters:
         -
@@ -126,33 +133,24 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/vnd.api+json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  maxLength: 255
-                  description: 'Photo title.'
+              $ref: '#/components/schemas/PhotoUpdateRequest'
       responses:
         200:
-          description: 'Gallery photo updated.'
+          description: 'Gallery photo updated, returned as a JSON:API document.'
           content:
-            application/json:
+            application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/PhotoResponse'
+                $ref: '#/components/schemas/PhotoDocument'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
         404:
-          description: 'Photo not found.'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
+          $ref: '#/components/responses/NotFound'
         422:
-          description: 'Validation error.'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
+          $ref: '#/components/responses/ValidationError'
     delete:
       tags:
         - Gallery
@@ -171,39 +169,98 @@ paths:
       responses:
         204:
           description: 'Gallery photo deleted.'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
         404:
-          description: 'Photo not found.'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
+          $ref: '#/components/responses/NotFound'
 tags:
   -
     name: Gallery
     description: 'Gallery photo management.'
 components:
+  responses:
+    Unauthorized:
+      description: 'Authentication required.'
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/JsonApiErrorDocument'
+    Forbidden:
+      description: 'Insufficient permissions.'
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/JsonApiErrorDocument'
+    NotFound:
+      description: 'Resource not found.'
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/JsonApiErrorDocument'
+    ValidationError:
+      description: 'Validation error.'
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/JsonApiErrorDocument'
   schemas:
-    ApiError:
+    JsonApiErrorDocument:
       type: object
       required:
-        - error
+        - errors
       properties:
-        error:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/JsonApiError'
+        jsonapi:
           type: object
-          required:
-            - code
-            - message
           properties:
-            code:
+            version:
               type: string
-              example: RESOURCE_NOT_FOUND
-            message:
+              example: '1.1'
+    JsonApiError:
+      type: object
+      required:
+        - status
+        - code
+        - title
+      properties:
+        status:
+          type: string
+          description: 'The HTTP status code, as a string.'
+          example: '404'
+        code:
+          type: string
+          description: 'A machine-readable error code.'
+          example: RESOURCE_NOT_FOUND
+        title:
+          type: string
+          description: 'A short, human-readable summary.'
+          example: 'Resource Not Found'
+        detail:
+          type: string
+          nullable: true
+          description: 'A detailed, human-readable explanation.'
+          example: 'The requested resource was not found.'
+        source:
+          type: object
+          properties:
+            pointer:
               type: string
-              example: 'The requested resource was not found.'
-            details:
-              type: object
-              nullable: true
-              additionalProperties: true
+              description: 'A JSON Pointer to the associated element of the request document.'
+              example: '/data/attributes/title'
+            parameter:
+              type: string
+              description: 'A query parameter name.'
+              example: page
+        meta:
+          type: object
+          nullable: true
+          description: 'Non-standard meta information about the error.'
+          additionalProperties: true
     PaginationMeta:
       type: object
       required:
@@ -224,39 +281,129 @@ components:
         total:
           type: integer
           example: 95
-    Photo:
+    PaginationLinks:
       type: object
-      required:
-        - id
-        - title
-        - filename
       properties:
-        id:
-          type: integer
-          example: 1
-        title:
+        self:
           type: string
+          format: uri
+          description: 'The link to the current page.'
+          example: 'https://api.example.com/api/v1/gallery?page=1'
+        next:
+          type: string
+          format: uri
           nullable: true
-          example: Sunset
-        filename:
+          description: 'The link to the next page, or null if none.'
+          example: 'https://api.example.com/api/v1/gallery?page=2'
+        prev:
           type: string
-          example: gallery/sunset.jpg
-    PhotoResponse:
+          format: uri
+          nullable: true
+          description: 'The link to the previous page, or null if none.'
+          example: null
+    PhotoResource:
       type: object
+      description: 'A JSON:API resource object representing a gallery photo.'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          example: photo
+        id:
+          type: string
+          description: 'The resource identifier (string, as per JSON:API).'
+          example: '1'
+        attributes:
+          type: object
+          required:
+            - title
+            - filename
+          properties:
+            title:
+              type: string
+              nullable: true
+              example: Sunset
+            filename:
+              type: string
+              example: gallery/sunset.jpg
+        relationships:
+          type: object
+          nullable: true
+          description: 'Resource relationships, if any.'
+        links:
+          type: object
+          nullable: true
+          description: 'Resource-level links (e.g. self).'
+          properties:
+            self:
+              type: string
+              format: uri
+              example: 'https://api.example.com/api/v1/gallery/1'
+    PhotoDocument:
+      type: object
+      description: 'A JSON:API document wrapping a single photo resource.'
       required:
         - data
       properties:
         data:
-          $ref: '#/components/schemas/Photo'
-    PhotoListResponse:
+          $ref: '#/components/schemas/PhotoResource'
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+              example: '1.1'
+    PhotoListDocument:
       type: object
+      description: 'A JSON:API document wrapping a paginated collection of photo resources.'
       required:
         - data
+        - links
         - meta
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Photo'
+            $ref: '#/components/schemas/PhotoResource'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
         meta:
           $ref: '#/components/schemas/PaginationMeta'
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+              example: '1.1'
+    PhotoUpdateRequest:
+      type: object
+      description: 'A JSON:API document containing a resource object patch for a photo.'
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - id
+            - attributes
+          properties:
+            type:
+              type: string
+              example: photo
+            id:
+              type: string
+              example: '1'
+            attributes:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                  description: 'Photo title.'
+                  example: Sunset

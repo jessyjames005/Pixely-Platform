@@ -540,13 +540,14 @@ Done:
 * [x] Adopt `laravel-json-api` backend (`Tuleap`, `Gallery`, `Files`, `CinemaMovie`)
 * [x] Tuleap API: strict resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json`
 * [x] JSON:API-style error fields (`status`/`code`/`title`/`detail`) via `JsonApiException`
+* [x] Remove legacy global envelope classes `ApiResponse`/`ApiCollectionResponse`/`ApiError`/`ApiErrorResponse` (and their tests); strict global error rendering in `bootstrap/app.php` (`application/vnd.api+json`, JSON:API `errors[]`); `MakeExtension` generator emits strict stubs (`EnsureJsonApiMediaType` + `DataResponse`) and `MakeExtensionTest` updated. Extension data responses (Gallery/Files) still legacy `{ data }`.
 
-Still pending (the strict-global contract):
-* [ ] Rewrite `ApiResponse` / `ApiCollectionResponse` / `ApiError` for strict JSON:API envelopes (Gallery/Files/global still legacy `{ data }`)
+Still pending (extension data envelopes + runtime links):
+* [ ] Convert extension data responses (`Gallery`, `Files`) from legacy `{ data }` to strict JSON:API resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json` (global error path is already strict via `bootstrap/app.php`)
 * [ ] JSON:API `links` (self, pagination `next`/`prev`)
-* [ ] `Content-Type: application/vnd.api+json` content negotiation on all resource responses
-* [ ] Update `openapi.yml` schemas for JSON:API (currently `application/json`, `{ data: Photo }` flat)
-* [ ] Migration tests
+* [ ] `Content-Type: application/vnd.api+json` content negotiation on all resource responses (enforced on global error path `bootstrap/app.php` and documented in `openapi.yml`; extension data responses still legacy until converted)
+* [x] Update `openapi.yml` schemas for JSON:API — strict document envelope, `Photo` resource objects (`type`/`id`/`attributes`), JSON:API `errors[]` schema, `application/vnd.api+json` media types; Swagger UI now documents the compliant contract
+* [x] Migration tests — added `tests/Feature/Api/StrictErrorEnvelopeTest` covering the strict 404 error envelope + media type (MakeExtensionTest also updated)
 
 ### API Authentication
 

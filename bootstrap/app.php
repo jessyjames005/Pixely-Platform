@@ -63,27 +63,46 @@ return Application::configure(basePath: dirname(__DIR__))
                 default => 'INTERNAL_SERVER_ERROR',
             };
 
+            $title = match ($status) {
+                404 => 'The requested resource was not found.',
+                405 => 'This HTTP method is not allowed for this endpoint.',
+                401 => 'Authentication is required to access this resource.',
+                403 => 'You are not authorized to perform this action.',
+                422 => 'The given data is invalid.',
+                default => 'An unexpected error occurred.',
+            };
+
             if ($exception instanceof ValidationException) {
+                $errors = [];
+
+                foreach ($exception->errors() as $field => $messages) {
+                    foreach ($messages as $message) {
+                        $errors[] = [
+                            'status' => '422',
+                            'code' => 'VALIDATION_ERROR',
+                            'title' => $field,
+                            'detail' => $message,
+                            'source' => ['pointer' => '/data/attributes/' . str_replace('.', '/', $field)],
+                        ];
+                    }
+                }
+
                 return response()->json([
-                    'error' => [
-                        'code' => 'VALIDATION_ERROR',
-                        'message' => 'The given data was invalid.',
-                        'details' => $exception->errors(),
-                    ],
-                ], 422);
+                    'jsonapi' => '1.1',
+                    'errors' => $errors,
+                ], $status, ['Content-Type' => 'application/vnd.api+json']);
             }
 
             return response()->json([
-                'error' => [
-                    'code' => $code,
-                    'message' => match ($status) {
-                        404 => 'The requested resource was not found.',
-                        405 => 'This HTTP method is not allowed for this endpoint.',
-                        401 => 'Authentication is required to access this resource.',
-                        403 => 'You are not authorized to perform this action.',
-                        default => 'An unexpected error occurred.',
-                    },
+                'jsonapi' => '1.1',
+                'errors' => [
+                    [
+                        'status' => (string) $status,
+                        'code' => $code,
+                        'title' => $title,
+                        'detail' => $title,
+                    ],
                 ],
-            ], $status);
+            ], $status, ['Content-Type' => 'application/vnd.api+json']);
         });
     })->create();

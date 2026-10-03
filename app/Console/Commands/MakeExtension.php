@@ -235,23 +235,25 @@ final class MakeExtension extends Command
 
         namespace App\\Extensions\\{$studly}\\Http\\Controllers\\Api;
 
-        use App\\Core\\Api\\Response\\ApiCollectionResponse;
         use Dedoc\\Scramble\\Attributes\\Group;
-        use Illuminate\\Http\\JsonResponse;
+        use LaravelJsonApi\\Core\\Responses\\DataResponse;
 
         /**
          * Handles {$studly} API requests.
          *
-         * This is an empty starting point — add methods (index, store,
-         * show, update, destroy) following the same pattern as
-         * App\\Extensions\\Gallery\\Http\\Controllers\\Api\\GalleryController.
+         * Returns strict JSON:API documents via LaravelJsonApi. Add methods
+         * (index, store, show, update, destroy) following the same pattern as
+         * App\\Extensions\\Gallery\\Http\\Controllers\\Api\\GalleryController,
+         * and register the matching resource on the 'v1' JSON:API server.
          */
         #[Group('{$studly}', weight: 10)]
         final class {$studly}Controller
         {
-            public function index(ApiCollectionResponse \$apiResponse): JsonResponse
+            public function index(): DataResponse
             {
-                return \$apiResponse->response(data: [], meta: ['total' => 0]);
+                return DataResponse::make([])
+                    ->withServer('v1')
+                    ->withMeta(['total' => 0]);
             }
         }
 
@@ -266,6 +268,7 @@ final class MakeExtension extends Command
         declare(strict_types=1);
 
         use App\\Extensions\\{$studly}\\Http\\Controllers\\Api\\{$studly}Controller;
+        use App\\JsonApi\\V1\\Middleware\\EnsureJsonApiMediaType;
         use Illuminate\\Support\\Facades\\Route;
 
         /**
@@ -273,8 +276,14 @@ final class MakeExtension extends Command
          *
          * Registered under api/v1 by {$studly}ServiceProvider, following
          * the same per-extension routing convention as other extensions.
+         * Honours the strict JSON:API contract (Accept / Content-Type
+         * application/vnd.api+json) via EnsureJsonApiMediaType.
          */
-        Route::middleware(['auth:sanctum', 'permission:{$id}.items.view'])->group(function () {
+        Route::middleware([
+            EnsureJsonApiMediaType::class,
+            'auth:sanctum',
+            'permission:{$id}.items.view',
+        ])->group(function () {
             Route::get('/{$id}', [{$studly}Controller::class, 'index']);
         });
 
@@ -367,9 +376,11 @@ final class MakeExtension extends Command
     private function frontendModelStub(string $studly): string
     {
         return <<<TS
-        // {$studly} resource shape as returned by the API
+        // {$studly} resource attributes as returned under `attributes`.
+        // `id` and `type` are added by apiClient during JSON:API deserialization;
+        // declare attribute fields here.
         export interface {$studly}Item {
-          id: number
+          id: string
         }
 
         TS;
@@ -383,7 +394,6 @@ final class MakeExtension extends Command
         // Pinia store for the {$studly} extension.
         import { defineStore } from 'pinia'
         import { apiClient } from '@shared/services/apiClient'
-        import type { ApiCollectionResponse } from '@shared/types/api'
         import type { {$studly}Item } from '../models/{$studly}'
 
         interface {$studly}State {
@@ -397,8 +407,8 @@ final class MakeExtension extends Command
 
           actions: {
             async fetchItems(): Promise<void> {
-              const result = await apiClient.get<ApiCollectionResponse<{$studly}Item>>('/{$id}')
-              this.items = result.data
+              const result = await apiClient.getCollection<{$studly}Item>('/{$id}')
+              this.items = result.resources
             },
           },
         })
@@ -471,5 +481,6 @@ final class MakeExtension extends Command
         $this->line("5. Run: docker compose exec app php artisan pixely:extension:migrate {$id}  (once you add migrations to Database/Migrations/).");
         $this->line("6. Run: docker compose exec app php artisan pixely:extension:migration-status {$id}");
         $this->line('7. Run: docker compose exec app php artisan pixely:extensions  to confirm discovery.');
+        $this->line("8. (JSON:API) Register this extension's resource type — create app/JsonApi/V1/{$studly}/{$studly}ItemSchema.php extending DocumentSchema with `protected static string \$resourceType = '{$id}-items';`, then add `{$studly}ItemSchema::class` to `App\\JsonApi\\V1\\Server::allSchemas()`. Until then, index() returns an empty JSON:API document.");
     }
 }
