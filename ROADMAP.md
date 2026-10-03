@@ -556,7 +556,7 @@ Done:
 
 Still pending (frontend / docs):
 * [x] Frontend shared types (`resources/js/shared/types/api.ts`) already mirror the strict JSON:API document contract (`JsonApiDocument`, `JsonApiResource`, `JsonApiError`, `JsonApiCollectionResult`, `PaginationMeta`); all 12 stores consume `apiClient.getCollection` / `getResource` / `deserializeDocument` via `result.resources` / `result.meta` — 0 references to legacy `ApiResponse` / `ApiCollectionResponse` / `ApiErrorResponse`. Reconciled stale doc references in `frontend-architecture.md` (L61/L134/L162/L165) and `handbook/core/authentication.md` (L60).
-* [ ] Confirm Tuleap resource responses emit JSON:API `links`/pagination (Gallery is covered; Tuleap uses non-Eloquent document resources and may need explicit link/pagination wiring).
+* [x] Confirm Tuleap resource responses emit JSON:API `links`/pagination — `TuleapJsonApiResponse` now emits a top-level `links.self` on both singletons and collections (verified by `assertJsonStructure(['links' => ['self']])` in `TuleapJsonApiTest`, 6 tests / 66 assertions green); pagination `next`/`prev` are not applicable since Tuleap proxy collections are single-page/cached, so only `meta.total` + `links.self` are emitted (consistent with Gallery's paginated collections, which carry `first`/`last`/`next`/`prev`).
 * [x] Update `openapi.yml` schemas for JSON:API — strict document envelope, `Photo` resource objects (`type`/`id`/`attributes`), JSON:API `errors[]` schema, `application/vnd.api+json` media types; Swagger UI now documents the compliant contract
 * [x] Migration tests — added `tests/Feature/Api/StrictErrorEnvelopeTest` covering the strict 404 error envelope + media type (MakeExtensionTest also updated)
 

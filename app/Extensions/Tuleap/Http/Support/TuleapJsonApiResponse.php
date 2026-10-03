@@ -24,7 +24,7 @@ final class TuleapJsonApiResponse
             $server->schemas()->schemaFor($type),
             self::id($type, $identity, $context),
             self::attributes($attributes),
-        ))->withServer('v1');
+        ))->withServer('v1')->withLinks(['self' => self::selfLink()]);
 
         return $status === 201 ? $response->didCreate() : $response;
     }
@@ -48,6 +48,7 @@ final class TuleapJsonApiResponse
 
         return DataResponse::make($resources)
             ->withServer('v1')
+            ->withLinks(['self' => self::selfLink()])
             ->withMeta(['total' => count($resources)]);
     }
 
@@ -88,5 +89,10 @@ final class TuleapJsonApiResponse
     private static function id(string $type, string|int $identity, array $context): string
     {
         return DocumentId::encode($type, ...array_map(strval(...), [...$context, (string) $identity]));
+    }
+
+    private static function selfLink(): string
+    {
+        return request()->fullUrl();
     }
 }

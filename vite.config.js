@@ -42,7 +42,7 @@ export default defineConfig({
       "@core/extensions": fileURLToPath(
         new URL("./app/Core/Extensions/resources/js", import.meta.url),
       ),
-            "@extensions/tuleap": fileURLToPath(
+      "@extensions/tuleap": fileURLToPath(
         new URL("./app/Extensions/Tuleap/Resources/js", import.meta.url),
       ),
       "@extensions/translations": fileURLToPath(
@@ -68,6 +68,9 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: true,
-    include: ["resources/js/**/*.test.ts", "app/**/resources/js/**/*.test.ts"],
+    include: [
+      "resources/js/**/*.test.{ts,js,vue}",
+      "app/**/Resources/js/**/*.test.{ts,js,vue}",
+    ],
   },
 });

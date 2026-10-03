@@ -30,6 +30,7 @@ it('serializes Tuleap proxy project data as allowlisted JSON:API resources', fun
     $this->json('GET', '/api/v1/tuleap/projects', [], $jsonApiHeaders)
         ->assertOk()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['links' => ['self']])
         ->assertJsonPath('data.0.type', 'tuleap-projects')
         ->assertJsonPath('data.0.id', DocumentId::encode('tuleap-projects', '12'))
         ->assertJsonPath('data.0.attributes.label', 'Platform')
@@ -63,6 +64,7 @@ it('serializes config without exposing the Tuleap token', function () use ($json
     $this->json('GET', '/api/v1/config', [], $jsonApiHeaders)
         ->assertOk()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['links' => ['self']])
         ->assertJsonPath('data.type', 'tuleap-configs')
         ->assertJsonPath('data.attributes.tuleap_logged_in', true)
         ->assertJsonPath('data.attributes.tuleap_user_id', 'user-8')
@@ -158,6 +160,7 @@ it('preserves authentication and accepts a JSON:API team-member mutation', funct
     ], $jsonApiHeaders)
         ->assertCreated()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertJsonStructure(['links' => ['self']])
         ->assertJsonPath('data.type', 'tuleap-team-members')
         ->assertJsonPath('data.id', DocumentId::encode('tuleap-team-members', '45'))
         ->assertJsonPath('data.attributes.name', 'Analyst');
