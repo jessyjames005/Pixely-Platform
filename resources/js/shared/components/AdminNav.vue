@@ -1,7 +1,12 @@
 <script setup lang="ts">
-// Sidebar navigation: renders whatever the navigation registry
-// declares, filtered by permission and (for extension-backed items)
-// by whether that extension is currently enabled.
+// Sidebar navigation: renders whatever the navigation registry declares,
+// filtered by permission and (for extension-backed items) by whether that
+// extension is currently enabled.
+//
+// In expanded mode each item shows its label inline (v-list-item-title).
+// In collapsed rail mode labels are hidden; the icon carries a native
+// `title` tooltip so hovering an icon reveals the item name — without
+// auto-expanding the whole drawer.
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { useExtensionsStore } from '@core/extensions/store/extensions.store'
@@ -9,6 +14,8 @@ import { navRegistry } from '@shared/navigation/registry'
 import { navLabel } from '@shared/navigation/types'
 import type { NavItem } from '@shared/navigation/types'
 import { decodeJsonApiId } from '@shared/types/api'
+
+defineProps<{ rail: boolean }>()
 
 const authStore = useAuthStore()
 const extensionsStore = useExtensionsStore()
@@ -28,6 +35,10 @@ function isExtensionEnabled(extensionId: string): boolean {
       (ext) => decodeJsonApiId(ext.id, 2)?.at(1) === extensionId,
     )?.enabled ?? false
   )
+}
+
+function label(item: NavItem): string {
+  return navLabel(item)
 }
 
 // Filters a single NavItem (and its children) by permission/extension visibility.
@@ -71,9 +82,9 @@ function hasChildren(item: NavItem): boolean {
           <v-list-item
             v-bind="props"
             :prepend-icon="item.icon"
-            :title="navLabel(item)"
+            :title="rail ? label(item) : undefined"
           >
-            <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
+            <v-list-item-title>{{ label(item) }}</v-list-item-title>
           </v-list-item>
         </template>
         <v-list-item
@@ -81,10 +92,10 @@ function hasChildren(item: NavItem): boolean {
           :key="child.to"
           :to="child.to"
           :prepend-icon="child.icon"
-          :title="navLabel(child)"
+          :title="rail ? label(child) : undefined"
           density="compact"
         >
-          <v-list-item-title>{{ navLabel(child) }}</v-list-item-title>
+          <v-list-item-title>{{ label(child) }}</v-list-item-title>
         </v-list-item>
       </v-list-group>
 
@@ -93,9 +104,9 @@ function hasChildren(item: NavItem): boolean {
         v-else
         :to="item.to"
         :prepend-icon="item.icon"
-        :title="navLabel(item)"
+        :title="rail ? label(item) : undefined"
       >
-        <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
+        <v-list-item-title>{{ label(item) }}</v-list-item-title>
       </v-list-item>
     </template>
   </v-list>

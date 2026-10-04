@@ -22,12 +22,11 @@ const theme = useTheme()
 const NAV_RAIL_KEY = 'pixely.nav.rail'
 const drawer = ref(false)
 const collapsing = ref(localStorage.getItem(NAV_RAIL_KEY) === 'true')
-const hovering = ref(false)
 
 const { smAndUp } = useDisplay()
 
 const permanent = computed(() => smAndUp.value)
-const rail = computed(() => collapsing.value && !hovering.value && smAndUp.value)
+const rail = computed(() => collapsing.value && smAndUp.value)
 
 function setCollapsing(val: boolean): void {
   collapsing.value = val
@@ -134,10 +133,8 @@ async function switchLocale(locale: string): Promise<void> {
       :permanent="permanent"
       :rail="rail"
       mobile-break-point="sm"
-      @mouseenter="hovering = true"
-      @mouseleave="hovering = false"
     >
-      <AdminNav />
+      <AdminNav :rail="rail" />
     </v-navigation-drawer>
 
     <v-app-bar>
