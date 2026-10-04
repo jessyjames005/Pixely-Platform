@@ -7,18 +7,26 @@ namespace App\Extensions\Tuleap\Http\Controllers\Api;
 use App\Extensions\Tuleap\Contracts\TuleapServiceInterface;
 use App\Extensions\Tuleap\Http\Support\TuleapDocumentRequest;
 use App\Extensions\Tuleap\Http\Support\TuleapJsonApiResponse;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use LaravelJsonApi\Contracts\Server\Server;
 use LaravelJsonApi\Core\Exceptions\JsonApiException;
 use LaravelJsonApi\Core\Responses\DataResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Sprint retrospective management: action items and planning, per Tuleap sprint.
+ */
+#[Group('Tuleap', weight: 10)]
 final class RetroController
 {
     public function __construct(private TuleapServiceInterface $service)
     {
     }
 
+    /**
+     * List retrospective action items for a sprint.
+     */
     public function getActions(int $sprintId, Server $server): DataResponse
     {
         return TuleapJsonApiResponse::many(
@@ -29,6 +37,9 @@ final class RetroController
         );
     }
 
+    /**
+     * List retrospective planning actions for a Tuleap project.
+     */
     public function getPlanActions(int $projectId, Server $server): DataResponse
     {
         return TuleapJsonApiResponse::many(
@@ -39,6 +50,9 @@ final class RetroController
         );
     }
 
+    /**
+     * Create a new retrospective action item for a sprint.
+     */
     public function addAction(int $sprintId, Request $request, Server $server): DataResponse
     {
         $attributes = TuleapDocumentRequest::attributes(
@@ -58,6 +72,9 @@ final class RetroController
         return TuleapJsonApiResponse::one($server, 'tuleap-retro-actions', $action, $action->getKey(), status: 201);
     }
 
+    /**
+     * Update an existing retrospective action item.
+     */
     public function updateAction(int $sprintId, int $id, Request $request, Server $server): DataResponse
     {
         $attributes = TuleapDocumentRequest::attributes($request, 'tuleap-retro-actions', [
@@ -82,6 +99,9 @@ final class RetroController
         return TuleapJsonApiResponse::one($server, 'tuleap-retro-actions', $action, $action->getKey());
     }
 
+    /**
+     * Delete a retrospective action item.
+     */
     public function deleteAction(int $sprintId, int $id): Response
     {
         $this->service->deleteRetroAction($sprintId, $id);

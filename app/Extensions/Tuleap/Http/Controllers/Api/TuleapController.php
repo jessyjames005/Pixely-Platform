@@ -9,22 +9,35 @@ use App\Extensions\Tuleap\Exceptions\TuleapApiException;
 use App\Extensions\Tuleap\Exceptions\TuleapUnavailableException;
 use App\Extensions\Tuleap\Http\Support\TuleapJsonApiResponse;
 use Closure;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use LaravelJsonApi\Contracts\Server\Server;
 use LaravelJsonApi\Core\Responses\DataResponse;
 
+/**
+ * Proxies a team's Tuleap instance (projects, milestones, burndown, sprint
+ * history) and translates Tuleap-specific exceptions into JSON:API error
+ * documents.
+ */
+#[Group('Tuleap', weight: 10)]
 final class TuleapController
 {
     public function __construct(private TuleapServiceInterface $service)
     {
     }
 
+    /**
+     * Check connectivity to the configured Tuleap instance.
+     */
     public function ping(Server $server): DataResponse
     {
         return TuleapJsonApiResponse::one($server, 'tuleap-ping-snapshots', $this->service->ping(), 'current');
     }
 
+    /**
+     * List Tuleap projects visible to the configured token (cached).
+     */
     public function getProjects(Server $server): DataResponse|JsonResponse
     {
         return $this->handle(
@@ -35,6 +48,9 @@ final class TuleapController
         );
     }
 
+    /**
+     * Get a single Tuleap project by its Tuleap identifier.
+     */
     public function getProject(int $projectId, Server $server): DataResponse|JsonResponse
     {
         return $this->handle(
@@ -46,6 +62,9 @@ final class TuleapController
         );
     }
 
+    /**
+     * List members of a Tuleap project.
+     */
     public function getProjectMembers(int $projectId, Server $server): DataResponse|JsonResponse
     {
         return $this->handle(
@@ -57,6 +76,9 @@ final class TuleapController
         );
     }
 
+    /**
+     * List milestones of a Tuleap project.
+     */
     public function getMilestones(int $projectId, Server $server): DataResponse|JsonResponse
     {
         return $this->handle(
@@ -68,6 +90,9 @@ final class TuleapController
         );
     }
 
+    /**
+     * Get quality/alert stats for a Tuleap milestone (stale, no points, etc.).
+     */
     public function getStats(int $milestoneId, Server $server): DataResponse|JsonResponse
     {
         return $this->handle(
@@ -79,6 +104,9 @@ final class TuleapController
         );
     }
 
+    /**
+     * Get the burndown series for a Tuleap milestone.
+     */
     public function getBurndown(int $milestoneId, Server $server): DataResponse|JsonResponse
     {
         return $this->handle(
@@ -90,6 +118,9 @@ final class TuleapController
         );
     }
 
+    /**
+     * Get sprint history (predictability, commitment, capacity) for a project.
+     */
     public function getSprintHistory(int $projectId, Request $request, Server $server): DataResponse|JsonResponse
     {
         $range = (string) $request->query('range', '6m');

@@ -1,409 +1,1612 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: 'Pixely Platform API'
-  description: 'Public JSON:API (v1.1) for Pixely Platform extensions. All responses use the `application/vnd.api+json` media type and a JSON:API document envelope (`data`, `errors`, `meta`, `links`).'
-  version: 0.1.0
-  contact:
-    name: 'Pixely Platform'
+  title: Laravel
+  version: 0.0.1
 servers:
   -
-    url: /
-paths:
-  /api/v1/gallery:
-    get:
-      tags:
-        - Gallery
-      summary: 'List gallery photos'
-      description: 'Display a paginated list of gallery photos as JSON:API resource objects.'
-      operationId: listGalleryPhotos
-      parameters:
-        -
-          name: page
-          in: query
-          required: false
-          description: 'Page number.'
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        -
-          name: per_page
-          in: query
-          required: false
-          description: 'Number of photos per page. Maximum 100.'
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        200:
-          description: 'Paginated gallery photos, as a JSON:API document collection.'
-          headers:
-            Content-Type:
-              schema:
-                type: string
-                example: application/vnd.api+json
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/PhotoListDocument'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        403:
-          $ref: '#/components/responses/Forbidden'
-  /api/v1/gallery/upload:
-    post:
-      tags:
-        - Gallery
-      summary: 'Upload a gallery photo'
-      description: 'Upload a new gallery photo. The media resource is uploaded as multipart/form-data; the resulting photo is returned as a JSON:API resource object.'
-      operationId: uploadGalleryPhoto
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - image
-              properties:
-                title:
-                  type: string
-                  nullable: true
-                  maxLength: 255
-                  description: 'Optional photo title.'
-                image:
-                  type: string
-                  format: binary
-                  description: 'Image file.'
-      responses:
-        201:
-          description: 'Gallery photo created, returned as a JSON:API document.'
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/PhotoDocument'
-        422:
-          $ref: '#/components/responses/ValidationError'
-  '/api/v1/gallery/{photo}':
-    get:
-      tags:
-        - Gallery
-      summary: 'Get a gallery photo'
-      description: 'Display a single gallery photo as a JSON:API resource object.'
-      operationId: getGalleryPhoto
-      parameters:
-        -
-          name: photo
-          in: path
-          required: true
-          description: 'Photo identifier.'
-          schema:
-            type: integer
-            example: 1
-      responses:
-        200:
-          description: 'Gallery photo, as a JSON:API document.'
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/PhotoDocument'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        403:
-          $ref: '#/components/responses/Forbidden'
-        404:
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags:
-        - Gallery
-      summary: 'Update a gallery photo'
-      description: 'Update a gallery photo title. The request is a JSON:API resource object patch.'
-      operationId: updateGalleryPhoto
-      parameters:
-        -
-          name: photo
-          in: path
-          required: true
-          description: 'Photo identifier.'
-          schema:
-            type: integer
-            example: 1
-      requestBody:
-        required: true
-        content:
-          application/vnd.api+json:
-            schema:
-              $ref: '#/components/schemas/PhotoUpdateRequest'
-      responses:
-        200:
-          description: 'Gallery photo updated, returned as a JSON:API document.'
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/PhotoDocument'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        403:
-          $ref: '#/components/responses/Forbidden'
-        404:
-          $ref: '#/components/responses/NotFound'
-        422:
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      tags:
-        - Gallery
-      summary: 'Delete a gallery photo'
-      description: 'Delete a gallery photo and its stored image.'
-      operationId: deleteGalleryPhoto
-      parameters:
-        -
-          name: photo
-          in: path
-          required: true
-          description: 'Photo identifier.'
-          schema:
-            type: integer
-            example: 1
-      responses:
-        204:
-          description: 'Gallery photo deleted.'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        403:
-          $ref: '#/components/responses/Forbidden'
-        404:
-          $ref: '#/components/responses/NotFound'
+    url: 'http://localhost:8080/api/v1'
 tags:
   -
     name: Gallery
-    description: 'Gallery photo management.'
+  -
+    name: Authentication
+  -
+    name: Files
+  -
+    name: Users
+  -
+    name: 'Settings & Localization'
+  -
+    name: 'System Tooling'
+  -
+    name: CinemaMovie
+  -
+    name: Tuleap
+paths:
+  /photos/upload:
+    post:
+      operationId: gallery.upload
+      summary: 'Upload a new gallery photo; media is delegated to the Files extension'
+      tags:
+        - Gallery
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: { schema: { type: object, properties: { title: { type: string, minLength: 1, maxLength: 255 }, image: { type: string, format: binary, contentMediaType: application/octet-stream } }, required: [title, image] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /auth/login:
+    post:
+      operationId: auth.login
+      summary: 'Authenticate a user and start a session'
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json: { schema: { type: object, properties: { email: { type: string, format: email }, password: { type: string } }, required: [email, password] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+  /auth/logout:
+    post:
+      operationId: auth.logout
+      summary: 'Log the current user out and invalidate the session'
+      tags:
+        - Authentication
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /auth/me:
+    get:
+      operationId: auth.me
+      summary: 'Return the currently authenticated user'
+      tags:
+        - Authentication
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/translation-catalogs/{translation_catalog}':
+    get:
+      operationId: v1.translation-catalogs.show
+      tags:
+        - Authentication
+      parameters:
+        -
+          name: translation_catalog
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+  /files:
+    post:
+      operationId: file.upload
+      summary: 'Upload a new file'
+      tags:
+        - Files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary, contentMediaType: application/octet-stream } }, required: [file] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    get:
+      operationId: v1.files.index
+      description: 'List files'
+      summary: 'List files'
+      tags:
+        - File
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /profile:
+    get:
+      operationId: profile.show
+      summary: "Display the current user's own profile"
+      tags:
+        - Users
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    put:
+      operationId: profile.update
+      summary: "Update the current user's own profile fields"
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json: { schema: { type: object, properties: { data: { type: object, properties: { type: { type: string, enum: [users] }, id: { type: string }, attributes: { type: object, properties: { name: { type: string, maxLength: 255 }, bio: { type: [string, 'null'], maxLength: 1000 }, timezone: { type: string } }, required: [name, bio, timezone] } }, required: [type, attributes] } }, required: [data] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /profile/avatar:
+    post:
+      operationId: profile.uploadAvatar
+      summary: "Upload (or replace) the current user's own avatar"
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: { schema: { type: object, properties: { avatar: { type: string, format: binary, contentMediaType: application/octet-stream } }, required: [avatar] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /locales:
+    get:
+      operationId: v1.locales.index
+      tags:
+        - 'Settings & Localization'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+  '/platform-settings/{platform_setting}':
+    get:
+      operationId: v1.platform-settings.show
+      summary: 'Display the current platform settings'
+      tags:
+        - 'Settings & Localization'
+      parameters:
+        -
+          name: platform_setting
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.platform-settings.update
+      description: "Provided keys are merged into the existing settings;\nomitted keys are left untouched."
+      summary: 'Update the platform settings'
+      tags:
+        - 'Settings & Localization'
+      parameters:
+        -
+          name: platform_setting
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/vnd.api+json: { schema: { $ref: '#/components/schemas/PlatformSettingRequest' } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        422:
+          $ref: '#/components/responses/ValidationException'
+  '/user-settings/{user_setting}':
+    get:
+      operationId: v1.user-settings.show
+      summary: "Display the current user's settings"
+      tags:
+        - 'Settings & Localization'
+      parameters:
+        -
+          name: user_setting
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.user-settings.update
+      summary: "Update the current user's settings"
+      tags:
+        - 'Settings & Localization'
+      parameters:
+        -
+          name: user_setting
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/vnd.api+json: { schema: { $ref: '#/components/schemas/UserSettingRequest' } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        422:
+          $ref: '#/components/responses/ValidationException'
+  /extensions:
+    get:
+      operationId: extension.index
+      summary: 'List all registered extensions with their current state'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/extensions/{id}':
+    get:
+      operationId: extension.show
+      summary: "Display a single extension's details"
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: extensionInstall.destroy
+      description: "Does not drop database tables or roll back migrations — see\nExtensionInstaller::uninstall() docblock."
+      summary: 'Uninstall an extension: removes its files from disk'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/extensions/{id}/config':
+    get:
+      operationId: extension.showConfig
+      summary: "Display an extension's configuration: its declared defaults (if\nany) alongside the current effective values (defaults merged with\nany stored overrides) — enough for the frontend to render a form\nwithout needing to already know the extension's config shape"
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    put:
+      operationId: extension.updateConfig
+      summary: "Update an extension's configuration overrides"
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json: { schema: { type: object, properties: { data: { type: object, properties: { type: { type: string, enum: [extension-configurations] }, id: { type: string, enum: [''] }, attributes: { type: object, properties: { values: { type: array, items: { type: string }, minItems: 1 } }, required: [values] } }, required: [type, id, attributes] } }, required: [data] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/extensions/{id}/enable':
+    post:
+      operationId: extension.enable
+      summary: 'Enable an extension'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/extensions/{id}/disable':
+    post:
+      operationId: extension.disable
+      summary: 'Disable an extension'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /extensions/install:
+    post:
+      operationId: extensionInstall.install
+      summary: 'Install a new extension from an uploaded zip package'
+      tags:
+        - 'System Tooling'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: { schema: { type: object, properties: { package: { type: string, format: binary, contentMediaType: application/octet-stream, description: 'Maximum file size: 20480 kilobytes.' } }, required: [package] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/extensions/{id}/update':
+    post:
+      operationId: extensionInstall.update
+      summary: 'Update an existing extension from an uploaded zip package'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: { schema: { type: object, properties: { package: { type: string, format: binary, contentMediaType: application/octet-stream, description: 'Maximum file size: 20480 kilobytes.' } }, required: [package] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /system/logs:
+    get:
+      operationId: log.index
+      summary: 'List available log files'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/system/logs/{filename}':
+    get:
+      operationId: log.show
+      summary: 'Display parsed, filterable, paginated entries from a log file'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: filename
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /system/cache:
+    get:
+      operationId: redis.index
+      summary: 'List keys matching an optional pattern, with type and TTL'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: redis.flush
+      description: "Deliberately separate from destroy() and behind its own\npermission (system.cache.clear), since this is destructive\nand irreversible across the whole cache, not a single key."
+      summary: 'Flush the entire current Redis database'
+      tags:
+        - 'System Tooling'
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/system/cache/{key}':
+    get:
+      operationId: redis.show
+      summary: 'Display the value stored under a specific key'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: redis.destroy
+      summary: 'Delete a single key'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /system/database/tables:
+    get:
+      operationId: database.tables
+      summary: 'List tables in the database'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/system/database/tables/{table}/columns':
+    get:
+      operationId: database.columns
+      summary: "Display a table's columns"
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: table
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/system/database/tables/{table}/preview':
+    get:
+      operationId: database.preview
+      summary: "Preview a table's rows (paginated), with sensitive columns redacted"
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: table
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /system/database/query:
+    post:
+      operationId: database.query
+      summary: 'Execute an ad-hoc, validated, read-only SELECT query'
+      tags:
+        - 'System Tooling'
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json: { schema: { type: object, properties: { data: { type: object, properties: { type: { type: string, enum: [sql-queries] }, attributes: { type: object, properties: { sql: { type: string, maxLength: 5000 } }, required: [sql] } }, required: [type, attributes] } }, required: [data] } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        422:
+          $ref: '#/components/responses/ValidationException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /translation-modules:
+    get:
+      operationId: v1.translation-modules.index
+      summary: 'List translatable modules and, per module, their available locales/groups'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /translation-groups:
+    get:
+      operationId: v1.translation-groups.index
+      summary: 'List translatable modules and, per module, their available locales/groups'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/translation-groups/{translation_group}':
+    patch:
+      operationId: v1.translation-groups.update
+      summary: 'Save all translation entries for one group/locale in one request'
+      tags:
+        - 'System Tooling'
+      parameters:
+        -
+          name: translation_group
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json: { schema: { $ref: '#/components/schemas/TranslationGroupRequest' } }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        422:
+          $ref: '#/components/responses/ValidationException'
+  /translation-strings:
+    get:
+      operationId: v1.translation-strings.index
+      summary: 'List translatable modules and, per module, their available locales/groups'
+      tags:
+        - 'System Tooling'
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        404:
+          $ref: '#/components/responses/ModelNotFoundException'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /cinema-movie:
+    get:
+      operationId: cinemaMovie.index
+      summary: 'List cinema movies (starter endpoint)'
+      tags:
+        - CinemaMovie
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /tuleap/ping:
+    get:
+      operationId: tuleap.ping
+      summary: 'Check connectivity to the configured Tuleap instance'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /tuleap/projects:
+    get:
+      operationId: tuleap.getProjects
+      summary: 'List Tuleap projects visible to the configured token (cached)'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/tuleap/projects/{projectId}':
+    get:
+      operationId: tuleap.getProject
+      summary: 'Get a single Tuleap project by its Tuleap identifier'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/tuleap/projects/{projectId}/members':
+    get:
+      operationId: tuleap.getProjectMembers
+      summary: 'List members of a Tuleap project'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/tuleap/projects/{projectId}/milestones':
+    get:
+      operationId: tuleap.getMilestones
+      summary: 'List milestones of a Tuleap project'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/tuleap/milestones/{milestoneId}/stats':
+    get:
+      operationId: tuleap.getStats
+      summary: 'Get quality/alert stats for a Tuleap milestone (stale, no points, etc.)'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: milestoneId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/tuleap/milestones/{milestoneId}/burndown':
+    get:
+      operationId: tuleap.getBurndown
+      summary: 'Get the burndown series for a Tuleap milestone'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: milestoneId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/tuleap/projects/{projectId}/sprint-history':
+    get:
+      operationId: tuleap.getSprintHistory
+      summary: 'Get sprint history (predictability, commitment, capacity) for a project'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+        -
+          name: force
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { anyOf: [{ type: string }, { type: object }] } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/sprint/config/{sprintId}':
+    get:
+      operationId: sprint.getConfig
+      summary: "Get a sprint's configuration (objective, confidence index, capacity distribution)"
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    put:
+      operationId: sprint.saveConfig
+      summary: "Update a sprint's configuration (objective, CAF distribution, velocity)"
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /team/members:
+    get:
+      operationId: team.getMembers
+      summary: 'List team members (roster) for sprint planning'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    post:
+      operationId: team.addMember
+      summary: 'Add a team member to the roster'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/team/members/{id}':
+    delete:
+      operationId: team.deleteMember
+      summary: 'Remove a team member from the roster'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/caf/{sprintId}':
+    get:
+      operationId: sprint.getCaf
+      summary: 'List CAF (capacity) records for a sprint'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/caf/{sprintId}/{memberId}':
+    put:
+      operationId: sprint.saveCaf
+      summary: "Update a team member's CAF capacity value for a sprint"
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+        -
+          name: memberId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /caf-history:
+    get:
+      operationId: sprint.getCafHistory
+      summary: 'List CAF capacity history across sprints (for trend analysis)'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/burndown/{sprintId}':
+    get:
+      operationId: sprint.getBurndown
+      summary: 'Get the cached burndown points for a sprint'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    put:
+      operationId: sprint.saveBurndown
+      summary: 'Update the burndown points for a sprint'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/retro/{sprintId}':
+    get:
+      operationId: retro.getActions
+      summary: 'List retrospective action items for a sprint'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    post:
+      operationId: retro.addAction
+      summary: 'Create a new retrospective action item for a sprint'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/retro/project/{projectId}/plan-action':
+    get:
+      operationId: retro.getPlanActions
+      summary: 'List retrospective planning actions for a Tuleap project'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/retro/{sprintId}/{id}':
+    put:
+      operationId: retro.updateAction
+      summary: 'Update an existing retrospective action item'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: retro.deleteAction
+      summary: 'Delete a retrospective action item'
+      tags:
+        - Tuleap
+      parameters:
+        -
+          name: sprintId
+          in: path
+          required: true
+          schema: { type: integer }
+        -
+          name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /config:
+    get:
+      operationId: config.getConfig
+      summary: 'Get the Tuleap extension configuration'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    put:
+      operationId: config.saveConfig
+      summary: 'Update the Tuleap extension configuration (Tuleap token and/or Tuleap user id)'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /cache-info:
+    get:
+      operationId: config.getCacheInfo
+      summary: 'List Tuleap API cache entries with their TTL and size'
+      tags:
+        - Tuleap
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: string } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /cache:
+    delete:
+      operationId: config.clearCache
+      summary: 'Invalidate the Tuleap API cache, optionally for a single key'
+      tags:
+        - Tuleap
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/files/{file}':
+    get:
+      operationId: v1.files.show
+      description: 'Get a file'
+      summary: 'Get a file'
+      tags:
+        - File
+      parameters:
+        -
+          name: file
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: v1.files.destroy
+      description: 'Delete a file'
+      summary: 'Delete a file'
+      tags:
+        - File
+      parameters:
+        -
+          name: file
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        403:
+          $ref: '#/components/responses/AuthorizationException'
+  /photos:
+    get:
+      operationId: v1.photos.index
+      description: 'List gallery photos'
+      summary: 'List gallery photos'
+      tags:
+        - Gallery
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    post:
+      operationId: v1.photos.store
+      description: 'Create a gallery photo'
+      summary: 'Create a gallery photo'
+      tags:
+        - Gallery
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/photos/{photo}':
+    get:
+      operationId: v1.photos.show
+      description: 'Get a gallery photo'
+      summary: 'Get a gallery photo'
+      tags:
+        - Gallery
+      parameters:
+        -
+          name: photo
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.photos.update
+      description: 'Update a gallery photo'
+      summary: 'Update a gallery photo'
+      tags:
+        - Gallery
+      parameters:
+        -
+          name: photo
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: v1.photos.destroy
+      description: 'Delete a gallery photo'
+      summary: 'Delete a gallery photo'
+      tags:
+        - Gallery
+      parameters:
+        -
+          name: photo
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        403:
+          $ref: '#/components/responses/AuthorizationException'
+  /permissions:
+    get:
+      operationId: v1.permissions.index
+      description: 'List permissions'
+      summary: 'List permissions'
+      tags:
+        - Permission
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    post:
+      operationId: v1.permissions.store
+      description: 'Create a permission'
+      summary: 'Create a permission'
+      tags:
+        - Permission
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/permissions/{permission}':
+    get:
+      operationId: v1.permissions.show
+      description: 'Get a permission'
+      summary: 'Get a permission'
+      tags:
+        - Permission
+      parameters:
+        -
+          name: permission
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.permissions.update
+      description: 'Update a permission'
+      summary: 'Update a permission'
+      tags:
+        - Permission
+      parameters:
+        -
+          name: permission
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: v1.permissions.destroy
+      description: 'Delete a permission'
+      summary: 'Delete a permission'
+      tags:
+        - Permission
+      parameters:
+        -
+          name: permission
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        403:
+          $ref: '#/components/responses/AuthorizationException'
+  /roles:
+    get:
+      operationId: v1.roles.index
+      description: 'List roles'
+      summary: 'List roles'
+      tags:
+        - Role
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    post:
+      operationId: v1.roles.store
+      description: 'Create a role'
+      summary: 'Create a role'
+      tags:
+        - Role
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/roles/{role}':
+    get:
+      operationId: v1.roles.show
+      description: 'Get a role'
+      summary: 'Get a role'
+      tags:
+        - Role
+      parameters:
+        -
+          name: role
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.roles.update
+      description: 'Update a role'
+      summary: 'Update a role'
+      tags:
+        - Role
+      parameters:
+        -
+          name: role
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: v1.roles.destroy
+      description: 'Delete a role'
+      summary: 'Delete a role'
+      tags:
+        - Role
+      parameters:
+        -
+          name: role
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        403:
+          $ref: '#/components/responses/AuthorizationException'
+  '/roles/{role}/relationships/permissions':
+    get:
+      operationId: v1.roles.permissions.show
+      description: 'List roles relationships'
+      summary: 'List roles relationships'
+      tags:
+        - Role
+      parameters:
+        -
+          name: role
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.roles.permissions.update
+      description: 'Update roles relationships'
+      summary: 'Update roles relationships'
+      tags:
+        - Role
+      parameters:
+        -
+          name: role
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  /users:
+    get:
+      operationId: v1.users.index
+      description: 'List users'
+      summary: 'List users'
+      tags:
+        - User
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    post:
+      operationId: v1.users.store
+      description: 'Create a user'
+      summary: 'Create a user'
+      tags:
+        - User
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+  '/users/{user}':
+    get:
+      operationId: v1.users.show
+      description: 'Get a user'
+      summary: 'Get a user'
+      tags:
+        - User
+      parameters:
+        -
+          name: user
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.users.update
+      description: 'Update a user'
+      summary: 'Update a user'
+      tags:
+        - User
+      parameters:
+        -
+          name: user
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    delete:
+      operationId: v1.users.destroy
+      description: 'Delete a user'
+      summary: 'Delete a user'
+      tags:
+        - User
+      parameters:
+        -
+          name: user
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+        403:
+          $ref: '#/components/responses/AuthorizationException'
+  '/users/{user}/relationships/roles':
+    get:
+      operationId: v1.users.roles.show
+      description: 'List users relationships'
+      summary: 'List users relationships'
+      tags:
+        - User
+      parameters:
+        -
+          name: user
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
+    patch:
+      operationId: v1.users.roles.update
+      description: 'Update users relationships'
+      summary: 'Update users relationships'
+      tags:
+        - User
+      parameters:
+        -
+          name: user
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: ''
+          content: { application/vnd.api+json: { schema: { type: object } } }
+        401:
+          $ref: '#/components/responses/AuthenticationException'
 components:
-  responses:
-    Unauthorized:
-      description: 'Authentication required.'
-      content:
-        application/vnd.api+json:
-          schema:
-            $ref: '#/components/schemas/JsonApiErrorDocument'
-    Forbidden:
-      description: 'Insufficient permissions.'
-      content:
-        application/vnd.api+json:
-          schema:
-            $ref: '#/components/schemas/JsonApiErrorDocument'
-    NotFound:
-      description: 'Resource not found.'
-      content:
-        application/vnd.api+json:
-          schema:
-            $ref: '#/components/schemas/JsonApiErrorDocument'
-    ValidationError:
-      description: 'Validation error.'
-      content:
-        application/vnd.api+json:
-          schema:
-            $ref: '#/components/schemas/JsonApiErrorDocument'
   schemas:
-    JsonApiErrorDocument:
+    PlatformSettingRequest:
       type: object
-      required:
-        - errors
       properties:
-        errors:
+        site_name:
+          type: string
+          maxLength: 255
+        locale:
+          type: string
+          enum: [en, fr]
+      title: PlatformSettingRequest
+    TranslationGroupRequest:
+      type: object
+      properties:
+        locale:
+          type: string
+          maxLength: 35
+        translations:
           type: array
-          items:
-            $ref: '#/components/schemas/JsonApiError'
-        jsonapi:
-          type: object
-          properties:
-            version:
-              type: string
-              example: '1.1'
-    JsonApiError:
-      type: object
+          items: { type: string }
+          minItems: 1
       required:
-        - status
-        - code
-        - title
-      properties:
-        status:
-          type: string
-          description: 'The HTTP status code, as a string.'
-          example: '404'
-        code:
-          type: string
-          description: 'A machine-readable error code.'
-          example: RESOURCE_NOT_FOUND
-        title:
-          type: string
-          description: 'A short, human-readable summary.'
-          example: 'Resource Not Found'
-        detail:
-          type: string
-          nullable: true
-          description: 'A detailed, human-readable explanation.'
-          example: 'The requested resource was not found.'
-        source:
-          type: object
-          properties:
-            pointer:
-              type: string
-              description: 'A JSON Pointer to the associated element of the request document.'
-              example: '/data/attributes/title'
-            parameter:
-              type: string
-              description: 'A query parameter name.'
-              example: page
-        meta:
-          type: object
-          nullable: true
-          description: 'Non-standard meta information about the error.'
-          additionalProperties: true
-    PaginationMeta:
-      type: object
-      required:
-        - current_page
-        - last_page
-        - per_page
-        - total
-      properties:
-        current_page:
-          type: integer
-          example: 1
-        last_page:
-          type: integer
-          example: 5
-        per_page:
-          type: integer
-          example: 20
-        total:
-          type: integer
-          example: 95
-    PaginationLinks:
+        - locale
+        - translations
+      title: TranslationGroupRequest
+    UserSettingRequest:
       type: object
       properties:
-        self:
+        locale:
+          type: [string, 'null']
+          enum: [en, fr, null]
+        theme:
           type: string
-          format: uri
-          description: 'The link to the current page.'
-          example: 'https://api.example.com/api/v1/gallery?page=1'
-        next:
+          enum: [system, light, dark]
+        density:
           type: string
-          format: uri
-          nullable: true
-          description: 'The link to the next page, or null if none.'
-          example: 'https://api.example.com/api/v1/gallery?page=2'
-        prev:
-          type: string
-          format: uri
-          nullable: true
-          description: 'The link to the previous page, or null if none.'
-          example: null
-    PhotoResource:
-      type: object
-      description: 'A JSON:API resource object representing a gallery photo.'
-      required:
-        - type
-        - id
-        - attributes
-      properties:
-        type:
-          type: string
-          example: photo
-        id:
-          type: string
-          description: 'The resource identifier (string, as per JSON:API).'
-          example: '1'
-        attributes:
-          type: object
-          required:
-            - title
-            - filename
-          properties:
-            title:
-              type: string
-              nullable: true
-              example: Sunset
-            filename:
-              type: string
-              example: gallery/sunset.jpg
-        relationships:
-          type: object
-          nullable: true
-          description: 'Resource relationships, if any.'
-        links:
-          type: object
-          nullable: true
-          description: 'Resource-level links (e.g. self).'
-          properties:
-            self:
-              type: string
-              format: uri
-              example: 'https://api.example.com/api/v1/gallery/1'
-    PhotoDocument:
-      type: object
-      description: 'A JSON:API document wrapping a single photo resource.'
-      required:
-        - data
-      properties:
-        data:
-          $ref: '#/components/schemas/PhotoResource'
-        jsonapi:
-          type: object
-          properties:
-            version:
-              type: string
-              example: '1.1'
-    PhotoListDocument:
-      type: object
-      description: 'A JSON:API document wrapping a paginated collection of photo resources.'
-      required:
-        - data
-        - links
-        - meta
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/PhotoResource'
-        links:
-          $ref: '#/components/schemas/PaginationLinks'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-        jsonapi:
-          type: object
-          properties:
-            version:
-              type: string
-              example: '1.1'
-    PhotoUpdateRequest:
-      type: object
-      description: 'A JSON:API document containing a resource object patch for a photo.'
-      required:
-        - data
-      properties:
-        data:
-          type: object
-          required:
-            - type
-            - id
-            - attributes
-          properties:
-            type:
-              type: string
-              example: photo
-            id:
-              type: string
-              example: '1'
-            attributes:
-              type: object
-              required:
-                - title
-              properties:
-                title:
-                  type: string
-                  maxLength: 255
-                  description: 'Photo title.'
-                  example: Sunset
+          enum: [default, comfortable, compact]
+        email_notifications:
+          type: boolean
+      title: UserSettingRequest
+  responses:
+    ValidationException:
+      description: 'Validation error'
+      content:
+        application/vnd.api+json:
+          schema: { type: object, properties: { message: { type: string, description: 'Errors overview.' }, errors: { type: object, description: 'A detailed description of each field that failed validation.', additionalProperties: { type: array, items: { type: string } } } }, required: [message, errors] }
+    AuthenticationException:
+      description: Unauthenticated
+      content:
+        application/vnd.api+json:
+          schema: { type: object, properties: { message: { type: string, description: 'Error overview.' } }, required: [message] }
+    AuthorizationException:
+      description: 'Authorization error'
+      content:
+        application/vnd.api+json:
+          schema: { type: object, properties: { message: { type: string, description: 'Error overview.' } }, required: [message] }
+    ModelNotFoundException:
+      description: 'Not found'
+      content:
+        application/vnd.api+json:
+          schema: { type: object, properties: { message: { type: string, description: 'Error overview.' } }, required: [message] }

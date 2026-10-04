@@ -30,6 +30,9 @@ final class GalleryController extends JsonApiController
     ) {
     }
 
+    /**
+     * Upload a new gallery photo; media is delegated to the Files extension.
+     */
     public function upload(Request $request): Responsable
     {
         if (! $request->accepts('application/vnd.api+json')) {

@@ -27,9 +27,6 @@ final class FileController extends JsonApiController
     }
 
     /**
-     * List uploaded files.
-     */
-    /**
      * Upload a new file.
      */
     public function upload(Request $request): DataResponse

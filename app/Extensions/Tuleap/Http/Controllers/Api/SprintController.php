@@ -7,16 +7,24 @@ namespace App\Extensions\Tuleap\Http\Controllers\Api;
 use App\Extensions\Tuleap\Contracts\TuleapServiceInterface;
 use App\Extensions\Tuleap\Http\Support\TuleapDocumentRequest;
 use App\Extensions\Tuleap\Http\Support\TuleapJsonApiResponse;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use LaravelJsonApi\Contracts\Server\Server;
 use LaravelJsonApi\Core\Responses\DataResponse;
 
+/**
+ * Sprint configuration and CAF (capacity) management for Tuleap sprints.
+ */
+#[Group('Tuleap', weight: 10)]
 final class SprintController
 {
     public function __construct(private TuleapServiceInterface $service)
     {
     }
 
+    /**
+     * Get a sprint's configuration (objective, confidence index, capacity distribution).
+     */
     public function getConfig(int $sprintId, Server $server): DataResponse
     {
         $config = $this->service->getSprintConfig($sprintId);
@@ -36,17 +44,27 @@ final class SprintController
         return TuleapJsonApiResponse::one($server, 'tuleap-sprint-configs', $config, $sprintId);
     }
 
+    /**
+     * Update a sprint's configuration (objective, CAF distribution, velocity).
+     */
     public function saveConfig(int $sprintId, Request $request, Server $server): DataResponse
     {
-        $attributes = TuleapDocumentRequest::attributes($request, 'tuleap-sprint-configs', [
-            'objective', 'confidence_index', 'pct_evolution', 'pct_analysis', 'pct_bug',
-            'working_days', 'velocity_per_day', 'review_comment',
-        ]);
+        $attributes = TuleapDocumentRequest::attributes(
+            $request,
+            'tuleap-sprint-configs',
+            [
+                'objective', 'confidence_index', 'pct_evolution', 'pct_analysis', 'pct_bug',
+                'working_days', 'velocity_per_day', 'review_comment',
+            ],
+        );
         $config = $this->service->saveSprintConfig($sprintId, $attributes);
 
         return TuleapJsonApiResponse::one($server, 'tuleap-sprint-configs', $config, $sprintId);
     }
 
+    /**
+     * List CAF (capacity) records for a sprint.
+     */
     public function getCaf(int $sprintId, Server $server): DataResponse
     {
         return TuleapJsonApiResponse::many(
@@ -57,6 +75,9 @@ final class SprintController
         );
     }
 
+    /**
+     * Update a team member's CAF capacity value for a sprint.
+     */
     public function saveCaf(int $sprintId, int $memberId, Request $request, Server $server): DataResponse
     {
         $attributes = TuleapDocumentRequest::attributes(
@@ -75,6 +96,9 @@ final class SprintController
         ], "{$sprintId}:{$memberId}");
     }
 
+    /**
+     * List CAF capacity history across sprints (for trend analysis).
+     */
     public function getCafHistory(Server $server): DataResponse
     {
         $sprintIds = explode(',', request()->query('sprint_ids', ''));
@@ -82,6 +106,9 @@ final class SprintController
         return TuleapJsonApiResponse::many($server, 'tuleap-caf-history', $this->service->getCafHistory($ids));
     }
 
+    /**
+     * Get the cached burndown points for a sprint.
+     */
     public function getBurndown(int $sprintId, Server $server): DataResponse
     {
         $points = [];
@@ -98,6 +125,9 @@ final class SprintController
         ], $sprintId);
     }
 
+    /**
+     * Update the burndown points for a sprint.
+     */
     public function saveBurndown(int $sprintId, Request $request, Server $server): DataResponse
     {
         $attributes = TuleapDocumentRequest::attributes(

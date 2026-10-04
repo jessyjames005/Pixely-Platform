@@ -17,6 +17,9 @@ use LaravelJsonApi\Core\Responses\DataResponse;
 #[Group('CinemaMovie', weight: 10)]
 final class CinemaMovieController
 {
+    /**
+     * List cinema movies (starter endpoint).
+     */
     public function index(): DataResponse
     {
         return DataResponse::make([])

@@ -7,17 +7,25 @@ namespace App\Extensions\Tuleap\Http\Controllers\Api;
 use App\Extensions\Tuleap\Contracts\TuleapServiceInterface;
 use App\Extensions\Tuleap\Http\Support\TuleapDocumentRequest;
 use App\Extensions\Tuleap\Http\Support\TuleapJsonApiResponse;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use LaravelJsonApi\Contracts\Server\Server;
 use LaravelJsonApi\Core\Responses\DataResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Tuleap extension configuration, cache inspection and clearing.
+ */
+#[Group('Tuleap', weight: 10)]
 final class ConfigController
 {
     public function __construct(private TuleapServiceInterface $service)
     {
     }
 
+    /**
+     * Get the Tuleap extension configuration.
+     */
     public function getConfig(Server $server): DataResponse
     {
         return TuleapJsonApiResponse::one($server, 'tuleap-configs', [
@@ -26,6 +34,9 @@ final class ConfigController
         ], 'current');
     }
 
+    /**
+     * Update the Tuleap extension configuration (Tuleap token and/or Tuleap user id).
+     */
     public function saveConfig(Request $request, Server $server): DataResponse
     {
         $attributes = TuleapDocumentRequest::attributes(
@@ -47,11 +58,17 @@ final class ConfigController
         return $this->getConfig($server);
     }
 
+    /**
+     * List Tuleap API cache entries with their TTL and size.
+     */
     public function getCacheInfo(Server $server): DataResponse
     {
         return TuleapJsonApiResponse::many($server, 'tuleap-cache-info', $this->service->getCacheInfo());
     }
 
+    /**
+     * Invalidate the Tuleap API cache, optionally for a single key.
+     */
     public function clearCache(Request $request): Response
     {
         $attributes = TuleapDocumentRequest::attributes($request, 'tuleap-cache-info', ['key'], [
