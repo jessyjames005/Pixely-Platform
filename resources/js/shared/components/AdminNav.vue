@@ -8,6 +8,7 @@ import { useExtensionsStore } from '@core/extensions/store/extensions.store'
 import { navRegistry } from '@shared/navigation/registry'
 import { navLabel } from '@shared/navigation/types'
 import type { NavItem } from '@shared/navigation/types'
+import { decodeJsonApiId } from '@shared/types/api'
 
 const authStore = useAuthStore()
 const extensionsStore = useExtensionsStore()
@@ -22,7 +23,11 @@ onMounted(() => {
 })
 
 function isExtensionEnabled(extensionId: string): boolean {
-  return extensionsStore.extensions.find((ext) => ext.id === extensionId)?.enabled ?? false
+  return (
+    extensionsStore.extensions.find(
+      (ext) => decodeJsonApiId(ext.id, 2)?.at(1) === extensionId,
+    )?.enabled ?? false
+  )
 }
 
 // Filters a single NavItem (and its children) by permission/extension visibility.
