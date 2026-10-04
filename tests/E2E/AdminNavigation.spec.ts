@@ -47,8 +47,9 @@ test.describe('Administration navigation', () => {
     await expect(drawer.getByText('Gallery', { exact: true })).toBeVisible()
 
     // Child links carry the expected href (independent of route resolution).
-    await expect(drawer.getByText('Gallery', { exact: true })).toHaveAttribute('href', '/admin/gallery')
-    await expect(drawer.getByText('Manage extensions', { exact: true })).toHaveAttribute('href', '/admin/extensions')
+    const galleryLink = drawer.getByRole('link', { name: 'Gallery' })
+    await expect(galleryLink).toHaveAttribute('href', '/admin/gallery')
+    await expect(drawer.getByRole('link', { name: 'Manage extensions' })).toHaveAttribute('href', '/admin/extensions')
   })
 
   test('keyboard can reach and toggle the navigation control', async ({ page }) => {
