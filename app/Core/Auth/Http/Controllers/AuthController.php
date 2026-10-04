@@ -10,6 +10,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use LaravelJsonApi\Contracts\Server\Server;
 use LaravelJsonApi\Core\Exceptions\JsonApiException;
 use LaravelJsonApi\Core\Responses\DataResponse;
@@ -27,10 +28,13 @@ final class AuthController
         Request $request,
         Server $server,
     ): DataResponse {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $credentials = Validator::make(
+            (array) $request->json()->all(),
+            [
+                'email' => ['required', 'email'],
+                'password' => ['required', 'string'],
+            ],
+        )->validate();
 
         if (! Auth::attempt($credentials)) {
             throw JsonApiException::error([
