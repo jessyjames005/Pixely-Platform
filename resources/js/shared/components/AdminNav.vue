@@ -72,7 +72,9 @@ function hasChildren(item: NavItem): boolean {
             v-bind="props"
             :prepend-icon="item.icon"
             :title="navLabel(item)"
-          />
+          >
+            <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
+          </v-list-item>
         </template>
         <v-list-item
           v-for="child in item.children"
@@ -81,7 +83,9 @@ function hasChildren(item: NavItem): boolean {
           :prepend-icon="child.icon"
           :title="navLabel(child)"
           density="compact"
-        />
+        >
+          <v-list-item-title>{{ navLabel(child) }}</v-list-item-title>
+        </v-list-item>
       </v-list-group>
 
       <!-- Simple item -->
@@ -90,7 +94,9 @@ function hasChildren(item: NavItem): boolean {
         :to="item.to"
         :prepend-icon="item.icon"
         :title="navLabel(item)"
-      />
+      >
+        <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
+      </v-list-item>
     </template>
   </v-list>
 </template>

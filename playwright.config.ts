@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 30_000 },
-  testDir: './app/Extensions',
+  testDir: '.',
   testMatch: '**/tests/E2E/**/*.spec.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),

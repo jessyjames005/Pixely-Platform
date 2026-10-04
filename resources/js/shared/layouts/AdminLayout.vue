@@ -4,7 +4,7 @@
 // theme/density preferences are applied, since this is the one place
 // every admin screen mounts through.
 import { computed, onMounted, ref, watch } from 'vue'
-import { useTheme } from 'vuetify'
+import { useTheme, useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 import AdminNav from '../components/AdminNav.vue'
 import { useAuthStore } from '@core/auth/store/auth.store'
@@ -19,7 +19,49 @@ const profileStore = useProfileStore()
 const settingsStore = useSettingsStore()
 const i18nStore = useI18nStore()
 const theme = useTheme()
-const drawer = ref(true)
+const NAV_RAIL_KEY = 'pixely.nav.rail'
+const drawer = ref(false)
+const collapsing = ref(localStorage.getItem(NAV_RAIL_KEY) === 'true')
+const hovering = ref(false)
+
+const { smAndUp } = useDisplay()
+
+const permanent = computed(() => smAndUp.value)
+const rail = computed(() => collapsing.value && !hovering.value && smAndUp.value)
+
+function setCollapsing(val: boolean): void {
+  collapsing.value = val
+  localStorage.setItem(NAV_RAIL_KEY, String(val))
+}
+
+function toggleNav(): void {
+  if (!smAndUp.value) {
+    drawer.value = true
+    return
+  }
+  setCollapsing(!collapsing.value)
+}
+
+const navIcon = computed(() =>
+  smAndUp.value
+    ? collapsing.value
+      ? 'mdi-chevron-right'
+      : 'mdi-chevron-left'
+    : 'mdi-menu',
+)
+
+const toggleTitle = computed(() =>
+  smAndUp.value
+    ? collapsing.value
+      ? t('core.nav.action.expand_navigation', 'Expand navigation')
+      : t('core.nav.action.collapse_navigation', 'Collapse navigation')
+    : t('core.nav.action.open_navigation', 'Open navigation'),
+)
+
+// Close the mobile overlay drawer once a route navigation completes.
+router.afterEach(() => {
+  if (!smAndUp.value) drawer.value = false
+})
 
 const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')
 
@@ -87,11 +129,21 @@ async function switchLocale(locale: string): Promise<void> {
 
 <template>
   <v-defaults-provider :defaults="densityDefaults">
-    <v-navigation-drawer v-model="drawer" permanent>
+    <v-navigation-drawer
+      v-model="drawer"
+      :permanent="permanent"
+      :rail="rail"
+      mobile-break-point="sm"
+      @mouseenter="hovering = true"
+      @mouseleave="hovering = false"
+    >
       <AdminNav />
     </v-navigation-drawer>
 
     <v-app-bar>
+      <v-btn icon :title="toggleTitle" :aria-label="toggleTitle" @click="toggleNav" class="mr-1">
+        <v-icon :icon="navIcon" />
+      </v-btn>
       <v-app-bar-title>Pixely Platform</v-app-bar-title>
       <v-spacer />
 
