@@ -1,113 +1,49 @@
 <script setup lang="ts">
-// Sidebar navigation: renders whatever the navigation registry declares,
-// filtered by permission and (for extension-backed items) by whether that
-// extension is currently enabled.
-//
-// In expanded mode each item shows its label inline (v-list-item-title).
-// In collapsed rail mode labels are hidden; the icon carries a native
-// `title` tooltip so hovering an icon reveals the item name — without
-// auto-expanding the whole drawer.
-import { computed, onMounted } from 'vue'
-import { useAuthStore } from '@core/auth/store/auth.store'
-import { useExtensionsStore } from '@core/extensions/store/extensions.store'
-import { navRegistry } from '@shared/navigation/registry'
-import { navLabel } from '@shared/navigation/types'
-import type { NavItem } from '@shared/navigation/types'
-import { decodeJsonApiId } from '@shared/types/api'
+import { ref } from 'vue'
+import { useVisibleNav } from '@shared/navigation/useVisibleNav'
+import SidebarItem from './SidebarItem.vue'
 
-defineProps<{ rail: boolean }>()
+const props = defineProps<{ rail: boolean }>()
+defineEmits<{
+  (e: 'toggle-rail'): void
+}>()
 
-const authStore = useAuthStore()
-const extensionsStore = useExtensionsStore()
+const { visibleItems } = useVisibleNav()
 
-// Needed to know which extension-backed nav items should be hidden.
-// Only fetch extensions for users who have permission to view them;
-// the backend returns 403 otherwise.
-onMounted(() => {
-  if (authStore.can('system.extensions.view') && extensionsStore.extensions.length === 0) {
-    extensionsStore.fetchExtensions().catch(() => undefined)
-  }
-})
+const openGroup = ref<string | null>(null)
 
-function isExtensionEnabled(extensionId: string): boolean {
-  return (
-    extensionsStore.extensions.find(
-      (ext) => decodeJsonApiId(ext.id, 2)?.at(1) === extensionId,
-    )?.enabled ?? false
-  )
-}
-
-function label(item: NavItem): string {
-  return navLabel(item)
-}
-
-// Filters a single NavItem (and its children) by permission/extension visibility.
-function filterItem(item: NavItem): NavItem | null {
-  if (item.permission && !authStore.can(item.permission)) {
-    return null
-  }
-  if (item.extensionId && !isExtensionEnabled(item.extensionId)) {
-    return null
-  }
-  if (item.children) {
-    const filteredChildren = item.children
-      .map(filterItem)
-      .filter((child): child is NavItem => child !== null)
-    if (filteredChildren.length === 0) {
-      return null
-    }
-    return { ...item, children: filteredChildren }
-  }
-  return item
-}
-
-const visibleItems = computed(() =>
-  navRegistry.map(filterItem).filter((item): item is NavItem => item !== null),
-)
-
-function hasChildren(item: NavItem): boolean {
-  return Array.isArray(item.children) && item.children.length > 0
+function handleToggle(item: string): void {
+  openGroup.value = openGroup.value === item ? null : item
 }
 </script>
 
 <template>
   <v-list nav>
-    <template v-for="item in visibleItems" :key="item.to">
-      <!-- Nested submenu -->
-      <v-list-group
-        v-if="hasChildren(item)"
-        :value="item.to"
-      >
-        <template #activator="{ props }">
-          <v-list-item
-            v-bind="props"
-            :prepend-icon="item.icon"
-            :title="rail ? label(item) : undefined"
-          >
-            <v-list-item-title>{{ label(item) }}</v-list-item-title>
-          </v-list-item>
-        </template>
-        <v-list-item
-          v-for="child in item.children"
-          :key="child.to"
-          :to="child.to"
-          :prepend-icon="child.icon"
-          :title="rail ? label(child) : undefined"
-          density="compact"
-        >
-          <v-list-item-title>{{ label(child) }}</v-list-item-title>
-        </v-list-item>
-      </v-list-group>
-
-      <!-- Simple item -->
-      <v-list-item
-        v-else
-        :to="item.to"
-        :prepend-icon="item.icon"
-        :title="rail ? label(item) : undefined"
-      >
-        <v-list-item-title>{{ label(item) }}</v-list-item-title>
-      </v-list-item>
-    </template>
+    <sidebar-item
+      v-for="item in visibleItems"
+      :key="item.to"
+      :item="item"
+      :rail="props.rail"
+      :open="props.rail ? false : openGroup === item.to"
+      :on-toggle="props.rail ? undefined : () => handleToggle(item.to)"
+    />
   </v-list>
+
+  <v-divider class="my-2" />
+
+  <div class="pa-2 d-flex align-center">
+    <v-btn
+      icon
+      :title="props.rail ? 'Expand navigation' : 'Collapse navigation'"
+      :aria-label="props.rail ? 'Expand navigation' : 'Collapse navigation'"
+      @click="$emit('toggle-rail')"
+    >
+      <v-icon :icon="props.rail ? 'mdi-chevron-right' : 'mdi-chevron-left'" />
+    </v-btn>
+    <span class="ml-2 text-medium-emphasis small">{{ props.rail ? 'Expand' : 'Collapse' }}</span>
+  </div>
 </template>
+
+<style scoped>
+/* Align the footer toggle with the rail/expanded width. */
+</style>

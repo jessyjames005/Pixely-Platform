@@ -21,41 +21,22 @@ const i18nStore = useI18nStore()
 const theme = useTheme()
 const NAV_RAIL_KEY = 'pixely.nav.rail'
 const drawer = ref(false)
-const collapsing = ref(localStorage.getItem(NAV_RAIL_KEY) === 'true')
+const collapsed = ref(localStorage.getItem(NAV_RAIL_KEY) === 'true')
 
 const { smAndUp } = useDisplay()
 
 const permanent = computed(() => smAndUp.value)
-const rail = computed(() => collapsing.value && smAndUp.value)
-
-function setCollapsing(val: boolean): void {
-  collapsing.value = val
-  localStorage.setItem(NAV_RAIL_KEY, String(val))
-}
+const rail = computed(() => collapsed.value && smAndUp.value)
 
 function toggleNav(): void {
   if (!smAndUp.value) {
     drawer.value = true
-    return
+  } else {
+    collapsed.value = !collapsed.value
   }
-  setCollapsing(!collapsing.value)
 }
 
-const navIcon = computed(() =>
-  smAndUp.value
-    ? collapsing.value
-      ? 'mdi-chevron-right'
-      : 'mdi-chevron-left'
-    : 'mdi-menu',
-)
-
-const toggleTitle = computed(() =>
-  smAndUp.value
-    ? collapsing.value
-      ? t('core.nav.action.expand_navigation', 'Expand navigation')
-      : t('core.nav.action.collapse_navigation', 'Collapse navigation')
-    : t('core.nav.action.open_navigation', 'Open navigation'),
-)
+watch(collapsed, (val) => localStorage.setItem(NAV_RAIL_KEY, String(val)))
 
 // Close the mobile overlay drawer once a route navigation completes.
 router.afterEach(() => {
@@ -134,27 +115,48 @@ async function switchLocale(locale: string): Promise<void> {
       :rail="rail"
       mobile-break-point="sm"
     >
-      <AdminNav :rail="rail" />
+      <AdminNav
+        :rail="rail"
+        @toggle-rail="toggleNav"
+      />
     </v-navigation-drawer>
 
     <v-app-bar>
-      <v-btn icon :title="toggleTitle" :aria-label="toggleTitle" @click="toggleNav" class="mr-1">
-        <v-icon :icon="navIcon" />
+      <v-btn
+        v-if="!smAndUp"
+        icon
+        :title="t('core.nav.action.open_navigation', 'Open navigation')"
+        :aria-label="t('core.nav.action.open_navigation', 'Open navigation')"
+        class="mr-1"
+        @click="drawer = true"
+      >
+        <v-icon icon="mdi-menu" />
       </v-btn>
       <v-app-bar-title>Pixely Platform</v-app-bar-title>
       <v-spacer />
 
-      <v-btn icon :title="isDark ? t('common.action.light_mode', 'Light mode') : t('common.action.dark_mode', 'Dark mode')" @click="toggleTheme">
+      <v-btn
+        icon
+        :title="isDark ? t('common.action.light_mode', 'Light mode') : t('common.action.dark_mode', 'Dark mode')"
+        @click="toggleTheme"
+      >
         <v-icon :icon="isDark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'" />
       </v-btn>
 
       <v-menu>
         <template #activator="{ props }">
-          <v-btn v-bind="props" icon :title="t('core.profile.preference.locale', 'Language')">
+          <v-btn
+            v-bind="props"
+            icon
+            :title="t('core.profile.preference.locale', 'Language')"
+          >
             <span style="font-size: 20px">{{ currentLocaleFlag() }}</span>
           </v-btn>
         </template>
-        <v-list density="compact" min-width="200">
+        <v-list
+          density="compact"
+          min-width="200"
+        >
           <v-list-item
             v-for="locale in LOCALES"
             :key="locale.code"
@@ -162,7 +164,10 @@ async function switchLocale(locale: string): Promise<void> {
             @click="switchLocale(locale.code)"
           >
             <template #prepend>
-              <span style="font-size: 20px" class="mr-3">{{ locale.flag }}</span>
+              <span
+                style="font-size: 20px"
+                class="mr-3"
+              >{{ locale.flag }}</span>
             </template>
             <v-list-item-title>{{ locale.name }} <span class="text-medium-emphasis">({{ locale.native }})</span></v-list-item-title>
           </v-list-item>
@@ -171,19 +176,43 @@ async function switchLocale(locale: string): Promise<void> {
 
       <v-menu>
         <template #activator="{ props }">
-          <v-btn v-bind="props" variant="text" class="text-none">
-            <v-avatar size="32" color="grey-lighten-2" class="mr-2">
-              <v-img v-if="profileStore.profile?.avatar_url" :src="profileStore.profile.avatar_url" alt="Avatar" />
-              <v-icon v-else icon="mdi-account" size="20" />
+          <v-btn
+            v-bind="props"
+            variant="text"
+            class="text-none"
+          >
+            <v-avatar
+              size="32"
+              color="grey-lighten-2"
+              class="mr-2"
+            >
+              <v-img
+                v-if="profileStore.profile?.avatar_url"
+                :src="profileStore.profile.avatar_url"
+                alt="Avatar"
+              />
+              <v-icon
+                v-else
+                icon="mdi-account"
+                size="20"
+              />
             </v-avatar>
             {{ authStore.user?.email }}
           </v-btn>
         </template>
 
         <v-list density="compact">
-          <v-list-item to="/admin/profile" prepend-icon="mdi-account" :title="t('core.profile.action.my_profile', 'My Profile')" />
+          <v-list-item
+            to="/admin/profile"
+            prepend-icon="mdi-account"
+            :title="t('core.profile.action.my_profile', 'My Profile')"
+          />
           <v-divider />
-          <v-list-item prepend-icon="mdi-logout" :title="t('core.auth.action.log_out', 'Log out')" @click="handleLogout" />
+          <v-list-item
+            prepend-icon="mdi-logout"
+            :title="t('core.auth.action.log_out', 'Log out')"
+            @click="handleLogout"
+          />
         </v-list>
       </v-menu>
     </v-app-bar>
