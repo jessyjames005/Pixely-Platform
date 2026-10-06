@@ -5,9 +5,9 @@ declare(strict_types=1);
 
 namespace App\Core\Websites\Http\Controllers;
 
-use App\Core\Websites\Services\WebsiteEngine;
+use App\Core\Websites\Contracts\WebsiteEngineInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 
 /**
@@ -18,13 +18,13 @@ use Illuminate\Routing\Controller;
 final class WebsiteEngineController extends Controller
 {
     public function __construct(
-        private WebsiteEngine $websiteEngine,
+        private WebsiteEngineInterface $websiteEngine,
     ) {}
 
     /**
      * Display all pages.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
         $filters = $request->query();
         $pages = $this->websiteEngine->listPages($filters);
@@ -42,7 +42,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Display a specific page.
      */
-    public function show(string $slug): Response
+    public function show(string $slug): JsonResponse
     {
         $page = $this->websiteEngine->getPage($slug);
 
@@ -58,7 +58,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Create a new page.
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse
     {
         $data = $request->all();
         $page = $this->websiteEngine->createPage($data);
@@ -69,7 +69,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Update an existing page.
      */
-    public function update(string $id, Request $request): Response
+    public function update(string $id, Request $request): JsonResponse
     {
         $data = $request->all();
         $page = $this->websiteEngine->updatePage($id, $data);
@@ -80,7 +80,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Delete a page.
      */
-    public function destroy(string $id): Response
+    public function destroy(string $id): JsonResponse
     {
         $this->websiteEngine->deletePage($id);
 
@@ -90,7 +90,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Display all menus.
      */
-    public function listMenus(Request $request): Response
+    public function listMenus(Request $request): JsonResponse
     {
         $menus = $this->websiteEngine->getAllMenus($request->query());
 
@@ -100,7 +100,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Display a specific menu.
      */
-    public function showMenu(string $code): Response
+    public function showMenu(string $code): JsonResponse
     {
         $menu = $this->websiteEngine->getMenu($code);
 
@@ -116,7 +116,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Create a new menu.
      */
-    public function storeMenu(Request $request): Response
+    public function storeMenu(Request $request): JsonResponse
     {
         $data = $request->all();
         $menu = $this->websiteEngine->createMenu($data);
@@ -127,7 +127,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Update an existing menu.
      */
-    public function updateMenu(string $id, Request $request): Response
+    public function updateMenu(string $id, Request $request): JsonResponse
     {
         $data = $request->all();
         $menu = $this->websiteEngine->updateMenu($id, $data);
@@ -138,7 +138,7 @@ final class WebsiteEngineController extends Controller
     /**
      * Delete a menu.
      */
-    public function destroyMenu(string $id): Response
+    public function destroyMenu(string $id): JsonResponse
     {
         $this->websiteEngine->deleteMenu($id);
 

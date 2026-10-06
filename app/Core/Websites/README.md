@@ -63,12 +63,12 @@ Main methods for page and menu management:
 
 ### TODOs (Ready for next sprints)
 
-- **Database persistence:** Retrieve/save pages and menus
+- **Database persistence:** Retrieve/save pages and menus (schema is ready in `database/migrations`)
 - **Validation systems:** Validate slugs, URLs, types
 - **Association services:** Link menus to permissions and surfaces
 - **Page templates:** System for different page types
-- **Integration route:** Connect WebsiteEngine data to Laravel route system
-- **Permission system:** Integrate with existing permission system
+- **JSON:API resources:** Convert management endpoints to the platform JSON:API convention
+- **Permission system:** Integrate with existing permission policy checks
 
 ## Migration Phases
 
@@ -87,32 +87,44 @@ Main methods for page and menu management:
 - Integrate extension content into website pages
 - Add extension widgets
 
-## Service Command
+## Registration
 
-### Creating the Service Provider
-```bash
-php artisan vendor:publish --provider="App\Core\Websites\Providers\WebsiteEngineServiceProvider" --tag="website-engine"
+The provider is registered in `bootstrap/providers.php` and loads the
+management API routes under `api/v1/website` (same per-module convention
+as Auth, Users, Roles, Extensions and Tooling):
+
+```text
+GET    /api/v1/website/pages          website.pages.view
+GET    /api/v1/website/pages/{slug}   website.pages.view
+POST   /api/v1/website/pages          website.pages.manage
+PUT    /api/v1/website/pages/{id}     website.pages.manage
+DELETE /api/v1/website/pages/{id}     website.pages.manage
+GET    /api/v1/website/menus          website.menus.view
+GET    /api/v1/website/menus/{code}   website.menus.view
+POST   /api/v1/website/menus          website.menus.manage
+PUT    /api/v1/website/menus/{id}     website.menus.manage
+DELETE /api/v1/website/menus/{id}     website.menus.manage
 ```
 
-### Registering routes
-Routes can be added using standard Laravel route files:
-```php
-// routes/web.php
-Route::get('/', function () {
-    return view('website.home');
-})->name('website.home');
+Every route requires `auth:sanctum` plus the listed permission.
 
-Route::get('/about', function () {
-    return view('website.page', ['slug' => 'about']);
-})->name('website.page');
-```
+## Database
+
+The schema lives in `database/migrations` (Core convention):
+
+- `website_pages` — string `id` primary key, unique `slug`, `status`, `template`, `seo`, `blocks`
+- `website_menus` — string `id` primary key, unique `code`
+- `website_menu_items` — string `id`, FK `menu_id` → `website_menus` (cascade), `type` (page/extension/external), `page_id`, `extension_id`, `sort_order`, `active`
+
+Identifiers are strings to match the in-memory models (`PageModel`, `Menu`,
+`MenuItem` generate IDs such as `page_...` / `menu_...`).
 
 ## Security and Permissions
 
 ### Access Controls
-- **Route middleware:** Authentication and permission verification
-- **Ownership verification:** Users can only modify their own pages
-- **Surface permissions:** Different permissions for public vs user vs admin
+- **Route middleware:** `auth:sanctum` + `permission:website.*` on every route
+- **Permissions:** `website.pages.view`, `website.pages.manage`, `website.menus.view`, `website.menus.manage` (seeded as core in `RolePermissionSeeder`)
+- **Surface targeting:** the engine serves the `public` and `user` surfaces (see ADR-0090)
 
 ### Error Handling
 - **Standard error codes:** JSON REST error envelope
@@ -156,4 +168,4 @@ Route::get('/about', function () {
 
 This sprint establishes the essential foundation for website surfaces, providing the infrastructure for a robust, extensible, and organized website system that can evolve with the application's needs.
 
-**The Website Engine Foundation is complete and ready for the next development phase.** 🚀
+**The Website Engine Foundation is complete and ready for the next development phase.**

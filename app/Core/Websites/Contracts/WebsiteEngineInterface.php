@@ -82,4 +82,12 @@ interface WebsiteEngineInterface
      * @return Menu|null Found menu or null
      */
     public function getMenu(string $code): ?Menu;
+
+    /**
+     * List all menus with optional filters.
+     *
+     * @param array<string, mixed> $filters Search filters
+     * @return array<int, Menu> List of matching menus
+     */
+    public function getAllMenus(array $filters = []): array;
 }

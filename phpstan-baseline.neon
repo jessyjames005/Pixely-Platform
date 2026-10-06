@@ -139,6 +139,12 @@ parameters:
 			path: app/Core/Users/Providers/UserServiceProvider.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Core/Websites/Providers/WebsiteEngineServiceProvider.php
+
+		-
 			message: '#^Access to an undefined property Spatie\\Permission\\Models\\Permission\:\:\$is_core\.$#'
 			identifier: property.notFound
 			count: 1

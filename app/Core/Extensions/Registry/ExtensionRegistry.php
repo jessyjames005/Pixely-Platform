@@ -70,7 +70,7 @@ final class ExtensionRegistry
             $this->extensions,
             fn (ExtensionInterface $extension): bool => in_array(
                 $surface,
-                $extension->manifest()->surfaces ?? ['admin'],
+                $extension->manifest()->surfaces,
                 true,
             ),
         );

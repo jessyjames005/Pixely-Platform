@@ -43,6 +43,10 @@ final class RolePermissionSeeder extends Seeder
         'settings.platform.manage',
         'translations.strings.view',
         'translations.strings.manage',
+        'website.pages.view',
+        'website.pages.manage',
+        'website.menus.view',
+        'website.menus.manage',
         // system.extensions.install deliberately excluded — grant manually via /admin/roles if truly needed
     ];
 

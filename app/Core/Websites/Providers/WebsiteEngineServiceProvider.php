@@ -1,6 +1,5 @@
 <?php
 
-
 declare(strict_types=1);
 
 namespace App\Core\Websites\Providers;
@@ -13,8 +12,9 @@ use Illuminate\Support\ServiceProvider;
  * Service provider for the Website Engine.
  *
  * Registers the WebsiteEngine as a singleton in the Laravel
- * service container, making its page and menu management
- * capabilities available throughout the application.
+ * service container and exposes its management API routes
+ * under api/v1/website, following the same per-module
+ * routing convention as the other Core modules.
  */
 final class WebsiteEngineServiceProvider extends ServiceProvider
 {
@@ -34,6 +34,11 @@ final class WebsiteEngineServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Service provider boot logic can be added here
+        $this->app->router
+            ->middleware('api')
+            ->prefix('api/v1')
+            ->group(
+                __DIR__ . '/../routes/api.php'
+            );
     }
 }
