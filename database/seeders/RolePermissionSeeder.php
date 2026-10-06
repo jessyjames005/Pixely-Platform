@@ -60,11 +60,11 @@ final class RolePermissionSeeder extends Seeder
         }
 
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions([
-            ...self::PERMISSIONS,
-            'gallery.photos.view', 'gallery.photos.manage', 'gallery.photos.delete',
-            'files.view', 'files.manage', 'files.delete',
-        ]);
+        // The seeded administration account is the E2E fixture and must be able
+        // to reach every feature (incl. extension-owned routes/permissions).
+        // Sync ALL known permissions rather than maintaining a brittle allow-list
+        // that falls out of sync (mirrors reset_admin_permissions.php).
+        $admin->syncPermissions(Permission::all());
 
         $editor = Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web']);
         $editor->syncPermissions(['gallery.photos.view', 'gallery.photos.manage']);

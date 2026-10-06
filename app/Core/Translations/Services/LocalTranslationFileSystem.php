@@ -21,10 +21,14 @@ final class LocalTranslationFileSystem implements TranslationFileSystemInterface
             return [];
         }
 
-        /** @var array<string, mixed> $data */
+        /** @var mixed $data */
         $data = include $path;
 
-        return Arr::dot($data);
+        // An empty (or otherwise malformed) lang file yields `1` from
+        // include() rather than an array — guard against that so a single
+        // untranslated extension can never take down the whole catalog
+        // endpoint. Treat anything non-array as an empty group.
+        return is_array($data) ? Arr::dot($data) : [];
     }
 
     public function write(string $path, array $translations): void
