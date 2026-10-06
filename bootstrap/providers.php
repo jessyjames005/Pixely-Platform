@@ -11,6 +11,7 @@ return [
     App\Core\Tooling\Providers\ToolingServiceProvider::class,
     App\Core\Translations\Providers\CoreTranslationsServiceProvider::class,
     App\Core\Users\Providers\UserServiceProvider::class,
+    App\Core\Websites\Providers\WebsiteEngineServiceProvider::class,
     App\Providers\AppServiceProvider::class,
     App\Providers\ExtensionServiceProvider::class,
     ...(class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class)

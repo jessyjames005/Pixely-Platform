@@ -1,98 +1,110 @@
-# Plan : Adaptation de la Roadmap à la Nouvelle Architecture Cible (Plateforme Modulaire)
+# Plan: Adapting Roadmap to New Target Architecture (Modular Platform)
 
-## 1. Contexte & Diagnostic de l'Existant
+## 1. Context & Diagnosis of the Existing
 
-Le document d'architecture cible formalise la vision de **Pixely Platform** :
-- **Core** : Capacités génériques transverses (Auth/ACL, Extensions, Events, Jobs, Settings, API, Logs, Audit).
-- **Extensions** : Fonctionnalités métier indépendantes (`Files`, `Gallery`, `Converter`, `Translations`).
-- **Applications** : Expériences utilisateurs séparées (`Admin`, `Gallery publique`, `Converter public`).
-- **Dépendance clé** : `Core` ne dépend d'aucune extension métier ; `Gallery` et `Converter` dépendent tous deux de `Files`.
+The target architecture document formalizes the vision of Pixely Platform:
+- **Core**: Shared generic capabilities (Auth/ACL, Extensions, Events, Jobs, Settings, API, Logs, Audit).
+- **Extensions**: Independent business functionalities (`Files`, `Gallery`, `Converter`, `Translations`).
+- **Applications**: Separate user-facing experiences (`Admin`, `Gallery public`, `Converter public`).
+- **Key Dependency**: `Core` does not depend on any business extension; `Gallery` and `Converter` both depend on `Files`.
 
-### État de l'existant dans le dépôt :
-1. **Kernel & Extensions** : Déjà mature (~80% conforme). Découverte, cycle de vie (Discover, Register, Enable, Disable, Install, Uninstall, Upgrade incrémental par steps), dépendances entre extensions avec détection de cycles, et synchronisation automatique des permissions déclarées (`ExtensionPermissionSynchronizer`).
-2. **Files Extension** : Existe déjà avec `FileUploadValidator`, `FileUploadService`, table `files`, et API/UI standalone (`/admin/files`). *Écart cible* : le modèle actuel est encore plat (pas encore de table de variantes, pas de cycle de vie formel `uploaded -> validating -> ready`, et les photos de Gallery ne sont pas encore reliées à `File`).
-3. **Gallery Extension** : Existe et fonctionne, mais avec un modèle `Photo` stockant ses propres colonnes `filename` et `thumbnail_filename`. *Écart cible* : doit être refactorisée pour utiliser `Album -> Media -> File` sans dupliquer les métadonnées de fichier.
-4. **Translations (Translets)** : Déjà aligné avec la vision. Le Core fournit le service de chargement et l'endpoint public unauthenticated (`/api/v1/locales/{locale}`), tandis que chaque extension possède ses catalogues `lang/{fr,en}` et que l'extension `Translations` fournit l'interface d'administration.
-5. **Jobs & Queues** : Redis est configuré dans Docker, mais les traitements lourds (redimensionnement, conversions) ne sont pas encore asynchrones via des files dédiées (`media`, `documents`).
-6. **Converter Extension** : Prévue dans la roadmap sous le nom "Media Conversion Extension", mais non implémentée.
+### Current state in the repository:
 
----
+1. **Kernel & Extensions**: Already mature (~80% compliant). Discovery, lifecycle (Discover, Register, Enable, Disable, Install, Uninstall, Incremental upgrade by steps), dependency management between extensions with circular dependency detection, and automatic synchronization of declared permissions (`ExtensionPermissionSynchronizer`).
 
-## 2. Évaluation de l'Ampleur du Chantier ("Est-il trop gros ?")
+2. **Files Extension**: Already exists with `FileUploadValidator`, `FileUploadService`, `files` table, and standalone API/UI (`/admin/files`). *Target gap*: The current model is still flat (no variant table yet, and Gallery photos are not yet linked to `File`).
 
-### Conclusion : **Non, le chantier n'est pas trop gros**, à 2 conditions impératives :
+3. **Gallery Extension**: Exists and works, but the `Photo` model stores its own `filename` and `thumbnail_filename` columns. *Target gap*: Should be refactored to use `Album → Media → File` without duplicating storage fields.
 
-1. **Ne pas céder au sur-développement prématuré** :
-   - Le document cible liste 89 points incluant le multi-tenancy SaaS, CDN, WebSockets, SSR/SSG pour la galerie publique, et microservices.
-   - Le document lui-même préconise de **rester sur un Monolithe Modulaire** (section 53) et classe le multi-tenancy/microservices en priorité basse ★★☆☆☆ (section 86).
-   - Ces aspects complexes doivent être repoussés en phases ultérieures.
+4. **Translations (Translets)**: Already aligned with vision. The Core provides the loading service and the public unauthenticated endpoint (`/api/v1/locales/{locale}`), while each extension has its own `lang/{fr,en}` catalogs and the `Translations` extension provides the administration interface.
 
-2. **Capitaliser sur les 60% déjà construits** :
-   - Le socle de routing JSON:API, l'Extension Manager, le système de rôles, et l'UI Vuetify 4 sont déjà en place et fonctionnels.
-   - Le chantier réel immédiat consiste en des ajustements de modélisation (`File` enrichi, `Gallery` branchée sur `Files`, architecture de `Jobs/Queues`), ce qui représente des évolutions incrémentales maîtrisables.
+5. **Jobs & Queues**: Redis is configured in Docker, but heavy processing (resizing, conversions) are not yet asynchronous via dedicated queues (`media`, `documents`).
+
+6. **Converter Extension**: Planned in the roadmap under the name "Media Conversion Extension", but not implemented.
 
 ---
 
-## 3. Découpage du Chantier en 5 Phases Pragmatiques
+## 2. Assessment of the Scope of the Project ("Is it too big?")
 
-Pour adapter la roadmap sans bloquer le développement courant :
+### Conclusion: **No, the project is not too big**, on two conditions imperative:
 
-### Phase 1 — Socle Files & Storage (Fondation pivot)
-- Enrichir le modèle `File` dans l'extension `Files` :
-  - Colonnes : `uuid`, `checksum`, `visibility` (`private`, `public`, `unlisted`, `shared`), `status` (`uploaded`, `validating`, `ready`, `processing`, `available`, `rejected`, `deleted`).
-  - Système de métadonnées (`FileMetadata` ou colonne JSON typée : dimensions, EXIF, durée, etc.).
-  - Gestion des variantes (`FileVariant` : original, thumbnail, medium, large, webp, avif).
-  - Séparation des disques/répertoires de stockage : `quarantine`, `originals`, `derivatives`.
-- Maintien de la rétrocompatibilité pour les avatars et fichiers existants.
+1. **Do not succumb to premature over-development**:
+   - The target document lists 89 points including multi-tenancy SaaS, CDN, WebSocket, SSR/SSG for the public Gallery, and microservices.
+   - The document itself advocates for evolution on a Modular Monolith (section 53) and classifies multi-tenancy/microservices as low priority ★★☆☆☆ (section 86).
+   - These complex aspects should be deferred to later phases.
 
-### Phase 2 — Refactorisation Gallery (Dépendance stricte à Files)
-- Refondre le modèle Gallery :
-  - `Album` (id, title, slug, description, visibility, cover_media_id, settings).
-  - `Media` (id, file_id [FK vers files], album_id, title, description, position, metadata, published_at).
-  - Élimination de la table/duplication `Photo.filename`.
-- Délégation complète de l'upload et des dérivés à `Files`.
+2. **Capitalize on the 60% already built**:
+   - The routing JSON:API core, the Extension Manager, the role system, and the Vuetify 4 UI are already in place and functional.
+   - The real work immediately consists of model adjustments (`File` enriched, `Gallery` branched onto `Files`, architecture of `Jobs/Queues`), which are manageable incremental evolutions.
 
-### Phase 3 — Core Events & Jobs Asynchrones
-- Système d'événements Core :
-  - `FileUploaded`, `FileDeleted`, `ConversionStarted`, `ConversionCompleted`.
-- Queues Redis spécialisées :
-  - `default`, `media`, `documents`, `maintenance`.
-- Déportation des tâches d'image (vignettes, WebP, nettoyage EXIF public) dans des Jobs asynchrones (plus de blocage dans la requête HTTP d'upload).
+---
+
+## 3. Breakdown of the Project into 5 Pragmatic Phases
+
+To adapt the roadmap without blocking development:
+
+### Phase 1 — Files Foundation & Storage (Pivot foundation)
+- Enrich the `File` model in the `Files` extension:
+   - Columns: `uuid`, `checksum`, `visibility` (`private`, `public`, `unlisted`, `shared`), `status` (`uploaded`, `validating`, `ready`, `processing`, `available`, `rejected`, `deleted`).
+   - Metadata system (`FileMetadata` or typed JSON column: dimensions, EXIF, duration, etc.).
+   - Variant management (`FileVariant`: original, thumbnail, medium, large, webp, avif).
+   - Separate directories: `quarantine`, `originals`, `derivatives`.
+- Maintain backward compatibility for avatars and existing files.
+
+### Phase 2 — Gallery Refactoring (Strict dependence on Files)
+- Refactor the Gallery model:
+   - `Album` (id, title, slug, description, visibility, cover_media_id, settings).
+   - `Media` (id, file_id [FK to `files`], album_id, title, description, position, metadata, published_at).
+   - Eliminate the `Photo` table duplication.
+- Complete delegation of upload and derivatives to `Files`.
+
+### Phase 3 — Core Events & Asynchronous Jobs
+- Core event system:
+   - `FileUploaded`, `FileDeleted`, `ConversionStarted`, `ConversionCompleted`.
+- Redis queues specialized:
+   - `default`, `media`, `documents`, `maintenance`.
+- Move heavy image processing (thumbnails, WebP, EXIF stripping on public derivatives) into asynchronous jobs (no more blocking in the HTTP upload request).
 
 ### Phase 4 — Extension Converter (Media & Documents)
-- Création de l'extension `Converter` dépendant de `Files`.
-- Modèle `Conversion` (id, source_file_id, target_format, status, progress, output_file_id).
-- Contrat `ProcessorInterface` et implémentations (`FFmpegProcessor`, `ImageProcessor`, `PdfProcessor`).
-- Endpoint dynamique de capacités : `GET /api/v1/converters/capabilities`.
-- Endpoint de conversion asynchrone : `POST /api/v1/conversions` (retourne HTTP 202 Accepted + Job ID).
-- Interface Vue 3 d'administration pour suivre les conversions.
+- Create the `Converter` extension dependent on `Files`.
+- `Conversion` model (id, source_file_id, target_format, status, progress, output_file_id).
+- `ProcessorInterface` contract and implementations (`FFmpegProcessor`, `ImageProcessor`, `PdfProcessor`).
+- Dynamic capabilities endpoint: `GET /api/v1/converters/capabilities`.
+- Asynchronous conversion endpoint: `POST /api/v1/conversions` (returns HTTP 202 Accepted + Job ID).
+- Vue 3 administration interface for tracking conversions.
 
-### Phase 5 — Découplage des Applications Frontends (Long terme)
-- Conserver l'Admin Vue 3 actuelle comme SPA centrale.
-- Partager les briques génériques (`@platform/api`, `@platform/types`, `@platform/ui`).
-- Préparer l'émergence des frontends publics légers (`photos.*`, `convert.*`).
-
----
-
-## 4. Modifications Précises à apporter à `ROADMAP.md`
-
-1. **Section `Files Extension` (dans ROADMAP.md)** :
-   - Ajouter les sous-sections : *Modèle File pivot*, *File Variants*, *File Metadata*, *Pipeline de Sécurité & Quarantaine*.
-2. **Section `v1.0.0 - Gallery Extension`** :
-   - Remplacer les spécifications de `Photo` par `Media -> File` et intégrer `Albums`.
-   - Ajouter le traitement asynchrone via Jobs et le nettoyage EXIF à la publication.
-3. **Section `Future Extensions > Media Conversion Extension`** :
-   - Renommer en `Converter Extension` et la structurer selon les points 22 à 26 du document cible (contrat `ProcessorInterface`, dynamic capabilities, réponse HTTP 202, queues dédiées).
-4. **Section Core Platform** :
-   - Ajouter explicitement les événements Core (`Event-Driven Architecture`) et la gestion des files de travail (`Queue System`).
-5. **Section `Current Execution Order`** :
-   - Mettre à jour l'ordonnancement pour placer le renforcement de `Files` et la refonte `Gallery (Album -> Media -> File)` dans la séquence logique avant l'extension Converter.
+### Phase 5 — Frontends Decoupling (Long-term)
+- Keep the current Vue 3 Admin as the central SPA.
+- Share generic bricks (`@platform/api`, `@platform/types`, `@platform/ui`).
+- Prepare for the emergence of light public frontends (`photos.*`, `convert.*`).
 
 ---
 
-## 5. Critères de Validation du Plan
+## 4. Specific Modifications to Apply to `ROADMAP.md`
 
-- [ ] La roadmap `ROADMAP.md` reflète exactement les principes de l'architecture cible sans contradiction.
-- [ ] Les fonctionnalités déjà terminées (marquées `[x]`) sont strictement préservées.
-- [ ] Le chantier est segmenté en étapes progressives évitant un arrêt de développement.
-- [ ] L'ordre d'exécution immédiat (`Current Execution Order`) est clarifié.
+1. **Section `Files Extension` (in ROADMAP.md)**:
+   - Add the following subsections: *Variant File Model*, *File Metadata*, *Storage Pipeline & Quarantine*.
+
+2. **Section `v1.0.0 - Gallery Extension`**:
+   - Replace the specifications of `Photo` by `Media → File` and integrate `Albums`.
+   - Add asynchronous processing via Jobs and EXIF stripping on publication.
+
+3. **Section `Future Extensions > Media Conversion Extension`**:
+   - Rename it to `Converter Extension` and structure it according to points 22 to 26 of the target document (contract `ProcessorInterface`, dynamic capabilities, HTTP 202 response, dedicated queues).
+
+4. **Section Core Platform**:
+   - Explicitly add the events Core (`Event-Driven Architecture`) and the queue management (`Queue System`).
+
+5. **Section `Current Execution Order`**:
+   - Update the execution order to place the strengthening of `Files` and the refactoring of `Gallery (Album → Media → File)` in the logical sequence before the Converter extension.
+
+---
+
+## 5. Validation Criteria for the Plan
+
+- [ ] The roadmap `ROADMAP.md` reflects exactly the principles of the target architecture without contradiction.
+- [ ] The features already completed (marked `[x]`) are strictly preserved.
+- [ ] The project is segmented into progressive steps avoiding a development halt.
+- [ ] The immediate execution order (`Current Execution Order`) is clarified.
+
+(End of file - total 98 lines)
