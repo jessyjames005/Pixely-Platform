@@ -94,6 +94,23 @@ We aim to build a platform that developers will enjoy using, extending and contr
 
 ---
 
+## Multi-Surface Platform
+
+Pixely Platform is evolving toward a **Multi-Surface Platform**:
+
+- **Website (public)** — public-facing pages, SEO, menus
+- **User Space** — authenticated user dashboard (`/account`)
+- **Administration** — platform management (`/admin`)
+- **API** — JSON:API backend
+
+Each extension declares its supported surfaces in its manifest.
+The Core provides surface-agnostic contracts; extensions
+implement surface-specific behavior through optional interfaces.
+
+**Evolution, not rewrite** — `/admin` is preserved during migration.
+
+---
+
 ## Our Motto
 
 **Build once. Extend forever.**

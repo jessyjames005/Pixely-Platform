@@ -13,6 +13,8 @@ export interface NavItem {
   // that can be enabled/disabled — the item is hidden when disabled,
   // regardless of permission. Core modules (Users, Roles...) omit this.
   extensionId?: string
+  // Set of surfaces this item is visible on: public, user, admin, api
+  surfaces?: string[]
   // Nested navigation items for submenus
   children?: NavItem[]
 }

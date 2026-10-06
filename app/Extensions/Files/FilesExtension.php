@@ -29,6 +29,7 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
             class: self::class,
             path: 'app/Extensions/Files',
             dependencies: [],
+            surfaces: ['admin'],
         );
     }
 

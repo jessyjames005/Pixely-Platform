@@ -132,4 +132,26 @@ final class ExtensionRegistryTest extends TestCase
             $registry->providers()
         );
     }
+
+    /**
+     * Ensure the registry can filter extensions by surface.
+     */
+    public function test_it_can_filter_extensions_by_surface(): void
+    {
+        $registry = new ExtensionRegistry();
+
+        $registry->register(
+            new FakeExtension()
+        );
+
+        $this->assertCount(
+            1,
+            $registry->forSurface('admin')
+        );
+
+        $this->assertCount(
+            0,
+            $registry->forSurface('public')
+        );
+    }
 }

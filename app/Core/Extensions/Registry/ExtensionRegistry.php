@@ -59,6 +59,24 @@ final class ExtensionRegistry
     }
 
     /**
+     * Return extensions that support the given surface.
+     *
+     * @param string $surface One of: public, user, admin, api
+     * @return array<string, ExtensionInterface>
+     */
+    public function forSurface(string $surface): array
+    {
+        return array_filter(
+            $this->extensions,
+            fn (ExtensionInterface $extension): bool => in_array(
+                $surface,
+                $extension->manifest()->surfaces ?? ['admin'],
+                true,
+            ),
+        );
+    }
+
+    /**
      * Determine whether an extension is registered.
      */
     public function has(string $id): bool

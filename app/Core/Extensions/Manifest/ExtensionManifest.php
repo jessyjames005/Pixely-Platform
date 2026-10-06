@@ -39,12 +39,20 @@ final readonly class ExtensionManifest
          * Absolute extension directory.
          */
         public string $path,
-        /**
-         * Required extension identifiers.
-         *
-         * @var string[]
-         */
-        public array $dependencies = [],
-    ) {
+/**
+     * Required extension identifiers.
+     *
+     * @var string[]
+     */
+    public array $dependencies = [],
+    /**
+     * Surfaces this extension supports.
+     * Items: public, user, admin, api.
+     * Default: all surfaces if not specified.
+     *
+     * @var string[]
+     */
+    public array $surfaces = ['admin'],
+) {
     }
 }

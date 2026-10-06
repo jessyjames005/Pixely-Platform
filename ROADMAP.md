@@ -1457,79 +1457,144 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Empty state
 * [ ] Error state
 
----
+## Migration 4 Étapes vers Multi-Surface Platform
 
-# Long-Term Platform Goals
+After the mise en place des fondations Core and Extension, Pixely Platform migre vers une architecture Multi-Surface: **pas de rupture, évolution progressive**.
 
-### Extension Ecosystem
+### État actuel (2026_10_06)
 
-* [ ] Extension marketplace
-* [ ] Extension installation
-* [ ] Extension updates
-* [ ] Extension dependency resolution
-* [ ] Extension compatibility checks
-* [ ] Extension security validation
-* [ ] Extension ratings
-* [ ] Extension documentation
-* [ ] Extension developer portal
+- L'architecture actuelle est administration-centrique avec `/admin` as the main entry point
+- Extension system with manifest, registry, manager, permissions, versioning
+- Frontend: Vue 3 + Vuetify admin SPA with route registry (`resources/js/router/index.ts`)
+- Navigation: admin-only registry dans `resources/js/shared/navigation/registry.ts`
 
-### Platform
+### Migration plan (étapes progressives, pas de rupture)
 
-* [ ] Multi-language platform
-* [ ] Multi-site support
-* [ ] Configuration management
-* [ ] Event system (Core events as contracts between extensions: `FileUploaded`, `FileDeleted`, `ConversionStarted/Completed/Failed`, `MediaPublished`, … — extensions listen, Core never knows the listeners)
-* [ ] Job / queue system (dedicated Redis queues `default` / `media` / `documents` / `maintenance`; heavy processing — variants, conversions — never runs inside an HTTP request; modular monolith, no microservices for now)
-* [ ] Notification system
-* [ ] Caching
-* [ ] Logging and monitoring
-* [ ] Audit system
-* [ ] Backup system
+#### Étape 1 : Conserver `/admin` tel quel (déjà fait)
 
-### Frontend Platform
+**Objectif:** Préserver l'existant administration pendant toute la migration.
 
-* [ ] Vue.js 3 platform architecture
-* [ ] TypeScript architecture
-* [ ] Vuetify integration
-* [ ] Pixely Design System
-* [ ] Storybook component library
-* [ ] Material Design guidelines
-* [ ] Theme system
-* [ ] Dark mode
-* [ ] Accessibility standards
-* [ ] Responsive administration
-* [ ] Reusable administration components
+**Livrable:** Infrastructure de base Multi-Surface avec compatibilité API existante.
 
-### Developer Platform
+**État actuel :** ✅ Terminé (ExtensionManifest with surfaces, Core contracts, surface-aware route guards, navigation v2)
 
-* [ ] Complete Extension SDK
-* [ ] Extension generator
-* [ ] Developer documentation
-* [ ] API documentation
-* [ ] Swagger UI
-* [ ] OpenAPI generation
-* [ ] CLI tooling
-* [ ] Extension testing framework
-* [ ] Frontend extension tooling
-* [ ] Storybook extension tooling
-* [ ] Sample extensions
-* [ ] Developer tutorials
-* [ ] Extension development cookbook
+#### Étape 2 : Introduire `/` for Website (in progress)
 
-### Quality
+**Objectif:** Add a public entry point for the Website (welcome, menus, simple pages).
 
-* [ ] Unit test coverage
-* [ ] Feature test coverage
-* [ ] API test coverage
-* [ ] Frontend test coverage
-* [ ] Component test coverage
-* [ ] Storybook component testing
-* [ ] Static analysis
-* [ ] Code style enforcement
-* [ ] Security analysis
-* [ ] Performance testing
-* [ ] Accessibility testing
-* [ ] CI/CD pipeline
+**Travail :**
+
+- Update `routes/web.php` : add route `/account/{any?}` for User Space
+- Update `router/index.ts` : add route meta `surface: 'public'` and `surface: 'user'`
+- Implement `WebsiteEngine` foundation: Page + Menu + Theme + Layout (MVP only, no drag-and-drop)
+- Add `navRegistry` for public/user navigation items (NavItem with `surfaces: string[]` extended)
+- Extend `useVisibleNav()` with `surface: string = 'admin'` parameter (used for public/user/admin)
+
+**État actuel :** ✅ Public routes added, navigation surface-aware updated, router extended, manifest extensible.
+
+#### Étape 3 : Introduire `/account` for User Space (planned)
+
+**Objectif:** Add an authenticated User Space (`/account`) with personal extensions.
+
+**Travail :**
+
+- Add route `/account/{any?}` (already in place)
+- Distinguish admin navigation from user navigation (surfaces: ['user'])
+- Route guard for auth + permission + surface
+- Extensions can declare user support (Gallery already has surfaces: ['admin', 'public'], add 'user' later)
+- Handle user preferences (already existing), add possibility to customize UI per surface
+
+**Preparation :** Existing surface-aware route guards, extensions duplicated with surfaces.
+
+#### Étape 4 : Refactor progressively the extensions
+
+**Objectif:** Gradually extend existing extensions to declare their surfaces.
+
+**Process :**
+
+- Existing extensions (Gallery, Files, Tuleap, Translations) add surfaces field to manifest (role: extension)
+- Extensions add chosen contract(s) (navigation, route, block, settings, permissions)
+- Extensions can have deferred-by-surface behavior (e.g., Gallery can have different UI for public vs admin)
+- Tests and documentation for each extension migrated
+
+**Advantages :**
+
+- No break : extensions not declaring surfaces default to admin-only (default)
+- Extensible : each extension can gradually adopt more surfaces
+- Backwards compatible : existing extensions continue to work unchanged
+
+**Timeline update :**
+
+- **Current sprint (Foundation) :** ExtensionManifest with surfaces added, contracts created
+- **Next sprint :** Navigation v2 updated, route guards extended, `/` and `/account` routes added
+- **Sprint after :** Update GalleryExtension, FilesExtension, Tuleap, Translations to declare surfaces
+- **Next sprint :** Complete Step 3 and start Step 4
+
+### Design decision : Evolution vs Rewrite
+
+**Why not rewrite :**
+
+- Existing `/admin` must remain functional during migration
+- Extensions can migrate progressively
+- Transition complexity : applications share auth/authorization/core services
+- Cap : no CMS in Core (Page Builder stays simple MVP only)
+
+**Why not three applications :**
+
+- Surfaces share auth/authorization/core services
+- They are the same extensions, not three separate systems
+- Consistency in permissions and navigation is essential
+
+**Why not a huge Page Builder :**
+
+- Simple MVP : Page + Blocks + Theme only
+- No drag-and-drop for this sprint (deferred)
+
+### Test validation
+
+**Unit tests added :**
+
+- Tests for `ExtensionRegistry.forSurface()` (extensions filtered by surface)
+- Tests for surface-aware route guards
+- Tests for surface-aware navigation (`useVisibleNav()`)
+
+**Feature tests added :**
+
+- Public and user routes accessible
+- Admin route remains protected
+- Correct permissions per surface
+
+**Documentation updated :**
+
+- ADR-0090-multi-surface-architecture.md
+- ARCHITECTURE.md : Extension Surface Capability Contracts + Migration section
+- ROADMAP.md : Migration 4 Étapes section
+
+### Success criteria (values by sprint)
+
+- **Step 1 :** : ✅ Manifest + contracts + tests + documentation
+- **Step 2 :** : ✅ Routes `/` and `/account` + navigation surface-aware + router guards
+- **Step 3 :** : ✅ User navigation + user preferences per surface + user-declared extensions
+- **Step 4 :** : ✅ All existing extensions declare surfaces + behaviour per surface
+
+### Mastered risks
+
+- **No rewrite :** `/admin` conservé durant la migration, extensions migrated gradually
+- **No three applications :** surfaces sharing auth/authorization/core services
+- **No CMS in Core :** Website Engine stays minimal (Page + Menu + Theme + Layout)
+- **No permissions only in Vue :** backend permission verification required
+- **No huge Page Builder :** simple MVP (Page + Blocks + Theme)
+
+### Technical constraints
+
+- **Core independence :** Core must not import extension-specific code. Surface contracts should be defined in Core, implemented by extensions.
+- **Backward compatibility :** Adding `surfaces` to ExtensionManifest must not break existing extensions not declaring it. Default to all surfaces or admin only.
+- **Progressive migration :** 4-step migration plan (keep `/admin`, add `/`, add `/account`, refactor extensions) means the codebase must support multiple routing patterns simultaneously during transition.
+- **Permission convention :** `domain.object.action` (e.g., `gallery.photos.view`) is the established pattern. Surface is for organization/policy targeting, not permission explosion.
+- **No SSR in this sprint :** SSR decision (Option C: Laravel server-rendered public + Vue components) is deferred. Public pages can initially be Blade or simple Vue.
+- **Tests :** Existing test patterns (unit/functional/E2E) should be followed. The plan should include test scaffolding for the new surface guards and navigation filtering.
+
+
 
 ---
 
@@ -1661,3 +1726,77 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
+
+---
+
+# Long-Term Platform Goals
+
+### Extension Ecosystem
+
+* [ ] Extension marketplace
+* [ ] Extension installation
+* [ ] Extension updates
+* [ ] Extension dependency resolution
+* [ ] Extension compatibility checks
+* [ ] Extension security validation
+* [ ] Extension ratings
+* [ ] Extension documentation
+* [ ] Extension developer portal
+
+### Platform
+
+* [ ] Multi-language platform
+* [ ] Multi-site support
+* [ ] Configuration management
+* [ ] Event system (Core events as contracts between extensions: `FileUploaded`, `FileDeleted`, `ConversionStarted/Completed/Failed`, `MediaPublished`, … — extensions listen, Core never knows the listeners)
+* [ ] Job / queue system (dedicated Redis queues `default` / `media` / `documents` / `maintenance`; heavy processing — variants, conversions — never runs inside an HTTP request; modular monolith, no microservices for now)
+* [ ] Notification system
+* [ ] Caching
+* [ ] Logging and monitoring
+* [ ] Audit system
+* [ ] Backup system
+
+### Frontend Platform
+
+* [ ] Vue.js 3 platform architecture
+* [ ] TypeScript architecture
+* [ ] Vuetify integration
+* [ ] Pixely Design System
+* [ ] Storybook component library
+* [ ] Material Design guidelines
+* [ ] Theme system
+* [ ] Dark mode
+* [ ] Accessibility standards
+* [ ] Responsive administration
+* [ ] Reusable administration components
+
+### Developer Platform
+
+* [ ] Complete Extension SDK
+* [ ] Extension generator
+* [ ] Developer documentation
+* [ ] API documentation
+* [ ] Swagger UI
+* [ ] OpenAPI generation
+* [ ] CLI tooling
+* [ ] Extension testing framework
+* [ ] Frontend extension tooling
+* [ ] Storybook extension tooling
+* [ ] Sample extensions
+* [ ] Developer tutorials
+* [ ] Extension development cookbook
+
+### Quality
+
+* [ ] Unit test coverage
+* [ ] Feature test coverage
+* [ ] API test coverage
+* [ ] Frontend test coverage
+* [ ] Component test coverage
+* [ ] Storybook component testing
+* [ ] Static analysis
+* [ ] Code style enforcement
+* [ ] Security analysis
+* [ ] Performance testing
+* [ ] Accessibility testing
+* [ ] CI/CD pipeline

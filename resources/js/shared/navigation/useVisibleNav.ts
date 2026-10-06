@@ -24,7 +24,11 @@ export function filterItem(
   item: NavItem,
   can: (permission: string) => boolean,
   extensionEnabled: (id: string) => boolean,
+  currentSurface: string = 'admin',
 ): NavItem | null {
+  if (item.surfaces && !item.surfaces.includes(currentSurface)) {
+    return null
+  }
   if (item.permission && !can(item.permission)) {
     return null
   }
@@ -33,7 +37,7 @@ export function filterItem(
   }
   if (item.children) {
     const filtered = item.children
-      .map((child) => filterItem(child, can, extensionEnabled))
+      .map((child) => filterItem(child, can, extensionEnabled, currentSurface))
       .filter((child): child is NavItem => child !== null)
     if (filtered.length === 0) {
       return null
@@ -45,7 +49,7 @@ export function filterItem(
   return item
 }
 
-export function useVisibleNav() {
+export function useVisibleNav(surface: string = 'admin') {
   const authStore = useAuthStore()
   const extensionsStore = useExtensionsStore()
 
@@ -61,7 +65,7 @@ export function useVisibleNav() {
 
   const visibleItems = computed(() =>
     navRegistry
-      .map((item) => filterItem(item, can, extensionEnabled))
+      .map((item) => filterItem(item, can, extensionEnabled, surface))
       .filter((item): item is NavItem => item !== null),
   )
 

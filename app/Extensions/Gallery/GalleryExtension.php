@@ -31,6 +31,7 @@ final class GalleryExtension implements
             dependencies: [
                 'files',
             ],
+            surfaces: ['admin', 'public'],
         );
     }
 

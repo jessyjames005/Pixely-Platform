@@ -48,3 +48,13 @@ Route::view('/admin/{any?}', 'app')
  */
 Route::view('/login', 'app')
     ->name('login.application');
+
+/**
+ * User Space application.
+ *
+ * Serves the Vue application for authenticated users.
+ * Step 3 of the progressive migration plan.
+ */
+Route::view('/account/{any?}', 'app')
+    ->where('any', '.*')
+    ->name('user.application');

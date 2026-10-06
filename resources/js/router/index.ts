@@ -25,6 +25,7 @@ import TuleapTeamSettingsView from "@extensions/tuleap/views/TeamSettingsView.vu
 import TuleapSystemSettingsView from "@extensions/tuleap/views/SystemSettingsView.vue";
 import FilesView from "@extensions/files/views/FilesView.vue";
 import CinemaMovieView from "@extensions/cinema-movie/views/CinemaMovieView.vue";
+import type { NavItem } from "@shared/navigation/types";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -35,14 +36,14 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin",
     component: AdminLayout,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, surface: 'admin' as const },
     children: [
       { path: "", name: "admin.dashboard", component: DashboardView },
-      { path: "gallery", name: "admin.gallery", component: GalleryView },
-      { path: "users", name: "admin.users", component: UsersView },
-      { path: "roles", name: "admin.roles", component: RolesView },
-      { path: "permissions", name: "admin.permissions", component: PermissionsView },
-      { path: "settings", name: "admin.settings", component: SettingsView },
+      { path: "gallery", name: "admin.gallery", component: GalleryView, meta: { requiresPermission: 'gallery.photos.view' } },
+      { path: "users", name: "admin.users", component: UsersView, meta: { requiresPermission: 'users.users.view' } },
+      { path: "roles", name: "admin.roles", component: RolesView, meta: { requiresPermission: 'roles.roles.manage' } },
+      { path: "permissions", name: "admin.permissions", component: PermissionsView, meta: { requiresPermission: 'permissions.permissions.manage' } },
+      { path: "settings", name: "admin.settings", component: SettingsView, meta: { requiresPermission: 'settings.settings.manage' } },
       {
         path: "extensions",
         name: "admin.extensions",
@@ -65,6 +66,12 @@ const routes: RouteRecordRaw[] = [
       { path: 'cinema-movie', name: 'admin.cinema-movie', component: CinemaMovieView },
     ],
   },
+  {
+    path: "/",
+    name: "public.home",
+    component: DashboardView,
+    meta: { requiresAuth: false, surface: 'public' as const },
+  },
 ];
 
 const router = createRouter({
@@ -79,7 +86,15 @@ router.beforeEach(async (to) => {
     await authStore.checkAuth();
   }
 
-  if (to.meta.requiresAuth && !authStore.user) {
+  const requiresAuth = to.meta.requiresAuth === true || to.meta.requiresAuth === undefined;
+  const requiresPermission = to.meta.requiresPermission as string | undefined;
+  const surface = to.meta.surface as string | undefined;
+
+  if (requiresAuth && !authStore.user) {
+    return { name: "login" };
+  }
+
+  if (requiresPermission && authStore.user && !authStore.can(requiresPermission)) {
     return { name: "login" };
   }
 

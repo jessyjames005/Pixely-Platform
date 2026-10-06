@@ -28,6 +28,7 @@ final class GalleryExtension implements ExtensionInterface, ExtensionConfigurabl
             dependencies: [
                 'media',
             ],
+            surfaces: ['admin'],
         );
     }
 

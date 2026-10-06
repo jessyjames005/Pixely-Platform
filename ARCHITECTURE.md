@@ -60,11 +60,58 @@ Disable
 Uninstall
 ```
 
-## Documentation
+## Extension Surface Capability Contracts
 
-The architecture is documented using:
+Pixely Extension supports **multiple surfaces**: `public`, `user`, `admin`, and `api`.
 
-- ADR (Architecture Decision Records)
-- Technical Guides
-- Diagrams
-- API Documentation
+### Core ExtensionContracts
+
+- **ExtensionNavigationInterface** → navigation items per surface
+- **ExtensionRouteProviderInterface** → routes per surface
+- **ExtensionBlockProviderInterface** → blocks per surface
+- **ExtensionSettingsInterface** → settings schema per surface
+- **ExtensionPermissionsInterface** → permission declarations per surface
+
+### Extension Manifest
+
+Every extension declares its supported surfaces:
+
+```php
+public array $surfaces = ['admin', 'public']; // default: ['admin']
+```
+
+Surfaces are for organization and policy targeting, not permission explosion.
+
+### Route Guard Architecture
+
+Route metadata: `{ surface, requiresAuth, permission?, extension? }`
+
+Guard chain:
+1. Check authentication (`requiresAuth`)
+2. Check surface authorization (`surface`)
+3. Check permissions (`permission`)
+
+### Navigation v2
+
+The existing `navRegistry` evolves to support surfaces:
+
+```typescript
+interface NavItem {
+  surfaces?: string[] // public, user, admin, api
+}
+```
+
+Navigation filtering is context-aware: shows items matching current surface and permissions.
+
+## Multi-Surface Migration
+
+**Four-step evolution (no rewrite):**
+
+1. **Step 1: Conserver `/admin`** (as-is)
+2. **Step 2: Introduire `/`** (public website)
+3. **Step 3: Introduire `/account`** (user space)
+4. **Step 4: Refactorer progressivement les extensions**
+
+**Backward compatibility:** Extensions without `surfaces` field default to `['admin']` only.
+
+**No SSR in this sprint:** Public pages can initially be Blade or simple Vue.
