@@ -150,6 +150,54 @@ public website pages, menus, user-aware behavior, administration and API.
 * [ ] Continuous deployment
 * [ ] Review app generation for pull requests
 
+
+## Current Multi-Surface Execution Roadmap
+
+Pixely is evolving progressively from the administration-first foundation into a
+**Multi-Surface Platform**. The Core provides capabilities; extensions provide
+experiences.
+
+### S0 — Multi-Surface Foundation
+
+- [x] Surface enum and request context (`public`, `user`, `admin`, `api`)
+- [x] Surface resolver and middleware
+- [x] Surface-aware extension manifests and registry
+- [x] Authentication → Surface → Permission → Policy → Resource foundation
+- [x] Admin access permission boundary
+- [x] API surface automatically established by the `api` middleware group
+- [x] Frontend surface metadata and route guards
+- [x] Unit and feature tests
+
+### S1 — Website Foundation — **IN PROGRESS**
+
+- [x] Website Engine contract and service provider
+- [x] Website page and menu persistence schema
+- [x] Persistence models separated from domain DTOs
+- [x] Page CRUD service with slug generation and status validation
+- [x] Menu CRUD service with ordered menu items
+- [x] Website API authentication and permission boundaries
+- [x] API request validation
+- [x] Unit and feature tests for the Website Engine
+- [ ] Public website layout and real public pages
+- [ ] User website/account surface integration
+- [ ] Admin Website management UI
+- [ ] Website navigation provider integration
+- [ ] Theme/layout foundation
+
+### S2 — Public Website
+
+- [ ] Public home, static pages and navigation
+- [ ] Public surface layout
+- [ ] SEO metadata pipeline
+- [ ] Extension-driven public navigation
+
+### S3 — User Space
+
+- [ ] User layout and navigation
+- [ ] Profile and preferences
+- [ ] Favorites/history extension capabilities
+
+
 ---
 
 ## v0.2.0 - Kernel
@@ -1569,20 +1617,25 @@ Resource
 - [ ] ADR updated with Surface context + authorization rules
 - [ ] CHANGELOG updated when S0 is committed
 
-### S1 — Website Foundation
+### S1 — Website Foundation — **in progress**
 
 **Objectif :** rendre le Website Engine réellement fonctionnel.
 
-- [ ] Persist pages through repository/service layer
-- [ ] Persist menus and menu items
-- [ ] Page CRUD
-- [ ] Menu CRUD
-- [ ] Publish/unpublish
-- [ ] Slugs and validation
-- [ ] SEO metadata
+- [x] Persist pages through the Website Engine service layer
+- [x] Persist menus and menu items
+- [x] Page CRUD
+- [x] Menu CRUD
+- [x] Publish/unpublish through page status
+- [x] Slugs and API validation
+- [x] SEO metadata persistence
+- [x] Website API authentication + surface + permissions
+- [x] Unit + functional tests
 - [ ] `/admin/website/pages`
 - [ ] `/admin/website/menus`
-- [ ] Unit + functional tests
+- [ ] Website navigation provider integration
+- [ ] Public website layout and page rendering
+- [ ] User website/account integration
+- [ ] Theme/layout foundation
 
 ### S2 — Public Website
 

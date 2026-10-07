@@ -6,6 +6,10 @@ declare(strict_types=1);
 namespace App\Core\Websites\Http\Controllers;
 
 use App\Core\Websites\Contracts\WebsiteEngineInterface;
+use App\Core\Websites\Http\Requests\StoreMenuRequest;
+use App\Core\Websites\Http\Requests\StorePageRequest;
+use App\Core\Websites\Http\Requests\UpdateMenuRequest;
+use App\Core\Websites\Http\Requests\UpdatePageRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -58,9 +62,9 @@ final class WebsiteEngineController extends Controller
     /**
      * Create a new page.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StorePageRequest $request): JsonResponse
     {
-        $data = $request->all();
+        $data = $request->validated();
         $page = $this->websiteEngine->createPage($data);
 
         return response()->json(['data' => $page], 201);
@@ -69,9 +73,9 @@ final class WebsiteEngineController extends Controller
     /**
      * Update an existing page.
      */
-    public function update(string $id, Request $request): JsonResponse
+    public function update(string $id, UpdatePageRequest $request): JsonResponse
     {
-        $data = $request->all();
+        $data = $request->validated();
         $page = $this->websiteEngine->updatePage($id, $data);
 
         return response()->json(['data' => $page]);
@@ -116,9 +120,9 @@ final class WebsiteEngineController extends Controller
     /**
      * Create a new menu.
      */
-    public function storeMenu(Request $request): JsonResponse
+    public function storeMenu(StoreMenuRequest $request): JsonResponse
     {
-        $data = $request->all();
+        $data = $request->validated();
         $menu = $this->websiteEngine->createMenu($data);
 
         return response()->json(['data' => $menu], 201);
@@ -127,9 +131,9 @@ final class WebsiteEngineController extends Controller
     /**
      * Update an existing menu.
      */
-    public function updateMenu(string $id, Request $request): JsonResponse
+    public function updateMenu(string $id, UpdateMenuRequest $request): JsonResponse
     {
-        $data = $request->all();
+        $data = $request->validated();
         $menu = $this->websiteEngine->updateMenu($id, $data);
 
         return response()->json(['data' => $menu]);

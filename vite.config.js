@@ -36,13 +36,16 @@ export default defineConfig({
       "@core/settings": fileURLToPath(
         new URL("./app/Core/Settings/resources/js", import.meta.url),
       ),
+      "@core/websites": fileURLToPath(
+        new URL("./app/Core/Websites/Resources/js", import.meta.url),
+      ),
       "@extensions/gallery": fileURLToPath(
-        new URL("./app/Extensions/Gallery/Resources/js", import.meta.url),
+        new URL("./app/Extensions/Gallery/resources/js", import.meta.url),
       ),
       "@core/extensions": fileURLToPath(
         new URL("./app/Core/Extensions/resources/js", import.meta.url),
       ),
-      "@extensions/tuleap": fileURLToPath(
+            "@extensions/tuleap": fileURLToPath(
         new URL("./app/Extensions/Tuleap/Resources/js", import.meta.url),
       ),
       "@extensions/translations": fileURLToPath(
@@ -50,9 +53,6 @@ export default defineConfig({
       ),
       "@extensions/files": fileURLToPath(
         new URL("./app/Extensions/Files/Resources/js", import.meta.url),
-      ),
-      "@extensions/cinema-movie": fileURLToPath(
-        new URL("./app/Extensions/CinemaMovie/resources/js", import.meta.url),
       ),
     },
   },
@@ -68,9 +68,6 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: true,
-    include: [
-      "resources/js/**/*.test.{ts,js,vue}",
-      "app/**/Resources/js/**/*.test.{ts,js,vue}",
-    ],
+    include: ["resources/js/**/*.test.ts", "app/**/resources/js/**/*.test.ts"],
   },
 });

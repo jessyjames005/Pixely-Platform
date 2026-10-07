@@ -1,194 +1,258 @@
 <?php
 
-
 declare(strict_types=1);
 
 namespace App\Core\Websites\Services;
 
 use App\Core\Websites\Contracts\WebsiteEngineInterface;
-use App\Core\Websites\Models\PageModel;
 use App\Core\Websites\Models\Menu;
 use App\Core\Websites\Models\MenuItem;
+use App\Core\Websites\Models\PageModel;
+use App\Core\Websites\Persistence\Models\MenuRecord;
+use App\Core\Websites\Persistence\Models\PageRecord;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
- * Core Website Engine service.
+ * Website Engine application service.
  *
- * Implements the WebsiteEngineInterface to manage pages,
- * menus and their associations.
- * Provides the essential pipeline for the website without drag-and-drop MVP.
+ * Keeps the domain DTOs independent from Eloquent while providing the
+ * persistence-backed page and menu operations required by the platform.
  */
 final class WebsiteEngine implements WebsiteEngineInterface
 {
-    /**
-     * {@inheritdoc}
-     */
+    private const PAGE_STATUSES = ['draft', 'published', 'archived'];
+
     public function createPage(array $data): PageModel
     {
-        // TODO: Validate page data
-        // TODO: Generate unique slug if not provided
-        // TODO: Validate specified template
-        // TODO: Persist page in database
+        $title = $this->requiredString($data, 'title');
+        $slug = $this->uniquePageSlug((string) ($data['slug'] ?? $title));
+        $status = $this->pageStatus($data['status'] ?? 'draft');
 
-        return new PageModel(
-            id: $data['id'] ?? $this->generatePageId(),
-            slug: $data['slug'] ?? $this->generateSlug($data['title'] ?? ''),
-            title: $data['title'] ?? '',
-            status: $data['status'] ?? 'draft',
-            template: $data['template'] ?? 'default',
-            seo: $data['seo'] ?? [],
-            blocks: $data['blocks'] ?? [],
-        );
+        $record = PageRecord::query()->create([
+            'id' => $data['id'] ?? 'page_' . Str::uuid(),
+            'slug' => $slug,
+            'title' => $title,
+            'status' => $status,
+            'template' => (string) ($data['template'] ?? 'default'),
+            'seo' => $data['seo'] ?? [],
+            'blocks' => $data['blocks'] ?? [],
+        ]);
+
+        return $this->toPage($record);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function updatePage(string $id, array $data): PageModel
     {
-        // TODO: Retrieve existing page
-        // TODO: Validate update data
-        // TODO: Apply changes
-        // TODO: Persist updates
+        $record = PageRecord::query()->findOrFail($id);
 
-        // Temporary implementation - returns a new page
-        return new PageModel(
-            id: $id,
-            slug: $data['slug'] ?? '',
-            title: $data['title'] ?? '',
-            status: $data['status'] ?? 'draft',
-            template: $data['template'] ?? 'default',
-            seo: $data['seo'] ?? [],
-            blocks: $data['blocks'] ?? [],
-        );
+        if (array_key_exists('slug', $data)) {
+            $data['slug'] = $this->uniquePageSlug((string) $data['slug'], $id);
+        }
+
+        if (array_key_exists('status', $data)) {
+            $data['status'] = $this->pageStatus($data['status']);
+        }
+
+        $record->fill(array_intersect_key($data, array_flip([
+            'slug', 'title', 'status', 'template', 'seo', 'blocks',
+        ])));
+        $record->save();
+
+        return $this->toPage($record->refresh());
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function deletePage(string $id): void
     {
-        // TODO: Delete page from database
-        // TODO: Clean up associated data
+        PageRecord::query()->findOrFail($id)->delete();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getPage(string $slug): ?PageModel
     {
-        // TODO: Retrieve page by slug from database
-        // TODO: Return null if not found
+        $record = PageRecord::query()->where('slug', $slug)->first();
 
-        return null;
+        return $record ? $this->toPage($record) : null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function listPages(array $filters = []): array
     {
-        // TODO: Apply filters (status, template, etc.)
-        // TODO: Retrieve pages from database
+        $query = PageRecord::query();
 
-        return [];
+        foreach (['status', 'template'] as $field) {
+            if (isset($filters[$field]) && $filters[$field] !== '') {
+                $query->where($field, $filters[$field]);
+            }
+        }
+
+        if (! empty($filters['search'])) {
+            $search = (string) $filters['search'];
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('slug', 'like', '%' . $search . '%');
+            });
+        }
+
+        return $query->orderBy('title')->get()->map(fn (PageRecord $record): PageModel => $this->toPage($record))->all();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createMenu(array $data): Menu
     {
-        // TODO: Validate menu data
-        // TODO: Create menu items
-        // TODO: Persist menu
+        $name = $this->requiredString($data, 'name');
+        $code = $this->requiredString($data, 'code');
 
-        $items = array_map(fn($item) => new MenuItem(
-            id: $item['id'],
-            type: $item['type'],
-            title: $item['title'],
-            targetUrl: $item['targetUrl'] ?? null,
-            pageId: $item['pageId'] ?? null,
-            extensionId: $item['extensionId'] ?? null,
-            slug: $item['slug'] ?? null,
-            sortOrder: $item['sortOrder'] ?? 0,
-            active: $item['active'] ?? true,
-        ), $data['items'] ?? []);
+        $menu = DB::transaction(function () use ($data, $name, $code): MenuRecord {
+            $record = MenuRecord::query()->create([
+                'id' => $data['id'] ?? 'menu_' . Str::uuid(),
+                'name' => $name,
+                'code' => $code,
+            ]);
 
-        return new Menu(
-            id: $data['id'] ?? $this->generateMenuId(),
-            name: $data['name'] ?? '',
-            code: $data['code'] ?? '',
-            items: $items,
-        );
+            $this->replaceMenuItems($record, $data['items'] ?? []);
+
+            return $record->load('items');
+        });
+
+        return $this->toMenu($menu);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function updateMenu(string $id, array $data): Menu
     {
-        // TODO: Retrieve existing menu
-        // TODO: Apply updates
-        // TODO: Persist changes
+        $menu = DB::transaction(function () use ($id, $data): MenuRecord {
+            $record = MenuRecord::query()->findOrFail($id);
+            $record->fill(array_intersect_key($data, array_flip(['name', 'code'])));
+            $record->save();
 
-        // Temporary implementation
-        return new Menu(
-            id: $id,
-            name: $data['name'] ?? '',
-            code: $data['code'] ?? '',
-            items: [],
+            if (array_key_exists('items', $data)) {
+                $this->replaceMenuItems($record, $data['items']);
+            }
+
+            return $record->load('items');
+        });
+
+        return $this->toMenu($menu);
+    }
+
+    public function deleteMenu(string $id): void
+    {
+        MenuRecord::query()->findOrFail($id)->delete();
+    }
+
+    public function getMenu(string $code): ?Menu
+    {
+        $record = MenuRecord::query()->with('items')->where('code', $code)->first();
+
+        return $record ? $this->toMenu($record) : null;
+    }
+
+    public function getAllMenus(array $filters = []): array
+    {
+        $query = MenuRecord::query()->with('items');
+
+        if (! empty($filters['code'])) {
+            $query->where('code', $filters['code']);
+        }
+
+        return $query->orderBy('name')->get()->map(fn (MenuRecord $record): Menu => $this->toMenu($record))->all();
+    }
+
+    private function replaceMenuItems(MenuRecord $menu, array $items): void
+    {
+        $menu->items()->delete();
+
+        foreach ($items as $index => $item) {
+            if (! is_array($item)) {
+                throw new InvalidArgumentException('Each menu item must be an object.');
+            }
+
+            $menu->items()->create([
+                'id' => $item['id'] ?? 'menu_item_' . Str::uuid(),
+                'type' => (string) ($item['type'] ?? 'page'),
+                'title' => $this->requiredString($item, 'title'),
+                'target_url' => $item['targetUrl'] ?? null,
+                'page_id' => $item['pageId'] ?? null,
+                'extension_id' => $item['extensionId'] ?? null,
+                'slug' => $item['slug'] ?? null,
+                'sort_order' => (int) ($item['sortOrder'] ?? $index),
+                'active' => (bool) ($item['active'] ?? true),
+            ]);
+        }
+    }
+
+    private function uniquePageSlug(string $value, ?string $ignoreId = null): string
+    {
+        $slug = Str::slug($value);
+
+        if ($slug === '') {
+            throw new InvalidArgumentException('The page slug cannot be empty.');
+        }
+
+        $base = $slug;
+        $suffix = 2;
+
+        while (PageRecord::query()
+            ->when($ignoreId, fn (Builder $query) => $query->where('id', '!=', $ignoreId))
+            ->where('slug', $slug)
+            ->exists()) {
+            $slug = $base . '-' . $suffix++;
+        }
+
+        return $slug;
+    }
+
+    private function pageStatus(mixed $status): string
+    {
+        $status = (string) $status;
+
+        if (! in_array($status, self::PAGE_STATUSES, true)) {
+            throw new InvalidArgumentException('Unsupported page status: ' . $status);
+        }
+
+        return $status;
+    }
+
+    private function requiredString(array $data, string $key): string
+    {
+        $value = trim((string) ($data[$key] ?? ''));
+
+        if ($value === '') {
+            throw new InvalidArgumentException('The ' . $key . ' field is required.');
+        }
+
+        return $value;
+    }
+
+    private function toPage(PageRecord $record): PageModel
+    {
+        return new PageModel(
+            id: (string) $record->id,
+            slug: (string) $record->slug,
+            title: (string) $record->title,
+            status: (string) $record->status,
+            template: (string) $record->template,
+            seo: $record->seo ?? [],
+            blocks: $record->blocks ?? [],
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function deleteMenu(string $id): void
+    private function toMenu(MenuRecord $record): Menu
     {
-        // TODO: Delete menu from database
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getMenu(string $code): ?Menu
-    {
-        // TODO: Retrieve menu by code from database
-
-        return null;
-    }
-
-    /**
-     * Retrieve all menus with optional filters.
-     */
-    public function getAllMenus(array $filters = []): array
-    {
-        // TODO: Implement menu retrieval with filters
-        // For now, return an empty array
-        return [];
-    }
-
-    /**
-     * Generate a unique identifier for a page.
-     */
-    private function generatePageId(): string
-    {
-        return 'page_' . uniqid();
-    }
-
-    /**
-     * Generate a slug from a title.
-     */
-    private function generateSlug(string $title): string
-    {
-        return strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', $title)));
-    }
-
-    /**
-     * Generate a unique identifier for a menu.
-     */
-    private function generateMenuId(): string
-    {
-        return 'menu_' . uniqid();
+        return new Menu(
+            id: (string) $record->id,
+            name: (string) $record->name,
+            code: (string) $record->code,
+            items: $record->items->map(fn ($item): MenuItem => new MenuItem(
+                id: (string) $item->id,
+                type: (string) $item->type,
+                title: (string) $item->title,
+                targetUrl: $item->target_url,
+                pageId: $item->page_id,
+                extensionId: $item->extension_id,
+                slug: $item->slug,
+                sortOrder: (int) $item->sort_order,
+                active: (bool) $item->active,
+            ))->all(),
+        );
     }
 }

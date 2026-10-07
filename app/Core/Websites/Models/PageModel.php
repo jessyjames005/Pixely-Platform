@@ -1,17 +1,13 @@
 <?php
 
-
 declare(strict_types=1);
 
 namespace App\Core\Websites\Models;
 
 /**
- * Base model for website pages.
- *
- * Represents a static or dynamic page on the public/user website.
- * Contains basic metadata, content (blocks) and SEO settings.
+ * Immutable website page DTO exposed by the Website Engine.
  */
-final readonly class PageModel
+final readonly class PageModel implements \JsonSerializable
 {
     public function __construct(
         public string $id,
@@ -22,4 +18,9 @@ final readonly class PageModel
         public array $seo = [],
         public array $blocks = [],
     ) {}
+
+    public function jsonSerialize(): array
+    {
+        return get_object_vars($this);
+    }
 }

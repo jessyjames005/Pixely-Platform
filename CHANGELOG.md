@@ -8,6 +8,17 @@ Versioning follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+
+- Website Engine persistence foundation for pages, menus and menu items.
+- Persistence models kept separate from the framework-light Website Engine DTOs.
+- Website page/menu API request validation and CRUD service behavior.
+- Website Engine unit and feature coverage for permissions, persistence, slugs and validation.
+
+### Changed
+
+- Website Engine page slugs are normalized and made unique automatically.
+- Website Engine API mutations now use dedicated Form Requests instead of raw request payloads.
+
 - Added the Core Multi-Surface authorization foundation: `Surface` enum, request-scoped `SurfaceContext`, `SurfaceResolver`, `surface:*` middleware, and `SurfaceAuthorizationService`.
 - Added `SurfaceAwarePolicyInterface` for resource policies that need explicit surface boundaries.
 - Added extension manifest surface parsing and validation, while keeping legacy extensions admin-only by default.
@@ -19,8 +30,6 @@ Versioning follows Semantic Versioning.
 - Added frontend surface typing and an administration entry guard matching the backend authorization boundary.
 - Added `surface:api` to the Website Engine management API before permission checks.
 - Updated the roadmap to replace the previous four-step migration wording with the S0→S11 Multi-Surface execution roadmap.
-
-### Added
 - Initial project structure
 - Project vision
 - Roadmap

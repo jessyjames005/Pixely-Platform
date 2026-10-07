@@ -116,8 +116,9 @@ The schema lives in `database/migrations` (Core convention):
 - `website_menus` — string `id` primary key, unique `code`
 - `website_menu_items` — string `id`, FK `menu_id` → `website_menus` (cascade), `type` (page/extension/external), `page_id`, `extension_id`, `sort_order`, `active`
 
-Identifiers are strings to match the in-memory models (`PageModel`, `Menu`,
-`MenuItem` generate IDs such as `page_...` / `menu_...`).
+Identifiers are strings and are generated with stable `page_...`, `menu_...` and
+`menu_item_...` prefixes. Eloquent persistence models are kept separate from
+the framework-light domain DTOs.
 
 ## Security and Permissions
 
@@ -153,13 +154,13 @@ Identifiers are strings to match the in-memory models (`PageModel`, `Menu`,
 4. Complete documentation
 
 ### Ready for the Next Phase
-1. Foundation Website/Core mechanisms established
-2. Ready for `/` and `/account` routes
-3. Structure ready for Page Builder
-4. Documentation for future development
+1. Persistence-backed page and menu CRUD is established
+2. API authentication, surface and permissions are enforced
+3. Public and user experiences can now be built on the same engine
+4. Theme/layout and navigation remain intentionally deferred
 
 ### Business Impact
-- **Website surface established:** Public website accessible to users
+- **Website foundation established:** Pages and navigation are now persistence-backed
 - **Unified navigation:** Cohesive menus and routes
 - **Extensible foundation:** Ready for extensions and blocks
 - **Maintainable architecture:** Clear contracts and separated services
