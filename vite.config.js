@@ -39,6 +39,9 @@ export default defineConfig({
       "@core/websites": fileURLToPath(
         new URL("./app/Core/Websites/Resources/js", import.meta.url),
       ),
+      "@extensions/cinema-movie": fileURLToPath(
+        new URL("./app/Extensions/CinemaMovie/resources/js", import.meta.url),
+      ),
       "@extensions/gallery": fileURLToPath(
         new URL("./app/Extensions/Gallery/Resources/js", import.meta.url),
       ),

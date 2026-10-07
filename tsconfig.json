@@ -15,6 +15,7 @@
       "@core/roles/*": ["app/Core/Roles/resources/js/*"],
       "@core/settings/*": ["app/Core/Settings/resources/js/*"],
       "@core/websites/*": ["app/Core/Websites/Resources/js/*"],
+      "@extensions/cinema-movie/*": ["app/Extensions/CinemaMovie/resources/js/*"],
       "@extensions/gallery/*": ["app/Extensions/Gallery/Resources/js/*"],
       "@extensions/tuleap/*": ["app/Extensions/Tuleap/Resources/js/*"],
       "@core/extensions/*": ["app/Core/Extensions/resources/js/*"],
