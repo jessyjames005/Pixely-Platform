@@ -9,6 +9,9 @@ use App\Core\Surface\Services\SurfaceContext;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 final class SurfaceAuthorizationResource
 {

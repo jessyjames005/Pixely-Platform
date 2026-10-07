@@ -121,7 +121,7 @@ body {
 
 /* Public website theme tokens. Kept separate from component structure for future theming. */
 :root {
-  --pixely-site-bg: #ffffff;
+  --pixely-site-bg: #fff;
   --pixely-site-surface: #f8fafc;
   --pixely-site-text: #111827;
   --pixely-site-muted: #6b7280;

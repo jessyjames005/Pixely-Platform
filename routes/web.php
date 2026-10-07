@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
+use App\Core\Websites\Http\Controllers\PublicPageController;
 
 /**
  * Public web routes.
@@ -60,12 +61,13 @@ Route::view('/account/{any?}', 'app')
     ->middleware(['auth', 'surface:user'])
     ->where('any', '.*')
     ->name('user.application');
+
 /**
  * Public Vue application fallback.
  *
- * Reserved platform paths are excluded so administration, user space,
- * API and documentation routes keep their dedicated handlers.
+ * Registered as the router fallback so it is matched last and never
+ * shadows a real route. Only published website pages are served;
+ * reserved platform paths and unknown pages get a real 404.
  */
-Route::view('/{path}', 'app')
-    ->middleware('surface:public')
-    ->where('path', '(?!(?:admin|account|api|docs|login|sanctum|up)(?:/|$)).*');
+Route::fallback(PublicPageController::class)
+    ->middleware('surface:public');
