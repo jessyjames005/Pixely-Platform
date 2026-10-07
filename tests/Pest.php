@@ -11,9 +11,11 @@ use Tests\TestCase;
 |
 | Laravel feature tests use the application's base TestCase.
 | This configuration applies the Laravel test case to all tests
-| located inside the Feature directory.
+| located inside the Feature directory, and to the Unit suites that
+| need the booted application (container, Gate, database): the Surface
+| and Websites unit tests.
 |
 */
 
 uses(TestCase::class)
-    ->in('Feature');
+    ->in('Feature', 'Unit/Core/Surface', 'Unit/Core/Websites');

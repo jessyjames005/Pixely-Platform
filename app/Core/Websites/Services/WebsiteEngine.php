@@ -8,6 +8,7 @@ use App\Core\Websites\Contracts\WebsiteEngineInterface;
 use App\Core\Websites\Models\Menu;
 use App\Core\Websites\Models\MenuItem;
 use App\Core\Websites\Models\PageModel;
+use App\Core\Websites\Persistence\Models\MenuItemRecord;
 use App\Core\Websites\Persistence\Models\MenuRecord;
 use App\Core\Websites\Persistence\Models\PageRecord;
 use Illuminate\Database\Eloquent\Builder;
@@ -72,16 +73,6 @@ final class WebsiteEngine implements WebsiteEngineInterface
     public function getPage(string $slug): ?PageModel
     {
         $record = PageRecord::query()->where('slug', $slug)->first();
-
-        return $record ? $this->toPage($record) : null;
-    }
-
-    public function getPublishedPage(string $slug): ?PageModel
-    {
-        $record = PageRecord::query()
-            ->where('slug', trim($slug, '/'))
-            ->where('status', 'published')
-            ->first();
 
         return $record ? $this->toPage($record) : null;
     }
@@ -252,7 +243,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
             id: (string) $record->id,
             name: (string) $record->name,
             code: (string) $record->code,
-            items: $record->items->map(fn ($item): MenuItem => new MenuItem(
+            items: $record->items->map(fn (MenuItemRecord $item): MenuItem => new MenuItem(
                 id: (string) $item->id,
                 type: (string) $item->type,
                 title: (string) $item->title,
