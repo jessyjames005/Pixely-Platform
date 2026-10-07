@@ -29,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'surface' => \App\Core\Surface\Http\Middleware\ResolveSurface::class,
         ]);
+
+        $middleware->redirectGuestsTo(fn (Request $request): string => '/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

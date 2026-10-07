@@ -49,10 +49,13 @@ it('lists log files for a user with permission', function () {
 
     $response
         ->assertOk()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('data.0.type', 'log-files')
-        ->assertJsonPath('data.0.id', DocumentId::encode('log-file', 'test.log'))
-        ->assertJsonPath('data.0.attributes.filename', 'test.log');
+        ->assertHeader('Content-Type', 'application/vnd.api+json');
+
+    $entry = collect($response->json('data'))->firstWhere('attributes.filename', 'test.log');
+
+    expect($entry)->not->toBeNull()
+        ->and($entry['type'])->toBe('log-files')
+        ->and($entry['id'])->toBe(DocumentId::encode('log-file', 'test.log'));
 
     @unlink($logPath);
 });
@@ -66,8 +69,8 @@ it('returns parsed entries filtered by level', function () {
     file_put_contents(
         $logPath,
         "[2026-08-29 10:00:00] local.INFO: Info message\n" .
-        "[2026-08-29 10:00:01] local.ERROR: Error message\n" .
-        "with a stack trace line\n",
+            "[2026-08-29 10:00:01] local.ERROR: Error message\n" .
+            "with a stack trace line\n",
     );
 
     $response = $this->json(

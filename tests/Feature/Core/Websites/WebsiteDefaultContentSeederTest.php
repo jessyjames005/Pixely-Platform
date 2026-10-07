@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Core\Websites;
 
-use App\Core\Websites\Persistence\MenuItemRecord;
-use App\Core\Websites\Persistence\MenuRecord;
-use App\Core\Websites\Persistence\PageRecord;
+use App\Core\Websites\Persistence\Models\PageRecord;
+use App\Core\Websites\Persistence\Models\MenuRecord;
+use App\Core\Websites\Persistence\Models\MenuItemRecord;
 use Database\Seeders\WebsiteDefaultContentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
