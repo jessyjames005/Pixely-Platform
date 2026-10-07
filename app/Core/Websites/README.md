@@ -61,14 +61,20 @@ Main methods for page and menu management:
 - **Unique IDs** generated for new records
 - **Valid menu item types** (page/extension/external)
 
-### TODOs (Ready for next sprints)
+### Current foundation
 
-- **Database persistence:** Retrieve/save pages and menus (schema is ready in `database/migrations`)
-- **Validation systems:** Validate slugs, URLs, types
-- **Association services:** Link menus to permissions and surfaces
-- **Page templates:** System for different page types
-- **JSON:API resources:** Convert management endpoints to the platform JSON:API convention
-- **Permission system:** Integrate with existing permission policy checks
+- **Database persistence:** Implemented through `PageRecord`, `MenuRecord` and `MenuItemRecord`.
+- **Validation:** Implemented through dedicated page and menu `FormRequest` classes.
+- **Permissions:** Management endpoints require the `website.*` permissions and the API surface.
+- **Administration UI:** Pages and menus are managed from `/admin/website/pages` and `/admin/website/menus`.
+- **Page templates:** The `template` field is persisted and ready for the future rendering/theme system.
+
+### Next phases
+
+- **Association services:** Link menus to extension capabilities and surfaces.
+- **JSON:API resources:** Align management endpoints with the platform JSON:API convention.
+- **Public rendering:** Resolve published pages and menus on the public surface.
+- **Page composition:** Introduce typed blocks without coupling the Core to presentation-specific components.
 
 ## Migration Phases
 

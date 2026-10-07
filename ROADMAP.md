@@ -168,37 +168,34 @@ experiences.
 - [x] Frontend surface metadata and route guards
 - [x] Unit and feature tests
 
-### S1 — Website Foundation — **IN PROGRESS**
+### S1 — Website Foundation
 
-- [x] Website Engine contract and service provider
-- [x] Website page and menu persistence schema
-- [x] Persistence models separated from domain DTOs
-- [x] Page CRUD service with slug generation and status validation
-- [x] Menu CRUD service with ordered menu items
-- [x] Website API authentication and permission boundaries
-- [x] API request validation
-- [x] Unit and feature tests for the Website Engine
-- [ ] Public website layout and real public pages
-- [ ] User website/account surface integration
-- [ ] Admin Website management UI
+**Status: 🟡 In progress — Admin management foundation complete**
+
+### Completed
+
+- [x] Website Engine application contract and DTOs
+- [x] Persistent pages, menus and menu items
+- [x] Page CRUD API
+- [x] Menu CRUD API
+- [x] Page validation and automatic unique slugs
+- [x] Website permissions (`website.pages.*`, `website.menus.*`)
+- [x] API surface + authentication + permissions
+- [x] Admin Website navigation
+- [x] Admin Pages management UI
+- [x] Admin Menus management UI
+- [x] Unit and feature test foundation
+
+### Remaining
+
+- [ ] Execute PHP/Vitest tests in the project PHP 8.3 + Node environment
+- [ ] Playwright E2E coverage for Website administration
+- [ ] Public page rendering
+- [ ] Public menu rendering
 - [ ] Website navigation provider integration
-- [ ] Theme/layout foundation
-
-### S2 — Public Website
-
-- [ ] Public home, static pages and navigation
-- [ ] Public surface layout
-- [ ] SEO metadata pipeline
-- [ ] Extension-driven public navigation
-
-### S3 — User Space
-
-- [ ] User layout and navigation
-- [ ] Profile and preferences
-- [ ] Favorites/history extension capabilities
-
-
----
+- [ ] User Space integration
+- [ ] Theme/layout integration
+- [ ] Typed page blocks
 
 ## v0.2.0 - Kernel
 
@@ -1629,9 +1626,14 @@ Resource
 - [x] Slugs and API validation
 - [x] SEO metadata persistence
 - [x] Website API authentication + surface + permissions
-- [x] Unit + functional tests
-- [ ] `/admin/website/pages`
-- [ ] `/admin/website/menus`
+- [x] Website Engine contract, DTOs and service provider
+- [x] Website Engine database migration
+- [x] `/admin/website/pages`
+- [x] `/admin/website/menus`
+- [x] Website Admin navigation and permission filtering
+- [x] Unit + functional test foundation
+- [ ] Execute the full PHP/Vitest suite in the supported environment
+- [ ] Playwright E2E coverage for Website administration
 - [ ] Website navigation provider integration
 - [ ] Public website layout and page rendering
 - [ ] User website/account integration

@@ -8,6 +8,16 @@ Versioning follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- S1 Website Foundation: persistent Website Engine pages, menus and menu items.
+- Website Engine contract, DTOs, service provider and database migration.
+- Admin Website pages and menus management views with permission-aware navigation.
+- Website API unit/feature test foundation.
+
+### Changed
+- Website documentation and roadmap now reflect the implemented persistence and Admin management foundation.
+
+
+### Added
 
 - Website Engine persistence foundation for pages, menus and menu items.
 - Persistence models kept separate from the framework-light Website Engine DTOs.
