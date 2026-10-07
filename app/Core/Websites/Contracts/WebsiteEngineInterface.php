@@ -16,6 +16,11 @@ interface WebsiteEngineInterface
     public function updatePage(string $id, array $data): PageModel;
     public function deletePage(string $id): void;
     public function getPage(string $slug): ?PageModel;
+
+    /**
+     * Return a page only when it is publicly published.
+     */
+    public function getPublishedPage(string $slug): ?PageModel;
     public function listPages(array $filters = []): array;
 
     public function createMenu(array $data): Menu;

@@ -76,6 +76,16 @@ final class WebsiteEngine implements WebsiteEngineInterface
         return $record ? $this->toPage($record) : null;
     }
 
+    public function getPublishedPage(string $slug): ?PageModel
+    {
+        $record = PageRecord::query()
+            ->where('slug', trim($slug, '/'))
+            ->where('status', 'published')
+            ->first();
+
+        return $record ? $this->toPage($record) : null;
+    }
+
     public function listPages(array $filters = []): array
     {
         $query = PageRecord::query();

@@ -27,6 +27,7 @@ import FilesView from "@extensions/files/views/FilesView.vue";
 import WebsitePagesView from "@core/websites/views/WebsitePagesView.vue";
 import WebsiteMenusView from "@core/websites/views/WebsiteMenusView.vue";
 import CinemaMovieView from "@extensions/cinema-movie/views/CinemaMovieView.vue";
+import PublicPageView from "@core/websites/views/PublicPageView.vue";
 import type { NavItem } from "@shared/navigation/types";
 
 const routes: RouteRecordRaw[] = [
@@ -73,7 +74,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "public.home",
-    component: DashboardView,
+    component: PublicPageView,
+    meta: { requiresAuth: false, surface: 'public' as const },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'public.page',
+    component: PublicPageView,
     meta: { requiresAuth: false, surface: 'public' as const },
   },
 ];

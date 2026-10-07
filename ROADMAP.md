@@ -1639,19 +1639,23 @@ Resource
 - [ ] User website/account integration
 - [ ] Theme/layout foundation
 
-### S2 — Public Website
+### S2 — Public Website — **in progress**
 
-- [ ] `WebsiteLayout`
-- [ ] `WebsiteHeader`
-- [ ] `WebsiteFooter`
-- [ ] `WebsiteNavigation`
-- [ ] Public page rendering
-- [ ] Home page
-- [ ] About page
-- [ ] Contact page
-- [ ] 404 / 403 / 500
-- [ ] Public SEO metadata
-- [ ] Playwright navigation tests
+- [x] `WebsiteLayout`
+- [x] `WebsiteHeader`
+- [x] `WebsiteFooter`
+- [x] Public navigation provider integration
+- [x] Public page API endpoint restricted to published content
+- [x] Public Vue page rendering
+- [x] Dynamic public page routes
+- [x] Home route mapped to the Website Engine (`/` → `home`)
+- [x] 404 public state
+- [x] Public SEO title + description metadata
+- [ ] About page content
+- [ ] Contact page content
+- [ ] 403 / 500 public error pages
+- [ ] Theme/layout foundation
+- [ ] Playwright public navigation tests
 
 ### S3 — User Space
 

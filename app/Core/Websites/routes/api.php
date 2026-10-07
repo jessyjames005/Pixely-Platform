@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 use App\Core\Websites\Http\Controllers\WebsiteEngineController;
 use App\Core\Websites\Http\Controllers\WebsiteNavigationController;
+use App\Core\Websites\Http\Controllers\WebsitePublicController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/website/navigation/{code}', [WebsiteNavigationController::class, 'show'])
     ->middleware('surface:public')
     ->name('api.website.navigation.show');
+
+Route::get('/website/public/pages/{slug}', [WebsitePublicController::class, 'page'])
+    ->middleware('surface:public')
+    ->where('slug', '.+')
+    ->name('api.website.public.pages.show');
 
 Route::middleware(['auth:sanctum', 'surface:api'])->group(function (): void {
     Route::get('/website/pages', [WebsiteEngineController::class, 'index'])

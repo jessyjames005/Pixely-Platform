@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::middleware('surface:public')->get('/', function () {
-    return view('welcome');
-});
+    return view('app');
+})->name('public.home');
 
 /**
  * Swagger UI documentation.
@@ -60,3 +60,12 @@ Route::view('/account/{any?}', 'app')
     ->middleware(['auth', 'surface:user'])
     ->where('any', '.*')
     ->name('user.application');
+/**
+ * Public Vue application fallback.
+ *
+ * Reserved platform paths are excluded so administration, user space,
+ * API and documentation routes keep their dedicated handlers.
+ */
+Route::view('/{path}', 'app')
+    ->middleware('surface:public')
+    ->where('path', '(?!(?:admin|account|api|docs|login|sanctum|up)(?:/|$)).*');

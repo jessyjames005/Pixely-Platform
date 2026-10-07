@@ -9,3 +9,112 @@ html,
 body {
   font-family: var(--font-sans);
 }
+
+.website-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  color: #1f2937;
+}
+
+.website-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.website-header {
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.website-header__inner {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.website-brand {
+  color: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.website-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.website-nav__link {
+  color: #4b5563;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.website-nav__link:hover {
+  color: #111827;
+}
+
+.website-main {
+  flex: 1;
+  padding: 64px 0;
+}
+
+.website-page__header {
+  max-width: 760px;
+  margin-bottom: 40px;
+}
+
+.website-page__header h1,
+.website-state h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.05;
+}
+
+.website-page__content {
+  max-width: 760px;
+  display: grid;
+  gap: 20px;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.website-page__content h2 {
+  margin: 16px 0 0;
+}
+
+.website-eyebrow {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: .85rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.website-button {
+  width: fit-content;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.website-state {
+  display: grid;
+  align-content: center;
+  min-height: 50vh;
+}
+
+.website-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 24px 0;
+  color: #6b7280;
+}

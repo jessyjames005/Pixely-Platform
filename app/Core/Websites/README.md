@@ -129,6 +129,24 @@ DELETE /api/v1/website/menus/{id}     website.menus.manage
 
 Every management route requires `auth:sanctum` + `surface:api` + the listed permission. Resource-level policy checks remain the final authorization layer.
 
+## Public Website
+
+Published pages are exposed separately from the authenticated management API:
+
+```text
+GET /api/v1/website/public/pages/{slug}
+GET /api/v1/website/navigation/{code}
+```
+
+Both endpoints run on the `public` surface. The page endpoint delegates to
+`WebsiteEngine::getPublishedPage()` and therefore never exposes draft or
+archived pages. The Vue public surface renders `/` as the `home` page and uses
+a catch-all route for published pages such as `/about` or `/contact`.
+
+The public layout is composed of `WebsiteLayout`, `WebsiteHeader` and
+`WebsiteFooter`. Page SEO metadata is applied to the document title and
+description without rendering arbitrary HTML from persisted blocks.
+
 ## Database
 
 The schema lives in `database/migrations` (Core convention):

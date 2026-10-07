@@ -6,6 +6,14 @@ The format is based on Keep a Changelog.
 Versioning follows Semantic Versioning.
 
 ## [Unreleased]
+
+### Added — S2 Public Website foundation
+
+- Added public Website Engine page endpoint for published pages.
+- Added public website layout, header, footer and navigation.
+- Added dynamic public page routing and a public 404 state.
+- Added SEO title and description handling from page metadata.
+
 ### Added — S1 Website navigation
 
 - Added the public `WebsiteNavigationProvider` for persisted navigation menus.

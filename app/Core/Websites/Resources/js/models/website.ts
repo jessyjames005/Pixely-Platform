@@ -7,7 +7,14 @@ export interface WebsitePage {
   status: PageStatus
   template: string
   seo: Record<string, unknown>
-  blocks: unknown[]
+  blocks: WebsiteBlock[]
+}
+
+export interface WebsiteBlock {
+  type: string
+  text?: string
+  href?: string
+  [key: string]: unknown
 }
 
 export type MenuItemType = 'page' | 'extension' | 'external'
