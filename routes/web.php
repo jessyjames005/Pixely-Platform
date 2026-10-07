@@ -70,4 +70,5 @@ Route::view('/account/{any?}', 'app')
  * reserved platform paths and unknown pages get a real 404.
  */
 Route::fallback(PublicPageController::class)
-    ->middleware('surface:public');
+    ->middleware('surface:public')
+    ->where('fallbackPlaceholder', '(?!(?:admin|account|api|docs|login|sanctum|up)(?:/|$)).*');
