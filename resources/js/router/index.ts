@@ -28,6 +28,9 @@ import WebsitePagesView from "@core/websites/views/WebsitePagesView.vue";
 import WebsiteMenusView from "@core/websites/views/WebsiteMenusView.vue";
 import CinemaMovieView from "@extensions/cinema-movie/views/CinemaMovieView.vue";
 import PublicPageView from "@core/websites/views/PublicPageView.vue";
+import UserLayout from "@core/users/layouts/UserLayout.vue";
+import UserDashboardView from "@core/users/views/UserDashboardView.vue";
+import UserPreferencesView from "@core/users/views/UserPreferencesView.vue";
 import type { NavItem } from "@shared/navigation/types";
 
 const routes: RouteRecordRaw[] = [
@@ -69,6 +72,16 @@ const routes: RouteRecordRaw[] = [
       { path: 'website/pages', name: 'admin.website.pages', component: WebsitePagesView, meta: { requiresPermission: 'website.pages.view' } },
       { path: 'website/menus', name: 'admin.website.menus', component: WebsiteMenusView, meta: { requiresPermission: 'website.menus.view' } },
       { path: 'cinema-movie', name: 'admin.cinema-movie', component: CinemaMovieView },
+    ],
+  },
+  {
+    path: "/account",
+    component: UserLayout,
+    meta: { requiresAuth: true, surface: 'user' as const },
+    children: [
+      { path: "", name: "account.dashboard", component: UserDashboardView, meta: { surface: 'user' as const } },
+      { path: "profile", name: "account.profile", component: ProfileView, meta: { surface: 'user' as const } },
+      { path: "preferences", name: "account.preferences", component: UserPreferencesView, meta: { surface: 'user' as const } },
     ],
   },
   {

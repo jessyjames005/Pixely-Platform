@@ -8,6 +8,10 @@ Versioning follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- User Space foundation with authenticated `/account`, Dashboard, Profile, and Preferences surfaces.
+
+
+### Added
 - Added branded Laravel 403, 404, and 500 error pages for the public platform foundation.
 - Added feature and Playwright coverage for public error handling.
 
