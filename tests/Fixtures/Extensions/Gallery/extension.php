@@ -12,6 +12,7 @@ return [
     'name' => 'gallery',
     'version' => '1.0.0',
     'class' => App\Extensions\Gallery\GalleryExtension::class,
+    'surfaces' => ['public', 'admin'],
     'requires' => [
         'media',
     ],

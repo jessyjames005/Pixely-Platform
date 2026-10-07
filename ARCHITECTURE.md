@@ -84,12 +84,16 @@ Surfaces are for organization and policy targeting, not permission explosion.
 
 ### Route Guard Architecture
 
-Route metadata: `{ surface, requiresAuth, permission?, extension? }`
+Route metadata: `{ surface, requiresAuth, requiresPermission?, extension? }`
 
 Guard chain:
 1. Check authentication (`requiresAuth`)
 2. Check surface authorization (`surface`)
-3. Check permissions (`permission`)
+3. Check permissions (`requiresPermission`)
+
+The backend remains authoritative. The `/admin` entry point additionally requires
+`system.admin.access`; every API middleware group automatically resolves the `api`
+surface before authentication and permission checks.
 
 ### Navigation v2
 
@@ -102,6 +106,40 @@ interface NavItem {
 ```
 
 Navigation filtering is context-aware: shows items matching current surface and permissions.
+
+## Surface Authorization Boundary
+
+Pixely uses four explicit application surfaces:
+
+```text
+public
+user
+admin
+api
+```
+
+The backend authorization sequence is:
+
+```text
+Authentication
+      ↓
+Surface
+      ↓
+Permission
+      ↓
+Policy
+      ↓
+Resource
+```
+
+- `Surface` is a Core enum and is resolved by explicit `surface:*` route middleware.
+- `SurfaceContext` is request-scoped and exposes the resolved surface to services and policies.
+- Spatie Permission remains the coarse-grained capability check (`domain.object.action`).
+- `SurfaceAwarePolicyInterface` allows a resource policy to declare supported surfaces.
+- `SurfaceAuthorizationService` performs the surface boundary before delegating to Laravel Gate/policies.
+- Vue route guards are only UX protection; they are never the authoritative authorization boundary.
+
+A surface is **not** a permission. The same permission can be exposed on several surfaces, while a policy may restrict a resource ability to specific surfaces.
 
 ## Multi-Surface Migration
 

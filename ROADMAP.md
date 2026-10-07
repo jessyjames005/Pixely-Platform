@@ -43,6 +43,37 @@ Rules every phase of this roadmap obeys:
 
 ---
 
+## Current Execution Roadmap — Multi-Surface Evolution
+
+The platform is progressively moving from an administration-first application to a
+**multi-surface platform**. This evolution is incremental and does not require a
+rewrite of the existing Core or extensions.
+
+### S0 — Multi-Surface Foundation Hardening
+
+- [x] Define the four platform surfaces: `public`, `user`, `admin`, `api`
+- [x] Add request-scoped `SurfaceContext` and explicit `surface:*` middleware
+- [x] Validate extension manifest `surfaces` with `admin` as the legacy default
+- [x] Add surface-aware extension registry filtering
+- [x] Protect `/admin` and `/account` with backend authentication
+- [x] Protect `/admin` with the dedicated `system.admin.access` permission
+- [x] Resolve every API middleware group to the `api` surface automatically
+- [x] Establish the authorization chain: `Authentication → Surface → Permission → Policy → Resource`
+- [x] Add `SurfaceAwarePolicyInterface` and `SurfaceAuthorizationService`
+- [x] Add functional coverage for public/user/admin/API surface boundaries
+- [x] Type frontend surface metadata and navigation declarations
+- [x] Add frontend admin-entry permission guard
+- [ ] Run the complete S0 test suite on the supported PHP 8.3 environment
+- [ ] Validate S0 in CI and close the environment-dependent test blockers
+
+### Next
+
+**S1 — Website Foundation** starts after S0 is green in CI. It will turn the
+existing Website Engine foundation into the first complete multi-surface domain:
+public website pages, menus, user-aware behavior, administration and API.
+
+---
+
 ## v0.1.0 - Foundation
 
 ### Project & Documentation
@@ -1457,146 +1488,264 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Empty state
 * [ ] Error state
 
-## Migration 4 Étapes vers Multi-Surface Platform
+## Migration vers Multi-Surface Platform
 
-After the mise en place des fondations Core and Extension, Pixely Platform migre vers une architecture Multi-Surface: **pas de rupture, évolution progressive**.
+Pixely Platform évolue progressivement d'une administration centrée vers une
+plateforme unique exposant plusieurs surfaces partageant le même Core :
 
-### État actuel (2026_10_06)
+```text
+PIXELY PLATFORM
+├── PUBLIC   Website / public extension experiences
+├── USER     authenticated personal space
+├── ADMIN    platform administration
+└── API      programmatic surface
+```
 
-- L'architecture actuelle est administration-centrique avec `/admin` as the main entry point
-- Extension system with manifest, registry, manager, permissions, versioning
-- Frontend: Vue 3 + Vuetify admin SPA with route registry (`resources/js/router/index.ts`)
-- Navigation: admin-only registry dans `resources/js/shared/navigation/registry.ts`
+### S0 — Multi-Surface Foundation Hardening (current sprint)
 
-### Migration plan (étapes progressives, pas de rupture)
+**Objectif :** transformer la fondation Multi-Surface existante en frontière
+backend explicite et testable, sans commencer encore les nouvelles expériences
+Music, Camping ou Media Converter.
 
-#### Étape 1 : Conserver `/admin` tel quel (déjà fait)
+#### S0.1 — Surface context
 
-**Objectif:** Préserver l'existant administration pendant toute la migration.
+- [x] `Surface` enum : `public`, `user`, `admin`, `api`
+- [x] Request-scoped `SurfaceContext`
+- [x] `SurfaceResolver`
+- [x] `surface:*` backend middleware
+- [x] Explicit surface assignment on `/`, `/account`, `/admin`
+- [x] Explicit `surface:api` on Core Website API routes
 
-**Livrable:** Infrastructure de base Multi-Surface avec compatibilité API existante.
+#### S0.2 — Extension manifests
 
-**État actuel :** ✅ Terminé (ExtensionManifest with surfaces, Core contracts, surface-aware route guards, navigation v2)
+- [x] `ExtensionManifest.surfaces`
+- [x] Parse `surfaces` from extension manifests
+- [x] Validate unknown surface values
+- [x] Preserve admin-only default for legacy extensions
+- [x] `ExtensionRegistry::forSurface()` accepts the `Surface` value object
+- [x] Gallery declares `public`, `user`, `admin`, `api`
 
-#### Étape 2 : Introduire `/` for Website (in progress)
+#### S0.3 — Authorization chain
 
-**Objectif:** Add a public entry point for the Website (welcome, menus, simple pages).
+The backend authorization model is now explicitly defined as:
 
-**Travail :**
+```text
+Authentication
+      ↓
+Surface
+      ↓
+Permission
+      ↓
+Policy
+      ↓
+Resource
+```
 
-- Update `routes/web.php` : add route `/account/{any?}` for User Space
-- Update `router/index.ts` : add route meta `surface: 'public'` and `surface: 'user'`
-- Implement `WebsiteEngine` foundation: Page + Menu + Theme + Layout (MVP only, no drag-and-drop)
-- Add `navRegistry` for public/user navigation items (NavItem with `surfaces: string[]` extended)
-- Extend `useVisibleNav()` with `surface: string = 'admin'` parameter (used for public/user/admin)
+- [x] Authentication remains the first backend boundary
+- [x] Surface is established before permission middleware
+- [x] Existing Spatie permission middleware remains the coarse-grained domain/action check
+- [x] `SurfaceAwarePolicyInterface` introduced for resource policies that need surface restrictions
+- [x] `SurfaceAuthorizationService` introduced as the central Surface → Policy bridge
+- [ ] Migrate resource-specific controllers to `SurfaceAuthorizationService`
+- [ ] Add concrete Core resource policies
+- [ ] Add Gallery resource policies
+- [ ] Add surface-aware authorization to extension API routes where required
 
-**État actuel :** ✅ Public routes added, navigation surface-aware updated, router extended, manifest extensible.
+#### S0.4 — Tests
 
-#### Étape 3 : Introduire `/account` for User Space (planned)
+- [x] Surface enum tests
+- [x] Surface context tests
+- [x] Surface resolver tests
+- [x] Manifest surface parsing/validation tests
+- [x] Surface middleware feature tests
+- [x] Surface-aware policy authorization tests
+- [ ] Full local Pest suite green with the project-supported PHP environment
+- [ ] CI validation of all S0 tests
 
-**Objectif:** Add an authenticated User Space (`/account`) with personal extensions.
+#### S0.5 — Documentation
 
-**Travail :**
+- [x] ROADMAP updated with the new Multi-Surface execution model
+- [ ] ARCHITECTURE updated with the final authorization sequence
+- [ ] ADR updated with Surface context + authorization rules
+- [ ] CHANGELOG updated when S0 is committed
 
-- Add route `/account/{any?}` (already in place)
-- Distinguish admin navigation from user navigation (surfaces: ['user'])
-- Route guard for auth + permission + surface
-- Extensions can declare user support (Gallery already has surfaces: ['admin', 'public'], add 'user' later)
-- Handle user preferences (already existing), add possibility to customize UI per surface
+### S1 — Website Foundation
 
-**Preparation :** Existing surface-aware route guards, extensions duplicated with surfaces.
+**Objectif :** rendre le Website Engine réellement fonctionnel.
 
-#### Étape 4 : Refactor progressively the extensions
+- [ ] Persist pages through repository/service layer
+- [ ] Persist menus and menu items
+- [ ] Page CRUD
+- [ ] Menu CRUD
+- [ ] Publish/unpublish
+- [ ] Slugs and validation
+- [ ] SEO metadata
+- [ ] `/admin/website/pages`
+- [ ] `/admin/website/menus`
+- [ ] Unit + functional tests
 
-**Objectif:** Gradually extend existing extensions to declare their surfaces.
+### S2 — Public Website
 
-**Process :**
+- [ ] `WebsiteLayout`
+- [ ] `WebsiteHeader`
+- [ ] `WebsiteFooter`
+- [ ] `WebsiteNavigation`
+- [ ] Public page rendering
+- [ ] Home page
+- [ ] About page
+- [ ] Contact page
+- [ ] 404 / 403 / 500
+- [ ] Public SEO metadata
+- [ ] Playwright navigation tests
 
-- Existing extensions (Gallery, Files, Tuleap, Translations) add surfaces field to manifest (role: extension)
-- Extensions add chosen contract(s) (navigation, route, block, settings, permissions)
-- Extensions can have deferred-by-surface behavior (e.g., Gallery can have different UI for public vs admin)
-- Tests and documentation for each extension migrated
+### S3 — User Space
 
-**Advantages :**
+- [ ] `/account`
+- [ ] `/account/profile`
+- [ ] `/account/preferences`
+- [ ] `UserLayout`
+- [ ] `UserNavigation`
+- [ ] `UserHeader`
+- [ ] User-only extension capabilities
+- [ ] Guest → login redirection
+- [ ] User → admin denial
+- [ ] Playwright authorization tests
 
-- No break : extensions not declaring surfaces default to admin-only (default)
-- Extensible : each extension can gradually adopt more surfaces
-- Backwards compatible : existing extensions continue to work unchanged
+### S4 — Extension SDK v2
 
-**Timeline update :**
+- [ ] `PublicRoutes`
+- [ ] `UserRoutes`
+- [ ] `AdminRoutes`
+- [ ] `ApiRoutes`
+- [ ] `NavigationProvider`
+- [ ] `SettingsProvider`
+- [ ] `BlockProvider`
+- [ ] Demo/reference extension using all four surfaces
+- [ ] Extension route registration without Core modifications
 
-- **Current sprint (Foundation) :** ExtensionManifest with surfaces added, contracts created
-- **Next sprint :** Navigation v2 updated, route guards extended, `/` and `/account` routes added
-- **Sprint after :** Update GalleryExtension, FilesExtension, Tuleap, Translations to declare surfaces
-- **Next sprint :** Complete Step 3 and start Step 4
+### S5 — Theme & Blocks
 
-### Design decision : Evolution vs Rewrite
+- [ ] `ThemeRegistry`
+- [ ] `ThemeDefinition`
+- [ ] `ThemeResolver`
+- [ ] Pixely Default public theme
+- [ ] Core blocks: Text, Image, Hero, Spacer, Button
+- [ ] `BlockRegistry`
+- [ ] `BlockRenderer`
+- [ ] Keep page builder intentionally simple for v1
 
-**Why not rewrite :**
+### S6 — Gallery Full-Surface
 
-- Existing `/admin` must remain functional during migration
-- Extensions can migrate progressively
-- Transition complexity : applications share auth/authorization/core services
-- Cap : no CMS in Core (Page Builder stays simple MVP only)
+- [ ] Public gallery
+- [ ] User gallery
+- [ ] Admin gallery
+- [ ] Gallery API
+- [ ] Favorites
+- [ ] Uploads
+- [ ] Albums
+- [ ] Gallery blocks
+- [ ] Unit + functional + Playwright
+- [ ] PHP coverage ≥ 80%
 
-**Why not three applications :**
+### S7 — Camping
 
-- Surfaces share auth/authorization/core services
-- They are the same extensions, not three separate systems
-- Consistency in permissions and navigation is essential
+- [ ] Camping domain model
+- [ ] Provider contract
+- [ ] Camping search
+- [ ] Filters
+- [ ] Offers and prices
+- [ ] Comparison engine
+- [ ] Favorites
+- [ ] Saved searches
+- [ ] SEO destination pages
+- [ ] Public/User/Admin/API surfaces
+- [ ] Partner redirection model
 
-**Why not a huge Page Builder :**
+### S8 — Music
 
-- Simple MVP : Page + Blocks + Theme only
-- No drag-and-drop for this sprint (deferred)
+- [ ] Artist / Album / Track
+- [ ] Playlist
+- [ ] Podcast / Episode
+- [ ] Provider abstraction
+- [ ] Local media provider
+- [ ] Public music catalogue
+- [ ] User playlists/favorites/history
+- [ ] Player / queue
+- [ ] Admin provider management
+- [ ] Public/User/Admin/API surfaces
 
-### Test validation
+### S9 — Media Converter
 
-**Unit tests added :**
+The converter is a general-purpose media/document conversion extension, not a
+platform-download bypass tool.
 
-- Tests for `ExtensionRegistry.forSurface()` (extensions filtered by surface)
-- Tests for surface-aware route guards
-- Tests for surface-aware navigation (`useVisibleNav()`)
+```text
+Media Converter
+├── Video
+├── Audio / MP3
+├── Documents
+├── Images
+├── PDF
+└── History / Batch jobs
+```
 
-**Feature tests added :**
+- [ ] FFmpeg engine
+- [ ] Document engine (LibreOffice/Pandoc where appropriate)
+- [ ] Image engine
+- [ ] PDF engine
+- [ ] Video conversions
+- [ ] Audio / MP3 conversions
+- [ ] DOCX / ODT / PDF conversions
+- [ ] Image conversions
+- [ ] Multiple images → PDF
+- [ ] Batch conversion
+- [ ] Queue + workers
+- [ ] Progress tracking
+- [ ] Quotas and limits
+- [ ] Temporary-file cleanup
+- [ ] Public/User/Admin/API surfaces
+- [ ] Playwright conversion tests
 
-- Public and user routes accessible
-- Admin route remains protected
-- Correct permissions per surface
+Remote integrations such as YouTube/Dailymotion must use only officially
+permitted mechanisms and content the user is authorized to process.
 
-**Documentation updated :**
+### S10 — Platform Hardening
 
-- ADR-0090-multi-surface-architecture.md
-- ARCHITECTURE.md : Extension Surface Capability Contracts + Migration section
-- ROADMAP.md : Migration 4 Étapes section
+- [ ] Authorization audit
+- [ ] XSS/CSRF/sanitization audit
+- [ ] Rate limiting
+- [ ] Session security
+- [ ] Navigation/cache optimization
+- [ ] SEO sitemap/robots/canonical/Open Graph
+- [ ] Accessibility audit
+- [ ] Performance audit
 
-### Success criteria (values by sprint)
+### S11 — Pixely Platform v1
 
-- **Step 1 :** : ✅ Manifest + contracts + tests + documentation
-- **Step 2 :** : ✅ Routes `/` and `/account` + navigation surface-aware + router guards
-- **Step 3 :** : ✅ User navigation + user preferences per surface + user-declared extensions
-- **Step 4 :** : ✅ All existing extensions declare surfaces + behaviour per surface
+Release criteria:
 
-### Mastered risks
+- [ ] No P0/P1 defects
+- [ ] Unit tests green
+- [ ] Functional tests green
+- [ ] Playwright critical paths green
+- [ ] PHP coverage ≥ 80% for production extensions
+- [ ] CI separates unit and functional stages
+- [ ] Clean install validated
+- [ ] Upgrade path validated
+- [ ] Documentation updated
 
-- **No rewrite :** `/admin` conservé durant la migration, extensions migrated gradually
-- **No three applications :** surfaces sharing auth/authorization/core services
-- **No CMS in Core :** Website Engine stays minimal (Page + Menu + Theme + Layout)
-- **No permissions only in Vue :** backend permission verification required
-- **No huge Page Builder :** simple MVP (Page + Blocks + Theme)
+### Architecture rules for the migration
 
-### Technical constraints
+- **One platform, four surfaces:** do not create separate Admin, Website or User applications.
+- **Backend is authoritative:** Vue route guards are UX protection; authentication, permissions and policies are enforced server-side.
+- **Core stays generic:** Core may provide pages, menus, themes, blocks, auth, permissions, queues and storage, but must not contain Gallery/Music/Camping/Converter business logic.
+- **Extensions provide experiences:** an extension may expose Public, User, Admin and API capabilities independently.
+- **Permission convention:** `domain.object.action` remains the established permission naming scheme.
+- **Surface is not a permission:** surface selects the application context; permissions determine allowed capabilities.
+- **Policies own resource authorization:** ownership/state/resource rules belong to Laravel policies, optionally implementing `SurfaceAwarePolicyInterface` when the resource has surface-specific rules.
+- **No giant page builder before v1.**
+- **No rewrite:** existing Admin and API behavior remain functional throughout migration.
 
-- **Core independence :** Core must not import extension-specific code. Surface contracts should be defined in Core, implemented by extensions.
-- **Backward compatibility :** Adding `surfaces` to ExtensionManifest must not break existing extensions not declaring it. Default to all surfaces or admin only.
-- **Progressive migration :** 4-step migration plan (keep `/admin`, add `/`, add `/account`, refactor extensions) means the codebase must support multiple routing patterns simultaneously during transition.
-- **Permission convention :** `domain.object.action` (e.g., `gallery.photos.view`) is the established pattern. Surface is for organization/policy targeting, not permission explosion.
-- **No SSR in this sprint :** SSR decision (Option C: Laravel server-rendered public + Vue components) is deferred. Public pages can initially be Blade or simple Vue.
-- **Tests :** Existing test patterns (unit/functional/E2E) should be followed. The plan should include test scaffolding for the new surface guards and navigation filtering.
-
-
-
----
 
 # Current Execution Order
 

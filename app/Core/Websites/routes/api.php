@@ -17,7 +17,7 @@ declare(strict_types=1);
 use App\Core\Websites\Http\Controllers\WebsiteEngineController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum'])->prefix('website')->group(function (): void {
+Route::middleware(['auth:sanctum', 'surface:api'])->prefix('website')->group(function (): void {
     Route::middleware('permission:website.pages.view')->group(function (): void {
         Route::get('/pages', [WebsiteEngineController::class, 'index']);
         Route::get('/pages/{slug}', [WebsiteEngineController::class, 'show']);

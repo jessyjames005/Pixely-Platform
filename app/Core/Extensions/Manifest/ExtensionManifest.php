@@ -48,7 +48,7 @@ final readonly class ExtensionManifest
     /**
      * Surfaces this extension supports.
      * Items: public, user, admin, api.
-     * Default: all surfaces if not specified.
+     * Default: admin only for backwards compatibility.
      *
      * @var string[]
      */

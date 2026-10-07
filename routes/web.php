@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
  * Public web routes.
  */
 
-Route::get('/', function () {
+Route::middleware('surface:public')->get('/', function () {
     return view('welcome');
 });
 
@@ -37,6 +37,7 @@ Scramble::registerJsonSpecificationRoute('docs/api/openapi.json')
  * Vue Router handles the administration routes afterwards.
  */
 Route::view('/admin/{any?}', 'app')
+    ->middleware(['auth', 'surface:admin', 'permission:system.admin.access'])
     ->where('any', '.*')
     ->name('admin.application');
 
@@ -56,5 +57,6 @@ Route::view('/login', 'app')
  * Step 3 of the progressive migration plan.
  */
 Route::view('/account/{any?}', 'app')
+    ->middleware(['auth', 'surface:user'])
     ->where('any', '.*')
     ->name('user.application');

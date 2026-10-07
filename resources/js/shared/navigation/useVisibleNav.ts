@@ -6,6 +6,7 @@ import type { ExtensionSummary } from '@core/extensions/models/Extension'
 import { navRegistry } from '@shared/navigation/registry'
 import { navLabel } from '@shared/navigation/types'
 import type { NavItem } from '@shared/navigation/types'
+import type { Surface } from '@shared/surface'
 
 export { navLabel }
 
@@ -24,7 +25,7 @@ export function filterItem(
   item: NavItem,
   can: (permission: string) => boolean,
   extensionEnabled: (id: string) => boolean,
-  currentSurface: string = 'admin',
+  currentSurface: Surface = 'admin',
 ): NavItem | null {
   if (item.surfaces && !item.surfaces.includes(currentSurface)) {
     return null
@@ -49,7 +50,7 @@ export function filterItem(
   return item
 }
 
-export function useVisibleNav(surface: string = 'admin') {
+export function useVisibleNav(surface: Surface = 'admin') {
   const authStore = useAuthStore()
   const extensionsStore = useExtensionsStore()
 

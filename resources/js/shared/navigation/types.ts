@@ -14,7 +14,7 @@ export interface NavItem {
   // regardless of permission. Core modules (Users, Roles...) omit this.
   extensionId?: string
   // Set of surfaces this item is visible on: public, user, admin, api
-  surfaces?: string[]
+  surfaces?: Array<'public' | 'user' | 'admin' | 'api'>
   // Nested navigation items for submenus
   children?: NavItem[]
 }

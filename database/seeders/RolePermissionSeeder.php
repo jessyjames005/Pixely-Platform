@@ -25,6 +25,7 @@ final class RolePermissionSeeder extends Seeder
         // are synced dynamically via ExtensionPermissionSynchronizer,
         // triggered on install/update/enable, or manually via
         // `php artisan pixely:sync-permissions`.
+        'system.admin.access',
         'users.view',
         'users.manage',
         'users.delete',

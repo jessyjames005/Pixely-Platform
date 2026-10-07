@@ -36,7 +36,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin",
     component: AdminLayout,
-    meta: { requiresAuth: true, surface: 'admin' as const },
+    meta: { requiresAuth: true, requiresPermission: 'system.admin.access', surface: 'admin' as const },
     children: [
       { path: "", name: "admin.dashboard", component: DashboardView },
       { path: "gallery", name: "admin.gallery", component: GalleryView, meta: { requiresPermission: 'gallery.photos.view' } },
@@ -86,7 +86,7 @@ router.beforeEach(async (to) => {
     await authStore.checkAuth();
   }
 
-  const requiresAuth = to.meta.requiresAuth === true || to.meta.requiresAuth === undefined;
+  const requiresAuth = to.meta.requiresAuth === true;
   const requiresPermission = to.meta.requiresPermission as string | undefined;
   const surface = to.meta.surface as string | undefined;
 

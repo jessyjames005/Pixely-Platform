@@ -106,7 +106,7 @@ PUT    /api/v1/website/menus/{id}     website.menus.manage
 DELETE /api/v1/website/menus/{id}     website.menus.manage
 ```
 
-Every route requires `auth:sanctum` plus the listed permission.
+Every management route requires `auth:sanctum` + `surface:api` + the listed permission. Resource-level policy checks remain the final authorization layer.
 
 ## Database
 

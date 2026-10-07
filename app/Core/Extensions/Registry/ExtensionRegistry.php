@@ -7,6 +7,7 @@ namespace App\Core\Extensions\Registry;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Exceptions\ExtensionAlreadyRegisteredException;
 use App\Core\Extensions\Exceptions\ExtensionNotFoundException;
+use App\Core\Surface\Enum\Surface;
 
 /**
  * Stores and manages registered extensions.
@@ -64,12 +65,14 @@ final class ExtensionRegistry
      * @param string $surface One of: public, user, admin, api
      * @return array<string, ExtensionInterface>
      */
-    public function forSurface(string $surface): array
+    public function forSurface(Surface|string $surface): array
     {
+        $surface = $surface instanceof Surface ? $surface : Surface::fromValue($surface);
+
         return array_filter(
             $this->extensions,
             fn (ExtensionInterface $extension): bool => in_array(
-                $surface,
+                $surface->value,
                 $extension->manifest()->surfaces,
                 true,
             ),

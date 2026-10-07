@@ -8,6 +8,19 @@ Versioning follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- Added the Core Multi-Surface authorization foundation: `Surface` enum, request-scoped `SurfaceContext`, `SurfaceResolver`, `surface:*` middleware, and `SurfaceAuthorizationService`.
+- Added `SurfaceAwarePolicyInterface` for resource policies that need explicit surface boundaries.
+- Added extension manifest surface parsing and validation, while keeping legacy extensions admin-only by default.
+
+### Changed
+- Protected `/admin` and `/account` entry points with backend authentication and explicit surface middleware.
+- Added `system.admin.access` as the backend permission required to enter the administration surface.
+- Added `surface:api` to the global Laravel API middleware group so every Core and extension API route receives an explicit API surface context.
+- Added frontend surface typing and an administration entry guard matching the backend authorization boundary.
+- Added `surface:api` to the Website Engine management API before permission checks.
+- Updated the roadmap to replace the previous four-step migration wording with the S0→S11 Multi-Surface execution roadmap.
+
+### Added
 - Initial project structure
 - Project vision
 - Roadmap

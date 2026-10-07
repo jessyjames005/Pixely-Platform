@@ -38,6 +38,7 @@ final class ExtensionManifestReader
         $minimumKernelVersion = $data['minimum_kernel_version'] ?? '1.0.0';
         $class = $data['class'] ?? null;
         $dependencies = $data['requires'] ?? [];
+        $surfaces = $data['surfaces'] ?? ['admin'];
 
         if (
             !is_string($id)
@@ -46,8 +47,22 @@ final class ExtensionManifestReader
             || !is_string($minimumKernelVersion)
             || !is_string($class)
             || !is_array($dependencies)
+            || !is_array($surfaces)
         ) {
             return null;
+        }
+
+        $surfaces = array_values(
+            array_filter(
+                $surfaces,
+                static fn (mixed $surface): bool => is_string($surface),
+            ),
+        );
+
+        foreach ($surfaces as $surface) {
+            if (\App\Core\Surface\Enum\Surface::tryFrom($surface) === null) {
+                return null;
+            }
         }
 
         $dependencies = array_values(
@@ -66,6 +81,7 @@ final class ExtensionManifestReader
             class: $class,
             path: $path,
             dependencies: $dependencies,
+            surfaces: $surfaces,
         );
     }
 }

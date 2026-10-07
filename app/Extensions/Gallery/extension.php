@@ -12,4 +12,5 @@ return [
     'version' => '1.0.0',
     'class' => App\Extensions\Gallery\GalleryExtension::class,
     'minimum_kernel_version' => '1.0.0',
+    'surfaces' => ['public', 'user', 'admin', 'api'],
 ];
