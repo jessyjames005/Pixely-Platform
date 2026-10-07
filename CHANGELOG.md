@@ -6,6 +6,14 @@ The format is based on Keep a Changelog.
 Versioning follows Semantic Versioning.
 
 ## [Unreleased]
+### Added — S1 Website navigation
+
+- Added the public `WebsiteNavigationProvider` for persisted navigation menus.
+- Added a public `/api/v1/website/navigation/{code}` endpoint.
+- Added Playwright coverage for Website Pages and Menus administration.
+- Added functional coverage for public navigation filtering.
+
+
 
 ### Added
 - S1 Website Foundation: persistent Website Engine pages, menus and menu items.

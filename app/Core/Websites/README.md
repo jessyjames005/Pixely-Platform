@@ -69,6 +69,21 @@ Main methods for page and menu management:
 - **Administration UI:** Pages and menus are managed from `/admin/website/pages` and `/admin/website/menus`.
 - **Page templates:** The `template` field is persisted and ready for the future rendering/theme system.
 
+### Navigation provider
+
+`WebsiteNavigationProviderInterface` and `WebsiteNavigationProvider` resolve persisted
+menus for the public surface. Only active items and published page targets are
+returned. Public consumers can use:
+
+```text
+GET /api/v1/website/navigation/{code}
+```
+
+The endpoint is public by design and is protected by the `public` surface
+context rather than authentication. Administrative menu management remains
+protected by `auth:sanctum`, `surface:api` and the relevant `website.menus.*`
+permission.
+
 ### Next phases
 
 - **Association services:** Link menus to extension capabilities and surfaces.

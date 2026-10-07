@@ -6,6 +6,8 @@ namespace App\Core\Websites\Providers;
 
 use App\Core\Websites\Contracts\WebsiteEngineInterface;
 use App\Core\Websites\Services\WebsiteEngine;
+use App\Core\Websites\Services\WebsiteNavigationProvider;
+use App\Core\Websites\Contracts\WebsiteNavigationProviderInterface;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -16,6 +18,7 @@ final class WebsiteEngineServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(WebsiteEngineInterface::class, WebsiteEngine::class);
+        $this->app->bind(WebsiteNavigationProviderInterface::class, WebsiteNavigationProvider::class);
     }
 
     public function boot(): void

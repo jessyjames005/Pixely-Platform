@@ -1,42 +1,45 @@
 <?php
 
-/**
- * Core Website Engine API routes.
- *
- * Registered under api/v1 by WebsiteEngineServiceProvider,
- * following the same per-module routing convention as other
- * Core modules (Auth, Users, Roles, Extensions, Tooling).
- *
- * Every operation requires authentication AND the matching
- * website.* permission — being logged in alone is not
- * sufficient for this domain.
- */
-
 declare(strict_types=1);
 
 use App\Core\Websites\Http\Controllers\WebsiteEngineController;
+use App\Core\Websites\Http\Controllers\WebsiteNavigationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum', 'surface:api'])->prefix('website')->group(function (): void {
-    Route::middleware('permission:website.pages.view')->group(function (): void {
-        Route::get('/pages', [WebsiteEngineController::class, 'index']);
-        Route::get('/pages/{slug}', [WebsiteEngineController::class, 'show']);
-    });
+Route::get('/website/navigation/{code}', [WebsiteNavigationController::class, 'show'])
+    ->middleware('surface:public')
+    ->name('api.website.navigation.show');
 
-    Route::middleware('permission:website.pages.manage')->group(function (): void {
-        Route::post('/pages', [WebsiteEngineController::class, 'store']);
-        Route::put('/pages/{id}', [WebsiteEngineController::class, 'update']);
-        Route::delete('/pages/{id}', [WebsiteEngineController::class, 'destroy']);
-    });
+Route::middleware(['auth:sanctum', 'surface:api'])->group(function (): void {
+    Route::get('/website/pages', [WebsiteEngineController::class, 'index'])
+        ->middleware('permission:website.pages.view')
+        ->name('api.website.pages.index');
+    Route::get('/website/pages/{slug}', [WebsiteEngineController::class, 'show'])
+        ->middleware('permission:website.pages.view')
+        ->name('api.website.pages.show');
+    Route::post('/website/pages', [WebsiteEngineController::class, 'store'])
+        ->middleware('permission:website.pages.manage')
+        ->name('api.website.pages.store');
+    Route::put('/website/pages/{id}', [WebsiteEngineController::class, 'update'])
+        ->middleware('permission:website.pages.manage')
+        ->name('api.website.pages.update');
+    Route::delete('/website/pages/{id}', [WebsiteEngineController::class, 'destroy'])
+        ->middleware('permission:website.pages.manage')
+        ->name('api.website.pages.destroy');
 
-    Route::middleware('permission:website.menus.view')->group(function (): void {
-        Route::get('/menus', [WebsiteEngineController::class, 'listMenus']);
-        Route::get('/menus/{code}', [WebsiteEngineController::class, 'showMenu']);
-    });
-
-    Route::middleware('permission:website.menus.manage')->group(function (): void {
-        Route::post('/menus', [WebsiteEngineController::class, 'storeMenu']);
-        Route::put('/menus/{id}', [WebsiteEngineController::class, 'updateMenu']);
-        Route::delete('/menus/{id}', [WebsiteEngineController::class, 'destroyMenu']);
-    });
+    Route::get('/website/menus', [WebsiteEngineController::class, 'listMenus'])
+        ->middleware('permission:website.menus.view')
+        ->name('api.website.menus.index');
+    Route::get('/website/menus/{code}', [WebsiteEngineController::class, 'showMenu'])
+        ->middleware('permission:website.menus.view')
+        ->name('api.website.menus.show');
+    Route::post('/website/menus', [WebsiteEngineController::class, 'storeMenu'])
+        ->middleware('permission:website.menus.manage')
+        ->name('api.website.menus.store');
+    Route::put('/website/menus/{id}', [WebsiteEngineController::class, 'updateMenu'])
+        ->middleware('permission:website.menus.manage')
+        ->name('api.website.menus.update');
+    Route::delete('/website/menus/{id}', [WebsiteEngineController::class, 'destroyMenu'])
+        ->middleware('permission:website.menus.manage')
+        ->name('api.website.menus.destroy');
 });

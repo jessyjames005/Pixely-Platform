@@ -1633,8 +1633,8 @@ Resource
 - [x] Website Admin navigation and permission filtering
 - [x] Unit + functional test foundation
 - [ ] Execute the full PHP/Vitest suite in the supported environment
-- [ ] Playwright E2E coverage for Website administration
-- [ ] Website navigation provider integration
+- [x] Playwright E2E coverage for Website administration
+- [x] Website navigation provider integration
 - [ ] Public website layout and page rendering
 - [ ] User website/account integration
 - [ ] Theme/layout foundation
