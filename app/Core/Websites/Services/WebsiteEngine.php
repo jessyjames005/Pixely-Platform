@@ -8,13 +8,13 @@ use App\Core\Websites\Contracts\WebsiteEngineInterface;
 use App\Core\Websites\Models\Menu;
 use App\Core\Websites\Models\MenuItem;
 use App\Core\Websites\Models\PageModel;
-use App\Core\Websites\Persistence\Models\MenuItemRecord;
 use App\Core\Websites\Persistence\Models\MenuRecord;
 use App\Core\Websites\Persistence\Models\PageRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use App\Core\Websites\Persistence\Models\MenuItemRecord;
 
 /**
  * Website Engine application service.
@@ -73,6 +73,16 @@ final class WebsiteEngine implements WebsiteEngineInterface
     public function getPage(string $slug): ?PageModel
     {
         $record = PageRecord::query()->where('slug', $slug)->first();
+
+        return $record ? $this->toPage($record) : null;
+    }
+
+    public function getPublishedPage(string $slug): ?PageModel
+    {
+        $record = PageRecord::query()
+            ->where('slug', trim($slug, '/'))
+            ->where('status', 'published')
+            ->first();
 
         return $record ? $this->toPage($record) : null;
     }

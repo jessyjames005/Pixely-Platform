@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Core\Websites\Persistence\MenuItemRecord;
-use App\Core\Websites\Persistence\MenuRecord;
-use App\Core\Websites\Persistence\PageRecord;
+use App\Core\Websites\Persistence\Models\PageRecord;
+use App\Core\Websites\Persistence\Models\MenuRecord;
+use App\Core\Websites\Persistence\Models\MenuItemRecord;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
