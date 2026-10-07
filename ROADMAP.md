@@ -1641,6 +1641,8 @@ Resource
 
 ### S2 — Public Website — **in progress**
 
+**Current status:** Public rendering, default content, theme tokens, navigation, and branded error handling are implemented. The remaining S2 work is final E2E validation before moving to S3 User Space.
+
 - [x] `WebsiteLayout`
 - [x] `WebsiteHeader`
 - [x] `WebsiteFooter`
@@ -2008,13 +2010,3 @@ The roadmap should be updated progressively as each sprint is completed.
 * [ ] Performance testing
 * [ ] Accessibility testing
 * [ ] CI/CD pipeline
-
-## S2 Public Website — Home, About, Contact
-
-- [x] Default public pages: Home, About, Contact
-- [x] Default main navigation seed
-- [x] Public design tokens
-- [x] Public navigation E2E coverage
-- [ ] HTTP error pages (403/500)
-- [ ] Final public navigation suite
-- [ ] Theme/Layout system

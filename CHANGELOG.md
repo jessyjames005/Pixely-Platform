@@ -7,7 +7,10 @@ Versioning follows Semantic Versioning.
 
 ## [Unreleased]
 
-- Added idempotent default public website content for Home, About and Contact, with a main navigation seed and initial public theme tokens.
+### Added
+- Added branded Laravel 403, 404, and 500 error pages for the public platform foundation.
+- Added feature and Playwright coverage for public error handling.
+
 
 ### Added — S2 Public Website foundation
 
