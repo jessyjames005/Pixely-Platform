@@ -74,15 +74,12 @@ function childClasses(): Record<string, unknown> {
           :title="navLabel(item)"
           :to="item.to"
         >
-          <v-list-item-content>
-            <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
-            <v-list-item-action>
-              <v-icon
-                icon="mdi-chevron-right"
-                size="18"
-              />
-            </v-list-item-action>
-          </v-list-item-content>
+          <template #append>
+            <v-icon
+              icon="mdi-chevron-right"
+              size="18"
+            />
+          </template>
         </v-list-item>
       </template>
 
@@ -115,15 +112,12 @@ function childClasses(): Record<string, unknown> {
         @keydown.enter.prevent="toggle"
         @keydown.space.prevent="toggle"
       >
-        <v-list-item-content>
-          <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
-          <v-list-item-action>
-            <v-icon
-              :icon="isOpen ? 'mdi-chevron-down' : 'mdi-chevron-right'"
-              size="18"
-            />
-          </v-list-item-action>
-        </v-list-item-content>
+        <template #append>
+          <v-icon
+            :icon="isOpen ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+            size="18"
+          />
+        </template>
       </v-list-item>
 
       <v-list
@@ -147,13 +141,9 @@ function childClasses(): Record<string, unknown> {
     v-else
     :class="childClasses()"
     :prepend-icon="item.icon"
-    :title="rail ? navLabel(item) : undefined"
+    :title="navLabel(item)"
     :to="item.to"
-  >
-    <v-list-item-content>
-      <v-list-item-title>{{ navLabel(item) }}</v-list-item-title>
-    </v-list-item-content>
-  </v-list-item>
+  />
 </template>
 
 <style scoped>

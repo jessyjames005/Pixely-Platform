@@ -9,22 +9,14 @@ import { usersNavItem } from '@core/users/nav'
 import { rolesNavItem } from '@core/roles/nav'
 import { settingsNavItem } from '@core/settings/nav'
 import { extensionsNavItem } from '@core/extensions/nav'
-import { galleryNavItem } from '@extensions/gallery/nav'
-import { translationsNavItem } from '@extensions/translations/nav'
-import { tuleapNavItem } from '@extensions/tuleap/nav'
-import { filesNavItem } from '@extensions/files/nav'
 import { websiteNavItem } from '@core/websites/nav'
 import type { NavItem } from './types'
 
 export const navRegistry: NavItem[] = [
   dashboardNavItem,
-  galleryNavItem,
-  tuleapNavItem,
-  filesNavItem,
   usersNavItem,
   rolesNavItem,
   settingsNavItem,
   extensionsNavItem,
-  translationsNavItem,
   websiteNavItem,
 ]

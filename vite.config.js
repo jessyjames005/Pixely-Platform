@@ -40,7 +40,7 @@ export default defineConfig({
         new URL("./app/Core/Websites/Resources/js", import.meta.url),
       ),
       "@extensions/gallery": fileURLToPath(
-        new URL("./app/Extensions/Gallery/resources/js", import.meta.url),
+        new URL("./app/Extensions/Gallery/Resources/js", import.meta.url),
       ),
       "@core/extensions": fileURLToPath(
         new URL("./app/Core/Extensions/resources/js", import.meta.url),
@@ -68,6 +68,6 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: true,
-    include: ["resources/js/**/*.test.ts", "app/**/resources/js/**/*.test.ts"],
+    include: ["resources/js/**/*.test.ts", "app/**/[Rr]esources/js/**/*.test.ts"],
   },
 });

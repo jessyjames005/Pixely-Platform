@@ -115,10 +115,27 @@ async function switchLocale(locale: string): Promise<void> {
       :rail="rail"
       mobile-break-point="sm"
     >
-      <AdminNav
-        :rail="rail"
-        @toggle-rail="toggleNav"
-      />
+      <AdminNav :rail="rail" />
+
+      <!-- Pinned to the bottom of the drawer so it is always reachable,
+           whatever the number of navigation entries. -->
+      <template #append>
+        <v-divider />
+        <div class="pa-2 d-flex align-center">
+          <v-btn
+            icon
+            :title="rail ? 'Expand navigation' : 'Collapse navigation'"
+            :aria-label="rail ? 'Expand navigation' : 'Collapse navigation'"
+            @click="toggleNav"
+          >
+            <v-icon :icon="rail ? 'mdi-chevron-right' : 'mdi-chevron-left'" />
+          </v-btn>
+          <span
+            v-if="!rail"
+            class="ml-2 text-medium-emphasis small"
+          >Collapse</span>
+        </div>
+      </template>
     </v-navigation-drawer>
 
     <v-app-bar>
