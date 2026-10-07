@@ -17,6 +17,7 @@ test.describe('Website administration', () => {
   })
 
   test('opens the Website Pages screen from administration navigation', async ({ page }) => {
+    await page.locator('.v-navigation-drawer').getByText('Website', { exact: true }).click()
     await page.getByRole('link', { name: 'Pages' }).click()
     await expect(page).toHaveURL(/\/admin\/website\/pages$/)
     await expect(page.getByRole('heading', { name: 'Website pages' })).toBeVisible()

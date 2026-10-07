@@ -20,7 +20,7 @@ const settingsStore = useSettingsStore()
 const i18nStore = useI18nStore()
 const theme = useTheme()
 const NAV_RAIL_KEY = 'pixely.nav.rail'
-const drawer = ref(false)
+const drawer = ref<boolean | null>(null)
 const collapsed = ref(localStorage.getItem(NAV_RAIL_KEY) === 'true')
 
 const { smAndUp } = useDisplay()
