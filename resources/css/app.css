@@ -118,3 +118,33 @@ body {
   padding: 24px 0;
   color: #6b7280;
 }
+
+/* Public website theme tokens. Kept separate from component structure for future theming. */
+:root {
+  --pixely-site-bg: #ffffff;
+  --pixely-site-surface: #f8fafc;
+  --pixely-site-text: #111827;
+  --pixely-site-muted: #6b7280;
+  --pixely-site-border: #e5e7eb;
+  --pixely-site-accent: #111827;
+  --pixely-site-radius: 10px;
+  --pixely-site-max-width: 1120px;
+}
+
+.website-layout {
+  background: var(--pixely-site-bg);
+  color: var(--pixely-site-text);
+}
+
+.website-shell {
+  width: min(var(--pixely-site-max-width), calc(100% - 32px));
+}
+
+.website-button {
+  border-radius: var(--pixely-site-radius);
+  background: var(--pixely-site-accent);
+}
+
+.website-page__content {
+  color: var(--pixely-site-text);
+}

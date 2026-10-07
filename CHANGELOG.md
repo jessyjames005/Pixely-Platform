@@ -7,6 +7,8 @@ Versioning follows Semantic Versioning.
 
 ## [Unreleased]
 
+- Added idempotent default public website content for Home, About and Contact, with a main navigation seed and initial public theme tokens.
+
 ### Added — S2 Public Website foundation
 
 - Added public Website Engine page endpoint for published pages.

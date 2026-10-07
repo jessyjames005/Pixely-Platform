@@ -48,3 +48,20 @@ test.describe('Public website', () => {
     await expect(page.getByText('Page not found')).toBeVisible()
   })
 })
+
+
+test('home, about and contact are reachable from public navigation', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
+  await page.getByRole('link', { name: 'About' }).click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(page.getByRole('heading', { name: 'About Pixely' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Contact' }).click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Home' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Welcome to Pixely Platform' })).toBeVisible();
+});

@@ -2008,3 +2008,13 @@ The roadmap should be updated progressively as each sprint is completed.
 * [ ] Performance testing
 * [ ] Accessibility testing
 * [ ] CI/CD pipeline
+
+## S2 Public Website — Home, About, Contact
+
+- [x] Default public pages: Home, About, Contact
+- [x] Default main navigation seed
+- [x] Public design tokens
+- [x] Public navigation E2E coverage
+- [ ] HTTP error pages (403/500)
+- [ ] Final public navigation suite
+- [ ] Theme/Layout system
