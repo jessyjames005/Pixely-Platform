@@ -152,3 +152,10 @@ Versioning follows Semantic Versioning.
 ### Changed
 
 - Extension installation now executes only the migrations belonging to the installed extension.
+
+### S3 — User Space engagement integration
+
+- Integrated Favorites and History into the User Space navigation and views.
+- Added pagination/error handling to the engagement frontend store.
+- Restricted engagement endpoints to the `user` surface in addition to authentication.
+- Added authenticated Playwright coverage for Favorites/History navigation.

@@ -1813,3 +1813,12 @@ The roadmap should be updated progressively as each sprint is completed.
 - [x] Playwright coverage
 - [ ] Favorites/History User Space views
 - [ ] Extension integration (Gallery, Music, Blog, Camping)
+
+### S3 — User Space Engagement Integration
+
+- [x] Favorites integrated into User Space navigation
+- [x] History integrated into User Space navigation
+- [x] Favorites/history pagination in the UI
+- [x] User-surface enforcement on engagement API routes
+- [x] Authenticated Playwright coverage for engagement navigation
+- [ ] Final S3 security and E2E validation in CI

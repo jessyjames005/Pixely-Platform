@@ -1,43 +1,39 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@core/auth/store/auth.store'
-import { translate as t } from '@shared/plugins/i18n'
+import UserSpaceNavigation from './UserSpaceNavigation.vue'
 
 const authStore = useAuthStore()
+const router = useRouter()
 
-const navigation = computed(() => [
-  { title: t('core.user_space.nav.dashboard', 'Dashboard'), to: '/account', icon: 'mdi-view-dashboard-outline' },
-  { title: t('core.user_space.nav.profile', 'Profile'), to: '/account/profile', icon: 'mdi-account-outline' },
-  { title: t('core.user_space.nav.preferences', 'Preferences'), to: '/account/preferences', icon: 'mdi-cog-outline' },
-])
+async function logout(): Promise<void> {
+  await authStore.logout()
+  await router.push({ name: 'login' })
+}
 </script>
 
 <template>
   <v-app>
-    <v-app-bar elevation="1">
-      <v-app-bar-title>Pixely</v-app-bar-title>
-      <v-spacer />
-      <span class="text-body-2 mr-3">{{ authStore.user?.name }}</span>
-      <v-btn to="/admin" variant="text" prepend-icon="mdi-shield-crown-outline">
-        {{ t('core.user_space.action.administration', 'Administration') }}
-      </v-btn>
-    </v-app-bar>
-
     <v-navigation-drawer permanent>
-      <v-list nav>
-        <v-list-item
-          v-for="item in navigation"
-          :key="item.to"
-          :to="item.to"
-          :title="item.title"
-          :prepend-icon="item.icon"
-        />
-      </v-list>
+      <div class="pa-4 text-h6">Pixely</div>
+      <UserSpaceNavigation />
+      <template #append>
+        <v-list nav>
+          <v-list-item to="/" prepend-icon="mdi-web" title="Public website" />
+          <v-list-item prepend-icon="mdi-logout" title="Log out" @click="logout" />
+        </v-list>
+      </template>
     </v-navigation-drawer>
 
+    <v-app-bar>
+      <v-app-bar-title>User Space</v-app-bar-title>
+      <v-spacer />
+      <span class="text-body-2 mr-4">{{ authStore.user?.email }}</span>
+    </v-app-bar>
+
     <v-main>
-      <v-container fluid class="pa-6">
-        <RouterView />
+      <v-container class="py-6" fluid>
+        <router-view />
       </v-container>
     </v-main>
   </v-app>
