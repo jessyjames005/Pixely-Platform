@@ -6,6 +6,7 @@ namespace App\Core\Providers;
 
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Capabilities\Registry\ExtensionCapabilityRegistry;
+use App\Core\Extensions\Capabilities\Registry\ExtensionRouteRegistrar;
 use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
 use App\Core\Extensions\Discovery\ExtensionDiscoverer;
 use App\Core\Extensions\Discovery\ExtensionManifestReader;
@@ -52,6 +53,10 @@ final class PixelyServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(
+            ExtensionRouteRegistrar::class,
+        );
+
+        $this->app->singleton(
             ExtensionStateRepositoryInterface::class,
             function ($app) {
                 return new JsonExtensionStateRepository(
@@ -67,6 +72,7 @@ final class PixelyServiceProvider extends ServiceProvider
                     $app->make(ExtensionManager::class),
                     $app->make(ExtensionRepository::class),
                     app_path('Extensions'),
+                    $app->make(ExtensionRouteRegistrar::class),
                 );
             },
         );

@@ -1,0 +1,16 @@
+S4 LOT 2 — REMOVALS REQUIRED AFTER EXTRACTION
+
+The archive contains the new SDK v2 paths. Remove these obsolete paths from the project:
+
+- app/Extensions/CinemaMovie/resources/js/nav.ts
+- app/Extensions/CinemaMovie/routes/api.php
+- app/Extensions/Files/Resources/ (entire directory)
+- app/Extensions/Files/routes/api.php
+- app/Extensions/Gallery/Resources/ (entire directory)
+- app/Extensions/Gallery/routes/api.php
+- app/Extensions/Translations/resources/js/nav.ts
+- app/Extensions/Translations/routes/api.php
+- app/Extensions/Tuleap/Resources/ (entire directory)
+- app/Extensions/Tuleap/routes/api.php
+
+Do not remove app/Core/Extensions/resources/js/nav.ts; that is the Core navigation entrypoint.

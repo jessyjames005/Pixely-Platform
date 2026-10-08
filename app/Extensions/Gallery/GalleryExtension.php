@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Extensions\Gallery;
 
 use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionRoutesInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
@@ -17,6 +18,7 @@ use App\Extensions\Gallery\Upgrades\FixPhotoDisplayStep;
 final class GalleryExtension implements
     ExtensionInterface,
     ExtensionNavigationInterface,
+    ExtensionRoutesInterface,
     ExtensionPermissionsInterface,
     ExtensionUpgradableInterface,
     ExtensionTranslatableInterface
@@ -27,11 +29,13 @@ final class GalleryExtension implements
             id: 'gallery',
             name: 'Gallery',
             version: '1.0.0',
+            minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Gallery',
             dependencies: [
                 'files',
             ],
+            surfaces: ['public', 'admin', 'api'],
         );
     }
 
@@ -63,6 +67,14 @@ final class GalleryExtension implements
             'gallery.photos.manage',
             'gallery.photos.delete',
         ];
+    }
+
+    /**
+     * @return list<array{file:string}>
+     */
+    public function routes(): array
+    {
+        return [['file' => 'app/Extensions/Gallery/API/routes.php']];
     }
 
     public function providers(): array

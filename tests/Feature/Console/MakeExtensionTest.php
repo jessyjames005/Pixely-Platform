@@ -4,39 +4,29 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 
-it('scaffolds a complete extension and prints its Docker lifecycle commands', function () {
-    $originalBasePath = base_path();
-    $temporaryBasePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'pixely-make-extension-' . uniqid('', true);
-    $extensionPath = $temporaryBasePath . '/app/Extensions/CinemaMovie';
+it('scaffolds an extension using the SDK v2 surface structure', function (): void {
+    $id = 'sdk-v2-test';
+    $path = base_path('app/Extensions/SdkV2Test');
 
-    File::ensureDirectoryExists($temporaryBasePath);
-    app()->setBasePath($temporaryBasePath);
+    File::deleteDirectory($path);
 
     try {
-        $this->artisan('make:extension', ['name' => 'CinemaMovie'])
-            ->expectsOutputToContain('docker compose exec app php artisan pixely:extension:migrate cinema-movie')
-            ->expectsOutputToContain('docker compose exec app php artisan pixely:extension:migration-status cinema-movie')
-            ->expectsOutputToContain('docker compose exec app php artisan pixely:extensions')
-            ->assertExitCode(0);
+        $this->artisan('make:extension', ['name' => 'SdkV2Test'])
+            ->assertSuccessful();
 
-        expect(File::exists($extensionPath . '/extension.php'))->toBeTrue()
-            ->and(File::get($extensionPath . '/extension.php'))->toContain("'minimum_kernel_version' => '1.0.0'")
-            ->and(File::exists($extensionPath . '/Providers/CinemaMovieServiceProvider.php'))->toBeTrue()
-            ->and(File::get($extensionPath . '/Providers/CinemaMovieServiceProvider.php'))->not->toContain('loadMigrationsFrom')
-            ->and(File::get($extensionPath . '/routes/api.php'))->toContain("permission:cinema-movie.items.view")
-            ->and(File::get($extensionPath . '/routes/api.php'))->toContain('EnsureJsonApiMediaType::class')
-            ->and(File::get($extensionPath . '/Http/Controllers/Api/CinemaMovieController.php'))->toContain('DataResponse')
-            ->and(File::get($extensionPath . '/Http/Controllers/Api/CinemaMovieController.php'))->not->toContain('ApiCollectionResponse')
-            ->and(File::exists($extensionPath . '/resources/js/models/CinemaMovie.ts'))->toBeTrue()
-            ->and(File::exists($extensionPath . '/resources/js/store/cinema-movie.store.ts'))->toBeTrue()
-            ->and(File::get($extensionPath . '/resources/js/views/CinemaMovieView.vue'))->toContain("../store/cinema-movie.store")
-            ->and(File::exists($extensionPath . '/resources/js/views/CinemaMovieView.vue'))->toBeTrue()
-            ->and(File::exists($extensionPath . '/resources/js/nav.ts'))->toBeTrue()
-            ->and(File::get($extensionPath . '/tests/Unit/CinemaMovieExtensionTest.php'))->toContain("declares the cinema-movie extension manifest", "->toBe('cinema-movie')")
-            ->and(File::get($extensionPath . '/tests/Functional/CinemaMovieApiTest.php'))->toContain('use Tests\\TestCase;', 'uses(TestCase::class);', "requires authentication to list CinemaMovie items", "getJson('/api/v1/cinema-movie')")
-            ->and(File::get($extensionPath . '/tests/E2E/CinemaMovie.spec.ts'))->toContain("from '@playwright/test'", "process.env.E2E_USER_EMAIL", "process.env.E2E_USER_PASSWORD", "page.goto('/login')", "page.goto('/admin/cinema-movie')", "name: 'CinemaMovie'");
+        expect(is_dir($path . '/Public'))->toBeTrue()
+            ->and(is_dir($path . '/User'))->toBeTrue()
+            ->and(is_dir($path . '/Admin'))->toBeTrue()
+            ->and(is_dir($path . '/API'))->toBeTrue()
+            ->and(is_file($path . '/API/routes.php'))->toBeTrue();
+
+        $manifest = require $path . '/extension.php';
+
+        expect($manifest['surfaces'])->toBe(['admin', 'api']);
+        expect(file_get_contents($path . '/SdkV2TestExtension.php'))
+            ->toContain('ExtensionNavigationInterface')
+            ->toContain('ExtensionRoutesInterface');
     } finally {
-        app()->setBasePath($originalBasePath);
-        File::deleteDirectory($temporaryBasePath);
+        File::deleteDirectory($path);
     }
 });

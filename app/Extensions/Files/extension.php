@@ -10,5 +10,6 @@ return [
     'id' => 'files',
     'name' => 'Files',
     'version' => '1.0.0',
+    'surfaces' => ['admin', 'api'],
     'class' => App\Extensions\Files\FilesExtension::class,
 ];

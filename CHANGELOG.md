@@ -7,21 +7,25 @@
 - Added the Extension SDK v2 capability model with optional contracts for navigation, routes, blocks and typed settings, alongside the existing permissions contract.
 - Added `ExtensionCapabilityRegistry` so Core can discover extension capabilities without hardcoded extension knowledge.
 - Exposed resolved extension capabilities through the Extension Manager API.
-- Added Gallery navigation capability metadata and Files typed settings metadata.
-- Added SDK v2 capability architecture documentation.
+- Added SDK v2 surface structure documentation and migration guidance.
+
+### Changed
+
+- Migrated existing extensions (Gallery, Files, Translations, Tuleap and CinemaMovie) to the SDK v2 surface structure with `Public/`, `User/`, `Admin/` and `API/` directories.
+- Moved extension API route entrypoints to `API/routes.php` and centralized registration in the Core.
+- Added `ExtensionRouteRegistrar` to register enabled extension routes under `api/v1` with the `surface:api` middleware.
+- Replaced build-time extension navigation imports with runtime navigation discovery through `/api/v1/extensions/navigation`, with server-side permission filtering.
+- Normalized extension frontend resources to `resources/js`.
+- Updated `make:extension` to scaffold the SDK v2 surface structure, capability contracts and Unit/Functional/Playwright test skeletons.
+
+### Tests
+
+- Added coverage for SDK v2 route registration, runtime navigation authorization and fresh extension scaffolding.
 
 All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog.
 Versioning follows Semantic Versioning.
-
-## [Unreleased]
-
-### Added
-- Initial project structure
-- Project vision
-- Roadmap
-- Architecture Decision Records
 
 ## [0.1.0] - In Progress
 

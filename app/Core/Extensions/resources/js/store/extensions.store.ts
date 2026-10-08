@@ -22,6 +22,7 @@ interface ExtensionsState {
   extensions: ExtensionSummary[]
   configDefaults: Record<string, unknown> | null
   configValues: Record<string, unknown> | null
+  navigation: NavItem[]
   configId: string | null
 }
 
@@ -30,6 +31,7 @@ export const useExtensionsStore = defineStore('extensions', {
     extensions: [],
     configDefaults: null,
     configValues: null,
+    navigation: [],
     configId: null,
   }),
 

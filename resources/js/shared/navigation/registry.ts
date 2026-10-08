@@ -1,9 +1,5 @@
-// The single place that knows every domain exists, purely for
-// build-time aggregation (unavoidable in a bundled frontend — there
-// is no runtime filesystem scan of app/Core|Extensions available in
-// the browser). Adding a new domain's nav entry is a one-line import
-// here; the entry's content (label, icon, permission) stays owned by
-// the domain itself, not duplicated in AdminNav.
+// Core navigation is build-time because Core is part of the platform shell.
+// Extension navigation is discovered at runtime from the Extension SDK v2 API.
 import { dashboardNavItem } from './dashboard.nav'
 import { usersNavItem } from '@core/users/nav'
 import { rolesNavItem } from '@core/roles/nav'

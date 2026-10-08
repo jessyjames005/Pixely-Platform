@@ -32,8 +32,11 @@ Extensions declare capabilities; Core owns orchestration. In particular, route r
 
 ## Current adoption
 
-- Gallery declares `navigation` and `permissions`.
-- Files declares `settings` and `permissions`.
-- Routes and blocks contracts are available for the next SDK v2 lots.
+- Gallery declares `navigation`, `routes` and `permissions`.
+- Files declares `navigation`, `routes`, `settings` and `permissions`.
+- Translations, Tuleap and CinemaMovie declare `navigation`, `routes` and `permissions`.
+- Existing extension API route files now live under the `API/` surface directory.
+- Core registers enabled extension API routes centrally and applies `api/v1` + `surface:api`.
+- Admin navigation is discovered at runtime through `/api/v1/extensions/navigation` and filtered server-side by permissions.
 
 The Extension Manager API now exposes the resolved capability list for each extension.

@@ -332,18 +332,22 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Typed settings capability contract
 * [x] Capability registry
 * [x] Extension Manager API exposes resolved capabilities
-* [ ] Core route registration from extension declarations
-* [ ] Core navigation registry from extension declarations
+* [x] Core route registration from extension declarations
+* [x] Core navigation registry from extension declarations
 * [ ] Block registry and renderer contract
 * [ ] Settings schema API and generated admin form
 * [ ] Frontend extension capability loader
-* [ ] Extension generator updated for SDK v2 capabilities
-* [ ] SDK v2 documentation and migration guide
+* [x] Extension generator updated for SDK v2 capabilities
+* [x] SDK v2 surface structure documentation
+* [ ] Frontend dynamic route registry
 
 ### Current SDK adoption
 
-* Gallery: navigation + permissions
-* Files: typed settings + permissions
+* Gallery: navigation + routes + permissions
+* Files: navigation + routes + typed settings + permissions
+* Translations: navigation + routes + permissions
+* Tuleap: navigation + routes + permissions
+* CinemaMovie: navigation + routes + permissions
 * Existing lifecycle, dependencies, configuration and migration mechanisms remain compatible
 
 ## v0.5.0 - Extension SDK

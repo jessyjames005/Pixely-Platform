@@ -73,7 +73,7 @@ it('displays a single extension detail', function () {
         ->assertOk()
         ->assertJsonPath('data.id', 'gallery')
         ->assertJsonStructure(['data' => ['id', 'name', 'version', 'dependencies', 'enabled', 'path', 'providers', 'capabilities']])
-        ->assertJsonFragment(['capabilities' => ['navigation', 'permissions']]);
+        ->assertJsonFragment(['capabilities' => ['navigation', 'routes', 'permissions']]);
 });
 
 it('returns 404 for an unknown extension', function () {
@@ -147,7 +147,7 @@ it('exposes the typed settings schema through the extension capability model', f
 
     $response = $this->getJson('/api/v1/extensions/files')->assertOk();
 
-    $response->assertJsonFragment(['capabilities' => ['settings', 'permissions']]);
+    $response->assertJsonFragment(['capabilities' => ['settings', 'navigation', 'routes', 'permissions']]);
 });
 
 it('returns declared defaults for a never-configured extension, not an empty payload', function () {

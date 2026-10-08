@@ -1,3 +1,5 @@
+import type { Surface } from '@shared/surface'
+
 // resources/js/shared/navigation/types.ts
 // Contract every domain's navigation declaration follows.
 export interface NavItem {
@@ -14,9 +16,10 @@ export interface NavItem {
   // regardless of permission. Core modules (Users, Roles...) omit this.
   extensionId?: string
   // Set of surfaces this item is visible on: public, user, admin, api
-  surfaces?: Array<'public' | 'user' | 'admin' | 'api'>
   // Nested navigation items for submenus
   children?: NavItem[]
+  surfaces?: Surface[]
+  order?: number
 }
 
 export function navLabel(item: NavItem): string {

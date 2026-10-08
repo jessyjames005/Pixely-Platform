@@ -7,6 +7,7 @@ namespace App\Core\Extensions\Http\Controllers;
 use App\Core\Api\Response\ApiCollectionResponse;
 use App\Core\Api\Response\ApiResponse;
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
 use App\Core\Extensions\Capabilities\Registry\ExtensionCapabilityRegistry;
 use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
@@ -47,6 +48,46 @@ final class ExtensionController
         return $apiResponse->response(
             data: array_values($extensions),
             meta: ['total' => count($extensions)],
+        );
+    }
+
+    /**
+     * Return navigation contributed by enabled extensions for the admin surface.
+     *
+     * Permissions are filtered server-side so users never receive navigation
+     * entries they are not authorized to use.
+     */
+    public function navigation(Request $request, ApiCollectionResponse $apiResponse): JsonResponse
+    {
+        $items = [];
+
+        foreach ($this->manager->enabled() as $extension) {
+            if (! in_array('admin', $extension->manifest()->surfaces, true)) {
+                continue;
+            }
+
+            if (! $extension instanceof ExtensionNavigationInterface) {
+                continue;
+            }
+
+            foreach ($extension->navigation() as $item) {
+                $items[] = $this->filterNavigationItem($item, $request);
+            }
+        }
+
+        $items = array_values(array_filter(
+            $items,
+            static fn (mixed $item): bool => is_array($item),
+        ));
+
+        usort(
+            $items,
+            static fn (array $left, array $right): int => (int) ($left['order'] ?? 1000) <=> (int) ($right['order'] ?? 1000),
+        );
+
+        return $apiResponse->response(
+            data: $items,
+            meta: ['total' => count($items)],
         );
     }
 
@@ -154,6 +195,44 @@ final class ExtensionController
             'defaults' => $defaults,
             'values' => [...$defaults, ...$this->configRepository->load($id)],
         ]);
+    }
+
+    /**
+     * Filter one navigation item recursively against the authenticated user.
+     *
+     * @param array<string, mixed> $item
+     * @return array<string, mixed>|null
+     */
+    private function filterNavigationItem(array $item, Request $request): ?array
+    {
+        $permission = $item['permission'] ?? null;
+
+        if (is_string($permission) && ! $request->user()?->can($permission)) {
+            return null;
+        }
+
+        if (isset($item['children']) && is_array($item['children'])) {
+            $children = [];
+
+            foreach ($item['children'] as $child) {
+                if (! is_array($child)) {
+                    continue;
+                }
+
+                $filtered = $this->filterNavigationItem($child, $request);
+                if ($filtered !== null) {
+                    $children[] = $filtered;
+                }
+            }
+
+            if ($children === []) {
+                return null;
+            }
+
+            $item['children'] = $children;
+        }
+
+        return $item;
     }
 
     /**

@@ -55,20 +55,30 @@ export function useVisibleNav(surface: Surface = 'admin') {
   const extensionsStore = useExtensionsStore()
 
   onMounted(() => {
-    if (authStore.can('system.extensions.view') && extensionsStore.extensions.length === 0) {
-      extensionsStore.fetchExtensions().catch(() => undefined)
+    if (authStore.user && extensionsStore.navigation.length === 0) {
+      extensionsStore.fetchNavigation().catch(() => undefined)
     }
   })
 
   const can = (permission: string): boolean => authStore.can(permission)
   const extensionEnabled = (extensionId: string): boolean =>
-    isExtensionEnabled(extensionsStore.extensions, extensionId)
+    extensionsStore.extensions.length === 0
+      ? true
+      : isExtensionEnabled(extensionsStore.extensions, extensionId)
 
-  const visibleItems = computed(() =>
-    navRegistry
+  const visibleItems = computed(() => {
+    const extensionItems = extensionsStore.navigation
       .map((item) => filterItem(item, can, extensionEnabled, surface))
-      .filter((item): item is NavItem => item !== null),
-  )
+      .filter((item): item is NavItem => item !== null)
+      .sort((left, right) => ((left.order ?? 1000) - (right.order ?? 1000)))
+
+    return [
+      ...navRegistry
+        .map((item) => filterItem(item, can, extensionEnabled, surface))
+        .filter((item): item is NavItem => item !== null),
+      ...extensionItems,
+    ]
+  })
 
   return { visibleItems, isExtensionEnabled, filterItem }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Extensions\CinemaMovie;
 
+use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionRoutesInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
@@ -18,7 +20,7 @@ use App\Extensions\CinemaMovie\Providers\CinemaMovieServiceProvider;
  * once its lang/ files are ready to be browsable in the Translations
  * extension screen.
  */
-final class CinemaMovieExtension implements ExtensionInterface, ExtensionPermissionsInterface
+final class CinemaMovieExtension implements ExtensionInterface, ExtensionNavigationInterface, ExtensionRoutesInterface, ExtensionPermissionsInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -30,6 +32,7 @@ final class CinemaMovieExtension implements ExtensionInterface, ExtensionPermiss
             class: self::class,
             path: 'app/Extensions/CinemaMovie',
             dependencies: [],
+            surfaces: ['admin', 'api'],
         );
     }
 
@@ -50,8 +53,30 @@ final class CinemaMovieExtension implements ExtensionInterface, ExtensionPermiss
     }
 
     /**
-     * @return array<class-string>
+     * @return array<int, array<string, mixed>>
      */
+    public function navigation(): array
+    {
+        return [[
+            'id' => 'cinema-movie',
+            'label' => 'CinemaMovie',
+            'to' => '/admin/cinema-movie',
+            'icon' => 'mdi-movie-open-outline',
+            'permission' => 'cinema-movie.items.view',
+            'surface' => 'admin',
+            'order' => 50,
+            'extensionId' => 'cinema-movie',
+        ]];
+    }
+
+    /**
+     * @return list<array{file:string}>
+     */
+    public function routes(): array
+    {
+        return [['file' => 'app/Extensions/CinemaMovie/API/routes.php']];
+    }
+
     public function providers(): array
     {
         return [

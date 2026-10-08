@@ -9,8 +9,14 @@ use Illuminate\Support\Facades\Route;
 use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
 
 JsonApiRoute::server('v1')
-    ->middleware(EnsureJsonApiMediaType::class)
+    ->middleware(EnsureJsonApiMediaType::class, 'surface:api')
     ->resources(function (): void {
+        Route::middleware(['auth:sanctum'])
+            ->prefix('extensions')
+            ->group(function (): void {
+                Route::get('/navigation', [ExtensionController::class, 'navigation']);
+            });
+
         Route::middleware(['auth:sanctum', 'permission:system.extensions.view'])
             ->prefix('extensions')
             ->group(function (): void {

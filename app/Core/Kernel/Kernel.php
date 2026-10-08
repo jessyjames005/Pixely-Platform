@@ -6,6 +6,7 @@ namespace App\Core\Kernel;
 
 use App\Core\Contracts\KernelInterface;
 use App\Core\Extensions\Discovery\ExtensionRepository;
+use App\Core\Extensions\Capabilities\Registry\ExtensionRouteRegistrar;
 use App\Core\Extensions\Manager\ExtensionManager;
 use Exception;
 
@@ -29,6 +30,7 @@ final class Kernel implements KernelInterface
         private readonly ExtensionManager $extensionManager,
         private readonly ExtensionRepository $repository,
         private readonly string $extensionsPath,
+        private readonly ExtensionRouteRegistrar $routeRegistrar,
     ) {
     }
 
@@ -56,6 +58,10 @@ final class Kernel implements KernelInterface
                 foreach ($extension->providers() as $provider) {
                     app()->register($provider);
                 }
+            }
+
+            foreach ($this->extensionManager->enabled() as $extension) {
+                $this->routeRegistrar->register($extension);
             }
 
             $this->extensionManager->boot();

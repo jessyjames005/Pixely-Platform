@@ -6,6 +6,8 @@ namespace App\Extensions\Files;
 
 use App\Core\Extensions\Capabilities\Contracts\ExtensionSettingsInterface;
 use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionRoutesInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
@@ -18,7 +20,7 @@ use App\Extensions\Files\Providers\FilesServiceProvider;
  * other extensions via a declared dependency — plus its own standalone
  * API and admin screen for browsing/uploading/deleting files directly.
  */
-final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionSettingsInterface, ExtensionPermissionsInterface, ExtensionTranslatableInterface
+final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionSettingsInterface, ExtensionNavigationInterface, ExtensionRoutesInterface, ExtensionPermissionsInterface, ExtensionTranslatableInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -26,9 +28,11 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
             id: 'files',
             name: 'Files',
             version: '1.0.0',
+            minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Files',
             dependencies: [],
+            surfaces: ['admin', 'api'],
         );
     }
 
@@ -82,6 +86,23 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function navigation(): array
+    {
+        return [[
+            'id' => 'files',
+            'label' => 'Files',
+            'to' => '/admin/files',
+            'icon' => 'mdi-file-multiple-outline',
+            'permission' => 'files.view',
+            'surface' => 'admin',
+            'order' => 30,
+            'extensionId' => 'files',
+        ]];
+    }
+
+    /**
      * @return array<int, string>
      */
     public function declaredPermissions(): array
@@ -91,6 +112,14 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
             'files.manage',
             'files.delete',
         ];
+    }
+
+    /**
+     * @return list<array{file:string}>
+     */
+    public function routes(): array
+    {
+        return [['file' => 'app/Extensions/Files/API/routes.php']];
     }
 
     public function providers(): array

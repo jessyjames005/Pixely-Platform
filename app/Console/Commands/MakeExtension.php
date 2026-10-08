@@ -10,14 +10,13 @@ use Illuminate\Support\Str;
 
 /**
  * Scaffolds a new, empty, valid extension: manifest, main class,
- * provider, routes, an empty controller, migrations/lang/upgrade
- * directories, and a minimal frontend skeleton following the
- * platform's per-domain structure.
+ * provider, API route entrypoint, migrations/lang/upgrade directories,
+ * surface directories (Public/User/Admin/API), and a minimal frontend
+ * skeleton following the platform per-domain structure.
  *
- * The generated extension is automatically discovered by the Kernel
- * on the next boot — no manual registration step required for the
- * backend. Frontend wiring (Vite/TS aliases, navigation registry)
- * still requires a few manual edits, printed at the end.
+ * API routes and admin navigation are registered automatically by SDK v2.
+ * Frontend aliases and route components remain explicit until the dynamic
+ * frontend route registry is introduced in a later SDK v2 lot.
  */
 final class MakeExtension extends Command
 {
@@ -48,12 +47,15 @@ final class MakeExtension extends Command
     private function scaffoldBackend(string $studly, string $id, string $basePath): void
     {
         $dirs = [
+            "{$basePath}/Public",
+            "{$basePath}/User",
+            "{$basePath}/Admin",
+            "{$basePath}/API",
             "{$basePath}/Providers",
             "{$basePath}/Http/Controllers/Api",
             "{$basePath}/Models",
             "{$basePath}/Database/Migrations",
             "{$basePath}/Upgrades",
-            "{$basePath}/routes",
             "{$basePath}/lang/en",
             "{$basePath}/lang/fr",
             "{$basePath}/tests",
@@ -70,7 +72,7 @@ final class MakeExtension extends Command
         File::put("{$basePath}/{$studly}Extension.php", $this->extensionClassStub($studly, $id));
         File::put("{$basePath}/Providers/{$studly}ServiceProvider.php", $this->providerStub($studly));
         File::put("{$basePath}/Http/Controllers/Api/{$studly}Controller.php", $this->controllerStub($studly, $id));
-        File::put("{$basePath}/routes/api.php", $this->routesStub($studly, $id));
+        File::put("{$basePath}/API/routes.php", $this->routesStub($studly, $id));
         File::put("{$basePath}/lang/en/{$id}.php", $this->langStub());
         File::put("{$basePath}/lang/fr/{$id}.php", $this->langStub());
         File::put("{$basePath}/tests/Unit/{$studly}ExtensionTest.php", $this->unitTestStub($studly, $id));
@@ -78,7 +80,7 @@ final class MakeExtension extends Command
         File::put("{$basePath}/tests/E2E/{$studly}.spec.ts", $this->e2eTestStub($studly, $id));
 
         // Keep otherwise-empty directories tracked by git
-        foreach (["{$basePath}/Models", "{$basePath}/Database/Migrations", "{$basePath}/Upgrades", "{$basePath}/tests"] as $emptyDir) {
+        foreach (["{$basePath}/Public", "{$basePath}/User", "{$basePath}/Admin", "{$basePath}/Models", "{$basePath}/Database/Migrations", "{$basePath}/Upgrades", "{$basePath}/tests"] as $emptyDir) {
             if (File::allFiles($emptyDir) === []) {
                 File::put("{$emptyDir}/.gitkeep", '');
             }
@@ -99,7 +101,6 @@ final class MakeExtension extends Command
         File::put("{$jsBase}/models/" . $studly . '.ts', $this->frontendModelStub($studly));
         File::put("{$jsBase}/store/{$id}.store.ts", $this->frontendStoreStub($studly, $id));
         File::put("{$jsBase}/views/{$studly}View.vue", $this->frontendViewStub($studly, $id));
-        File::put("{$basePath}/resources/js/nav.ts", $this->frontendNavStub($studly, $id));
     }
 
     private function manifestStub(string $studly, string $id): string
@@ -117,6 +118,7 @@ final class MakeExtension extends Command
             'name' => '{$studly}',
             'version' => '1.0.0',
             'minimum_kernel_version' => '1.0.0',
+            'surfaces' => ['admin', 'api'],
             'class' => App\\Extensions\\{$studly}\\{$studly}Extension::class,
         ];
 
@@ -132,6 +134,8 @@ final class MakeExtension extends Command
 
         namespace App\\Extensions\\{$studly};
 
+        use App\\Core\\Extensions\\Capabilities\\Contracts\\ExtensionNavigationInterface;
+        use App\\Core\\Extensions\\Capabilities\\Contracts\\ExtensionRoutesInterface;
         use App\\Core\\Extensions\\Contracts\\ExtensionInterface;
         use App\\Core\\Extensions\\Manifest\\ExtensionManifest;
         use App\\Core\\Extensions\\Permissions\\ExtensionPermissionsInterface;
@@ -146,7 +150,7 @@ final class MakeExtension extends Command
          * once its lang/ files are ready to be browsable in the Translations
          * extension screen.
          */
-        final class {$studly}Extension implements ExtensionInterface, ExtensionPermissionsInterface
+        final class {$studly}Extension implements ExtensionInterface, ExtensionNavigationInterface, ExtensionRoutesInterface, ExtensionPermissionsInterface
         {
             public function manifest(): ExtensionManifest
             {
@@ -158,7 +162,33 @@ final class MakeExtension extends Command
                     class: self::class,
                     path: 'app/Extensions/{$studly}',
                     dependencies: [],
+                    surfaces: ['admin', 'api'],
                 );
+            }
+
+            /**
+             * @return array<int, array<string, mixed>>
+             */
+            public function navigation(): array
+            {
+                return [[
+                    'id' => '{$id}',
+                    'label' => '{$studly}',
+                    'to' => '/admin/{$id}',
+                    'icon' => 'mdi-puzzle-outline',
+                    'permission' => '{$id}.items.view',
+                    'surface' => 'admin',
+                    'order' => 100,
+                    'extensionId' => '{$id}',
+                ]];
+            }
+
+            /**
+             * @return list<array{file:string}>
+             */
+            public function routes(): array
+            {
+                return [['file' => 'app/Extensions/{$studly}/API/routes.php']];
             }
 
             /**
@@ -208,18 +238,16 @@ final class MakeExtension extends Command
         use Illuminate\\Support\\ServiceProvider;
 
         /**
-         * Registers {$studly} extension API routes.
+         * Registers {$studly} extension services and migrations.
+         * API routes are registered centrally by the Extension SDK v2.
          */
         final class {$studly}ServiceProvider extends ServiceProvider
         {
             public function boot(): void
             {
-                \$this->app->router
-                    ->middleware('api')
-                    ->prefix('api/v1')
-                    ->group(
-                        __DIR__ . '/../routes/api.php'
-                    );
+                \$this->loadMigrationsFrom(
+                    __DIR__ . '/../Database/Migrations'
+                );
             }
         }
 
@@ -274,8 +302,7 @@ final class MakeExtension extends Command
         /**
          * {$studly} extension API routes.
          *
-         * Registered under api/v1 by {$studly}ServiceProvider, following
-         * the same per-extension routing convention as other extensions.
+         * Registered centrally by the Pixely Extension SDK v2 route registrar.
          * Honours the strict JSON:API contract (Accept / Content-Type
          * application/vnd.api+json) via EnsureJsonApiMediaType.
          */
@@ -468,19 +495,16 @@ final class MakeExtension extends Command
 
     private function printNextSteps(string $studly, string $id): void
     {
-        $camel = Str::camel($id);
-
         $this->newLine();
         $this->line('<comment>Remaining manual steps:</comment>');
         $this->line('1. Add a Vite/TS alias in vite.config.js and tsconfig.json:');
         $this->line("   \"@extensions/{$id}\": .../app/Extensions/{$studly}/resources/js");
-        $this->line('2. Import and register the nav item in resources/js/shared/navigation/registry.ts:');
-        $this->line("   import { {$camel}NavItem } from '@extensions/{$id}/nav'");
-        $this->line("3. Add the route in resources/js/router/index.ts (import {$studly}View, add to children[]).");
-        $this->line("4. Add {$id}.items.view/manage/delete to database/seeders/RolePermissionSeeder.php (or rely on ExtensionPermissionSynchronizer at enable time).");
-        $this->line("5. Run: docker compose exec app php artisan pixely:extension:migrate {$id}  (once you add migrations to Database/Migrations/).");
-        $this->line("6. Run: docker compose exec app php artisan pixely:extension:migration-status {$id}");
-        $this->line('7. Run: docker compose exec app php artisan pixely:extensions  to confirm discovery.');
-        $this->line("8. (JSON:API) Register this extension's resource type — create app/JsonApi/V1/{$studly}/{$studly}ItemSchema.php extending DocumentSchema with `protected static string \$resourceType = '{$id}-items';`, then add `{$studly}ItemSchema::class` to `App\\JsonApi\\V1\\Server::allSchemas()`. Until then, index() returns an empty JSON:API document.");
+        $this->line("2. Add the frontend route in resources/js/router/index.ts (frontend route registration remains explicit in S4).");
+        $this->line("3. Add {$id}.items.view/manage/delete to database/seeders/RolePermissionSeeder.php (or rely on ExtensionPermissionSynchronizer at enable time).");
+        $this->line("4. Run: docker compose exec app php artisan pixely:extension:migrate {$id}  (once you add migrations to Database/Migrations/).");
+        $this->line("5. Run: docker compose exec app php artisan pixely:extension:migration-status {$id}");
+        $this->line('6. Run: docker compose exec app php artisan pixely:extensions  to confirm discovery.');
+        $this->line('7. API routes and admin navigation are registered automatically by SDK v2.');
+        $this->line("8. (JSON:API) Register this extension's resource type in App\\JsonApi\\V1\\Server::allSchemas() when the first resource is implemented.");
     }
 }

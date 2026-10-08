@@ -8,6 +8,7 @@ const { state } = vi.hoisted(() => ({
   state: {
     can: true,
     extensions: [] as Array<{ id: string; enabled: boolean; name: string; version: string; dependencies: string[] }>,
+    navigation: [] as NavItem[],
   },
 }))
 
@@ -20,7 +21,10 @@ vi.mock('@core/extensions/store/extensions.store', () => ({
     get extensions() {
       return state.extensions
     },
-    fetchExtensions: vi.fn(),
+    get navigation() {
+      return state.navigation
+    },
+    fetchNavigation: vi.fn(),
   }),
 }))
 
@@ -54,9 +58,14 @@ const Harness = defineComponent({
 describe('useVisibleNav (integration)', () => {
   beforeEach(() => {
     state.can = true
+    state.navigation = []
     state.extensions = [
       { id: encodeExtId('gallery'), enabled: true, name: 'Gallery', version: '1.0.0', dependencies: [] },
       { id: encodeExtId('cinema-movie'), enabled: true, name: 'CinemaMovie', version: '1.0.0', dependencies: [] },
+    ]
+    state.navigation = [
+      { label: 'Gallery', to: '/admin/gallery', icon: 'mdi-image-multiple', permission: 'gallery.photos.view', extensionId: 'gallery' },
+      { label: 'CinemaMovie', to: '/admin/cinema-movie', icon: 'mdi-movie-open-outline', permission: 'cinema-movie.items.view', extensionId: 'cinema-movie' },
     ]
   })
 
@@ -76,6 +85,9 @@ describe('useVisibleNav (integration)', () => {
     state.extensions = [
       { id: encodeExtId('gallery'), enabled: true, name: 'Gallery', version: '1.0.0', dependencies: [] },
       { id: encodeExtId('cinema-movie'), enabled: false, name: 'CinemaMovie', version: '1.0.0', dependencies: [] },
+    ]
+    state.navigation = [
+      { label: 'Gallery', to: '/admin/gallery', icon: 'mdi-image-multiple', permission: 'gallery.photos.view', extensionId: 'gallery' },
     ]
     const wrapper = mount(Harness)
     const tos = wrapper.findAll('[data-to]').map((e: any) => e.attributes('data-to'))
