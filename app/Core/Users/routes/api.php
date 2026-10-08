@@ -38,3 +38,17 @@ JsonApiRoute::server('v1')
                 ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
         });
     });
+
+/**
+ * Generic User Space engagement endpoints.
+ *
+ * These resources intentionally use stable resource type/id pairs so Core
+ * remains independent from extension-specific Eloquent models.
+ */
+Route::middleware('auth:sanctum')->prefix('me')->group(function (): void {
+    Route::get('/favorites', [\App\Core\Users\Http\Controllers\UserEngagementController::class, 'favorites']);
+    Route::post('/favorites', [\App\Core\Users\Http\Controllers\UserEngagementController::class, 'storeFavorite']);
+    Route::delete('/favorites/{resourceType}/{resourceId}', [\App\Core\Users\Http\Controllers\UserEngagementController::class, 'destroyFavorite']);
+    Route::get('/history', [\App\Core\Users\Http\Controllers\UserEngagementController::class, 'history']);
+    Route::post('/history', [\App\Core\Users\Http\Controllers\UserEngagementController::class, 'storeHistory']);
+});

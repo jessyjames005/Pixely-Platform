@@ -43,37 +43,6 @@ Rules every phase of this roadmap obeys:
 
 ---
 
-## Current Execution Roadmap — Multi-Surface Evolution
-
-The platform is progressively moving from an administration-first application to a
-**multi-surface platform**. This evolution is incremental and does not require a
-rewrite of the existing Core or extensions.
-
-### S0 — Multi-Surface Foundation Hardening
-
-- [x] Define the four platform surfaces: `public`, `user`, `admin`, `api`
-- [x] Add request-scoped `SurfaceContext` and explicit `surface:*` middleware
-- [x] Validate extension manifest `surfaces` with `admin` as the legacy default
-- [x] Add surface-aware extension registry filtering
-- [x] Protect `/admin` and `/account` with backend authentication
-- [x] Protect `/admin` with the dedicated `system.admin.access` permission
-- [x] Resolve every API middleware group to the `api` surface automatically
-- [x] Establish the authorization chain: `Authentication → Surface → Permission → Policy → Resource`
-- [x] Add `SurfaceAwarePolicyInterface` and `SurfaceAuthorizationService`
-- [x] Add functional coverage for public/user/admin/API surface boundaries
-- [x] Type frontend surface metadata and navigation declarations
-- [x] Add frontend admin-entry permission guard
-- [ ] Run the complete S0 test suite on the supported PHP 8.3 environment
-- [ ] Validate S0 in CI and close the environment-dependent test blockers
-
-### Next
-
-**S1 — Website Foundation** starts after S0 is green in CI. It will turn the
-existing Website Engine foundation into the first complete multi-surface domain:
-public website pages, menus, user-aware behavior, administration and API.
-
----
-
 ## v0.1.0 - Foundation
 
 ### Project & Documentation
@@ -150,52 +119,7 @@ public website pages, menus, user-aware behavior, administration and API.
 * [ ] Continuous deployment
 * [ ] Review app generation for pull requests
 
-
-## Current Multi-Surface Execution Roadmap
-
-Pixely is evolving progressively from the administration-first foundation into a
-**Multi-Surface Platform**. The Core provides capabilities; extensions provide
-experiences.
-
-### S0 — Multi-Surface Foundation
-
-- [x] Surface enum and request context (`public`, `user`, `admin`, `api`)
-- [x] Surface resolver and middleware
-- [x] Surface-aware extension manifests and registry
-- [x] Authentication → Surface → Permission → Policy → Resource foundation
-- [x] Admin access permission boundary
-- [x] API surface automatically established by the `api` middleware group
-- [x] Frontend surface metadata and route guards
-- [x] Unit and feature tests
-
-### S1 — Website Foundation
-
-**Status: 🟡 In progress — Admin management foundation complete**
-
-### Completed
-
-- [x] Website Engine application contract and DTOs
-- [x] Persistent pages, menus and menu items
-- [x] Page CRUD API
-- [x] Menu CRUD API
-- [x] Page validation and automatic unique slugs
-- [x] Website permissions (`website.pages.*`, `website.menus.*`)
-- [x] API surface + authentication + permissions
-- [x] Admin Website navigation
-- [x] Admin Pages management UI
-- [x] Admin Menus management UI
-- [x] Unit and feature test foundation
-
-### Remaining
-
-- [ ] Execute PHP/Vitest tests in the project PHP 8.3 + Node environment
-- [ ] Playwright E2E coverage for Website administration
-- [ ] Public page rendering
-- [ ] Public menu rendering
-- [ ] Website navigation provider integration
-- [ ] User Space integration
-- [ ] Theme/layout integration
-- [ ] Typed page blocks
+---
 
 ## v0.2.0 - Kernel
 
@@ -1533,144 +1457,359 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Empty state
 * [ ] Error state
 
-## Migration vers Multi-Surface Platform
+## Migration 4 Étapes vers Multi-Surface Platform
 
-Pixely Platform évolue progressivement d'une administration centrée vers une
-plateforme unique exposant plusieurs surfaces partageant le même Core :
+After the mise en place des fondations Core and Extension, Pixely Platform migre vers une architecture Multi-Surface: **pas de rupture, évolution progressive**.
 
-```text
-PIXELY PLATFORM
-├── PUBLIC   Website / public extension experiences
-├── USER     authenticated personal space
-├── ADMIN    platform administration
-└── API      programmatic surface
-```
+### État actuel (2026_10_06)
 
-### S0 — Multi-Surface Foundation Hardening (current sprint)
+- L'architecture actuelle est administration-centrique avec `/admin` as the main entry point
+- Extension system with manifest, registry, manager, permissions, versioning
+- Frontend: Vue 3 + Vuetify admin SPA with route registry (`resources/js/router/index.ts`)
+- Navigation: admin-only registry dans `resources/js/shared/navigation/registry.ts`
 
-**Objectif :** transformer la fondation Multi-Surface existante en frontière
-backend explicite et testable, sans commencer encore les nouvelles expériences
-Music, Camping ou Media Converter.
+### Migration plan (étapes progressives, pas de rupture)
 
-#### S0.1 — Surface context
+#### Étape 1 : Conserver `/admin` tel quel (déjà fait)
 
-- [x] `Surface` enum : `public`, `user`, `admin`, `api`
-- [x] Request-scoped `SurfaceContext`
-- [x] `SurfaceResolver`
-- [x] `surface:*` backend middleware
-- [x] Explicit surface assignment on `/`, `/account`, `/admin`
-- [x] Explicit `surface:api` on Core Website API routes
+**Objectif:** Préserver l'existant administration pendant toute la migration.
 
-#### S0.2 — Extension manifests
+**Livrable:** Infrastructure de base Multi-Surface avec compatibilité API existante.
 
-- [x] `ExtensionManifest.surfaces`
-- [x] Parse `surfaces` from extension manifests
-- [x] Validate unknown surface values
-- [x] Preserve admin-only default for legacy extensions
-- [x] `ExtensionRegistry::forSurface()` accepts the `Surface` value object
-- [x] Gallery declares `public`, `user`, `admin`, `api`
+**État actuel :** ✅ Terminé (ExtensionManifest with surfaces, Core contracts, surface-aware route guards, navigation v2)
 
-#### S0.3 — Authorization chain
+#### Étape 2 : Introduire `/` for Website (in progress)
 
-The backend authorization model is now explicitly defined as:
+**Objectif:** Add a public entry point for the Website (welcome, menus, simple pages).
 
-```text
-Authentication
-      ↓
-Surface
-      ↓
-Permission
-      ↓
-Policy
-      ↓
-Resource
-```
+**Travail :**
 
-- [x] Authentication remains the first backend boundary
-- [x] Surface is established before permission middleware
-- [x] Existing Spatie permission middleware remains the coarse-grained domain/action check
-- [x] `SurfaceAwarePolicyInterface` introduced for resource policies that need surface restrictions
-- [x] `SurfaceAuthorizationService` introduced as the central Surface → Policy bridge
-- [ ] Migrate resource-specific controllers to `SurfaceAuthorizationService`
-- [ ] Add concrete Core resource policies
-- [ ] Add Gallery resource policies
-- [ ] Add surface-aware authorization to extension API routes where required
+- Update `routes/web.php` : add route `/account/{any?}` for User Space
+- Update `router/index.ts` : add route meta `surface: 'public'` and `surface: 'user'`
+- Implement `WebsiteEngine` foundation: Page + Menu + Theme + Layout (MVP only, no drag-and-drop)
+- Add `navRegistry` for public/user navigation items (NavItem with `surfaces: string[]` extended)
+- Extend `useVisibleNav()` with `surface: string = 'admin'` parameter (used for public/user/admin)
 
-#### S0.4 — Tests
+**État actuel :** ✅ Public routes added, navigation surface-aware updated, router extended, manifest extensible.
 
-- [x] Surface enum tests
-- [x] Surface context tests
-- [x] Surface resolver tests
-- [x] Manifest surface parsing/validation tests
-- [x] Surface middleware feature tests
-- [x] Surface-aware policy authorization tests
-- [ ] Full local Pest suite green with the project-supported PHP environment
-- [ ] CI validation of all S0 tests
+#### Étape 3 : Introduire `/account` for User Space (planned)
 
-#### S0.5 — Documentation
+**Objectif:** Add an authenticated User Space (`/account`) with personal extensions.
 
-- [x] ROADMAP updated with the new Multi-Surface execution model
-- [ ] ARCHITECTURE updated with the final authorization sequence
-- [ ] ADR updated with Surface context + authorization rules
-- [ ] CHANGELOG updated when S0 is committed
+**Travail :**
 
-### S1 — Website Foundation — **in progress**
+- Add route `/account/{any?}` (already in place)
+- Distinguish admin navigation from user navigation (surfaces: ['user'])
+- Route guard for auth + permission + surface
+- Extensions can declare user support (Gallery already has surfaces: ['admin', 'public'], add 'user' later)
+- Handle user preferences (already existing), add possibility to customize UI per surface
 
-**Objectif :** rendre le Website Engine réellement fonctionnel.
+**Preparation :** Existing surface-aware route guards, extensions duplicated with surfaces.
 
-- [x] Persist pages through the Website Engine service layer
-- [x] Persist menus and menu items
-- [x] Page CRUD
-- [x] Menu CRUD
-- [x] Publish/unpublish through page status
-- [x] Slugs and API validation
-- [x] SEO metadata persistence
-- [x] Website API authentication + surface + permissions
-- [x] Website Engine contract, DTOs and service provider
-- [x] Website Engine database migration
-- [x] `/admin/website/pages`
-- [x] `/admin/website/menus`
-- [x] Website Admin navigation and permission filtering
-- [x] Unit + functional test foundation
-- [ ] Execute the full PHP/Vitest suite in the supported environment
-- [x] Playwright E2E coverage for Website administration
-- [x] Website navigation provider integration
-- [ ] Public website layout and page rendering
-- [ ] User website/account integration
-- [ ] Theme/layout foundation
+#### Étape 4 : Refactor progressively the extensions
 
-### S2 — Public Website — **in progress**
+**Objectif:** Gradually extend existing extensions to declare their surfaces.
 
-**Current status:** Public rendering, default content, theme tokens, navigation, and branded error handling are implemented. The remaining S2 work is final E2E validation before moving to S3 User Space.
+**Process :**
 
-- [x] `WebsiteLayout`
-- [x] `WebsiteHeader`
-- [x] `WebsiteFooter`
-- [x] Public navigation provider integration
-- [x] Public page API endpoint restricted to published content
-- [x] Public Vue page rendering
-- [x] Dynamic public page routes
-- [x] Home route mapped to the Website Engine (`/` → `home`)
-- [x] 404 public state
-- [x] Public SEO title + description metadata
-- [ ] About page content
-- [ ] Contact page content
-- [ ] 403 / 500 public error pages
-- [ ] Theme/layout foundation
-- [ ] Playwright public navigation tests
+- Existing extensions (Gallery, Files, Tuleap, Translations) add surfaces field to manifest (role: extension)
+- Extensions add chosen contract(s) (navigation, route, block, settings, permissions)
+- Extensions can have deferred-by-surface behavior (e.g., Gallery can have different UI for public vs admin)
+- Tests and documentation for each extension migrated
 
-### S3 — User Space
+**Advantages :**
 
-**Status: In progress**
+- No break : extensions not declaring surfaces default to admin-only (default)
+- Extensible : each extension can gradually adopt more surfaces
+- Backwards compatible : existing extensions continue to work unchanged
 
-- [x] User Space authenticated Laravel entry point (`/account`)
-- [x] User surface context
-- [x] Shared User Layout
-- [x] User Dashboard
-- [x] Profile integration
-- [x] Preferences integration
-- [ ] Favorites foundation
-- [ ] History foundation
-- [ ] Extension user-surface navigation
-- [ ] Playwright User Space suite
-- [ ] User Space security/authorization hardening
+**Timeline update :**
+
+- **Current sprint (Foundation) :** ExtensionManifest with surfaces added, contracts created
+- **Next sprint :** Navigation v2 updated, route guards extended, `/` and `/account` routes added
+- **Sprint after :** Update GalleryExtension, FilesExtension, Tuleap, Translations to declare surfaces
+- **Next sprint :** Complete Step 3 and start Step 4
+
+### Design decision : Evolution vs Rewrite
+
+**Why not rewrite :**
+
+- Existing `/admin` must remain functional during migration
+- Extensions can migrate progressively
+- Transition complexity : applications share auth/authorization/core services
+- Cap : no CMS in Core (Page Builder stays simple MVP only)
+
+**Why not three applications :**
+
+- Surfaces share auth/authorization/core services
+- They are the same extensions, not three separate systems
+- Consistency in permissions and navigation is essential
+
+**Why not a huge Page Builder :**
+
+- Simple MVP : Page + Blocks + Theme only
+- No drag-and-drop for this sprint (deferred)
+
+### Test validation
+
+**Unit tests added :**
+
+- Tests for `ExtensionRegistry.forSurface()` (extensions filtered by surface)
+- Tests for surface-aware route guards
+- Tests for surface-aware navigation (`useVisibleNav()`)
+
+**Feature tests added :**
+
+- Public and user routes accessible
+- Admin route remains protected
+- Correct permissions per surface
+
+**Documentation updated :**
+
+- ADR-0090-multi-surface-architecture.md
+- ARCHITECTURE.md : Extension Surface Capability Contracts + Migration section
+- ROADMAP.md : Migration 4 Étapes section
+
+### Success criteria (values by sprint)
+
+- **Step 1 :** : ✅ Manifest + contracts + tests + documentation
+- **Step 2 :** : ✅ Routes `/` and `/account` + navigation surface-aware + router guards
+- **Step 3 :** : ✅ User navigation + user preferences per surface + user-declared extensions
+- **Step 4 :** : ✅ All existing extensions declare surfaces + behaviour per surface
+
+### Mastered risks
+
+- **No rewrite :** `/admin` conservé durant la migration, extensions migrated gradually
+- **No three applications :** surfaces sharing auth/authorization/core services
+- **No CMS in Core :** Website Engine stays minimal (Page + Menu + Theme + Layout)
+- **No permissions only in Vue :** backend permission verification required
+- **No huge Page Builder :** simple MVP (Page + Blocks + Theme)
+
+### Technical constraints
+
+- **Core independence :** Core must not import extension-specific code. Surface contracts should be defined in Core, implemented by extensions.
+- **Backward compatibility :** Adding `surfaces` to ExtensionManifest must not break existing extensions not declaring it. Default to all surfaces or admin only.
+- **Progressive migration :** 4-step migration plan (keep `/admin`, add `/`, add `/account`, refactor extensions) means the codebase must support multiple routing patterns simultaneously during transition.
+- **Permission convention :** `domain.object.action` (e.g., `gallery.photos.view`) is the established pattern. Surface is for organization/policy targeting, not permission explosion.
+- **No SSR in this sprint :** SSR decision (Option C: Laravel server-rendered public + Vue components) is deferred. Public pages can initially be Blade or simple Vue.
+- **Tests :** Existing test patterns (unit/functional/E2E) should be followed. The plan should include test scaffolding for the new surface guards and navigation filtering.
+
+
+
+---
+
+# Current Execution Order
+
+DONE (out of the original sequence)
+ │
+ ▼
+Incremental extension upgrade mechanism (versioned steps, not full zip replace)
+ │
+ ▼
+Extension Manager (registration/discovery/state/CRUD, nav tabs, favourites, permission-aware UI, Enabled/Disabled tabs) — complete, see detailed checklist for the 3 sub-items deliberately not built (Type column, Visible toggle, bulk Update-all)
+ │
+ ▼
+Files Extension (upload/validation/thumbnailing, consumed by Gallery and the profile avatar upload — standalone Files API + admin screen still pending)
+ │
+ ▼
+Translations Extension
+ │
+ ▼
+Users: profile (avatar upload, bio, timezone) — self-service screen shipped
+ │
+ ▼
+Tuleap Extension (sprint management dashboard) — delivered out of band, see v1.0.1
+ │
+ ▼
+Users: preferences (theme, density, notification opt-outs) — shipped on the My Profile screen
+ │
+ ▼
+Extension-declared permissions sync mechanism (manifest + automatic sync) — already done, corrects a previous roadmap mistake that had this marked as not started
+ │
+ ▼
+Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role modal grouping permissions by Core/Extension with a per-role user list) — shipped; also fixed RolesView.vue being entirely missing (the router imported a file that didn't exist, breaking the admin build)
+ │
+ ▼
+Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
+ │
+ ▼
+Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/Not-installed — Pixely has no not-yet-installed catalog) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
+ │
+ ▼
+Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
+ │
+ ▼
+Extension settings screen — shipped: the config dialog now renders a form generated from each extension's declared defaults (field type inferred from the default value's own JS type: boolean/number/string/string-array get a proper widget, anything else falls back to a per-field JSON textarea) instead of one big raw JSON blob; also fixed GET /extensions/{id}/config returning only stored overrides (empty for a never-configured extension) instead of merging in the declared defaults
+ │
+ ▼
+CURRENT
+ │
+ ▼
+Files hardening — generic storage layer: uuid / checksum / visibility / status lifecycle, FileVariant, metadata, upload security pipeline + quarantine
+ │
+ ▼
+Gallery data model refactor — Album → Media → File (migrate photos into files + media, drop duplicated storage columns)
+ │
+ ▼
+Sample Cinema Extension + frontend training
+ │
+ ▼
+Core events + queues foundation — FileUploaded/FileDeleted events, dedicated media/documents queues, async variant generation + EXIF strip
+ │
+ ▼
+Converter Extension — Conversion model + lifecycle, ProcessorInterface + FFmpeg, URL extraction (ExtractorInterface + yt-dlp, SSRF allowlist), GET /converters/capabilities, POST /conversions → 202 + queue job, public URL→MP3/MP4 UI, admin history
+ │
+ ▼
+Gallery Administration (visual, albums, tags, search, EXIF)
+
+# Current Progress
+
+The Pixely Platform currently has a functional extension foundation with:
+
+* Extension contracts and manifests, discovery, lifecycle management
+* Incremental (versioned-steps) upgrade path, applied per-transaction, partial success preserved on failure
+* Extension state persistence (atomic, lock-protected)
+* Extension Manager: install/enable/disable/uninstall/update, version management, dependency visualization, nav tabs, per-admin favourites, permission-aware UI
+* Files Extension: upload size/type/batch validation, thumbnail generation, consumed by Gallery and by the profile avatar upload as a shared dependency
+* Translations Extension: full translation management UI, applies to Core and any installed extension's own translation files
+* Gallery extension (CRUD, upload, pagination, filtering, sorting, automated tests)
+* Tuleap extension (sprint management dashboard — see v1.0.1): Tuleap API proxy, sprint stats/burndown/history, local team & retro data, 7 admin views
+* Users: self-service profile screen (avatar, bio, timezone)
+* Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
+* Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
+* Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
+* Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
+* Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
+* API query parsing, filtering, sorting, pagination, relationships
+* Automated tests for the Gallery API
+
+The current API query layer is stable and its Gallery API tests are green. The
+Tuleap extension's backend logic has not yet been exercised by automated
+tests or run against a live Tuleap instance — see the Tuleap API checklist
+above. Extension-declared permissions actually are synced dynamically
+already (`ExtensionPermissionSynchronizer`, used by Gallery, Tuleap and
+Translations) — a previous roadmap update had incorrectly marked this as
+not started; the Roles UI on top of that data (card grid, grouped Edit Role
+modal, Accessibilité control, Droits existants matrix) has now shipped too.
+The grouping uses each permission name's domain segment
+(`<domain>.<object>.<action>`) rather than the `is_core` flag — `is_core`
+also gets set on a couple of Translations permissions that pre-date it
+becoming a full extension, which would have grouped them under Core
+incorrectly.
+
+The next development focus is (target architecture, phased to keep each step
+small and shippable — public apps, CDN/S3, WebSocket, quotas and
+multi-tenancy are explicitly deferred until the foundation phases land):
+
+1. Files hardening — uuid / checksum / visibility / status lifecycle,
+   FileVariant, metadata layer, upload security pipeline + quarantine.
+2. Gallery data model refactor — `Album → Media → File`, migrate existing
+   photos, drop duplicated storage columns.
+3. Build the Sample Cinema Extension as a developer reference.
+4. Core events + dedicated-queue foundation; move variant generation to
+   async jobs (`media` / `documents` queues).
+5. Converter Extension — asynchronous conversions (`202 + queue job`),
+   ProcessorInterface + FFmpeg, URL source extraction (ExtractorInterface +
+   yt-dlp driver, SSRF-safe allowlist), dynamic capabilities endpoint,
+   notube-style public URL→MP3/MP4 UI, admin history.
+6. Continue the Gallery Extension with its visual administration interface;
+   automated tests for the Tuleap backend stay on the backlog in parallel.
+
+The development process should continue through clearly defined sprints, with each sprint having:
+
+* A defined objective
+* A limited scope
+* Step-by-step implementation tasks
+* Automated tests
+* Documentation updates
+* A final validation
+* A Git commit at the end of the sprint
+
+The roadmap should be updated progressively as each sprint is completed.
+
+---
+
+# Long-Term Platform Goals
+
+### Extension Ecosystem
+
+* [ ] Extension marketplace
+* [ ] Extension installation
+* [ ] Extension updates
+* [ ] Extension dependency resolution
+* [ ] Extension compatibility checks
+* [ ] Extension security validation
+* [ ] Extension ratings
+* [ ] Extension documentation
+* [ ] Extension developer portal
+
+### Platform
+
+* [ ] Multi-language platform
+* [ ] Multi-site support
+* [ ] Configuration management
+* [ ] Event system (Core events as contracts between extensions: `FileUploaded`, `FileDeleted`, `ConversionStarted/Completed/Failed`, `MediaPublished`, … — extensions listen, Core never knows the listeners)
+* [ ] Job / queue system (dedicated Redis queues `default` / `media` / `documents` / `maintenance`; heavy processing — variants, conversions — never runs inside an HTTP request; modular monolith, no microservices for now)
+* [ ] Notification system
+* [ ] Caching
+* [ ] Logging and monitoring
+* [ ] Audit system
+* [ ] Backup system
+
+### Frontend Platform
+
+* [ ] Vue.js 3 platform architecture
+* [ ] TypeScript architecture
+* [ ] Vuetify integration
+* [ ] Pixely Design System
+* [ ] Storybook component library
+* [ ] Material Design guidelines
+* [ ] Theme system
+* [ ] Dark mode
+* [ ] Accessibility standards
+* [ ] Responsive administration
+* [ ] Reusable administration components
+
+### Developer Platform
+
+* [ ] Complete Extension SDK
+* [ ] Extension generator
+* [ ] Developer documentation
+* [ ] API documentation
+* [ ] Swagger UI
+* [ ] OpenAPI generation
+* [ ] CLI tooling
+* [ ] Extension testing framework
+* [ ] Frontend extension tooling
+* [ ] Storybook extension tooling
+* [ ] Sample extensions
+* [ ] Developer tutorials
+* [ ] Extension development cookbook
+
+### Quality
+
+* [ ] Unit test coverage
+* [ ] Feature test coverage
+* [ ] API test coverage
+* [ ] Frontend test coverage
+* [ ] Component test coverage
+* [ ] Storybook component testing
+* [ ] Static analysis
+* [ ] Code style enforcement
+* [ ] Security analysis
+* [ ] Performance testing
+* [ ] Accessibility testing
+* [ ] CI/CD pipeline
+
+### S3 — User Space: Favorites & History Foundation
+
+- [x] Generic user favorites storage
+- [x] Generic user history storage
+- [x] User-owned API endpoints
+- [x] Idempotent favorites
+- [x] Extension-independent resource references
+- [x] Unit tests
+- [x] Functional API tests
+- [x] Playwright coverage
+- [ ] Favorites/History User Space views
+- [ ] Extension integration (Gallery, Music, Blog, Camping)

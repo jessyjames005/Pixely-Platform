@@ -8,63 +8,12 @@ Versioning follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
-- User Space foundation with authenticated `/account`, Dashboard, Profile, and Preferences surfaces.
 
-
-### Added
-- Added branded Laravel 403, 404, and 500 error pages for the public platform foundation.
-- Added feature and Playwright coverage for public error handling.
-
-
-### Added — S2 Public Website foundation
-
-- Added public Website Engine page endpoint for published pages.
-- Added public website layout, header, footer and navigation.
-- Added dynamic public page routing and a public 404 state.
-- Added SEO title and description handling from page metadata.
-
-### Added — S1 Website navigation
-
-- Added the public `WebsiteNavigationProvider` for persisted navigation menus.
-- Added a public `/api/v1/website/navigation/{code}` endpoint.
-- Added Playwright coverage for Website Pages and Menus administration.
-- Added functional coverage for public navigation filtering.
-
-
+- Generic User Space favorites and history foundation using extension-independent resource references.
+- Authenticated API endpoints for managing favorites and recording history.
+- Unit, functional, and Playwright coverage for user engagement.
 
 ### Added
-- S1 Website Foundation: persistent Website Engine pages, menus and menu items.
-- Website Engine contract, DTOs, service provider and database migration.
-- Admin Website pages and menus management views with permission-aware navigation.
-- Website API unit/feature test foundation.
-
-### Changed
-- Website documentation and roadmap now reflect the implemented persistence and Admin management foundation.
-
-
-### Added
-
-- Website Engine persistence foundation for pages, menus and menu items.
-- Persistence models kept separate from the framework-light Website Engine DTOs.
-- Website page/menu API request validation and CRUD service behavior.
-- Website Engine unit and feature coverage for permissions, persistence, slugs and validation.
-
-### Changed
-
-- Website Engine page slugs are normalized and made unique automatically.
-- Website Engine API mutations now use dedicated Form Requests instead of raw request payloads.
-
-- Added the Core Multi-Surface authorization foundation: `Surface` enum, request-scoped `SurfaceContext`, `SurfaceResolver`, `surface:*` middleware, and `SurfaceAuthorizationService`.
-- Added `SurfaceAwarePolicyInterface` for resource policies that need explicit surface boundaries.
-- Added extension manifest surface parsing and validation, while keeping legacy extensions admin-only by default.
-
-### Changed
-- Protected `/admin` and `/account` entry points with backend authentication and explicit surface middleware.
-- Added `system.admin.access` as the backend permission required to enter the administration surface.
-- Added `surface:api` to the global Laravel API middleware group so every Core and extension API route receives an explicit API surface context.
-- Added frontend surface typing and an administration entry guard matching the backend authorization boundary.
-- Added `surface:api` to the Website Engine management API before permission checks.
-- Updated the roadmap to replace the previous four-step migration wording with the S0→S11 Multi-Surface execution roadmap.
 - Initial project structure
 - Project vision
 - Roadmap
