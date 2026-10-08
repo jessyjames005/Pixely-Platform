@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Extensions\Files;
 
+use App\Core\Extensions\Capabilities\Contracts\ExtensionSettingsInterface;
 use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
@@ -17,7 +18,7 @@ use App\Extensions\Files\Providers\FilesServiceProvider;
  * other extensions via a declared dependency — plus its own standalone
  * API and admin screen for browsing/uploading/deleting files directly.
  */
-final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionPermissionsInterface, ExtensionTranslatableInterface
+final class FilesExtension implements ExtensionInterface, ExtensionConfigurableInterface, ExtensionSettingsInterface, ExtensionPermissionsInterface, ExtensionTranslatableInterface
 {
     public function manifest(): ExtensionManifest
     {
@@ -25,17 +26,50 @@ final class FilesExtension implements ExtensionInterface, ExtensionConfigurableI
             id: 'files',
             name: 'Files',
             version: '1.0.0',
-            minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Files',
             dependencies: [],
-            surfaces: ['admin'],
         );
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, array<string, mixed>>
      */
+    public function settings(): array
+    {
+        return [
+            'max_file_size_kb' => [
+                'type' => 'integer',
+                'label' => 'Maximum file size (KB)',
+                'default' => 5120,
+                'min' => 1,
+            ],
+            'max_files_per_upload' => [
+                'type' => 'integer',
+                'label' => 'Maximum files per upload',
+                'default' => 5,
+                'min' => 1,
+            ],
+            'thumbnail_width' => [
+                'type' => 'integer',
+                'label' => 'Thumbnail width',
+                'default' => 300,
+                'min' => 1,
+            ],
+            'thumbnail_height' => [
+                'type' => 'integer',
+                'label' => 'Thumbnail height',
+                'default' => 300,
+                'min' => 1,
+            ],
+            'allowed_mimes' => [
+                'type' => 'string[]',
+                'label' => 'Allowed MIME extensions',
+                'default' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+            ],
+        ];
+    }
+
     public function defaultConfiguration(): array
     {
         return [

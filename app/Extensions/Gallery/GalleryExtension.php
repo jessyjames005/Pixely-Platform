@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Extensions\Gallery;
 
+use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
@@ -15,6 +16,7 @@ use App\Extensions\Gallery\Upgrades\FixPhotoDisplayStep;
 
 final class GalleryExtension implements
     ExtensionInterface,
+    ExtensionNavigationInterface,
     ExtensionPermissionsInterface,
     ExtensionUpgradableInterface,
     ExtensionTranslatableInterface
@@ -25,14 +27,30 @@ final class GalleryExtension implements
             id: 'gallery',
             name: 'Gallery',
             version: '1.0.0',
-            minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Gallery',
             dependencies: [
                 'files',
             ],
-            surfaces: ['admin', 'public'],
         );
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function navigation(): array
+    {
+        return [
+            [
+                'id' => 'gallery',
+                'label' => 'Gallery',
+                'route' => '/admin/gallery',
+                'icon' => 'mdi-image-multiple',
+                'permission' => 'gallery.photos.view',
+                'surface' => 'admin',
+                'order' => 20,
+            ],
+        ];
     }
 
     /**

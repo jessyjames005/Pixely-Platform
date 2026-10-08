@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
 use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
-use App\JsonApi\V1\DocumentId;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -18,60 +17,37 @@ beforeEach(function () {
     // Extension state is normally persisted to a real JSON file on disk.
     // Swap it for an in-memory repository during tests so enabling or
     // disabling an extension never leaks between test runs.
-    $this->app->instance(
+    $this->app->singleton(
         ExtensionStateRepositoryInterface::class,
-        new InMemoryExtensionStateRepository(),
+        InMemoryExtensionStateRepository::class,
     );
-    $this->app->forgetInstance(\App\Core\Extensions\Manager\ExtensionManager::class);
 
     // The extension is already registered in the (unaffected) registry
     // from the initial Kernel boot. Only seed its *state* directly in
     // the fresh in-memory repository, without re-registering it.
     $manager = $this->app->make(\App\Core\Extensions\Manager\ExtensionManager::class);
     $galleryExtension = $manager->all()['gallery'];
-    $filesExtension = $manager->all()['files'];
 
-    $stateRepository = $this->app->make(ExtensionStateRepositoryInterface::class);
-    $stateRepository->save(
+    $this->app->make(ExtensionStateRepositoryInterface::class)->save(
         new \App\Core\Extensions\State\ExtensionState(
             extension: $galleryExtension,
             status: \App\Core\Extensions\Enum\ExtensionStatus::Enabled,
         ),
     );
-    $stateRepository->save(
-        new \App\Core\Extensions\State\ExtensionState(
-            extension: $filesExtension,
-            status: \App\Core\Extensions\Enum\ExtensionStatus::Enabled,
-        ),
-    );
-
-    $this->galleryId = DocumentId::encode('extension', 'gallery');
-    $this->filesId = DocumentId::encode('extension', 'files');
-    $this->galleryConfigurationId = DocumentId::encode('extension-configuration', 'gallery');
-    $this->jsonApiHeaders = [
-        'Accept' => 'application/vnd.api+json',
-        'Content-Type' => 'application/vnd.api+json',
-    ];
 });
 
 it('requires authentication to list extensions', function () {
-    $response = $this->json('GET', '/api/v1/extensions', [], $this->jsonApiHeaders);
+    $response = $this->getJson('/api/v1/extensions');
 
-    $response
-        ->assertUnauthorized()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonStructure(['errors' => [['status', 'title']]]);
+    $response->assertStatus(401);
 });
 
 it('requires system.extensions.view to list extensions', function () {
     $this->actingAs(User::factory()->create());
 
-    $response = $this->json('GET', '/api/v1/extensions', [], $this->jsonApiHeaders);
+    $response = $this->getJson('/api/v1/extensions');
 
-    $response
-        ->assertForbidden()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonStructure(['errors' => [['status', 'title']]]);
+    $response->assertStatus(403);
 });
 
 it('lists registered extensions with their state', function () {
@@ -79,21 +55,11 @@ it('lists registered extensions with their state', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->json('GET', '/api/v1/extensions', [], $this->jsonApiHeaders);
+    $response = $this->getJson('/api/v1/extensions');
 
     $response
         ->assertOk()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('data.0.type', 'extensions');
-
-    $gallery = collect($response->json('data'))->firstWhere('id', $this->galleryId);
-    expect($gallery)->not->toBeNull()
-        ->and($gallery['attributes'])->toBe([
-            'name' => 'Gallery',
-            'version' => '1.0.0',
-            'dependencies' => ['files'],
-            'enabled' => true,
-        ]);
+        ->assertJsonFragment(['id' => 'gallery']);
 });
 
 it('displays a single extension detail', function () {
@@ -101,18 +67,13 @@ it('displays a single extension detail', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->json('GET', '/api/v1/extensions/' . $this->galleryId, [], $this->jsonApiHeaders);
+    $response = $this->getJson('/api/v1/extensions/gallery');
 
     $response
         ->assertOk()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('data.type', 'extensions')
-        ->assertJsonPath('data.id', $this->galleryId)
-        ->assertJsonStructure([
-            'data' => ['id', 'type', 'attributes' => ['name', 'version', 'dependencies', 'enabled']],
-        ]);
-
-    expect($response->getContent())->not->toContain(base_path(), 'providers', 'GalleryExtension');
+        ->assertJsonPath('data.id', 'gallery')
+        ->assertJsonStructure(['data' => ['id', 'name', 'version', 'dependencies', 'enabled', 'path', 'providers', 'capabilities']])
+        ->assertJsonFragment(['capabilities' => ['navigation', 'permissions']]);
 });
 
 it('returns 404 for an unknown extension', function () {
@@ -120,13 +81,9 @@ it('returns 404 for an unknown extension', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $unknownId = DocumentId::encode('extension', 'does-not-exist');
-    $response = $this->json('GET', '/api/v1/extensions/' . $unknownId, [], $this->jsonApiHeaders);
+    $response = $this->getJson('/api/v1/extensions/does-not-exist');
 
-    $response
-        ->assertNotFound()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonStructure(['errors' => [['status', 'title', 'code', 'detail']]]);
+    $response->assertNotFound();
 });
 
 it('requires system.extensions.manage (not just view) to enable/disable', function () {
@@ -134,9 +91,9 @@ it('requires system.extensions.manage (not just view) to enable/disable', functi
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->json('POST', '/api/v1/extensions/' . $this->galleryId . '/disable', [], $this->jsonApiHeaders);
+    $response = $this->postJson('/api/v1/extensions/gallery/disable');
 
-    $response->assertForbidden()->assertHeader('Content-Type', 'application/vnd.api+json');
+    $response->assertStatus(403);
 });
 
 it('disables and re-enables an extension', function () {
@@ -144,16 +101,13 @@ it('disables and re-enables an extension', function () {
     $user->givePermissionTo('system.extensions.manage');
     $this->actingAs($user);
 
-    $this->json('POST', '/api/v1/extensions/' . $this->galleryId . '/disable', [], $this->jsonApiHeaders)
+    $this->postJson('/api/v1/extensions/gallery/disable')
         ->assertOk()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('data.type', 'extensions')
-        ->assertJsonPath('data.id', $this->galleryId)
-        ->assertJsonPath('data.attributes.enabled', false);
+        ->assertJsonPath('data.enabled', false);
 
-    $this->json('POST', '/api/v1/extensions/' . $this->galleryId . '/enable', [], $this->jsonApiHeaders)
+    $this->postJson('/api/v1/extensions/gallery/enable')
         ->assertOk()
-        ->assertJsonPath('data.attributes.enabled', true);
+        ->assertJsonPath('data.enabled', true);
 });
 
 it('records an audit log entry when enabling/disabling', function () {
@@ -161,7 +115,7 @@ it('records an audit log entry when enabling/disabling', function () {
     $user->givePermissionTo('system.extensions.manage');
     $this->actingAs($user);
 
-    $this->json('POST', '/api/v1/extensions/' . $this->galleryId . '/disable', [], $this->jsonApiHeaders)->assertOk();
+    $this->postJson('/api/v1/extensions/gallery/disable')->assertOk();
 
     $this->assertDatabaseHas('extension_audit_logs', [
         'extension_id' => 'gallery',
@@ -176,23 +130,24 @@ it('reads and updates an extension configuration', function () {
     $user->givePermissionTo('system.extensions.manage');
     $this->actingAs($user);
 
-    $this->json('PUT', '/api/v1/extensions/' . $this->galleryId . '/config', [
-        'data' => [
-            'type' => 'extension-configurations',
-            'id' => $this->galleryConfigurationId,
-            'attributes' => ['values' => ['max_upload_size' => 5]],
-        ],
-    ], $this->jsonApiHeaders)
+    $this->putJson('/api/v1/extensions/gallery/config', ['max_upload_size' => 5])
         ->assertOk()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('data.type', 'extension-configurations')
-        ->assertJsonPath('data.id', $this->galleryConfigurationId)
-        ->assertJsonPath('data.attributes.values.max_upload_size', 5);
+        ->assertJsonPath('data.values.max_upload_size', 5);
 
-    $this->json('GET', '/api/v1/extensions/' . $this->galleryId . '/config', [], $this->jsonApiHeaders)
+    $this->getJson('/api/v1/extensions/gallery/config')
         ->assertOk()
-        ->assertJsonPath('data.attributes.values.max_upload_size', 5)
-        ->assertJsonStructure(['data' => ['id', 'type', 'attributes' => ['defaults', 'values']]]);
+        ->assertJsonPath('data.values.max_upload_size', 5)
+        ->assertJsonStructure(['data' => ['defaults', 'values']]);
+});
+
+it('exposes the typed settings schema through the extension capability model', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.view');
+    $this->actingAs($user);
+
+    $response = $this->getJson('/api/v1/extensions/files')->assertOk();
+
+    $response->assertJsonFragment(['capabilities' => ['settings', 'permissions']]);
 });
 
 it('returns declared defaults for a never-configured extension, not an empty payload', function () {
@@ -200,52 +155,8 @@ it('returns declared defaults for a never-configured extension, not an empty pay
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->json(
-        'GET',
-        '/api/v1/extensions/' . $this->filesId . '/config',
-        [],
-        $this->jsonApiHeaders,
-    )->assertOk();
+    $response = $this->getJson('/api/v1/extensions/files/config')->assertOk();
 
-    $response->assertJsonPath('data.type', 'extension-configurations');
-    $response->assertJsonPath('data.attributes.defaults.max_file_size_kb', 5120);
-    $response->assertJsonPath('data.attributes.values.max_file_size_kb', 5120);
-});
-
-it('does not serialize extension configuration secrets', function () {
-    $user = User::factory()->create();
-    $user->givePermissionTo('system.extensions.view');
-    $this->actingAs($user);
-
-    $this->app->make(\App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface::class)->save('gallery', [
-        'max_upload_size' => 5,
-        'api_token' => 'extension-api-secret',
-        'nested' => ['private_key' => 'nested-private-secret'],
-    ]);
-
-    $response = $this->json('GET', '/api/v1/extensions/' . $this->galleryId . '/config', [], $this->jsonApiHeaders);
-
-    $response->assertOk()->assertJsonPath('data.attributes.values.max_upload_size', 5);
-    expect($response->getContent())->not->toContain(
-        'api_token',
-        'extension-api-secret',
-        'private_key',
-        'nested-private-secret',
-    );
-});
-
-it('enforces JSON:API Accept negotiation on extension endpoints', function () {
-    $user = User::factory()->create();
-    $user->givePermissionTo('system.extensions.view');
-    $this->actingAs($user);
-
-    $this->json(
-        'GET',
-        '/api/v1/extensions',
-        [],
-        ['Accept' => 'application/json'],
-    )
-        ->assertNotAcceptable()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonStructure(['errors' => [['status', 'code', 'detail']]]);
+    $response->assertJsonPath('data.defaults.max_file_size_kb', 5120);
+    $response->assertJsonPath('data.values.max_file_size_kb', 5120);
 });

@@ -2,45 +2,6 @@
 
 This roadmap defines the planned evolution of Pixely Platform from the initial platform foundation to a stable, extensible platform with a complete administration interface, developer tooling and multiple example extensions.
 
-## Target Architecture (modular platform)
-
-Pixely is a **modular application platform**: a small generic Core, business
-Extensions, and dedicated front-end Applications consuming the same JSON:API.
-
-```text
-     Applications: Admin · Gallery (public) · Converter (public)
-                                │
-                             JSON:API
-                                │
-                         ┌──────▼───────┐
-                         │      CORE    │  Auth/ACL · Extensions · Events ·
-                         │   Laravel 13 │  Jobs · Settings · API · Logging
-                         └──────┬───────┘
-                 ┌──────────────┼──────────────┐
-               Files           Gallery       Converter
-                 │           depends on       depends on
-                 └───────────────────────────── Files
-```
-
-Rules every phase of this roadmap obeys:
-
-- The **Core never depends on a business extension** — it only provides the
-  generic contracts and capabilities extensions need.
-- **`Files` is the generic storage layer.** No extension duplicates file
-  storage fields (`disk`, `path`, `mime`, `size`, thumbnails). `Gallery` and
-  `Converter` both declare `requires: ["files"]`.
-- **Heavy work never runs inside an HTTP request.** Variant generation and
-  conversions are dispatched to dedicated Redis queues (`media`, `documents`)
-  and processed by workers (FFmpeg, ImageMagick, PDF tools).
-- **Modular monolith, not microservices.** Component isolation through
-  extensions, contracts, events and queues; a separate processing service is
-  only revisited if one concern truly outgrows the monolith.
-- **Scope note** — the full target design also includes public apps
-  (photos.*, convert.*), CDN/S3 storage, WebSocket progress, quotas and
-  multi-tenancy. Those are deliberately deferred: they are not entered in
-  this roadmap until the four foundation phases land
-  (Files → Gallery model → Events/Jobs → Converter).
-
 ---
 
 ## v0.1.0 - Foundation
@@ -85,39 +46,18 @@ Rules every phase of this roadmap obeys:
 * [x] Continuous integration foundation
 * [x] MySQL service
 * [x] Redis service
-
-#### 1. Security
-
-* [x] Backend dependency security audit: `security:audit:back` (Composer CVE checks)
-* [x] Frontend dependency security audit: `security:audit:front` (npm CVE checks)
-  * *Note :* les 10 vulnérabilités signalées (`braces@3.0.3` via `stylelint@17 → globby@16 → fast-glob@3 → micromatch@4 → braces`) sont dev-only, non corrigibles (`braces` est désactivé, aucune version corrigée n’existe) et n’ont aucune incidence sur les dépendances de production. L’audit CI s’effectue donc sur les dépendances de production (`npm audit --omit=dev`) pour garder une passe d’approvisionnement fournie tout en acceptant l’avis de sécurité dev-tooling non résolvable. Vérifié : `npm audit --omit=dev` → 0 vulnérabilités.
-* [x] Secret detection in CI to identify leaked credentials
-
-#### 2. Build
-
-* [x] Backend build: `build:back`
-* [x] Frontend build: `build:front`
-* [x] Fresh-install build validation: `build:fresh-install`
-
-#### 3. Tests and Quality
-
-* [x] Frontend lint (ESLint)
-* [x] PHP lint (`php -l`)
-* [x] PHP static analysis (PHPStan, with an explicit baseline for existing findings)
-* [x] PHP functional test job
-* [x] PHP unit test job
-* [x] CSS/SCSS lint (Stylelint)
-* [x] Frontend unit test job (Vitest)
+* [ ] Backend unit test job
+* [ ] Backend functional test job
+* [ ] Frontend unit test job
 * [ ] Frontend functional test job
-* [x] Playwright end-to-end test job
+* [ ] Playwright end-to-end test job
+* [ ] Static analysis
+* [ ] PHP code style checks
+* [ ] Frontend code style checks
 * [ ] PHP coverage report with phpcov
 * [ ] 80% minimum PHP coverage gate
-
-#### 4. Production and Review Apps
-
-* [x] Production quality gate
+* [ ] Production quality gate
 * [ ] Continuous deployment
-* [ ] Review app generation for pull requests
 
 ---
 
@@ -379,6 +319,33 @@ Storybook provides an isolated environment for developing and documenting Vue.js
 
 ---
 
+## S4 — Extension SDK v2
+
+The next SDK generation standardizes how extensions declare capabilities consumed by Core and Platform surfaces.
+
+### Capability model
+
+* [x] Capability enum (`navigation`, `routes`, `blocks`, `settings`, `permissions`)
+* [x] Navigation capability contract
+* [x] Route capability contract
+* [x] Block capability contract
+* [x] Typed settings capability contract
+* [x] Capability registry
+* [x] Extension Manager API exposes resolved capabilities
+* [ ] Core route registration from extension declarations
+* [ ] Core navigation registry from extension declarations
+* [ ] Block registry and renderer contract
+* [ ] Settings schema API and generated admin form
+* [ ] Frontend extension capability loader
+* [ ] Extension generator updated for SDK v2 capabilities
+* [ ] SDK v2 documentation and migration guide
+
+### Current SDK adoption
+
+* Gallery: navigation + permissions
+* Files: typed settings + permissions
+* Existing lifecycle, dependencies, configuration and migration mechanisms remain compatible
+
 ## v0.5.0 - Extension SDK
 
 The Extension SDK provides a stable foundation for building independent Pixely extensions.
@@ -449,7 +416,7 @@ Today, `update()` replaces an extension's entire directory from a new zip. The t
 
 ### Developer Experience
 
-* [x] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an extension manifest with `minimum_kernel_version`, extension entrypoint and provider, API routes, isolated migration directories, frontend store/model/view/navigation files, language files, and Unit/Functional/Playwright E2E test starters
+* [ ] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an empty, valid extension: `extension.php` manifest, main class implementing `ExtensionInterface`, `Providers/`, `Http/Controllers/`, `routes/api.php`, `Database/Migrations/`, `resources/js/{store,models,views,tests}` following the established domain-driven frontend structure
 * [ ] Extension development template
 * [ ] Extension testing helpers
 * [ ] Extension SDK documentation
@@ -465,15 +432,12 @@ backend, frontend and end-to-end behaviour.
 
 * [ ] Backend unit tests
 * [ ] Backend functional tests
-* [x] Generator creates extension-local Unit and Functional test starters
-* [x] Generator creates extension-local Playwright E2E test starters
 * [ ] Frontend unit tests
 * [ ] Frontend functional tests
 * [ ] End-to-end tests with Playwright
 * [ ] All test suites runnable locally
 * [ ] All test suites runnable in CI/CD
-* [x] Backend Unit and Functional CI jobs separated and extension-local tests collected
-* [x] End-to-end test command and CI job
+* [ ] Test commands separated by category
 * [ ] Extension testing helpers
 * [ ] Extension test fixtures
 * [ ] Extension testing documentation
@@ -520,45 +484,18 @@ PHP backend coverage is measured with `phpcov`.
 * [ ] API relationship documentation
 * [ ] API validation standardisation
 
-### JSON:API Migration (in progress)
+### JSON:API Migration (future)
 
-Strict JSON:API compliance is being adopted incrementally, not deferred. The
-`laravel-json-api/laravel` + `laravel-json-api/non-eloquent` stack is in
-`composer.json` and the controllers are on the JSON:API pipeline.
+The current API response format (`{ data }`, `{ data, meta }`, `{ error }`) is stable and used across the frontend. A future migration to strict JSON:API compliance is planned but deferred to avoid blocking frontend progress.
 
-Status by component:
-- **Tuleap** — already strict: `TuleapJsonApiResponse::one/many($server, type, …)`
-  build proper `type`/`id`/`attributes` resource objects; `TuleapController`
-  extends the JSON:API server pipeline and throws `JsonApiException`-style errors.
-- **Gallery** and **Files** — already strict: `JsonApiRoute` resources on the
-  `v1` JSON:API server, `JsonApiController` + `DataResponse`, registered Eloquent
-  schemas (`PhotoSchema`, `FileSchema`) in `Server.php`, JSON:API error/media-type
-  negotiation enforced on every route (Files + Core attach `EnsureJsonApiMediaType`;
-  Gallery relies on the `jsonapi:v1` middleware, which likewise enforces
-  `application/vnd.api+json`), and Gallery emits JSON:API pagination `links`
-  (`next`/`prev`). The `photos.thumbnail_filename` column is created by the root
-  migration `database/migrations/2026_09_03_071953_add_thumbnail_filename_to_photos_table.php`.
-- **All other backends** (Core: Auth/Users/Roles/Permissions/Settings/Translations/
-  Extensions/Tooling; CinemaMovie) — already strict: `EnsureJsonApiMediaType` on
-  `/api/*` routes + central JSON:API schemas. No backend uses the legacy
-  `{ data }` / `{ error }` envelope.
-
-Done:
-* [x] Adopt `laravel-json-api` backend (`Tuleap`, `Gallery`, `Files`, `CinemaMovie`, Core extensions)
-* [x] Strict resource objects (`type`/`id`/`attributes`) + `application/vnd.api+json` on Tuleap, Gallery, Files, and Core
-* [x] JSON:API-style error fields (`status`/`code`/`title`/`detail`) via `JsonApiException` (runtime `bootstrap/app.php` + laravel-json-api)
-* [x] Remove legacy global envelope classes `ApiResponse`/`ApiCollectionResponse`/`ApiError`/`ApiErrorResponse` (and their tests); strict global error rendering in `bootstrap/app.php`; `MakeExtension` stubs emit `EnsureJsonApiMediaType` + `DataResponse`; `MakeExtensionTest` updated
-* [x] JSON:API `links` (self, pagination `next`/`prev`) — emitted by Gallery pagination (test-verified) and documented in `openapi.yml`
-* [x] `Content-Type: application/vnd.api+json` content negotiation on all `/api/*` responses (global error path + every backend route)
-* [x] Update `openapi.yml` schemas for JSON:API — strict document envelope, `Photo` resource objects (`type`/`id`/`attributes`), JSON:API `errors[]` schema, `application/vnd.api+json` media types; Swagger UI now documents the compliant contract
-* [x] Migration tests — `MakeExtensionTest` (29 assertions) + `tests/Feature/Api/StrictErrorEnvelopeTest` (strict 404 envelope + media type)
-* [x] Frontend dependency security audit: `security:audit:front` green (`npm audit --omit=dev`; the `braces` CVE is dev-only via stylelint, no upstream fix, no production impact)
-
-Still pending (frontend / docs):
-* [x] Frontend shared types (`resources/js/shared/types/api.ts`) already mirror the strict JSON:API document contract (`JsonApiDocument`, `JsonApiResource`, `JsonApiError`, `JsonApiCollectionResult`, `PaginationMeta`); all 12 stores consume `apiClient.getCollection` / `getResource` / `deserializeDocument` via `result.resources` / `result.meta` — 0 references to legacy `ApiResponse` / `ApiCollectionResponse` / `ApiErrorResponse`. Reconciled stale doc references in `frontend-architecture.md` (L61/L134/L162/L165) and `handbook/core/authentication.md` (L60).
-* [x] Confirm Tuleap resource responses emit JSON:API `links`/pagination — `TuleapJsonApiResponse` now emits a top-level `links.self` on both singletons and collections (verified by `assertJsonStructure(['links' => ['self']])` in `TuleapJsonApiTest`, 6 tests / 66 assertions green); pagination `next`/`prev` are not applicable since Tuleap proxy collections are single-page/cached, so only `meta.total` + `links.self` are emitted (consistent with Gallery's paginated collections, which carry `first`/`last`/`next`/`prev`).
-* [x] Update `openapi.yml` schemas for JSON:API — strict document envelope, `Photo` resource objects (`type`/`id`/`attributes`), JSON:API `errors[]` schema, `application/vnd.api+json` media types; Swagger UI now documents the compliant contract
-* [x] Migration tests — added `tests/Feature/Api/StrictErrorEnvelopeTest` covering the strict 404 error envelope + media type (MakeExtensionTest also updated)
+* [ ] JSON:API resource object format (`type`, `id`, `attributes`, `relationships`)
+* [ ] JSON:API error array format (`errors[]` with `status`, `code`, `title`, `detail`, `source`)
+* [ ] JSON:API `links` (self, pagination `next`/`prev`)
+* [ ] `Content-Type: application/vnd.api+json` content negotiation
+* [ ] Rewrite `ApiResponse` / `ApiCollectionResponse` / `ApiError` for JSON:API
+* [ ] Update `openapi.yml` schemas for JSON:API
+* [ ] Update frontend API client and types for JSON:API
+* [ ] Migration tests
 
 ### API Authentication
 
@@ -984,14 +921,6 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [x] Gallery photo model
 * [x] Gallery database structure
 
-> **Target data model** (modular platform architecture): the flat `photos`
-> table is being superseded by `Album → Media → File`. A `Media` row keeps
-> only gallery business data (title, description, position, published_at)
-> and points at `files.id` — no duplicated storage fields. Gallery keeps
-> delegating storage to the Files extension it already declares as a
-> dependency. Existing rows are migrated (`photos` → `files` + `media`)
-> before the old model is dropped.
-
 ### Gallery Web
 
 * [x] Gallery web route
@@ -1022,13 +951,12 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [x] Stored file verification
 * [x] Stored file deletion
 * [x] Upload API tests
-* [ ] Image resizing (asynchronous variant generation via Files: thumbnail / medium / large / webp, dispatched to the `media` queue instead of blocking the upload request)
-* [x] Thumbnail generation (delegated to the Files extension)
-* [ ] Image optimization (WebP/AVIF derivatives, on demand)
+* [ ] Image resizing
+* [ ] Thumbnail generation
+* [ ] Image optimization
 
 ### Albums
 
-* [ ] Data model refactor: `Album → Media → File` — replace the flat `photos` table with `albums` + `media` (`media.file_id` → `files.id`), migrate existing photos into `files` + `media`, then drop the duplicated `photos.filename` / `photos.thumbnail_filename` columns
 * [ ] Album model
 * [ ] Album creation
 * [ ] Album editing
@@ -1038,18 +966,15 @@ The Gallery Extension is the first complete Pixely Platform extension and the fi
 * [ ] Album interface
 * [ ] Album administration
 
-### Media (was: Photos)
+### Photos
 
-After the `Album → Media → File` refactor, `Media` is the gallery's business
-object on top of a shared `File`:
-
-* [x] Photo model (migrated to `Media` during the model refactor)
-* [x] Photo creation (→ media creation, storage delegated to Files)
+* [x] Photo model
+* [x] Photo creation
 * [x] Photo retrieval
 * [x] Photo update
-* [x] Photo deletion (removes the File through the Files extension, including its variants)
-* [ ] Photo metadata (via the Files metadata layer, not a photo column)
-* [ ] Photo visibility (maps to File visibility: private / public / unlisted / shared)
+* [x] Photo deletion
+* [ ] Photo metadata
+* [ ] Photo visibility
 * [ ] Photo ordering
 
 ### Comments
@@ -1081,12 +1006,11 @@ object on top of a shared `File`:
 
 ### EXIF
 
-* [ ] EXIF extraction (async job on upload, stored in the Files metadata layer)
+* [ ] EXIF extraction
 * [ ] EXIF storage
 * [ ] Camera information
 * [ ] GPS metadata
 * [ ] EXIF privacy controls
-* [ ] EXIF strip on public derivatives — the original keeps its full EXIF, public versions are sanitized
 * [ ] EXIF administration
 
 ---
@@ -1275,13 +1199,12 @@ Pixely Platform is designed to support multiple independent extensions.
 
 ## Media Extension
 
-> Superseded by the Files extension target model ("Generic storage layer"
-> above): media library, file management, storage abstraction, image
-> processing and file metadata all live in `Files` as the platform's generic
-> storage layer. This entry is kept as a marker and will be removed once
-> Files reaches the target model.
-
-* [ ] Media administration (moved to the Files extension admin screen)
+* [ ] Media library
+* [ ] File management
+* [ ] Storage abstraction
+* [ ] Image processing
+* [ ] File metadata
+* [ ] Media administration
 
 ## Music Extension
 
@@ -1293,82 +1216,15 @@ Pixely Platform is designed to support multiple independent extensions.
 * [ ] Music administration
 * [ ] Music frontend player
 
-## Converter Extension
-
-Media/document conversion extension depending on Files. A source is either
-an uploaded `File` resource or a remote media URL (YouTube, TikTok,
-Instagram…) downloaded through a pluggable extractor; in both cases the
-pipeline first materialises a `File`, then a conversion produces one or
-more output `File` resources. Processing happens asynchronously on a
-dedicated queue — never inside the HTTP request.
-
-### Conversion core
-
-* [ ] Converter extension scaffolding (manifest, provider, routes, `requires: ["files"]`)
-* [ ] `Conversion` model: `source_file_id`, `source_format`, `target_format`, `options`, `status`, `progress`, `output_file_id`, `error`, `started_at`, `completed_at`
-* [ ] Conversion lifecycle: `created → queued → processing → completed | failed | cancelled`
-* [ ] `POST /api/v1/conversions` — create the conversion, dispatch the queue job, return `202 Accepted` (never process synchronously)
-* [ ] `GET /api/v1/conversions` / `GET /api/v1/conversions/{id}` — history + live progress
-* [ ] Conversion cancellation for queued items
-* [ ] Conversion API tests
-
-### URL sources (media extraction)
-
-Reference UX (notube.lol): paste a video URL, pick a target format
-(MP3 / MP3 HD / M4A / MP4…), get a downloadable result. The public
-Converter app is modelled on that flow.
-
-* [ ] `ExtractorInterface` contract: `supports(url)`, `probe(url)` (title, duration, available formats), `download(url, target, File)` — drivers swappable like processors
-* [ ] `YtdlpExtractor` driver (yt-dlp) — YouTube, TikTok, Instagram (Reels), Twitter/X; each enabled site is an explicit setting, not hardcoded
-* [ ] SSRF-safe URL validation: source-site allowlist only, no internal/private hostnames
-* [ ] Download pipeline: URL → allowlist check → probe (size/duration caps) → download to `quarantine` → create `File` (`uploaded → validating → ready`) → dispatch the conversion job
-* [ ] Dynamic source-site capabilities — the frontend renders "which sites can be pasted" from the extractor's installed capabilities (never a hardcoded URL scheme in Vue)
-* [ ] Public conversion UI (URL mode): URL/keyword input + format picker (MP3, MP3 HD, M4A, MP4, …) → conversion → live progress → download
-* [ ] Downloaded media is stored as a real `File` (quarantine → originals) and tracked in the admin history like any other source
-
-### Processor architecture
-
-* [ ] `ProcessorInterface` contract: `supports(sourceFormat, targetFormat)` + `process(File $source, Conversion $conversion): File`
-* [ ] Processor registry / service-provider bindings so FFmpeg stays swappable
-* [ ] `FFmpegProcessor` — video/audio transcoding, video thumbnails, audio extraction, metadata
-* [ ] `ImageProcessor` — image-to-image conversion and re-encoding
-* [ ] `PdfProcessor` — document → PDF (Word/LibreOffice formats); PDF → editable document later
-
-### Target formats
+## Media Conversion Extension
 
 * [ ] Video → MP3 conversion
 * [ ] Video → MP4 (re-encode/transcode)
 * [ ] Document → PDF conversion (Word, LibreOffice formats)
 * [ ] PDF → editable document conversion
-* [ ] Image format conversion (webp/avif/jpeg)
-* [ ] Transcription (URL/media → full text transcript + key points) — separate processor, deferred until the conversion pipeline is stable
-
-### Dynamic capabilities
-
-* [ ] `GET /api/v1/converters/capabilities` — installed target formats per processor group **and** supported source sites per extractor; the frontend renders format pickers and URL support dynamically instead of hardcoded lists
-
-### Jobs & queues
-
-* [ ] Conversion jobs on the dedicated `media` queue (a heavy video conversion must not block thumbnail generation)
-* [ ] Progress reporting visible in the admin (queued / processing / completed / failed)
-* [ ] Worker timeout + concurrency limits per queue
-* [ ] Outputs written through Files storage and tracked as new `File` rows
-* [ ] Worker image dependencies: FFmpeg + yt-dlp installed in the worker container (never in the web container)
-* [ ] Real-time progress push (WebSocket/broadcast) — deferred, infrastructure phase
-
-### Security & limits
-
-* [ ] Source validation: size cap, allowed MIME types, real content sniffing, server-generated storage names
-* [ ] URL source caps: per-source-site policy, max media duration, max download size, SSRF allowlist enforcement (see URL sources)
-* [ ] Rate limiting: requests/minute, bytes/day, concurrent jobs
-* [ ] Generic quota system (max conversion size, conversions/hour, concurrent jobs; separate anonymous vs authenticated limits later)
-* [ ] Cleanup job: orphan outputs, expired conversions, failed-job artifacts
-
-### Administration
-
-* [ ] Conversions admin screen (history, status, progress, error detail, output download)
-* [ ] Capabilities display (which processors/formats are installed)
-* [ ] Queue/worker status on the platform dashboard
+* [ ] Conversion job queue and status tracking
+* [ ] Conversion API
+* [ ] Conversion administration
 
 ## Transport Extension
 
@@ -1417,21 +1273,7 @@ A reusable file-handling extension, meant to be a dependency of other extensions
 ### Planned consumers
 
 * [x] Gallery Extension: photo upload delegates validation/thumbnailing to Files Extension instead of its own ad-hoc logic
-* [ ] Converter Extension: source and output files are both `File` resources
 * [ ] Shop Extension (future): product images use Files Extension the same way
-
-### Generic storage layer (target model)
-
-The Files extension is the platform's generic file layer: every consumer
-references `File` resources instead of storing its own copy of file fields.
-
-* [ ] `File` model hardening: `uuid`, `checksum`, `extension`, `visibility` (`private` / `public` / `unlisted` / `shared`), `status` lifecycle (`uploaded → validating → ready → processing → available | rejected`)
-* [ ] `FileVariant` model — derived files per file (original, thumbnail, medium, large, webp, avif); consumers request `file.variant('thumbnail')` without knowing storage details
-* [ ] Metadata layer — width / height / duration / bitrate / codec / pages / author / EXIF / GPS in a `metadata` JSON column (or `file_metadata` table); no media-specific columns on `files`
-* [ ] Storage abstraction via Laravel disks (local now, S3-compatible later) with logical directories: `quarantine`, `originals`, `derivatives`, `temporary`, `outputs`
-* [ ] Upload security pipeline: real MIME sniffing → server-generated storage names (never user-supplied paths) → size/type/batch validation → quarantine directory → move to originals on acceptance
-* [ ] Migration of existing storage into the registry: Gallery photos first (`photos.filename` → `files` + `media.file_id`), then user avatars — after which Gallery drops its own storage columns
-* [ ] Orphan file cleanup job (storage exists / DB row missing, and vice versa)
 
 ## Translations Extension
 
@@ -1457,276 +1299,6 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Empty state
 * [ ] Error state
 
-## Migration 4 Étapes vers Multi-Surface Platform
-
-After the mise en place des fondations Core and Extension, Pixely Platform migre vers une architecture Multi-Surface: **pas de rupture, évolution progressive**.
-
-### État actuel (2026_10_06)
-
-- L'architecture actuelle est administration-centrique avec `/admin` as the main entry point
-- Extension system with manifest, registry, manager, permissions, versioning
-- Frontend: Vue 3 + Vuetify admin SPA with route registry (`resources/js/router/index.ts`)
-- Navigation: admin-only registry dans `resources/js/shared/navigation/registry.ts`
-
-### Migration plan (étapes progressives, pas de rupture)
-
-#### Étape 1 : Conserver `/admin` tel quel (déjà fait)
-
-**Objectif:** Préserver l'existant administration pendant toute la migration.
-
-**Livrable:** Infrastructure de base Multi-Surface avec compatibilité API existante.
-
-**État actuel :** ✅ Terminé (ExtensionManifest with surfaces, Core contracts, surface-aware route guards, navigation v2)
-
-#### Étape 2 : Introduire `/` for Website (in progress)
-
-**Objectif:** Add a public entry point for the Website (welcome, menus, simple pages).
-
-**Travail :**
-
-- Update `routes/web.php` : add route `/account/{any?}` for User Space
-- Update `router/index.ts` : add route meta `surface: 'public'` and `surface: 'user'`
-- Implement `WebsiteEngine` foundation: Page + Menu + Theme + Layout (MVP only, no drag-and-drop)
-- Add `navRegistry` for public/user navigation items (NavItem with `surfaces: string[]` extended)
-- Extend `useVisibleNav()` with `surface: string = 'admin'` parameter (used for public/user/admin)
-
-**État actuel :** ✅ Public routes added, navigation surface-aware updated, router extended, manifest extensible.
-
-#### Étape 3 : Introduire `/account` for User Space (planned)
-
-**Objectif:** Add an authenticated User Space (`/account`) with personal extensions.
-
-**Travail :**
-
-- Add route `/account/{any?}` (already in place)
-- Distinguish admin navigation from user navigation (surfaces: ['user'])
-- Route guard for auth + permission + surface
-- Extensions can declare user support (Gallery already has surfaces: ['admin', 'public'], add 'user' later)
-- Handle user preferences (already existing), add possibility to customize UI per surface
-
-**Preparation :** Existing surface-aware route guards, extensions duplicated with surfaces.
-
-#### Étape 4 : Refactor progressively the extensions
-
-**Objectif:** Gradually extend existing extensions to declare their surfaces.
-
-**Process :**
-
-- Existing extensions (Gallery, Files, Tuleap, Translations) add surfaces field to manifest (role: extension)
-- Extensions add chosen contract(s) (navigation, route, block, settings, permissions)
-- Extensions can have deferred-by-surface behavior (e.g., Gallery can have different UI for public vs admin)
-- Tests and documentation for each extension migrated
-
-**Advantages :**
-
-- No break : extensions not declaring surfaces default to admin-only (default)
-- Extensible : each extension can gradually adopt more surfaces
-- Backwards compatible : existing extensions continue to work unchanged
-
-**Timeline update :**
-
-- **Current sprint (Foundation) :** ExtensionManifest with surfaces added, contracts created
-- **Next sprint :** Navigation v2 updated, route guards extended, `/` and `/account` routes added
-- **Sprint after :** Update GalleryExtension, FilesExtension, Tuleap, Translations to declare surfaces
-- **Next sprint :** Complete Step 3 and start Step 4
-
-### Design decision : Evolution vs Rewrite
-
-**Why not rewrite :**
-
-- Existing `/admin` must remain functional during migration
-- Extensions can migrate progressively
-- Transition complexity : applications share auth/authorization/core services
-- Cap : no CMS in Core (Page Builder stays simple MVP only)
-
-**Why not three applications :**
-
-- Surfaces share auth/authorization/core services
-- They are the same extensions, not three separate systems
-- Consistency in permissions and navigation is essential
-
-**Why not a huge Page Builder :**
-
-- Simple MVP : Page + Blocks + Theme only
-- No drag-and-drop for this sprint (deferred)
-
-### Test validation
-
-**Unit tests added :**
-
-- Tests for `ExtensionRegistry.forSurface()` (extensions filtered by surface)
-- Tests for surface-aware route guards
-- Tests for surface-aware navigation (`useVisibleNav()`)
-
-**Feature tests added :**
-
-- Public and user routes accessible
-- Admin route remains protected
-- Correct permissions per surface
-
-**Documentation updated :**
-
-- ADR-0090-multi-surface-architecture.md
-- ARCHITECTURE.md : Extension Surface Capability Contracts + Migration section
-- ROADMAP.md : Migration 4 Étapes section
-
-### Success criteria (values by sprint)
-
-- **Step 1 :** : ✅ Manifest + contracts + tests + documentation
-- **Step 2 :** : ✅ Routes `/` and `/account` + navigation surface-aware + router guards
-- **Step 3 :** : ✅ User navigation + user preferences per surface + user-declared extensions
-- **Step 4 :** : ✅ All existing extensions declare surfaces + behaviour per surface
-
-### Mastered risks
-
-- **No rewrite :** `/admin` conservé durant la migration, extensions migrated gradually
-- **No three applications :** surfaces sharing auth/authorization/core services
-- **No CMS in Core :** Website Engine stays minimal (Page + Menu + Theme + Layout)
-- **No permissions only in Vue :** backend permission verification required
-- **No huge Page Builder :** simple MVP (Page + Blocks + Theme)
-
-### Technical constraints
-
-- **Core independence :** Core must not import extension-specific code. Surface contracts should be defined in Core, implemented by extensions.
-- **Backward compatibility :** Adding `surfaces` to ExtensionManifest must not break existing extensions not declaring it. Default to all surfaces or admin only.
-- **Progressive migration :** 4-step migration plan (keep `/admin`, add `/`, add `/account`, refactor extensions) means the codebase must support multiple routing patterns simultaneously during transition.
-- **Permission convention :** `domain.object.action` (e.g., `gallery.photos.view`) is the established pattern. Surface is for organization/policy targeting, not permission explosion.
-- **No SSR in this sprint :** SSR decision (Option C: Laravel server-rendered public + Vue components) is deferred. Public pages can initially be Blade or simple Vue.
-- **Tests :** Existing test patterns (unit/functional/E2E) should be followed. The plan should include test scaffolding for the new surface guards and navigation filtering.
-
-
-
----
-
-# Current Execution Order
-
-DONE (out of the original sequence)
- │
- ▼
-Incremental extension upgrade mechanism (versioned steps, not full zip replace)
- │
- ▼
-Extension Manager (registration/discovery/state/CRUD, nav tabs, favourites, permission-aware UI, Enabled/Disabled tabs) — complete, see detailed checklist for the 3 sub-items deliberately not built (Type column, Visible toggle, bulk Update-all)
- │
- ▼
-Files Extension (upload/validation/thumbnailing, consumed by Gallery and the profile avatar upload — standalone Files API + admin screen still pending)
- │
- ▼
-Translations Extension
- │
- ▼
-Users: profile (avatar upload, bio, timezone) — self-service screen shipped
- │
- ▼
-Tuleap Extension (sprint management dashboard) — delivered out of band, see v1.0.1
- │
- ▼
-Users: preferences (theme, density, notification opt-outs) — shipped on the My Profile screen
- │
- ▼
-Extension-declared permissions sync mechanism (manifest + automatic sync) — already done, corrects a previous roadmap mistake that had this marked as not started
- │
- ▼
-Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role modal grouping permissions by Core/Extension with a per-role user list) — shipped; also fixed RolesView.vue being entirely missing (the router imported a file that didn't exist, breaking the admin build)
- │
- ▼
-Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
- │
- ▼
-Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/Not-installed — Pixely has no not-yet-installed catalog) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
- │
- ▼
-Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
- │
- ▼
-Extension settings screen — shipped: the config dialog now renders a form generated from each extension's declared defaults (field type inferred from the default value's own JS type: boolean/number/string/string-array get a proper widget, anything else falls back to a per-field JSON textarea) instead of one big raw JSON blob; also fixed GET /extensions/{id}/config returning only stored overrides (empty for a never-configured extension) instead of merging in the declared defaults
- │
- ▼
-CURRENT
- │
- ▼
-Files hardening — generic storage layer: uuid / checksum / visibility / status lifecycle, FileVariant, metadata, upload security pipeline + quarantine
- │
- ▼
-Gallery data model refactor — Album → Media → File (migrate photos into files + media, drop duplicated storage columns)
- │
- ▼
-Sample Cinema Extension + frontend training
- │
- ▼
-Core events + queues foundation — FileUploaded/FileDeleted events, dedicated media/documents queues, async variant generation + EXIF strip
- │
- ▼
-Converter Extension — Conversion model + lifecycle, ProcessorInterface + FFmpeg, URL extraction (ExtractorInterface + yt-dlp, SSRF allowlist), GET /converters/capabilities, POST /conversions → 202 + queue job, public URL→MP3/MP4 UI, admin history
- │
- ▼
-Gallery Administration (visual, albums, tags, search, EXIF)
-
-# Current Progress
-
-The Pixely Platform currently has a functional extension foundation with:
-
-* Extension contracts and manifests, discovery, lifecycle management
-* Incremental (versioned-steps) upgrade path, applied per-transaction, partial success preserved on failure
-* Extension state persistence (atomic, lock-protected)
-* Extension Manager: install/enable/disable/uninstall/update, version management, dependency visualization, nav tabs, per-admin favourites, permission-aware UI
-* Files Extension: upload size/type/batch validation, thumbnail generation, consumed by Gallery and by the profile avatar upload as a shared dependency
-* Translations Extension: full translation management UI, applies to Core and any installed extension's own translation files
-* Gallery extension (CRUD, upload, pagination, filtering, sorting, automated tests)
-* Tuleap extension (sprint management dashboard — see v1.0.1): Tuleap API proxy, sprint stats/burndown/history, local team & retro data, 7 admin views
-* Users: self-service profile screen (avatar, bio, timezone)
-* Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
-* Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
-* Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
-* Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
-* Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
-* API query parsing, filtering, sorting, pagination, relationships
-* Automated tests for the Gallery API
-
-The current API query layer is stable and its Gallery API tests are green. The
-Tuleap extension's backend logic has not yet been exercised by automated
-tests or run against a live Tuleap instance — see the Tuleap API checklist
-above. Extension-declared permissions actually are synced dynamically
-already (`ExtensionPermissionSynchronizer`, used by Gallery, Tuleap and
-Translations) — a previous roadmap update had incorrectly marked this as
-not started; the Roles UI on top of that data (card grid, grouped Edit Role
-modal, Accessibilité control, Droits existants matrix) has now shipped too.
-The grouping uses each permission name's domain segment
-(`<domain>.<object>.<action>`) rather than the `is_core` flag — `is_core`
-also gets set on a couple of Translations permissions that pre-date it
-becoming a full extension, which would have grouped them under Core
-incorrectly.
-
-The next development focus is (target architecture, phased to keep each step
-small and shippable — public apps, CDN/S3, WebSocket, quotas and
-multi-tenancy are explicitly deferred until the foundation phases land):
-
-1. Files hardening — uuid / checksum / visibility / status lifecycle,
-   FileVariant, metadata layer, upload security pipeline + quarantine.
-2. Gallery data model refactor — `Album → Media → File`, migrate existing
-   photos, drop duplicated storage columns.
-3. Build the Sample Cinema Extension as a developer reference.
-4. Core events + dedicated-queue foundation; move variant generation to
-   async jobs (`media` / `documents` queues).
-5. Converter Extension — asynchronous conversions (`202 + queue job`),
-   ProcessorInterface + FFmpeg, URL source extraction (ExtractorInterface +
-   yt-dlp driver, SSRF-safe allowlist), dynamic capabilities endpoint,
-   notube-style public URL→MP3/MP4 UI, admin history.
-6. Continue the Gallery Extension with its visual administration interface;
-   automated tests for the Tuleap backend stay on the backlog in parallel.
-
-The development process should continue through clearly defined sprints, with each sprint having:
-
-* A defined objective
-* A limited scope
-* Step-by-step implementation tasks
-* Automated tests
-* Documentation updates
-* A final validation
-* A Git commit at the end of the sprint
-
-The roadmap should be updated progressively as each sprint is completed.
-
 ---
 
 # Long-Term Platform Goals
@@ -1748,8 +1320,8 @@ The roadmap should be updated progressively as each sprint is completed.
 * [ ] Multi-language platform
 * [ ] Multi-site support
 * [ ] Configuration management
-* [ ] Event system (Core events as contracts between extensions: `FileUploaded`, `FileDeleted`, `ConversionStarted/Completed/Failed`, `MediaPublished`, … — extensions listen, Core never knows the listeners)
-* [ ] Job / queue system (dedicated Redis queues `default` / `media` / `documents` / `maintenance`; heavy processing — variants, conversions — never runs inside an HTTP request; modular monolith, no microservices for now)
+* [ ] Event system
+* [ ] Job / queue system
 * [ ] Notification system
 * [ ] Caching
 * [ ] Logging and monitoring
@@ -1801,58 +1373,110 @@ The roadmap should be updated progressively as each sprint is completed.
 * [ ] Accessibility testing
 * [ ] CI/CD pipeline
 
-### S3 — User Space: Favorites & History Foundation
+---
 
-- [x] Generic user favorites storage
-- [x] Generic user history storage
-- [x] User-owned API endpoints
-- [x] Idempotent favorites
-- [x] Extension-independent resource references
-- [x] Unit tests
-- [x] Functional API tests
-- [x] Playwright coverage
-- [ ] Favorites/History User Space views
-- [ ] Extension integration (Gallery, Music, Blog, Camping)
+# Current Execution Order
 
-### S3 — User Space Engagement Integration
+DONE (out of the original sequence)
+ │
+ ▼
+Incremental extension upgrade mechanism (versioned steps, not full zip replace)
+ │
+ ▼
+Extension Manager (registration/discovery/state/CRUD, nav tabs, favourites, permission-aware UI, Enabled/Disabled tabs) — complete, see detailed checklist for the 3 sub-items deliberately not built (Type column, Visible toggle, bulk Update-all)
+ │
+ ▼
+Files Extension (upload/validation/thumbnailing, consumed by Gallery and the profile avatar upload — standalone Files API + admin screen still pending)
+ │
+ ▼
+Translations Extension
+ │
+ ▼
+Users: profile (avatar upload, bio, timezone) — self-service screen shipped
+ │
+ ▼
+Tuleap Extension (sprint management dashboard) — delivered out of band, see v1.0.1
+ │
+ ▼
+Users: preferences (theme, density, notification opt-outs) — shipped on the My Profile screen
+ │
+ ▼
+Extension-declared permissions sync mechanism (manifest + automatic sync) — already done, corrects a previous roadmap mistake that had this marked as not started
+ │
+ ▼
+Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role modal grouping permissions by Core/Extension with a per-role user list) — shipped; also fixed RolesView.vue being entirely missing (the router imported a file that didn't exist, breaking the admin build)
+ │
+ ▼
+Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
+ │
+ ▼
+Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/Not-installed — Pixely has no not-yet-installed catalog) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
+ │
+ ▼
+Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
+ │
+ ▼
+Extension settings screen — shipped: the config dialog now renders a form generated from each extension's declared defaults (field type inferred from the default value's own JS type: boolean/number/string/string-array get a proper widget, anything else falls back to a per-field JSON textarea) instead of one big raw JSON blob; also fixed GET /extensions/{id}/config returning only stored overrides (empty for a never-configured extension) instead of merging in the declared defaults
+ │
+ ▼
+CURRENT
+ │
+ ▼
+Sample Cinema Extension + frontend training
+ │
+ ▼
+Gallery Administration (visual, albums, tags, search, EXIF)
 
-- [x] Favorites integrated into User Space navigation
-- [x] History integrated into User Space navigation
-- [x] Favorites/history pagination in the UI
-- [x] User-surface enforcement on engagement API routes
-- [x] Authenticated Playwright coverage for engagement navigation
-- [ ] Final S3 security and E2E validation in CI
+# Current Progress
 
-## S3 — Security Hardening (completed 2026-10-08)
+The Pixely Platform currently has a functional extension foundation with:
 
-- [x] Authentication boundary for Favorites/History
-- [x] `surface:user` enforcement
-- [x] Strict generic resource type/id validation
-- [x] Server-owned history timestamps
-- [x] Rate limiting on engagement endpoints
-- [x] User-isolated persistence queries
-- [x] Security feature tests
-- [x] Final User Space Playwright security coverage
+* Extension contracts and manifests, discovery, lifecycle management
+* Incremental (versioned-steps) upgrade path, applied per-transaction, partial success preserved on failure
+* Extension state persistence (atomic, lock-protected)
+* Extension Manager: install/enable/disable/uninstall/update, version management, dependency visualization, nav tabs, per-admin favourites, permission-aware UI
+* Files Extension: upload size/type/batch validation, thumbnail generation, consumed by Gallery and by the profile avatar upload as a shared dependency
+* Translations Extension: full translation management UI, applies to Core and any installed extension's own translation files
+* Gallery extension (CRUD, upload, pagination, filtering, sorting, automated tests)
+* Tuleap extension (sprint management dashboard — see v1.0.1): Tuleap API proxy, sprint stats/burndown/history, local team & retro data, 7 admin views
+* Users: self-service profile screen (avatar, bio, timezone)
+* Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
+* Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
+* Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
+* Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
+* Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
+* Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
+* API query parsing, filtering, sorting, pagination, relationships
+* Automated tests for the Gallery API
 
-### Security model
+The current API query layer is stable and its Gallery API tests are green. The
+Tuleap extension's backend logic has not yet been exercised by automated
+tests or run against a live Tuleap instance — see the Tuleap API checklist
+above. Extension-declared permissions actually are synced dynamically
+already (`ExtensionPermissionSynchronizer`, used by Gallery, Tuleap and
+Translations) — a previous roadmap update had incorrectly marked this as
+not started; the Roles UI on top of that data (card grid, grouped Edit Role
+modal, Accessibilité control, Droits existants matrix) has now shipped too.
+The grouping uses each permission name's domain segment
+(`<domain>.<object>.<action>`) rather than the `is_core` flag — `is_core`
+also gets set on a couple of Translations permissions that pre-date it
+becoming a full extension, which would have grouped them under Core
+incorrectly.
 
-```text
-Guest
-  ↓
-Authentication
-  ↓
-Surface: user
-  ↓
-Rate limit
-  ↓
-Request validation
-  ↓
-User-owned resource query
-```
+The next development focus is:
 
-The Core never trusts a client-supplied user identifier for favorites or history.
-Extension resource types remain opaque strings validated by syntax only.
+1. Build the Sample Cinema Extension as a developer reference.
+2. Continue the Gallery Extension with its visual administration interface.
+3. Automated tests for the Tuleap extension's backend.
 
-### S3 status
+The development process should continue through clearly defined sprints, with each sprint having:
 
-S3 User Space is functionally complete. Final CI execution remains part of the platform-wide quality gate.
+* A defined objective
+* A limited scope
+* Step-by-step implementation tasks
+* Automated tests
+* Documentation updates
+* A final validation
+* A Git commit at the end of the sprint
+
+The roadmap should be updated progressively as each sprint is completed.

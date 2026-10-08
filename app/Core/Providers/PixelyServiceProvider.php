@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Providers;
 
 use App\Core\Extensions\Contracts\ExtensionStateRepositoryInterface;
+use App\Core\Extensions\Capabilities\Registry\ExtensionCapabilityRegistry;
 use App\Core\Extensions\Dependency\ExtensionDependencyResolver;
 use App\Core\Extensions\Discovery\ExtensionDiscoverer;
 use App\Core\Extensions\Discovery\ExtensionManifestReader;
@@ -44,6 +45,10 @@ final class PixelyServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             ExtensionDependencyResolver::class,
+        );
+
+        $this->app->singleton(
+            ExtensionCapabilityRegistry::class,
         );
 
         $this->app->singleton(

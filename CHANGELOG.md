@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Added the Extension SDK v2 capability model with optional contracts for navigation, routes, blocks and typed settings, alongside the existing permissions contract.
+- Added `ExtensionCapabilityRegistry` so Core can discover extension capabilities without hardcoded extension knowledge.
+- Exposed resolved extension capabilities through the Extension Manager API.
+- Added Gallery navigation capability metadata and Files typed settings metadata.
+- Added SDK v2 capability architecture documentation.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog.
@@ -8,33 +18,10 @@ Versioning follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
-
-- Generic User Space favorites and history foundation using extension-independent resource references.
-- Authenticated API endpoints for managing favorites and recording history.
-- Unit, functional, and Playwright coverage for user engagement.
-
-### Added
 - Initial project structure
 - Project vision
 - Roadmap
 - Architecture Decision Records
-- Added the `minimum_kernel_version` field to normalized extension manifests and compatibility checks before extension migrations.
-- Added a complete `make:extension` scaffold, including extension routes, frontend files, and Unit, Functional, and Playwright E2E test starters.
-- Added the generated CinemaMovie extension as a validated example of the extension scaffold.
-- Split Laravel CI into separate backend Unit and Functional jobs and included extension-local test directories.
-- Added a dedicated Playwright end-to-end CI job with a seeded test account and Chromium browser setup.
-- Added a CI security gate for Composer/npm vulnerability audits and TruffleHog secret detection; updated dependency lockfiles to clear the reported advisories.
-- Added ordered backend, frontend and fresh-install build jobs, plus PHP syntax lint, PHPStan with an explicit baseline, ESLint, Stylelint and Vitest checks.
-- Added a production quality gate that runs after all CI test and quality jobs succeed.
-
-### Changed
-- Extension scaffold instructions use the extension migration commands instead of Laravel's global migration command.
-- Generated frontend store filenames use the extension's kebab-case identifier so generated views resolve their store imports.
-
-### Fixed
-- Updated direct `ExtensionManifest` construction sites to provide the minimum Kernel version required by the manifest value object.
-- Fixed fresh database seeding failing because the `permissions` table did not include the `is_core` column; added a migration and ensured existing core permissions are marked correctly.
-- Fixed the Linux production build failing to resolve Gallery view and navigation imports due to a case mismatch in the Vite alias.
 
 ## [0.1.0] - In Progress
 
@@ -152,18 +139,3 @@ Versioning follows Semantic Versioning.
 ### Changed
 
 - Extension installation now executes only the migrations belonging to the installed extension.
-
-### S3 — User Space engagement integration
-
-- Integrated Favorites and History into the User Space navigation and views.
-- Added pagination/error handling to the engagement frontend store.
-- Restricted engagement endpoints to the `user` surface in addition to authentication.
-- Added authenticated Playwright coverage for Favorites/History navigation.
-
-### S3 User Space Security Hardening
-
-- Hardened User Space engagement endpoints with authentication and `user` surface enforcement.
-- Added strict resource type/id validation for generic favorites and history.
-- Added rate limiting to engagement endpoints.
-- Server-side timestamps are now used for history events.
-- Added final User Space security feature and Playwright coverage.
