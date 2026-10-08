@@ -8,30 +8,17 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * A generic user activity/history entry.
- */
+/** Stores an immutable user engagement event. */
 final class UserHistoryEntry extends Model
 {
     protected $table = 'user_history';
 
-    protected $fillable = [
-        'user_id',
-        'resource_type',
-        'resource_id',
-        'action',
-        'metadata',
-        'occurred_at',
-    ];
+    public $timestamps = false;
 
-    protected $casts = [
-        'metadata' => 'array',
-        'occurred_at' => 'datetime',
-    ];
+    protected $fillable = ['user_id', 'resource_type', 'resource_id', 'action', 'metadata', 'occurred_at'];
 
-    /**
-     * The owning user.
-     */
+    protected $casts = ['metadata' => 'array', 'occurred_at' => 'datetime'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

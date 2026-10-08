@@ -1822,3 +1822,37 @@ The roadmap should be updated progressively as each sprint is completed.
 - [x] User-surface enforcement on engagement API routes
 - [x] Authenticated Playwright coverage for engagement navigation
 - [ ] Final S3 security and E2E validation in CI
+
+## S3 — Security Hardening (completed 2026-10-08)
+
+- [x] Authentication boundary for Favorites/History
+- [x] `surface:user` enforcement
+- [x] Strict generic resource type/id validation
+- [x] Server-owned history timestamps
+- [x] Rate limiting on engagement endpoints
+- [x] User-isolated persistence queries
+- [x] Security feature tests
+- [x] Final User Space Playwright security coverage
+
+### Security model
+
+```text
+Guest
+  ↓
+Authentication
+  ↓
+Surface: user
+  ↓
+Rate limit
+  ↓
+Request validation
+  ↓
+User-owned resource query
+```
+
+The Core never trusts a client-supplied user identifier for favorites or history.
+Extension resource types remain opaque strings validated by syntax only.
+
+### S3 status
+
+S3 User Space is functionally complete. Final CI execution remains part of the platform-wide quality gate.

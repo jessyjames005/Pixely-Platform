@@ -159,3 +159,11 @@ Versioning follows Semantic Versioning.
 - Added pagination/error handling to the engagement frontend store.
 - Restricted engagement endpoints to the `user` surface in addition to authentication.
 - Added authenticated Playwright coverage for Favorites/History navigation.
+
+### S3 User Space Security Hardening
+
+- Hardened User Space engagement endpoints with authentication and `user` surface enforcement.
+- Added strict resource type/id validation for generic favorites and history.
+- Added rate limiting to engagement endpoints.
+- Server-side timestamps are now used for history events.
+- Added final User Space security feature and Playwright coverage.

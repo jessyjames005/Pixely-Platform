@@ -4,105 +4,69 @@ declare(strict_types=1);
 
 namespace App\Core\Users\Http\Controllers;
 
+use App\Core\Users\Http\Requests\StoreFavoriteRequest;
+use App\Core\Users\Http\Requests\StoreHistoryRequest;
 use App\Core\Users\Services\UserEngagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Exposes generic User Space favorites and history endpoints.
- */
+/** HTTP boundary for user-owned favorites and history. */
 final class UserEngagementController
 {
-    public function __construct(private readonly UserEngagementService $service)
-    {
-    }
+    public function __construct(private readonly UserEngagementService $service) {}
 
-    /**
-     * List the current user's favorites.
-     */
     public function favorites(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'resource_type' => ['nullable', 'string', 'max:100'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-        ]);
+        $user = $request->user();
+        abort_unless($user !== null, Response::HTTP_UNAUTHORIZED);
 
         return response()->json($this->service->favorites(
-            $request->user()->id,
-            $validated['resource_type'] ?? null,
-            $validated['per_page'] ?? 20,
+            $user,
+            $request->string('resource_type')->toString() ?: null,
         ));
     }
 
-    /**
-     * Add a resource to the current user's favorites.
-     */
-    public function storeFavorite(Request $request): JsonResponse
+    public function storeFavorite(StoreFavoriteRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'resource_type' => ['required', 'string', 'max:100'],
-            'resource_id' => ['required', 'string', 'max:191'],
-            'metadata' => ['nullable', 'array'],
-        ]);
-
         $favorite = $this->service->addFavorite(
-            $request->user()->id,
-            $validated['resource_type'],
-            $validated['resource_id'],
-            $validated['metadata'] ?? null,
+            $request->user(),
+            $request->string('resource_type')->toString(),
+            $request->string('resource_id')->toString(),
+            $request->input('metadata'),
         );
 
-        return response()->json($favorite, 201);
+        return response()->json($favorite, Response::HTTP_CREATED);
     }
 
-    /**
-     * Remove a resource from the current user's favorites.
-     */
-    public function destroyFavorite(Request $request, string $resourceType, string $resourceId): JsonResponse
+    public function destroyFavorite(Request $request, string $resourceType, string $resourceId): Response
     {
-        $removed = $this->service->removeFavorite($request->user()->id, $resourceType, $resourceId);
+        $this->service->removeFavorite($request->user(), $resourceType, $resourceId);
 
-        return response()->json(['removed' => $removed]);
+        return response()->noContent();
     }
 
-    /**
-     * List the current user's history.
-     */
     public function history(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'resource_type' => ['nullable', 'string', 'max:100'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-        ]);
+        $user = $request->user();
+        abort_unless($user !== null, Response::HTTP_UNAUTHORIZED);
 
         return response()->json($this->service->history(
-            $request->user()->id,
-            $validated['resource_type'] ?? null,
-            $validated['per_page'] ?? 20,
+            $user,
+            $request->string('resource_type')->toString() ?: null,
         ));
     }
 
-    /**
-     * Record a history entry for the current user.
-     */
-    public function storeHistory(Request $request): JsonResponse
+    public function storeHistory(StoreHistoryRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'resource_type' => ['required', 'string', 'max:100'],
-            'resource_id' => ['required', 'string', 'max:191'],
-            'action' => ['nullable', 'string', 'max:50'],
-            'metadata' => ['nullable', 'array'],
-        ]);
-
         $entry = $this->service->recordHistory(
-            $request->user()->id,
-            $validated['resource_type'],
-            $validated['resource_id'],
-            $validated['action'] ?? 'view',
-            $validated['metadata'] ?? null,
+            $request->user(),
+            $request->string('resource_type')->toString(),
+            $request->string('resource_id')->toString(),
+            $request->string('action')->toString(),
+            $request->input('metadata'),
         );
 
-        return response()->json($entry, 201);
+        return response()->json($entry, Response::HTTP_CREATED);
     }
 }
