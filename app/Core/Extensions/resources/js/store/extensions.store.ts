@@ -3,6 +3,9 @@
 import { defineStore } from 'pinia'
 import { apiClient } from '@shared/services/apiClient'
 import { decodeJsonApiId, type JsonApiDocument, type JsonApiResource } from '@shared/types/api'
+import type { NavItem } from '@shared/navigation/types'
+import { parseNavigationItems, type CapabilityCollection } from '../models/ExtensionCapability'
+import { useExtensionCapabilitiesStore } from './capabilities.store'
 import type {
   ExtensionSummary,
   ExtensionDetail,
@@ -10,6 +13,9 @@ import type {
   ExtensionConfigPayload,
   ExtensionInstallResult,
 } from '../models/Extension'
+
+let navigationRequest: Promise<void> | null = null
+let navigationGeneration = 0
 
 interface ExtensionAttributes {
   name: string
@@ -34,6 +40,8 @@ interface ExtensionsState {
   configDefaults: Record<string, unknown> | null
   configValues: Record<string, unknown> | null
   navigation: NavItem[]
+  navigationLoaded: boolean
+  navigationUserId: string | null
   configId: string | null
   settingsSchema: Record<string, ExtensionSettingDefinition> | null
 }
@@ -44,6 +52,8 @@ export const useExtensionsStore = defineStore('extensions', {
     configDefaults: null,
     configValues: null,
     navigation: [],
+    navigationLoaded: false,
+    navigationUserId: null,
     configId: null,
     settingsSchema: null,
   }),
@@ -54,6 +64,45 @@ export const useExtensionsStore = defineStore('extensions', {
       this.extensions = result.resources
     },
 
+    /** Load server-filtered extension navigation once per application session. */
+    async fetchNavigation(force = false, userId?: string): Promise<void> {
+      // Navigation is permission-filtered by the server, so never reuse it for another account.
+      if (userId !== undefined && this.navigationUserId !== userId) {
+        navigationGeneration += 1
+        navigationRequest = null
+        this.navigation = []
+        this.navigationLoaded = false
+        this.navigationUserId = userId
+      }
+      if (this.navigationLoaded && !force) return
+      if (navigationRequest && !force) return navigationRequest
+
+      const generation = navigationGeneration
+      let request: Promise<void>
+      request = apiClient.get<CapabilityCollection<unknown>>('/extensions/navigation')
+        .then((response) => {
+          if (generation !== navigationGeneration) return
+          this.navigation = parseNavigationItems(response?.data)
+          this.navigationLoaded = true
+          if (userId !== undefined) this.navigationUserId = userId
+        })
+        .finally(() => {
+          if (navigationRequest === request) navigationRequest = null
+        })
+      navigationRequest = request
+      return request
+    },
+
+    /** Clear cached metadata after extension lifecycle or package changes. */
+    invalidateRuntimeMetadata(): void {
+      navigationGeneration += 1
+      navigationRequest = null
+      this.navigationLoaded = false
+      this.navigationUserId = null
+      this.navigation = []
+      useExtensionCapabilitiesStore().invalidate()
+    },
+
     async fetchDetail(id: string): Promise<ExtensionDetail> {
       const result = await apiClient.getResource<ExtensionAttributes>(`/extensions/${id}`)
       if (!result) throw new Error('The extension detail response did not include a resource.')
@@ -62,10 +111,12 @@ export const useExtensionsStore = defineStore('extensions', {
 
     async enable(id: string): Promise<void> {
       await apiClient.post<JsonApiDocument<JsonApiResource<ExtensionAttributes>>>(`/extensions/${id}/enable`)
+      this.invalidateRuntimeMetadata()
     },
 
     async disable(id: string): Promise<void> {
       await apiClient.post<JsonApiDocument<JsonApiResource<ExtensionAttributes>>>(`/extensions/${id}/disable`)
+      this.invalidateRuntimeMetadata()
     },
 
     async fetchSettingsSchema(id: string): Promise<void> {
@@ -104,6 +155,7 @@ export const useExtensionsStore = defineStore('extensions', {
         '/extensions/install', formData,
       )
       if (!result) throw new Error('The extension install response did not include a resource.')
+      this.invalidateRuntimeMetadata()
       return result
     },
 
@@ -114,6 +166,7 @@ export const useExtensionsStore = defineStore('extensions', {
         `/extensions/${id}/update`, formData,
       )
       if (!result) throw new Error('The extension update response did not include a resource.')
+      this.invalidateRuntimeMetadata()
       return result
     },
 
@@ -121,6 +174,7 @@ export const useExtensionsStore = defineStore('extensions', {
       const parts = decodeJsonApiId(id, 2)
       if (!parts || parts[0] !== 'extension' || !parts[1]) throw new Error('Invalid extension resource ID.')
       await apiClient.delete<void>(`/extensions/${parts[1]}`)
+      this.invalidateRuntimeMetadata()
     },
   },
 })

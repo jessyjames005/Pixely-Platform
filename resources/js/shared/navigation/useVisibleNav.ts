@@ -55,8 +55,8 @@ export function useVisibleNav(surface: Surface = 'admin') {
   const extensionsStore = useExtensionsStore()
 
   onMounted(() => {
-    if (authStore.user && extensionsStore.navigation.length === 0) {
-      extensionsStore.fetchNavigation().catch(() => undefined)
+    if (authStore.user && !extensionsStore.navigationLoaded) {
+      extensionsStore.fetchNavigation(false, authStore.user.id).catch(() => undefined)
     }
   })
 

@@ -119,7 +119,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Authentication
 * [x] Login
 * [x] Logout
-* [x] Password management (self-service password change)
+* [x] Password management
 * [x] Authentication API
 * [x] Two-factor authentication (2FA) — TOTP authenticator app, single-use recovery codes
 * [x] Forgot password / password reset flow
@@ -340,8 +340,8 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
 * [x] Typed settings schema API endpoint
 * [x] Public block sanitizer: allowlisted block types, bounded text, safe URL schemes, and omission of malformed/unknown blocks
-* [ ] Generated admin settings form
-* [ ] Frontend extension capability loader
+* [x] Generated admin settings form
+* [x] Frontend extension capability loader (typed block metadata, surface filtering, caching, and navigation loading)
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
 * [ ] Frontend dynamic route registry
@@ -1489,6 +1489,7 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
+
 ## Platform Foundation Status (2026-10-09)
 
 ### Completed foundations
@@ -1527,8 +1528,8 @@ The roadmap should be updated progressively as each sprint is completed.
 3. Fresh-install extension generator
 4. Automatic route and navigation registration
 5. Block registry and settings schema API (initial implementation complete)
-6. Trusted block renderer contract and generated settings form
-7. Frontend capability loader
+6. Trusted block renderer contract and generated settings form (settings form implemented; renderer contract remains)
+7. Frontend capability loader (initial implementation complete)
 8. Frontend dynamic route registry
 9. Coverage and production-quality gate
 
