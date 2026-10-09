@@ -1,3 +1,11 @@
+# Unreleased
+
+## Added
+- Generate extension administration configuration fields from each extension's typed settings schema, including labels, descriptions, numeric bounds, string arrays, and enumerated choices.
+
+## Fixed
+- Validate schema-backed extension configuration on the server and reject undeclared setting keys before persistence.
+
 # Changelog
 
 ## Unreleased

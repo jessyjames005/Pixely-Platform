@@ -180,3 +180,17 @@ it('returns 404 when requesting a settings schema for an unknown extension', fun
 
     $this->getJson('/api/v1/extensions/not-installed/settings-schema')->assertNotFound();
 });
+
+it('validates typed extension settings before saving configuration', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.manage');
+    $this->actingAs($user);
+
+    $this->putJson('/api/v1/extensions/files/config', [
+        'max_file_size_kb' => 0,
+    ])->assertStatus(422);
+
+    $this->putJson('/api/v1/extensions/files/config', [
+        'unknown_setting' => true,
+    ])->assertStatus(422);
+});

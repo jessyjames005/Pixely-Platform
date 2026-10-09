@@ -18,12 +18,24 @@ interface ExtensionAttributes {
   enabled: boolean
 }
 
+export interface ExtensionSettingDefinition {
+  type: string
+  label?: string
+  description?: string
+  default?: unknown
+  required?: boolean
+  min?: number
+  max?: number
+  options?: Array<string | number | boolean>
+}
+
 interface ExtensionsState {
   extensions: ExtensionSummary[]
   configDefaults: Record<string, unknown> | null
   configValues: Record<string, unknown> | null
   navigation: NavItem[]
   configId: string | null
+  settingsSchema: Record<string, ExtensionSettingDefinition> | null
 }
 
 export const useExtensionsStore = defineStore('extensions', {
@@ -33,6 +45,7 @@ export const useExtensionsStore = defineStore('extensions', {
     configValues: null,
     navigation: [],
     configId: null,
+    settingsSchema: null,
   }),
 
   actions: {
@@ -53,6 +66,13 @@ export const useExtensionsStore = defineStore('extensions', {
 
     async disable(id: string): Promise<void> {
       await apiClient.post<JsonApiDocument<JsonApiResource<ExtensionAttributes>>>(`/extensions/${id}/disable`)
+    },
+
+    async fetchSettingsSchema(id: string): Promise<void> {
+      const result = await apiClient.get<{ data: { extension_id: string; schema: Record<string, ExtensionSettingDefinition> } }>(
+        `/extensions/${id}/settings-schema`,
+      )
+      this.settingsSchema = result.data.schema ?? {}
     },
 
     async fetchConfig(id: string): Promise<void> {

@@ -15,6 +15,7 @@ import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
 import { useExtensionsStore } from "../store/extensions.store";
 import type { ExtensionSummary, ExtensionDetail } from "../models/Extension";
+import type { ExtensionSettingDefinition } from "../store/extensions.store";
 import ExtensionDependencyGraph from "../components/ExtensionDependencyGraph.vue";
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { translate as t } from '@shared/plugins/i18n'
@@ -78,11 +79,12 @@ const {
 // non-strings has no simple widget, so it falls back to a per-field
 // JSON textarea rather than forcing every extension's config into a
 // flat shape.
-type ConfigFieldKind = "boolean" | "number" | "string" | "string-array" | "json";
+type ConfigFieldKind = "boolean" | "number" | "string" | "string-array" | "select" | "json";
 
 interface ConfigField {
   key: string;
   kind: ConfigFieldKind;
+  definition?: ExtensionSettingDefinition;
 }
 
 const configDialogOpen = ref(false);
@@ -122,12 +124,27 @@ function setStringArrayValue(key: string, value: unknown): void {
     : [];
 }
 
-const configFields = computed<ConfigField[]>(() =>
-  Object.entries(extensionsStore.configDefaults ?? {}).map(([key, value]) => ({
-    key,
-    kind: fieldKindFor(value),
-  })),
-);
+function fieldKindForSchema(definition: ExtensionSettingDefinition, fallback: unknown): ConfigFieldKind {
+  if (Array.isArray(definition.options)) return "select";
+  if (definition.type === "boolean") return "boolean";
+  if (["integer", "number"].includes(definition.type)) return "number";
+  if (definition.type === "string[]") return "string-array";
+  if (definition.type === "string") return "string";
+  return fieldKindFor(fallback);
+}
+
+const configFields = computed<ConfigField[]>(() => {
+  const defaults = extensionsStore.configDefaults ?? {};
+  const schema = extensionsStore.settingsSchema;
+  if (schema && Object.keys(schema).length > 0) {
+    return Object.entries(schema).map(([key, definition]) => ({
+      key,
+      definition,
+      kind: fieldKindForSchema(definition, defaults[key] ?? definition.default),
+    }));
+  }
+  return Object.entries(defaults).map(([key, value]) => ({ key, kind: fieldKindFor(value) }));
+});
 
 function syncFormValues(): void {
   for (const key of Object.keys(formValues)) delete formValues[key];
@@ -135,10 +152,11 @@ function syncFormValues(): void {
 
   const values = extensionsStore.configValues ?? {};
   for (const field of configFields.value) {
+    const value = values[field.key] ?? field.definition?.default ?? null;
     if (field.kind === "json") {
-      jsonDrafts[field.key] = JSON.stringify(values[field.key] ?? null, null, 2);
+      jsonDrafts[field.key] = JSON.stringify(value, null, 2);
     } else {
-      formValues[field.key] = values[field.key];
+      formValues[field.key] = value;
     }
   }
 }
@@ -236,7 +254,10 @@ async function handleUninstall(extension: ExtensionSummary): Promise<void> {
 
 async function openConfigDialog(extension: ExtensionSummary): Promise<void> {
   configTargetId.value = extension.id;
-  await fetchConfig(extension.id);
+  await Promise.all([
+    fetchConfig(extension.id),
+    extensionsStore.fetchSettingsSchema(extension.id),
+  ]);
   syncFormValues();
   configDialogOpen.value = true;
 }
@@ -479,42 +500,59 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
               <v-switch
                 v-if="field.kind === 'boolean'"
                 v-model="formValues[field.key]"
-                :label="labelFor(field.key)"
+                :label="field.definition?.label ?? labelFor(field.key)"
+                :hint="field.definition?.description"
+                :persistent-hint="Boolean(field.definition?.description)"
                 density="compact"
-                hide-details
+                hide-details="auto"
               />
               <v-text-field
                 v-else-if="field.kind === 'number'"
                 v-model.number="formValues[field.key]"
-                :label="labelFor(field.key)"
+                :label="field.definition?.label ?? labelFor(field.key)"
+                :min="field.definition?.min"
+                :max="field.definition?.max"
+                :hint="field.definition?.description"
+                :persistent-hint="Boolean(field.definition?.description)"
                 type="number"
+                density="compact"
+              />
+              <v-select
+                v-else-if="field.kind === 'select'"
+                v-model="formValues[field.key]"
+                :items="field.definition?.options ?? []"
+                :label="field.definition?.label ?? labelFor(field.key)"
+                :hint="field.definition?.description"
+                :persistent-hint="Boolean(field.definition?.description)"
                 density="compact"
               />
               <v-text-field
                 v-else-if="field.kind === 'string'"
                 v-model="formValues[field.key]"
-                :label="labelFor(field.key)"
+                :label="field.definition?.label ?? labelFor(field.key)"
+                :hint="field.definition?.description"
+                :persistent-hint="Boolean(field.definition?.description)"
                 density="compact"
               />
               <v-combobox
                 v-else-if="field.kind === 'string-array'"
                 :model-value="stringArrayValue(field.key)"
                 @update:model-value="(value) => setStringArrayValue(field.key, value)"
-                :label="labelFor(field.key)"
+                :label="field.definition?.label ?? labelFor(field.key)"
+                :hint="field.definition?.description ?? $t('extensions.msg.press_enter_hint', 'Press enter after each value')"
+                persistent-hint
                 multiple
                 chips
                 closable-chips
                 density="compact"
-                :hint="$t('extensions.msg.press_enter_hint', 'Press enter after each value')"
-                persistent-hint
               />
               <v-textarea
                 v-else
                 v-model="jsonDrafts[field.key]"
-                :label="`${labelFor(field.key)} (JSON)`"
+                :label="`${field.definition?.label ?? labelFor(field.key)} (JSON)`"
                 rows="4"
                 font="monospace"
-                :hint="$t('extensions.msg.json_fallback_hint', 'No simple form control for this shape — edit as JSON')"
+                :hint="field.definition?.description ?? $t('extensions.msg.json_fallback_hint', 'No simple form control for this shape — edit as JSON')"
                 persistent-hint
               />
             </div>

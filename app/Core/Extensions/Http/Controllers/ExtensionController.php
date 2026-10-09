@@ -18,6 +18,8 @@ use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * Read/lifecycle (non-destructive) extension management API.
@@ -224,11 +226,60 @@ final class ExtensionController
             abort(404, 'Extension not found.');
         }
 
-        $configuration = $request->validate(['*' => ['sometimes']]) ?: $request->all();
+        $extension = $this->manager->all()[$id];
+        $configuration = $request->input('values', $request->all());
+
+        if (! is_array($configuration)) {
+            abort(422, 'Extension configuration must be an object.');
+        }
+
+        // When an extension declares a settings schema, accept only declared
+        // keys and validate each value against that schema before persistence.
+        // Extensions without the new contract keep the legacy configuration path.
+        if ($extension instanceof ExtensionSettingsInterface) {
+            $schema = $extension->settings();
+            $rules = [];
+
+            foreach ($configuration as $key => $_value) {
+                if (! is_string($key) || ! array_key_exists($key, $schema)) {
+                    abort(422, 'Unknown extension setting: '.(string) $key);
+                }
+            }
+
+            foreach ($schema as $key => $definition) {
+                $fieldRules = (($definition['required'] ?? false) === true) ? ['required'] : ['sometimes'];
+
+                $type = $definition['type'] ?? 'string';
+                $fieldRules[] = match ($type) {
+                    'integer' => 'integer',
+                    'number' => 'numeric',
+                    'boolean' => 'boolean',
+                    'string[]' => 'array',
+                    'array' => 'array',
+                    'object' => 'array',
+                    default => 'string',
+                };
+
+                if (isset($definition['min']) && in_array($type, ['integer', 'number', 'string'], true)) {
+                    $fieldRules[] = ($type === 'string' ? 'min:' : 'min:').$definition['min'];
+                }
+                if (isset($definition['max']) && in_array($type, ['integer', 'number', 'string'], true)) {
+                    $fieldRules[] = 'max:'.$definition['max'];
+                }
+                if (isset($definition['options']) && is_array($definition['options'])) {
+                    $fieldRules[] = Rule::in($definition['options']);
+                }
+                if ($type === 'string[]') {
+                    $rules[$key.'.*'] = ['string'];
+                }
+                $rules[$key] = $fieldRules;
+            }
+
+            $configuration = Validator::make($configuration, $rules)->validate();
+        }
 
         $this->configRepository->save($id, $configuration);
 
-        $extension = $this->manager->all()[$id];
         $defaults = $extension instanceof ExtensionConfigurableInterface
             ? $extension->defaultConfiguration()
             : [];
