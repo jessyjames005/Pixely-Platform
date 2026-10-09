@@ -1489,7 +1489,6 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
-
 ## Platform Foundation Status (2026-10-09)
 
 ### Completed foundations
@@ -1534,4 +1533,3 @@ The roadmap should be updated progressively as each sprint is completed.
 9. Coverage and production-quality gate
 
 > **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.
-
