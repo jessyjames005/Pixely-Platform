@@ -274,7 +274,7 @@ The project will use:
 
 ## 7bis. Frontend domain structure
 
-Every frontend domain (Core module or backend extension) is organized under `resources/js/extensions/<domain>/` with an identical internal structure, regardless of whether the domain is Core or an extension on the backend.
+Every frontend domain (Core module or backend extension) is organized under `app/Extensions/<Domain>/resources/js/` with an identical internal structure, regardless of whether the domain is Core or an extension on the backend.
 
 ### Required subfolders
 

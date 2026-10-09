@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Restored Gallery, Files, and Tuleap frontend assets under the SDK v2 lowercase `resources/js` structure.
+- Added the Cinema Movie Vite and TypeScript aliases.
+- Registered the User Space Favorites and History frontend routes.
+- Removed duplicate User Engagement API declarations and the duplicate database migration.
+- Synchronized roadmap status for Multi-Surface, Website Engine, User Space, and current SDK v2 work.
+- Added PHP coding-style enforcement and an 80% statement-coverage CI gate.
+- Updated AI-agent guidance to use `AGENTS.md` as the canonical project rule source.
+
+
 ## [Unreleased]
 
 ### Added

@@ -25,3 +25,11 @@ it('serves profile and preferences entry points through the user surface', funct
     $this->actingAs($user)->get('/account/profile')->assertOk();
     $this->actingAs($user)->get('/account/preferences')->assertOk();
 });
+
+
+it('serves favorites and history entry points through the user surface', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get('/account/favorites')->assertOk();
+    $this->actingAs($user)->get('/account/history')->assertOk();
+});

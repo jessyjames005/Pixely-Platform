@@ -1,3 +1,5 @@
+> Canonical project rules live in `AGENTS.md`. Keep this file aligned with that source.
+
 # AI Agent Guidance — Pixely Platform
 
 This file provides guidance for AI agents working on this repository.
@@ -134,7 +136,7 @@ npm run lint
 ### Backend (Laravel)
 - Controllers orchestrate; business logic goes in Services
 - Use dependency injection, not `app()` helper
-- Extension routes live in `app/Extensions/<Name>/Http/routes.php`
+- Extension routes live in `app/Extensions/<Name>/routes/api.php`
 - Permissions follow `<domain>.<object>.<action>` (e.g., `gallery.photos.manage`)
 - API: `/api/v1/...` with OpenAPI via Scramble
 - Authentication via Laravel Sanctum (SPA mode, session cookies)
@@ -142,7 +144,7 @@ npm run lint
 ### Frontend (Vue 3)
 - Vue 3 + TypeScript + Vuetify 4 + Vite 8
 - Pinia for state management
-- Component structure: `resources/js/extensions/<domain>/{components,views,store,models,types}`
+- Component structure: `app/Extensions/<Domain>/resources/js/{components,views,store,models,types}`
 - Styles in `.scss` under `styles/`, not inline `<style>` in `.vue`
 - Storybook for component docs
 - API communication via composable `useApi()`

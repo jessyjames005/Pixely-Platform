@@ -10,7 +10,7 @@ Create or modify Vue 3 frontend components, stores, and assets following Pixely 
 ## Domain Structure
 Each domain (Core module or extension) follows this structure:
 ```
-resources/js/extensions/<domain>/
+app/Extensions/<Domain>/resources/js/
 ├── components/    # Domain-specific components
 ├── views/         # Route-level page components  
 ├── store/         # Pinia store(s)

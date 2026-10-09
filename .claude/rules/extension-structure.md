@@ -34,7 +34,7 @@ app/Extensions/<ExtensionName>/
 Each subdirectory must have:
 - `manifest.json` with `id`, `name`, `version`, `description`
 - At least one `Providers/ExtensionServiceProvider`
-- Routes defined in `Http/routes.php`
+- Routes defined in `routes/api.php`
 
 ## Manifest JSON Format
 ```json

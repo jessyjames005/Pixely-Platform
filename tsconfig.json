@@ -20,6 +20,7 @@
       "@core/extensions/*": ["app/Core/Extensions/resources/js/*"],
       "@extensions/translations/*": ["app/Extensions/Translations/resources/js/*"],
       "@extensions/files/*": ["app/Extensions/Files/resources/js/*"],
+      "@extensions/cinema-movie/*": ["app/Extensions/CinemaMovie/resources/js/*"],
     }
   },
   "include": [
