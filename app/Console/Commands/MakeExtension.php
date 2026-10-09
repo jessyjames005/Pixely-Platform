@@ -477,22 +477,6 @@ final class MakeExtension extends Command
         VUE;
     }
 
-    private function frontendNavStub(string $studly, string $id): string
-    {
-        return <<<TS
-        import type { NavItem } from '@shared/navigation/types'
-
-        export const {Str::camel($id)}NavItem: NavItem = {
-          label: '{$studly}',
-          to: '/admin/{$id}',
-          icon: 'mdi-puzzle-outline',
-          permission: '{$id}.items.view',
-          extensionId: '{$id}',
-        }
-
-        TS;
-    }
-
     private function printNextSteps(string $studly, string $id): void
     {
         $this->newLine();

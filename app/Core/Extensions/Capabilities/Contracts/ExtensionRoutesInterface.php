@@ -13,7 +13,12 @@ namespace App\Core\Extensions\Capabilities\Contracts;
 interface ExtensionRoutesInterface
 {
     /**
-     * @return list<array{file:string}>
+     * Each definition is expected to be `['file' => '<route file path>']`.
+     *
+     * Typed loosely on purpose: the definitions come from extension code, so
+     * Core validates every entry instead of trusting the shape.
+     *
+     * @return list<array<string, mixed>>
      */
     public function routes(): array;
 }

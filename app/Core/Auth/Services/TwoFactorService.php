@@ -132,7 +132,7 @@ final class TwoFactorService
         $matched = false;
 
         foreach ($stored as $hash) {
-            if (! $matched && is_string($hash) && hash_equals($hash, $candidate)) {
+            if (! $matched && hash_equals($hash, $candidate)) {
                 $matched = true;
 
                 continue;
