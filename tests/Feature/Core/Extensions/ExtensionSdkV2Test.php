@@ -64,3 +64,19 @@ it('does not expose disabled extensions through navigation', function (): void {
         ->assertOk()
         ->assertJsonMissing(['id' => 'gallery']);
 });
+
+
+it('exposes the block registry through the protected extension API', function (): void {
+    \Spatie\Permission\Models\Permission::firstOrCreate([
+        'name' => 'system.extensions.view',
+        'guard_name' => 'web',
+    ]);
+
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.view');
+
+    $this->actingAs($user, 'sanctum')
+        ->getJson('/api/v1/extensions/blocks')
+        ->assertOk()
+        ->assertJsonPath('meta.total', 0);
+});

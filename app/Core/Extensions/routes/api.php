@@ -21,8 +21,10 @@ JsonApiRoute::server('v1')
             ->prefix('extensions')
             ->group(function (): void {
                 Route::get('/', [ExtensionController::class, 'index']);
+                Route::get('/blocks', [ExtensionController::class, 'blocks']);
                 Route::get('/{id}', [ExtensionController::class, 'show']);
                 Route::get('/{id}/config', [ExtensionController::class, 'showConfig']);
+                Route::get('/{id}/settings-schema', [ExtensionController::class, 'settingsSchema']);
             });
 
         Route::middleware(['auth:sanctum', 'permission:system.extensions.manage'])

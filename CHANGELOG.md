@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+- Added the SDK v2 extension block registry with namespaced identifiers and validation of labels, schemas, and supported surfaces.
+- Added protected API endpoints for extension block declarations and typed settings schemas.
+
 ### Fixed
 - Restored Gallery, Files, and Tuleap frontend assets under the SDK v2 lowercase `resources/js` structure.
 - Added the Cinema Movie Vite and TypeScript aliases.

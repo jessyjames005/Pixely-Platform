@@ -160,3 +160,23 @@ it('returns declared defaults for a never-configured extension, not an empty pay
     $response->assertJsonPath('data.defaults.max_file_size_kb', 5120);
     $response->assertJsonPath('data.values.max_file_size_kb', 5120);
 });
+
+it('returns the typed settings schema for an extension', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.view');
+    $this->actingAs($user);
+
+    $this->getJson('/api/v1/extensions/files/settings-schema')
+        ->assertOk()
+        ->assertJsonPath('data.extension_id', 'files')
+        ->assertJsonPath('data.schema.max_file_size_kb.type', 'integer')
+        ->assertJsonPath('data.schema.allowed_mimes.type', 'string[]');
+});
+
+it('returns 404 when requesting a settings schema for an unknown extension', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('system.extensions.view');
+    $this->actingAs($user);
+
+    $this->getJson('/api/v1/extensions/not-installed/settings-schema')->assertNotFound();
+});

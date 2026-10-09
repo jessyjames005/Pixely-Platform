@@ -334,8 +334,10 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Extension Manager API exposes resolved capabilities
 * [x] Core route registration from extension declarations
 * [x] Core navigation registry from extension declarations
-* [ ] Block registry and renderer contract
-* [ ] Settings schema API and generated admin form
+* [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
+* [x] Typed settings schema API endpoint
+* [ ] Trusted block renderer contract and safe renderer implementation
+* [ ] Generated admin settings form
 * [ ] Frontend extension capability loader
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
@@ -1523,8 +1525,8 @@ The roadmap should be updated progressively as each sprint is completed.
 2. Migrate existing extensions to the SDK v2 structure
 3. Fresh-install extension generator
 4. Automatic route and navigation registration
-5. Block registry and renderer
-6. Settings schema API
+5. Block registry and settings schema API (initial implementation complete)
+6. Trusted block renderer contract and generated settings form
 7. Frontend capability loader
 8. Frontend dynamic route registry
 9. Coverage and production-quality gate

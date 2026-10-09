@@ -8,6 +8,8 @@ use App\Core\Api\Response\ApiCollectionResponse;
 use App\Core\Api\Response\ApiResponse;
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
 use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionSettingsInterface;
+use App\Core\Extensions\Capabilities\Registry\ExtensionBlockRegistry;
 use App\Core\Extensions\Capabilities\Registry\ExtensionCapabilityRegistry;
 use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Configuration\ExtensionConfigurationRepositoryInterface;
@@ -32,6 +34,7 @@ final class ExtensionController
         private readonly ExtensionAuditLogger $auditLogger,
         private readonly ExtensionPermissionSynchronizer $permissionSynchronizer,
         private readonly ExtensionCapabilityRegistry $capabilityRegistry,
+        private readonly ExtensionBlockRegistry $blockRegistry,
     ) {
     }
 
@@ -89,6 +92,45 @@ final class ExtensionController
             data: $items,
             meta: ['total' => count($items)],
         );
+    }
+
+    /**
+     * Return the validated block declarations contributed by enabled extensions.
+     */
+    public function blocks(ApiCollectionResponse $apiResponse): JsonResponse
+    {
+        $blocks = [];
+
+        foreach ($this->manager->enabled() as $extension) {
+            foreach ($this->blockRegistry->for($extension) as $block) {
+                $blocks[] = $block;
+            }
+        }
+
+        return $apiResponse->response(
+            data: $blocks,
+            meta: ['total' => count($blocks)],
+        );
+    }
+
+    /**
+     * Return the typed settings schema declared by an extension.
+     */
+    public function settingsSchema(string $id, ApiResponse $apiResponse): JsonResponse
+    {
+        if (! $this->manager->has($id)) {
+            abort(404, 'Extension not found.');
+        }
+
+        $extension = $this->manager->all()[$id];
+        $schema = $extension instanceof ExtensionSettingsInterface
+            ? $extension->settings()
+            : [];
+
+        return $apiResponse->response(data: [
+            'extension_id' => $id,
+            'schema' => $schema,
+        ]);
     }
 
     /**
