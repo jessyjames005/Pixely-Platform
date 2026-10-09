@@ -55,7 +55,7 @@ final class ExtensionBlockRegistryTest extends TestCase
      */
     private function extension(array $blocks): ExtensionInterface&ExtensionBlocksInterface
     {
-        return new class($blocks) implements ExtensionInterface, ExtensionBlocksInterface {
+        return new class ($blocks) implements ExtensionInterface, ExtensionBlocksInterface {
             /** @param list<array<string, mixed>> $declaredBlocks */
             public function __construct(private readonly array $declaredBlocks)
             {

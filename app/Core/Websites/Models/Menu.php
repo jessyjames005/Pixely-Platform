@@ -15,7 +15,8 @@ final readonly class Menu implements \JsonSerializable
         public string $name,
         public string $code,
         public array $items = [],
-    ) {}
+    ) {
+    }
 
     public function jsonSerialize(): array
     {

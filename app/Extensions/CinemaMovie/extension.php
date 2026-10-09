@@ -5,6 +5,7 @@ declare(strict_types=1);
 /**
  * CinemaMovie extension manifest.
  */
+
 return [
     'id' => 'cinema-movie',
     'name' => 'CinemaMovie',

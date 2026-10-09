@@ -121,7 +121,7 @@ class AppServiceProvider extends ServiceProvider
 
                      $label = $resourceLabel($operation->operationId ?? $pathItem->path);
                     $singular = $label;
-                    $plural = $label === 'gallery photo' ? 'gallery photos' : $label.'s';
+                    $plural = $label === 'gallery photo' ? 'gallery photos' : $label . 's';
                     $operation->summary = ($genericToSummary[$operation->summary])($singular, $plural);
                     $operation->description = $operation->summary;
                 }

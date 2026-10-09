@@ -12,7 +12,9 @@ use Illuminate\Http\JsonResponse;
  */
 final class WebsiteNavigationController
 {
-    public function __construct(private WebsiteNavigationProviderInterface $provider) {}
+    public function __construct(private WebsiteNavigationProviderInterface $provider)
+    {
+    }
 
     public function show(string $code): JsonResponse
     {

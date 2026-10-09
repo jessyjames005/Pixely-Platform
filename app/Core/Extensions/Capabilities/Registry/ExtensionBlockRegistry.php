@@ -37,7 +37,7 @@ final class ExtensionBlockRegistry
 
             foreach ($extension->blocks() as $definition) {
                 $block = $this->validate($extensionId, $definition);
-                $qualifiedId = $extensionId.'.'.$block['id'];
+                $qualifiedId = $extensionId . '.' . $block['id'];
 
                 if (isset($globalIds[$qualifiedId])) {
                     throw new InvalidArgumentException("Duplicate extension block identifier [{$qualifiedId}].");
@@ -82,10 +82,12 @@ final class ExtensionBlockRegistry
             throw new InvalidArgumentException("Extension [{$extensionId}] block [{$id}] must declare a label.");
         }
 
-        if (! is_array($surfaces) || $surfaces === [] || array_filter(
-            $surfaces,
-            static fn (mixed $surface): bool => ! is_string($surface) || ! in_array($surface, ['public', 'user', 'admin'], true),
-        ) !== []) {
+        if (
+            ! is_array($surfaces) || $surfaces === [] || array_filter(
+                $surfaces,
+                static fn (mixed $surface): bool => ! is_string($surface) || ! in_array($surface, ['public', 'user', 'admin'], true),
+            ) !== []
+        ) {
             throw new InvalidArgumentException("Extension [{$extensionId}] block [{$id}] declared invalid surfaces.");
         }
 

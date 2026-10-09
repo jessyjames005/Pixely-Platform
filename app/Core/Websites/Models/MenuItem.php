@@ -19,7 +19,8 @@ final readonly class MenuItem implements \JsonSerializable
         public ?string $slug = null,
         public int $sortOrder = 0,
         public bool $active = true,
-    ) {}
+    ) {
+    }
 
     public function jsonSerialize(): array
     {

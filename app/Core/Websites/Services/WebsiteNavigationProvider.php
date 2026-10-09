@@ -15,7 +15,9 @@ use App\Core\Websites\Persistence\Models\PageRecord;
  */
 final class WebsiteNavigationProvider implements WebsiteNavigationProviderInterface
 {
-    public function __construct(private WebsiteEngine $websiteEngine) {}
+    public function __construct(private WebsiteEngine $websiteEngine)
+    {
+    }
 
     public function navigation(string $code): array
     {

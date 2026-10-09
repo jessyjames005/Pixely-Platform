@@ -117,7 +117,7 @@ final class SwaggerUiTest extends TestCase
         $this->assertSame(
             [],
             $offenders,
-            'The OpenAPI document contains generic operation summaries: '.implode(', ', $offenders),
+            'The OpenAPI document contains generic operation summaries: ' . implode(', ', $offenders),
         );
     }
 

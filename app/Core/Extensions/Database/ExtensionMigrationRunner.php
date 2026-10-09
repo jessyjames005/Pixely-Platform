@@ -17,7 +17,8 @@ final class ExtensionMigrationRunner
         private readonly ExtensionMigrationCompatibilityChecker $compatibilityChecker,
         private readonly KernelVersionProvider $kernelVersionProvider,
         private readonly ExtensionMigrationRepository $migrationRepository,
-    ) {}
+    ) {
+    }
 
     public function migrate(string $extensionId): void
     {

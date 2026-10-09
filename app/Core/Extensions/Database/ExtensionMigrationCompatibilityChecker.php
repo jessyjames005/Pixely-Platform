@@ -16,10 +16,12 @@ final class ExtensionMigrationCompatibilityChecker
             return;
         }
 
-        if (! is_string($minimumKernelVersion) || ! preg_match(
-            '/^\d+\.\d+\.\d+$/',
-            $minimumKernelVersion
-        )) {
+        if (
+            ! is_string($minimumKernelVersion) || ! preg_match(
+                '/^\d+\.\d+\.\d+$/',
+                $minimumKernelVersion
+            )
+        ) {
             throw new RuntimeException(
                 sprintf(
                     'Invalid minimum_kernel_version for extension "%s".',

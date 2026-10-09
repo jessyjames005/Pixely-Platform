@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Schema;
  * "page_..." / "menu_..."); persistence lands in a later
  * sprint and must keep this contract.
  */
+
 return new class () extends Migration {
     public function up(): void
     {

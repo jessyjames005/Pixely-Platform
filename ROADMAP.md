@@ -46,17 +46,18 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 * [x] Continuous integration foundation
 * [x] MySQL service
 * [x] Redis service
-* [ ] Backend unit test job
-* [ ] Backend functional test job
-* [ ] Frontend unit test job
+* [x] Backend unit test job
+* [x] Backend functional test job
+* [x] Frontend unit test job
 * [ ] Frontend functional test job
-* [ ] Playwright end-to-end test job
-* [ ] Static analysis
-* [ ] PHP code style checks
-* [ ] Frontend code style checks
-* [ ] PHP coverage report with phpcov
-* [ ] 80% minimum PHP coverage gate
-* [ ] Production quality gate
+* [x] Playwright end-to-end test job
+* [x] Static analysis (PHPStan)
+* [x] PHP code style checks (`composer cs:check`; errors block, warnings are reported)
+* [x] Frontend code style checks (ESLint, Stylelint)
+* [x] PHP coverage report (pcov, Clover reports merged by `scripts/coverage-gate.mjs`)
+* [x] 80% minimum PHP coverage gate (default 80, overridable with the `PHP_COVERAGE_MIN` repository variable)
+* [x] Production quality gate (waits for code style and the coverage gate)
+* [x] CI also runs on `develop`; a newer push cancels the superseded run
 * [ ] Continuous deployment
 
 ---
@@ -119,7 +120,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Authentication
 * [x] Login
 * [x] Logout
-* [x] Password management
+* [x] Password management (self-service password change)
 * [x] Authentication API
 * [x] Two-factor authentication (2FA) — TOTP authenticator app, single-use recovery codes
 * [x] Forgot password / password reset flow
@@ -337,11 +338,9 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Extension Manager API exposes resolved capabilities
 * [x] Core route registration from extension declarations
 * [x] Core navigation registry from extension declarations
-* [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
-* [x] Typed settings schema API endpoint
-* [x] Public block sanitizer: allowlisted block types, bounded text, safe URL schemes, and omission of malformed/unknown blocks
-* [x] Generated admin settings form
-* [x] Frontend extension capability loader (typed block metadata, surface filtering, caching, and navigation loading)
+* [ ] Block registry and renderer contract
+* [ ] Settings schema API and generated admin form
+* [ ] Frontend extension capability loader
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
 * [ ] Frontend dynamic route registry
@@ -453,12 +452,14 @@ backend, frontend and end-to-end behaviour.
 
 #### Coverage Quality Gate
 
-PHP backend coverage is measured with `phpcov`.
+PHP backend coverage is measured with `pcov`. The unit and functional jobs each upload a Clover report, and the `coverage-gate` job merges them (a line counts as covered when either suite covers it) with `scripts/coverage-gate.mjs`, a dependency-free script, instead of the `phpcov` package, which would have required changing `composer.lock`. See `docs/development/continuous-integration.md`.
 
-* [ ] Generate PHP coverage reports
-* [ ] Enforce minimum 80% PHP coverage
-* [ ] Fail CI when coverage is below 80%
-* [ ] Block production eligibility when coverage is below 80%
+* [x] Generate PHP coverage reports
+* [x] Enforce minimum 80% PHP coverage
+* [x] Fail CI when coverage is below 80%
+* [x] Block production eligibility when coverage is below 80%
+* [ ] Measure the baseline on the first CI run; if it is below 80%, set `PHP_COVERAGE_MIN` to the measured value and raise it step by step
+* [ ] Frontend (Vitest) coverage report and gate
 
 ---
 
@@ -1375,12 +1376,12 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Frontend test coverage
 * [ ] Component test coverage
 * [ ] Storybook component testing
-* [ ] Static analysis
-* [ ] Code style enforcement
+* [x] Static analysis
+* [x] Code style enforcement
 * [ ] Security analysis
 * [ ] Performance testing
 * [ ] Accessibility testing
-* [ ] CI/CD pipeline
+* [x] CI/CD pipeline
 
 ---
 
@@ -1489,48 +1490,3 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
-
-## Platform Foundation Status (2026-10-09)
-
-### Completed foundations
-- [x] **S0 — Multi-Surface Foundation:** `PUBLIC`, `USER`, `ADMIN`, and `API` surface context/resolution, middleware, route metadata, authorization boundaries, and extension surface declarations.
-- [x] **S1 — Website Engine Foundation:** page and menu persistence, CRUD, slugs, publishing workflow, SEO metadata, navigation provider/API, public page rendering, safe content blocks, default content seeder, theme tokens, and public error pages.
-- [x] **S3 — User Space:** authenticated `/account` surface, dashboard/profile/preferences, generic favorites/history, API endpoints, pagination, ownership isolation, validation, timestamps, rate limiting, and automated tests.
-- [x] **Admin navigation foundation** and **extension generator foundation**.
-- [x] **User management foundation** and JSON:API migration foundations (resource objects, error responses, links, content negotiation, response classes, OpenAPI integration, frontend types, and tests).
-- [x] **Swagger UI foundation**; verify full interactive API exploration during release validation.
-
-### Current execution order
-1. S0 — Multi-Surface Foundation — **Complete**
-2. S1 — Website Engine Foundation — **Complete**
-3. S3 — User Space — **Complete**
-4. S4 — Extension SDK v2 — **Current**
-5. S5 — Theme & Design System
-6. S6 — Gallery Full-Surface
-7. S7 — Media & Asset Management
-8. S8 — Search & Discovery
-9. S9 — Notifications
-10. S10 — Jobs & Queue Platform
-11. S11 — Music
-12. S12 — Camping
-13. S13 — Media Converter
-14. S14 — Observability
-15. S15 — Security Hardening
-16. S16 — Performance & Scalability
-17. S17 — Backup & Disaster Recovery
-18. S18 — Developer Experience
-19. S19 — Documentation & Developer Portal
-20. S20 — Pixely Platform v1
-
-### S4 — Extension SDK v2 execution order
-1. Capability model and capability registry
-2. Migrate existing extensions to the SDK v2 structure
-3. Fresh-install extension generator
-4. Automatic route and navigation registration
-5. Block registry and settings schema API (initial implementation complete)
-6. Trusted block renderer contract and generated settings form (settings form implemented; renderer contract remains)
-7. Frontend capability loader (initial implementation complete)
-8. Frontend dynamic route registry
-9. Coverage and production-quality gate
-
-> **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.

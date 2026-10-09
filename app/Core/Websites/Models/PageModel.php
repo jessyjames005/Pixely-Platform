@@ -17,7 +17,8 @@ final readonly class PageModel implements \JsonSerializable
         public string $template,
         public array $seo = [],
         public array $blocks = [],
-    ) {}
+    ) {
+    }
 
     public function jsonSerialize(): array
     {

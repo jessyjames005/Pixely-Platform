@@ -14,7 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
 /** HTTP boundary for user-owned favorites and history. */
 final class UserEngagementController
 {
-    public function __construct(private readonly UserEngagementService $service) {}
+    public function __construct(private readonly UserEngagementService $service)
+    {
+    }
 
     public function favorites(Request $request): JsonResponse
     {

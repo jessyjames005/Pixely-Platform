@@ -38,19 +38,39 @@ final class ExtensionCapabilityRegistryTest extends TestCase
                 );
             }
 
-            public function providers(): array { return []; }
+            public function providers(): array
+            {
+                return [];
+            }
 
-            public function boot(): void {}
+            public function boot(): void
+            {
+            }
 
-            public function navigation(): array { return []; }
+            public function navigation(): array
+            {
+                return [];
+            }
 
-            public function routes(): array { return []; }
+            public function routes(): array
+            {
+                return [];
+            }
 
-            public function blocks(): array { return []; }
+            public function blocks(): array
+            {
+                return [];
+            }
 
-            public function settings(): array { return []; }
+            public function settings(): array
+            {
+                return [];
+            }
 
-            public function declaredPermissions(): array { return []; }
+            public function declaredPermissions(): array
+            {
+                return [];
+            }
         };
 
         $registry = new ExtensionCapabilityRegistry();
@@ -73,11 +93,19 @@ final class ExtensionCapabilityRegistryTest extends TestCase
                 );
             }
 
-            public function providers(): array { return []; }
+            public function providers(): array
+            {
+                return [];
+            }
 
-            public function boot(): void {}
+            public function boot(): void
+            {
+            }
 
-            public function settings(): array { return []; }
+            public function settings(): array
+            {
+                return [];
+            }
         };
 
         $registry = new ExtensionCapabilityRegistry();

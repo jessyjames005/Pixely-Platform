@@ -1,6 +1,5 @@
 <?php
 
-
 declare(strict_types=1);
 
 namespace App\Core\Websites\Http\Controllers;
@@ -23,7 +22,8 @@ final class WebsiteEngineController extends Controller
 {
     public function __construct(
         private WebsiteEngineInterface $websiteEngine,
-    ) {}
+    ) {
+    }
 
     /**
      * Display all pages.

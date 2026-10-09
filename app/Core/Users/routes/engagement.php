@@ -6,6 +6,7 @@ use App\Core\Users\Http\Controllers\UserEngagementController;
 use Illuminate\Support\Facades\Route;
 
 /** User-owned engagement endpoints. */
+
 Route::middleware(['auth:sanctum', 'surface:user', 'throttle:60,1'])
     ->prefix('me')
     ->group(function (): void {

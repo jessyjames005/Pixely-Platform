@@ -34,7 +34,7 @@ final class User extends Authenticatable
     /**
  * @var array<int, string>
  */
-protected $appends = ['avatar_url'];
+    protected $appends = ['avatar_url'];
 
     /**
      * Get the attributes that should be cast.

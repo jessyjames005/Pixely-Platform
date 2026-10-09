@@ -242,7 +242,7 @@ final class ExtensionController
 
             foreach ($configuration as $key => $_value) {
                 if (! is_string($key) || ! array_key_exists($key, $schema)) {
-                    abort(422, 'Unknown extension setting: '.(string) $key);
+                    abort(422, 'Unknown extension setting: ' . (string) $key);
                 }
             }
 
@@ -261,16 +261,16 @@ final class ExtensionController
                 };
 
                 if (isset($definition['min']) && in_array($type, ['integer', 'number', 'string'], true)) {
-                    $fieldRules[] = ($type === 'string' ? 'min:' : 'min:').$definition['min'];
+                    $fieldRules[] = ($type === 'string' ? 'min:' : 'min:') . $definition['min'];
                 }
                 if (isset($definition['max']) && in_array($type, ['integer', 'number', 'string'], true)) {
-                    $fieldRules[] = 'max:'.$definition['max'];
+                    $fieldRules[] = 'max:' . $definition['max'];
                 }
                 if (isset($definition['options']) && is_array($definition['options'])) {
                     $fieldRules[] = Rule::in($definition['options']);
                 }
                 if ($type === 'string[]') {
-                    $rules[$key.'.*'] = ['string'];
+                    $rules[$key . '.*'] = ['string'];
                 }
                 $rules[$key] = $fieldRules;
             }

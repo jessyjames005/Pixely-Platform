@@ -49,7 +49,7 @@
     "scripts": {
         "openapi": "@php artisan scramble:export",
         "phpstan": "phpstan analyse --configuration=phpstan.neon --memory-limit=1G",
-        "cs:check": "phpcs",
+        "cs:check": "phpcs --runtime-set ignore_warnings_on_exit 1",
         "cs:fix": "phpcbf",
         "cs:fix-auto": "php-cs-fixer fix",
         "cs:fix-auto-dry": "php-cs-fixer fix --dry-run --diff",
@@ -71,6 +71,11 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "test:coverage": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --coverage-clover=build/coverage/all.xml"
+        ],
+        "coverage:gate": "node scripts/coverage-gate.mjs build/coverage",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

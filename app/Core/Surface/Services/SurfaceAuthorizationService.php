@@ -39,8 +39,10 @@ final class SurfaceAuthorizationService
         if ($resource !== null && is_object($resource)) {
             $policy = Gate::getPolicyFor($resource);
 
-            if ($policy instanceof SurfaceAwarePolicyInterface
-                && ! in_array($surface, $policy->supportedSurfaces(), true)) {
+            if (
+                $policy instanceof SurfaceAwarePolicyInterface
+                && ! in_array($surface, $policy->supportedSurfaces(), true)
+            ) {
                 throw new AuthorizationException(
                     "The ability [{$ability}] is not available on the [{$surface->value}] surface."
                 );

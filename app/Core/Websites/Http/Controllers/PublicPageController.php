@@ -28,8 +28,10 @@ final class PublicPageController
         $path = trim($request->path(), '/');
         $first = explode('/', $path)[0];
 
-        if (in_array($first, self::RESERVED_PREFIXES, true)
-            || $this->engine->getPublishedPage($path) === null) {
+        if (
+            in_array($first, self::RESERVED_PREFIXES, true)
+            || $this->engine->getPublishedPage($path) === null
+        ) {
             abort(404);
         }
 

@@ -1,42 +1,17 @@
-# Unreleased
-
-## Added
-- Added a typed frontend capability store for extension block declarations, with per-surface filtering, request de-duplication, session caching, refresh support, and cache invalidation.
-- Added runtime parsing for extension navigation metadata and cached the server-filtered navigation response, including invalidation after extension lifecycle/package changes.
-- Added unit tests for capability metadata validation, surface filtering, caching, refresh, and API failure handling.
-
-## Fixed
-- Prevented repeated extension-navigation requests when a valid response contains no navigation entries, and prevented permission-filtered navigation from being reused across different signed-in accounts.
-
-- Generate extension administration configuration fields from each extension's typed settings schema, including labels, descriptions, numeric bounds, string arrays, and enumerated choices.
-
-## Fixed
-- Validate schema-backed extension configuration on the server and reject undeclared setting keys before persistence.
-
 # Changelog
-
-## Unreleased
-
-### Added
-- Added a public website block sanitizer that filters unknown block types, rejects unsafe CTA URLs, and limits block text length before public API serialization.
-- Added unit and feature coverage for unsafe and malformed public block payloads.
-- Added the SDK v2 extension block registry with namespaced identifiers and validation of labels, schemas, and supported surfaces.
-- Added protected API endpoints for extension block declarations and typed settings schemas.
-
-### Fixed
-- Restored Gallery, Files, and Tuleap frontend assets under the SDK v2 lowercase `resources/js` structure.
-- Added the Cinema Movie Vite and TypeScript aliases.
-- Registered the User Space Favorites and History frontend routes.
-- Removed duplicate User Engagement API declarations and the duplicate database migration.
-- Synchronized roadmap status for Multi-Surface, Website Engine, User Space, and current SDK v2 work.
-- Added PHP coding-style enforcement and an 80% statement-coverage CI gate.
-- Updated AI-agent guidance to use `AGENTS.md` as the canonical project rule source.
-
 
 ## [Unreleased]
 
 ### Added
 
+- Added a coverage gate to CI: the backend unit and functional jobs now run with pcov and upload Clover reports, and a new `coverage-gate` job merges them with `scripts/coverage-gate.mjs` (dependency-free, tested with `node --test scripts/*.test.mjs`), prints a per-module table in the job summary and fails below a minimum (80% by default, `PHP_COVERAGE_MIN` repository variable to override; `0` reports only).
+- Added a `php-code-style` CI job running `composer cs:check`, and made the production quality gate depend on it and on the coverage gate.
+- Added `composer test:coverage` and `composer coverage:gate` for running the same measurement locally.
+- Added the password recovery flow: `POST /api/v1/auth/forgot-password` and `POST /api/v1/auth/reset-password`, with public `/forgot-password` and `/reset-password` screens. The reset email links to the SPA; the endpoint answers identically for unknown addresses to prevent account enumeration, and a successful reset rotates the remember token.
+- Added a "Remember me" option to login (`remember` flag on `POST /api/v1/auth/login`).
+- Added TOTP two-factor authentication (RFC 6238, no new dependency): enrolment with confirmation, login challenge (`POST /api/v1/auth/two-factor-challenge`), single-use recovery codes, replay protection, and management endpoints under `/api/v1/auth/two-factor`. Secrets and recovery codes are encrypted at rest and hidden from serialization. The setup screen shows a QR code generated in the browser by an in-house encoder (`utils/qrcode.ts`, no dependency), with the setup key and an `otpauth://` link as fallbacks.
+- Added self-service password change (`PUT /api/v1/auth/password`) and a Security section on the My Profile screen (password change and two-factor management).
+- Added rate limiting: failed logins (5 per minute per email and IP), the two-factor challenge, reset-link requests and security-sensitive actions. `429` responses now use the `TOO_MANY_REQUESTS` error code.
 - Added the Extension SDK v2 capability model with optional contracts for navigation, routes, blocks and typed settings, alongside the existing permissions contract.
 - Added `ExtensionCapabilityRegistry` so Core can discover extension capabilities without hardcoded extension knowledge.
 - Exposed resolved extension capabilities through the Extension Manager API.
@@ -44,6 +19,9 @@
 
 ### Changed
 
+- CI now also runs on pushes and pull requests to `develop`, and a newer push cancels the superseded run of the same branch or pull request.
+- `composer cs:check` no longer fails on warnings (such as the soft 120-column limit), which are still printed; errors fail it.
+- PHPUnit coverage sources now exclude `*Test.php` files under `app/`, so extension tests do not count as production code.
 - Migrated existing extensions (Gallery, Files, Translations, Tuleap and CinemaMovie) to the SDK v2 surface structure with `Public/`, `User/`, `Admin/` and `API/` directories.
 - Moved extension API route entrypoints to `API/routes.php` and centralized registration in the Core.
 - Added `ExtensionRouteRegistrar` to register enabled extension routes under `api/v1` with the `surface:api` middleware.
@@ -53,6 +31,7 @@
 
 ### Tests
 
+- Added Pest coverage for TOTP (RFC 6238 vectors), the two-factor lifecycle and login challenge, password reset, password change, remember-me and login throttling; Vitest coverage for the auth store; Playwright coverage for the recovery screens.
 - Added coverage for SDK v2 route registration, runtime navigation authorization and fresh extension scaffolding.
 
 All notable changes to this project will be documented in this file.

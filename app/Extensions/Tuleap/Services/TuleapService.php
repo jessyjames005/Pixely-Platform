@@ -33,7 +33,9 @@ final class TuleapService implements TuleapServiceInterface
 
     private const PROJECTS_CACHE_DAYS = 30;
 
-    public function __construct(private readonly TuleapRepositoryInterface $repository) {}
+    public function __construct(private readonly TuleapRepositoryInterface $repository)
+    {
+    }
 
     // ─── Connection helpers ─────────────────────────────────────────────
 

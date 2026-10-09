@@ -202,10 +202,12 @@ final class WebsiteEngine implements WebsiteEngineInterface
         $base = $slug;
         $suffix = 2;
 
-        while (PageRecord::query()
+        while (
+            PageRecord::query()
             ->when($ignoreId, fn (Builder $query) => $query->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
-            ->exists()) {
+            ->exists()
+        ) {
             $slug = $base . '-' . $suffix++;
         }
 
