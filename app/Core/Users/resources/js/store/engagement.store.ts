@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from 'axios'
+import { apiClient } from '@shared/services/apiClient'
 
 export interface UserFavorite {
     id: number
@@ -38,8 +38,9 @@ export const useEngagementStore = defineStore('user-engagement', () => {
         loading.value = true
         error.value = null
         try {
-            const { data } = await axios.get<Paginated<UserFavorite>>('/api/v1/me/favorites', {
-                params: { ...(resourceType ? { resource_type: resourceType } : {}), page },
+            const data = await apiClient.get<Paginated<UserFavorite>>('/me/favorites', {
+                ...(resourceType ? { resource_type: resourceType } : {}),
+                page,
             })
             favorites.value = data.data
             favoritePages.value = data.last_page
@@ -52,7 +53,7 @@ export const useEngagementStore = defineStore('user-engagement', () => {
 
     async function removeFavorite(resourceType: string, resourceId: string): Promise<void> {
         error.value = null
-        await axios.delete(`/api/v1/me/favorites/${encodeURIComponent(resourceType)}/${encodeURIComponent(resourceId)}`)
+        await apiClient.delete<void>(`/me/favorites/${encodeURIComponent(resourceType)}/${encodeURIComponent(resourceId)}`)
         favorites.value = favorites.value.filter(
             (favorite) => !(favorite.resource_type === resourceType && favorite.resource_id === resourceId),
         )
@@ -62,8 +63,9 @@ export const useEngagementStore = defineStore('user-engagement', () => {
         loading.value = true
         error.value = null
         try {
-            const { data } = await axios.get<Paginated<UserHistoryEntry>>('/api/v1/me/history', {
-                params: { ...(resourceType ? { resource_type: resourceType } : {}), page },
+            const data = await apiClient.get<Paginated<UserHistoryEntry>>('/me/history', {
+                ...(resourceType ? { resource_type: resourceType } : {}),
+                page,
             })
             history.value = data.data
             historyPages.value = data.last_page
