@@ -119,11 +119,14 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Authentication
 * [x] Login
 * [x] Logout
-* [ ] Password management
+* [x] Password management (self-service password change)
 * [x] Authentication API
-* [ ] Two-factor authentication (2FA)
-* [ ] Forgot password / password reset flow
-* [ ] "Remember me" persistent session
+* [x] Two-factor authentication (2FA) — TOTP authenticator app, single-use recovery codes
+* [x] Forgot password / password reset flow
+* [x] "Remember me" persistent session
+* [x] Login and password-reset rate limiting
+* [x] 2FA setup QR code (generated in the browser, no dependency)
+* [ ] Email verification
 
 ### Users
 
@@ -1487,7 +1490,6 @@ The development process should continue through clearly defined sprints, with ea
 
 The roadmap should be updated progressively as each sprint is completed.
 
-
 ## Platform Foundation Status (2026-10-09)
 
 ### Completed foundations
@@ -1532,3 +1534,4 @@ The roadmap should be updated progressively as each sprint is completed.
 9. Coverage and production-quality gate
 
 > **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.
+

@@ -5,6 +5,7 @@ export interface User {
   email: string
   permissions: string[]
   roles: string[]
+  two_factor_enabled?: boolean
 }
 
 // Payload accepted when creating a user

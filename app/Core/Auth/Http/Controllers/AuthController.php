@@ -4,63 +4,90 @@ declare(strict_types=1);
 
 namespace App\Core\Auth\Http\Controllers;
 
-use App\JsonApi\V1\Users\UserActionResource;
+use App\Core\Auth\Http\Support\AuthApiError;
+use App\Core\Auth\Http\Support\AuthUserResponse;
+use App\Core\Auth\Services\TwoFactorService;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use LaravelJsonApi\Contracts\Server\Server;
-use LaravelJsonApi\Core\Exceptions\JsonApiException;
 use LaravelJsonApi\Core\Responses\DataResponse;
+use LaravelJsonApi\Core\Responses\MetaResponse;
 
 /**
- * Handles session-based authentication for the administration SPA.
+ * Handles session-based authentication for the platform SPA.
  */
 #[Group('Authentication', weight: 2)]
 final class AuthController
 {
+    private const MAX_FAILED_ATTEMPTS = 5;
+
+    private const THROTTLE_DECAY_SECONDS = 60;
+
     /**
      * Authenticate a user and start a session.
+     *
+     * Only failed attempts count towards the rate limit, so a successful
+     * login (including automated test suites) is never throttled. When the
+     * account has two-factor authentication enabled no session is started
+     * yet: the response carries `meta.two_factor_required` and the client
+     * must complete `POST /auth/two-factor-challenge`.
      */
     public function login(
         Request $request,
         Server $server,
-    ): DataResponse {
-        $credentials = Validator::make(
+    ): DataResponse|MetaResponse {
+        $input = Validator::make(
             (array) $request->json()->all(),
             [
                 'email' => ['required', 'email'],
                 'password' => ['required', 'string'],
+                'remember' => ['sometimes', 'boolean'],
             ],
         )->validate();
 
-        if (! Auth::attempt($credentials)) {
-            throw JsonApiException::error([
-                'status' => 401,
-                'code' => 'INVALID_CREDENTIALS',
-                'title' => 'Unauthorized',
-                'detail' => 'The provided credentials are incorrect.',
-            ]);
+        $throttleKey = Str::transliterate(Str::lower((string) $input['email']) . '|' . (string) $request->ip());
+
+        if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_FAILED_ATTEMPTS)) {
+            throw AuthApiError::tooManyAttempts(RateLimiter::availableIn($throttleKey));
         }
 
-        /** @var User $user */
-        $user = Auth::user();
+        $user = $this->findUserWithCredentials((string) $input['email'], (string) $input['password']);
+
+        if ($user === null) {
+            RateLimiter::hit($throttleKey, self::THROTTLE_DECAY_SECONDS);
+
+            throw AuthApiError::invalidCredentials();
+        }
+
+        RateLimiter::clear($throttleKey);
+
         if (! $user->is_active) {
-            Auth::logout();
-
-            throw JsonApiException::error([
-                'status' => 403,
-                'code' => 'ACCOUNT_DISABLED',
-                'title' => 'Forbidden',
-                'detail' => 'This account has been disabled.',
-            ]);
+            throw AuthApiError::accountDisabled();
         }
 
+        $remember = (bool) ($input['remember'] ?? false);
+
+        if ($user->hasEnabledTwoFactor()) {
+            $request->session()->regenerate();
+            $request->session()->put(TwoFactorService::SESSION_KEY, [
+                'id' => $user->getKey(),
+                'remember' => $remember,
+                'expires_at' => time() + TwoFactorService::CHALLENGE_TTL,
+            ]);
+
+            return MetaResponse::make(['two_factor_required' => true]);
+        }
+
+        Auth::guard('web')->login($user, $remember);
         $request->session()->regenerate();
 
-        return $this->userResponse($server, $user);
+        return AuthUserResponse::make($server, $user);
     }
 
     /**
@@ -84,30 +111,26 @@ final class AuthController
         /** @var User $user */
         $user = $request->user();
 
-        return $this->userResponse($server, $user);
+        return AuthUserResponse::make($server, $user);
     }
 
     /**
-     * Shared user payload for login() and me() — they must always
-     * return the same shape. login() used to return the raw User
-     * model instead (no permissions/roles at all), which meant every
-     * permission-gated nav item stayed hidden until the user reloaded
-     * the page and a subsequent me() call populated the auth store
-     * properly.
-     *
-    * @return DataResponse
+     * Resolve a user from an email/password pair without starting a session.
      */
-    private function userResponse(Server $server, User $user): DataResponse
+    private function findUserWithCredentials(string $email, string $password): ?User
     {
-        return DataResponse::make(new UserActionResource(
-            $server->schemas()->schemaFor('users'),
-            $user,
-            [
-                'name' => $user->name,
-                'email' => $user->email,
-                'permissions' => $user->getAllPermissions()->pluck('name')->values(),
-                'roles' => $user->getRoleNames()->values(),
-            ],
-        ))->withServer('v1');
+        $provider = Auth::createUserProvider('users');
+
+        if ($provider === null) {
+            return null;
+        }
+
+        $user = $provider->retrieveByCredentials(['email' => $email]);
+
+        if (! $user instanceof User || ! $provider->validateCredentials($user, ['password' => $password])) {
+            return null;
+        }
+
+        return $user;
     }
 }

@@ -8,6 +8,7 @@ import { useApi } from '@shared/composables/useApi'
 import { useNotify } from '@shared/composables/useNotify'
 import { useProfileStore } from '../store/profile.store'
 import { useSettingsStore } from '@core/settings/store/settings.store'
+import SecuritySettings from '@core/auth/components/SecuritySettings.vue'
 import { useI18nStore } from '@shared/store/i18n.store'
 import { translate as t } from '@shared/plugins/i18n'
 import type { UserSettings } from '@core/settings/models/Settings'
@@ -282,5 +283,7 @@ const densityTooltip = computed(() =>
         </v-form>
       </v-card-text>
     </v-card>
+
+    <SecuritySettings class="mt-4" />
   </div>
 </template>

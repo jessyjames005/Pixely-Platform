@@ -49,17 +49,42 @@ $this->app->router
 ## Routes
 
 ```text
-POST  /api/v1/auth/login    (public)
-POST  /api/v1/auth/logout   (auth:sanctum)
-GET   /api/v1/auth/me       (auth:sanctum)
-GET   /sanctum/csrf-cookie  (provided by Sanctum)
+POST    /api/v1/auth/login                    (public)
+POST    /api/v1/auth/two-factor-challenge     (public, needs a pending login)
+POST    /api/v1/auth/forgot-password          (public, throttled)
+POST    /api/v1/auth/reset-password           (public, throttled)
+POST    /api/v1/auth/logout                   (auth:sanctum)
+GET     /api/v1/auth/me                       (auth:sanctum)
+PUT     /api/v1/auth/password                 (auth:sanctum)
+GET     /api/v1/auth/two-factor               (auth:sanctum)
+POST    /api/v1/auth/two-factor               (auth:sanctum, password)
+POST    /api/v1/auth/two-factor/confirm       (auth:sanctum)
+POST    /api/v1/auth/two-factor/recovery-codes (auth:sanctum, password)
+DELETE  /api/v1/auth/two-factor               (auth:sanctum, password)
+GET     /sanctum/csrf-cookie                  (provided by Sanctum)
 ```
 
 `AuthController` (`App\Core\Auth\Http\Controllers\AuthController`):
 
-* `login()` — validates credentials, calls `Auth::attempt()`, regenerates the session, and returns the authenticated user as a strict JSON:API `user` resource object. Returns a `401 INVALID_CREDENTIALS` error on failure.
+* `login()` — validates credentials without starting a session, then logs the user in (`remember: true` issues a persistent "remember me" cookie), regenerates the session, and returns the authenticated user as a strict JSON:API `user` resource object. Returns a `401 INVALID_CREDENTIALS` error on failure. Only failed attempts count towards the rate limit (5 per minute per email and IP, then `429 TOO_MANY_ATTEMPTS`). When the account has two-factor enabled, no session is started: the response is a meta-only document `{"meta": {"two_factor_required": true}}` and the client must call the challenge endpoint within 5 minutes.
 * `logout()` — logs out the `web` guard, invalidates the session, regenerates the CSRF token, returns `204`.
 * `me()` — returns the currently authenticated user, or `401` (via the `auth:sanctum` middleware) if there is none.
+
+## Password recovery
+
+`POST /auth/forgot-password` always answers `204`, whether or not the address belongs to an account, so it cannot be used to enumerate users. The email links to the SPA (`/reset-password?token=…&email=…`, configured in `AuthServiceProvider`). `POST /auth/reset-password` consumes the token (single use), sets the new password and rotates the remember token, which signs out every "remember me" session of the account. Invalid and expired tokens, and unknown addresses, all return `422 INVALID_RESET_TOKEN`.
+
+## Two-factor authentication
+
+TOTP (RFC 6238: HMAC-SHA1, 6 digits, 30 s), implemented in `TotpService` with no third-party dependency and checked against the RFC test vectors.
+
+* **Enrolment is two-step.** `POST /auth/two-factor` (current password required) generates an unconfirmed secret; two-factor only becomes active when `POST /auth/two-factor/confirm` receives a valid code, which also returns eight recovery codes — shown once.
+* **Login challenge.** After the password step the half-authenticated user is held in the session (`TwoFactorService::SESSION_KEY`). `POST /auth/two-factor-challenge` accepts `code` (authenticator) or `recovery_code`. Five wrong attempts discard the pending login and return `429`.
+* **QR code.** The setup screen renders the `otpauth://` URI as an inline SVG QR code. The encoder (`app/Core/Auth/resources/js/utils/qrcode.ts`) is dependency-free: byte mode, error correction level M, versions 1–40. It was validated by decoding generated codes with an independent QR reader across every version; `qrcode.test.ts` keeps a recorded matrix as a regression guard.
+* **Replay protection.** The last accepted time step is stored; a code can be used once.
+* **Recovery codes** are single-use, stored as keyed HMACs, and regenerated (old set invalidated) via `POST /auth/two-factor/recovery-codes`.
+* **At rest.** `two_factor_secret` and `two_factor_recovery_codes` use encrypted casts and are `#[Hidden]` on the `User` model; they never appear in API payloads. `GET /auth/me` exposes only `two_factor_enabled`.
+* **Sensitive actions** (enrol, disable, regenerate) re-check the account password.
 
 ## Configuration
 

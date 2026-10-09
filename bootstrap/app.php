@@ -67,6 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $code = match ($status) {
                 404 => 'RESOURCE_NOT_FOUND',
                 405 => 'METHOD_NOT_ALLOWED',
+                429 => 'TOO_MANY_REQUESTS',
                 401 => 'UNAUTHENTICATED',
                 403 => 'FORBIDDEN',
                 422 => 'VALIDATION_ERROR',
@@ -76,6 +77,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $title = match ($status) {
                 404 => 'The requested resource was not found.',
                 405 => 'This HTTP method is not allowed for this endpoint.',
+                429 => 'Too many requests. Try again later.',
                 401 => 'Authentication is required to access this resource.',
                 403 => 'You are not authorized to perform this action.',
                 422 => 'The given data is invalid.',

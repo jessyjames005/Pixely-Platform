@@ -52,6 +52,17 @@ Route::view('/login', 'app')
     ->name('login.application');
 
 /**
+ * Password recovery screens.
+ *
+ * Public Vue screens, like /login. The reset link emailed to a user
+ * points at /reset-password (see AuthServiceProvider).
+ */
+Route::view('/forgot-password', 'app')
+    ->name('forgot-password.application');
+Route::view('/reset-password', 'app')
+    ->name('reset-password.application');
+
+/**
  * User Space application.
  *
  * Serves the Vue application for authenticated users.
@@ -71,4 +82,4 @@ Route::view('/account/{any?}', 'app')
  */
 Route::fallback(PublicPageController::class)
     ->middleware('surface:public')
-    ->where('fallbackPlaceholder', '(?!(?:admin|account|api|docs|login|sanctum|up)(?:/|$)).*');
+    ->where('fallbackPlaceholder', '(?!(?:admin|account|api|docs|login|forgot-password|reset-password|sanctum|up)(?:/|$)).*');

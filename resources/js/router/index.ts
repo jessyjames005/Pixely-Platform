@@ -7,6 +7,8 @@ import {
 import AdminLayout from "@shared/layouts/AdminLayout.vue";
 import DashboardView from "@shared/views/DashboardView.vue";
 import LoginView from "@core/auth/views/LoginView.vue";
+import ForgotPasswordView from "@core/auth/views/ForgotPasswordView.vue";
+import ResetPasswordView from "@core/auth/views/ResetPasswordView.vue";
 import UsersView from "@core/users/views/UsersView.vue";
 import RolesView from "@core/roles/views/RolesView.vue";
 import PermissionsView from "@core/roles/views/PermissionsView.vue";
@@ -31,8 +33,6 @@ import PublicPageView from "@core/websites/views/PublicPageView.vue";
 import UserLayout from "@core/users/layouts/UserLayout.vue";
 import UserDashboardView from "@core/users/views/UserDashboardView.vue";
 import UserPreferencesView from "@core/users/views/UserPreferencesView.vue";
-import UserFavoritesView from "@core/users/views/UserFavoritesView.vue";
-import UserHistoryView from "@core/users/views/UserHistoryView.vue";
 import type { NavItem } from "@shared/navigation/types";
 
 const routes: RouteRecordRaw[] = [
@@ -40,6 +40,16 @@ const routes: RouteRecordRaw[] = [
     path: "/login",
     name: "login",
     component: LoginView,
+  },
+  {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: ForgotPasswordView,
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: ResetPasswordView,
   },
   {
     path: "/admin",
@@ -84,8 +94,6 @@ const routes: RouteRecordRaw[] = [
       { path: "", name: "account.dashboard", component: UserDashboardView, meta: { surface: 'user' as const } },
       { path: "profile", name: "account.profile", component: ProfileView, meta: { surface: 'user' as const } },
       { path: "preferences", name: "account.preferences", component: UserPreferencesView, meta: { surface: 'user' as const } },
-      { path: "favorites", name: "account.favorites", component: UserFavoritesView, meta: { surface: 'user' as const } },
-      { path: "history", name: "account.history", component: UserHistoryView, meta: { surface: 'user' as const } },
     ],
   },
   {

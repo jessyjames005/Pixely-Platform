@@ -17,9 +17,13 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property-read string|null $avatar_url
+ * @property string|null $two_factor_secret
+ * @property array<int, string>|null $two_factor_recovery_codes
+ * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
+ * @property int|null $two_factor_last_used_step
  */
 #[Fillable(['name', 'email', 'password', 'bio', 'timezone', 'avatar_filename'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 final class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -42,7 +46,20 @@ protected $appends = ['avatar_url'];
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_last_used_step' => 'integer',
         ];
+    }
+
+    /**
+     * Whether the user completed two-factor enrolment. A secret that was
+     * generated but never confirmed does not count.
+     */
+    public function hasEnabledTwoFactor(): bool
+    {
+        return $this->two_factor_confirmed_at !== null;
     }
 
     /**
