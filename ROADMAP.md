@@ -336,7 +336,7 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Core navigation registry from extension declarations
 * [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
 * [x] Typed settings schema API endpoint
-* [ ] Trusted block renderer contract and safe renderer implementation
+* [x] Public block sanitizer: allowlisted block types, bounded text, safe URL schemes, and omission of malformed/unknown blocks
 * [ ] Generated admin settings form
 * [ ] Frontend extension capability loader
 * [x] Extension generator updated for SDK v2 capabilities

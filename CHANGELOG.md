@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Added a public website block sanitizer that filters unknown block types, rejects unsafe CTA URLs, and limits block text length before public API serialization.
+- Added unit and feature coverage for unsafe and malformed public block payloads.
 - Added the SDK v2 extension block registry with namespaced identifiers and validation of labels, schemas, and supported surfaces.
 - Added protected API endpoints for extension block declarations and typed settings schemas.
 

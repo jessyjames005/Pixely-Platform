@@ -38,3 +38,26 @@ test('public page endpoint hides drafts', function (): void {
     $this->getJson('/api/v1/website/public/pages/draft-page')
         ->assertNotFound();
 });
+
+
+test('public page endpoint filters unsupported blocks and unsafe CTA URLs', function (): void {
+    PageRecord::query()->create([
+        'id' => 'page_safe_blocks',
+        'slug' => 'safe-blocks',
+        'title' => 'Safe blocks',
+        'status' => 'published',
+        'template' => 'default',
+        'seo' => [],
+        'blocks' => [
+            ['type' => 'heading', 'text' => 'Welcome'],
+            ['type' => 'cta', 'text' => 'Unsafe', 'href' => 'javascript:alert(1)'],
+            ['type' => 'custom-html', 'text' => '<script>alert(1)</script>'],
+        ],
+    ]);
+
+    $this->getJson('/api/v1/website/public/pages/safe-blocks')
+        ->assertOk()
+        ->assertJsonPath('data.blocks', [
+            ['type' => 'heading', 'text' => 'Welcome'],
+        ]);
+});
