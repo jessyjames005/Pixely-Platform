@@ -11,6 +11,10 @@ use Spatie\Permission\Models\Permission;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->withHeaders([
+        'Accept' => 'application/vnd.api+json',
+    ]);
+
     Permission::firstOrCreate(['name' => 'system.extensions.view', 'guard_name' => 'web']);
     Permission::firstOrCreate(['name' => 'system.extensions.manage', 'guard_name' => 'web']);
 
@@ -37,7 +41,9 @@ beforeEach(function () {
 });
 
 it('requires authentication to list extensions', function () {
-    $response = $this->getJson('/api/v1/extensions');
+    $response = $this->withHeaders([
+        'Accept' => 'application/vnd.api+json',
+    ])->get('/api/v1/extensions');
 
     $response->assertStatus(401);
 });
@@ -45,7 +51,9 @@ it('requires authentication to list extensions', function () {
 it('requires system.extensions.view to list extensions', function () {
     $this->actingAs(User::factory()->create());
 
-    $response = $this->getJson('/api/v1/extensions');
+    $response = $this->withHeaders([
+        'Accept' => 'application/vnd.api+json',
+    ])->get('/api/v1/extensions');
 
     $response->assertStatus(403);
 });
@@ -55,7 +63,9 @@ it('lists registered extensions with their state', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/extensions');
+    $response = $this->withHeaders([
+        'Accept' => 'application/vnd.api+json',
+    ])->get('/api/v1/extensions');
 
     $response
         ->assertOk()
@@ -67,7 +77,9 @@ it('displays a single extension detail', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/extensions/gallery');
+    $response = $this->getJson('/api/v1/extensions/gallery', [
+        'Accept' => 'application/vnd.api+json',
+    ]);
 
     $response
         ->assertOk()
@@ -81,7 +93,9 @@ it('returns 404 for an unknown extension', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/extensions/does-not-exist');
+    $response = $this->getJson('/api/v1/extensions/does-not-exist', [
+        'Accept' => 'application/vnd.api+json',
+    ]);
 
     $response->assertNotFound();
 });
@@ -91,7 +105,9 @@ it('requires system.extensions.manage (not just view) to enable/disable', functi
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->postJson('/api/v1/extensions/gallery/disable');
+    $response = $this->postJson('/api/v1/extensions/gallery/disable', [], [
+        'Accept' => 'application/vnd.api+json',
+    ]);
 
     $response->assertStatus(403);
 });
@@ -101,11 +117,15 @@ it('disables and re-enables an extension', function () {
     $user->givePermissionTo('system.extensions.manage');
     $this->actingAs($user);
 
-    $this->postJson('/api/v1/extensions/gallery/disable')
+    $this->postJson('/api/v1/extensions/gallery/disable', [], [
+        'Accept' => 'application/vnd.api+json',
+    ])
         ->assertOk()
         ->assertJsonPath('data.enabled', false);
 
-    $this->postJson('/api/v1/extensions/gallery/enable')
+    $this->postJson('/api/v1/extensions/gallery/enable', [], [
+        'Accept' => 'application/vnd.api+json',
+    ])
         ->assertOk()
         ->assertJsonPath('data.enabled', true);
 });
@@ -115,7 +135,9 @@ it('records an audit log entry when enabling/disabling', function () {
     $user->givePermissionTo('system.extensions.manage');
     $this->actingAs($user);
 
-    $this->postJson('/api/v1/extensions/gallery/disable')->assertOk();
+    $this->postJson('/api/v1/extensions/gallery/disable', [], [
+        'Accept' => 'application/vnd.api+json',
+    ])->assertOk();
 
     $this->assertDatabaseHas('extension_audit_logs', [
         'extension_id' => 'gallery',
@@ -130,11 +152,15 @@ it('reads and updates an extension configuration', function () {
     $user->givePermissionTo('system.extensions.manage');
     $this->actingAs($user);
 
-    $this->putJson('/api/v1/extensions/gallery/config', ['max_upload_size' => 5])
+    $this->putJson('/api/v1/extensions/gallery/config', ['max_upload_size' => 5], [
+        'Accept' => 'application/vnd.api+json',
+    ])
         ->assertOk()
         ->assertJsonPath('data.values.max_upload_size', 5);
 
-    $this->getJson('/api/v1/extensions/gallery/config')
+    $this->getJson('/api/v1/extensions/gallery/config', [
+        'Accept' => 'application/vnd.api+json',
+    ])
         ->assertOk()
         ->assertJsonPath('data.values.max_upload_size', 5)
         ->assertJsonStructure(['data' => ['defaults', 'values']]);
@@ -145,7 +171,9 @@ it('exposes the typed settings schema through the extension capability model', f
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/extensions/files')->assertOk();
+    $response = $this->getJson('/api/v1/extensions/files', [
+        'Accept' => 'application/vnd.api+json',
+    ])->assertOk();
 
     $response->assertJsonFragment(['capabilities' => ['settings', 'navigation', 'routes', 'permissions']]);
 });
@@ -155,7 +183,9 @@ it('returns declared defaults for a never-configured extension, not an empty pay
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/v1/extensions/files/config')->assertOk();
+    $response = $this->getJson('/api/v1/extensions/files/config', [
+        'Accept' => 'application/vnd.api+json',
+    ])->assertOk();
 
     $response->assertJsonPath('data.defaults.max_file_size_kb', 5120);
     $response->assertJsonPath('data.values.max_file_size_kb', 5120);
@@ -166,7 +196,9 @@ it('returns the typed settings schema for an extension', function () {
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $this->getJson('/api/v1/extensions/files/settings-schema')
+    $this->getJson('/api/v1/extensions/files/settings-schema', [
+        'Accept' => 'application/vnd.api+json',
+    ])
         ->assertOk()
         ->assertJsonPath('data.extension_id', 'files')
         ->assertJsonPath('data.schema.max_file_size_kb.type', 'integer')
@@ -178,7 +210,9 @@ it('returns 404 when requesting a settings schema for an unknown extension', fun
     $user->givePermissionTo('system.extensions.view');
     $this->actingAs($user);
 
-    $this->getJson('/api/v1/extensions/not-installed/settings-schema')->assertNotFound();
+    $this->getJson('/api/v1/extensions/not-installed/settings-schema', [
+        'Accept' => 'application/vnd.api+json',
+    ])->assertNotFound();
 });
 
 it('validates typed extension settings before saving configuration', function () {
@@ -188,9 +222,13 @@ it('validates typed extension settings before saving configuration', function ()
 
     $this->putJson('/api/v1/extensions/files/config', [
         'max_file_size_kb' => 0,
+    ], [
+        'Accept' => 'application/vnd.api+json',
     ])->assertStatus(422);
 
     $this->putJson('/api/v1/extensions/files/config', [
         'unknown_setting' => true,
+    ], [
+        'Accept' => 'application/vnd.api+json',
     ])->assertStatus(422);
 });
