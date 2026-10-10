@@ -14,8 +14,8 @@ it('creates idempotent favorites for a resource reference', function () {
     $user = User::factory()->create();
     $service = app(UserEngagementService::class);
 
-    $first = $service->addFavorite($user->id, 'gallery.photo', '42', ['title' => 'Sunset']);
-    $second = $service->addFavorite($user->id, 'gallery.photo', '42', ['title' => 'Updated']);
+    $first = $service->addFavorite($user, 'gallery.photo', '42', ['title' => 'Sunset']);
+    $second = $service->addFavorite($user, 'gallery.photo', '42', ['title' => 'Updated']);
 
     expect($first->id)->toBe($second->id);
     expect(UserFavorite::query()->count())->toBe(1);
@@ -26,7 +26,7 @@ it('records chronological history entries without coupling to a model class', fu
     $user = User::factory()->create();
     $service = app(UserEngagementService::class);
 
-    $entry = $service->recordHistory($user->id, 'music.track', '123', 'play');
+    $entry = $service->recordHistory($user, 'music.track', '123', 'play');
 
     expect($entry)->toBeInstanceOf(UserHistoryEntry::class);
     expect($entry->resource_type)->toBe('music.track');

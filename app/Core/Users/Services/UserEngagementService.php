@@ -17,7 +17,7 @@ final class UserEngagementService
     {
         return UserFavorite::query()
             ->where('user_id', $user->getKey())
-            ->when($resourceType, fn ($query) => $query->where('resource_type', $resourceType))
+            ->when($resourceType, fn($query) => $query->where('resource_type', $resourceType))
             ->latest('id')
             ->paginate($perPage);
     }
@@ -25,13 +25,15 @@ final class UserEngagementService
     public function addFavorite(User $user, string $resourceType, string $resourceId, ?array $metadata = null): UserFavorite
     {
         return DB::transaction(function () use ($user, $resourceType, $resourceId, $metadata): UserFavorite {
-            return UserFavorite::query()->firstOrCreate(
+            return UserFavorite::query()->updateOrCreate(
                 [
                     'user_id' => $user->getKey(),
                     'resource_type' => $resourceType,
                     'resource_id' => $resourceId,
                 ],
-                ['metadata' => $metadata],
+                [
+                    'metadata' => $metadata,
+                ],
             );
         });
     }
@@ -49,7 +51,7 @@ final class UserEngagementService
     {
         return UserHistoryEntry::query()
             ->where('user_id', $user->getKey())
-            ->when($resourceType, fn ($query) => $query->where('resource_type', $resourceType))
+            ->when($resourceType, fn($query) => $query->where('resource_type', $resourceType))
             ->latest('occurred_at')
             ->paginate($perPage);
     }
