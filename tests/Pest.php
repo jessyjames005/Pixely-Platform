@@ -18,4 +18,4 @@ use Tests\TestCase;
 */
 
 uses(TestCase::class)
-    ->in('Feature', 'Unit/Core/Surface', 'Unit/Core/Websites');
+    ->in('Feature', 'Unit/Core/Surface', 'Unit/Core/Websites', 'Unit/Core/Users');
