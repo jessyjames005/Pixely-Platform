@@ -17,6 +17,20 @@ final class EloquentGalleryRepositoryTest extends TestCase
     use RefreshDatabase;
 
     /**
+     * Run the Gallery extension migrations for the test database.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // RefreshDatabase does not necessarily discover extension migrations.
+        $this->artisan('migrate', [
+            '--path' => 'app/Extensions/Gallery/Database/Migrations',
+            '--force' => true,
+        ]);
+    }
+
+    /**
      * Ensure the repository returns every stored photo.
      */
     public function test_it_returns_all_photos(): void
