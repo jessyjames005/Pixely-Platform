@@ -13,7 +13,7 @@ const { state } = vi.hoisted(() => ({
 }))
 
 vi.mock('@core/auth/store/auth.store', () => ({
-  useAuthStore: () => ({ can: () => state.can, user: { email: 'admin@example.test' } }),
+  useAuthStore: () => ({ can: () => state.can, user: { id: 'admin-1', email: 'admin@example.test' } }),
 }))
 
 vi.mock('@core/extensions/store/extensions.store', () => ({
@@ -24,7 +24,7 @@ vi.mock('@core/extensions/store/extensions.store', () => ({
     get navigation() {
       return state.navigation
     },
-    fetchNavigation: vi.fn(),
+    fetchNavigation: vi.fn().mockResolvedValue(undefined),
   }),
 }))
 

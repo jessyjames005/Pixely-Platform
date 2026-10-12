@@ -15,10 +15,12 @@ Fichiers modifiés (à copier à la racine du dépôt, ils écrasent les version
 - `phpcs.xml` : les règles PSR1 `CamelCapsMethodName`, `ClassDeclaration` (namespace / une classe par fichier) et `SideEffects` ne s'appliquent plus à `tests/` (méthodes `test_it_...` de PHPUnit, classes de test inline dans les fichiers Pest). `ClassDeclaration` est aussi désactivée pour les migrations (classes sans namespace).
 - `app/Extensions/{CinemaMovie,Files,Gallery,Translations}/extension.php`, `tests/Fixtures/Extensions/{Gallery,Media}/extension.php`, `app/Core/Users/routes/engagement.php`, `routes/web.php`, `database/migrations/2026_10_07_000000_create_website_engine_tables.php` : le docblock de fichier est déplacé juste après `<?php` (avant `declare`), comme l'exige PSR-12. Aucun changement de code.
 
+- `resources/js/shared/navigation/useVisibleNav.integration.test.ts` : le mock de `fetchNavigation` renvoie maintenant une promesse (`mockResolvedValue(undefined)`) et l'utilisateur mocké a un `id`. `useVisibleNav` appelle `.catch()` sur ce retour, et `vi.fn()` renvoyait `undefined` (3 tests Vitest en échec).
+
 ## Vérification
 
 Non exécuté : PHP n'est pas disponible dans l'environnement de travail. À lancer dans le conteneur :
 
 ```bash
-docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature && composer phpstan && composer cs:check"
+docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature && composer phpstan && composer cs:check && npm test"
 ```
