@@ -40,32 +40,33 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->dontReport(
             \LaravelJsonApi\Core\Exceptions\JsonApiException::class,
         );
-        // Registered before the JSON:API parser below: the parser renders
-        // validation errors for `jsonapi:v1` routes (auth endpoints) without
-        // the `code` member the Pixely error contract requires.
-        $exceptions->renderable(function (ValidationException $exception, Request $request) {
-            if (! $request->is('api/*')) {
+        // The JSON:API parser renders validation errors without the `code`
+        // member the Pixely error contract requires. Delegate to it (so the
+        // pointers and structure stay unchanged) and add the missing code.
+        $exceptions->render(function (ValidationException $exception, Request $request) {
+            $response = \LaravelJsonApi\Exceptions\ExceptionParser::make()
+                ->acceptsMiddleware('jsonapi:v1')
+                ->render($exception, $request);
+
+            if (! $response instanceof \Symfony\Component\HttpFoundation\Response) {
                 return null;
             }
 
-            $errors = [];
+            $payload = json_decode((string) $response->getContent(), true);
 
-            foreach ($exception->errors() as $field => $messages) {
-                foreach ($messages as $message) {
-                    $errors[] = [
-                        'status' => '422',
-                        'code' => 'VALIDATION_ERROR',
-                        'title' => $field,
-                        'detail' => $message,
-                        'source' => ['pointer' => '/data/attributes/' . str_replace('.', '/', $field)],
-                    ];
+            if (! is_array($payload) || ! isset($payload['errors']) || ! is_array($payload['errors'])) {
+                return $response;
+            }
+
+            foreach ($payload['errors'] as $index => $error) {
+                if (is_array($error) && ! isset($error['code'])) {
+                    $payload['errors'][$index]['code'] = 'VALIDATION_ERROR';
                 }
             }
 
-            return response()->json([
-                'jsonapi' => '1.1',
-                'errors' => $errors,
-            ], 422, ['Content-Type' => 'application/vnd.api+json']);
+            $response->setContent(json_encode($payload, JSON_THROW_ON_ERROR));
+
+            return $response;
         });
 
         $exceptions->render(

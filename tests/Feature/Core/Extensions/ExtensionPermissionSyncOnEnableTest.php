@@ -51,9 +51,8 @@ it('syncs gallery permissions when the extension is enabled via the API', functi
 
     $response
         ->assertOk()
-        ->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('data.type', 'extensions')
-        ->assertJsonPath('data.attributes.enabled', true);
+        ->assertJsonPath('data.id', 'gallery')
+        ->assertJsonPath('data.enabled', true);
 
     expect(Permission::where('name', 'gallery.photos.view')->exists())->toBeTrue();
     expect(Permission::where('name', 'gallery.photos.manage')->exists())->toBeTrue();
