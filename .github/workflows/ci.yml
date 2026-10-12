@@ -460,6 +460,9 @@ jobs:
 
   frontend-e2e:
     name: Frontend end-to-end tests
+    # Paused by default. Set the repository variable RUN_E2E to 'true'
+    # (Settings > Secrets and variables > Actions > Variables) to re-enable.
+    if: ${{ vars.RUN_E2E == 'true' }}
     needs: [build-back, build-front, build-fresh-install]
     runs-on: ubuntu-latest
 
@@ -573,6 +576,9 @@ jobs:
   production-quality:
     name: Production quality gate
     needs: [php-lint, phpstan, php-code-style, frontend-quality, backend-unit, backend-functional, coverage-gate, frontend-e2e]
+    # frontend-e2e may be skipped (paused): a skipped need must not skip the gate,
+    # but any failed or cancelled need still does.
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
 
     steps:

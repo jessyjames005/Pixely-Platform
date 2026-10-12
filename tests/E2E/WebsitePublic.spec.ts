@@ -57,7 +57,7 @@ test('home, about and contact are reachable from public navigation', async ({ pa
   await expect(page).toHaveURL(/\/about$/);
   await expect(page.getByRole('heading', { name: 'About Pixely' })).toBeVisible();
 
-  await page.getByRole('link', { name: 'Contact' }).click();
+  await page.getByRole('link', { name: 'Contact', exact: true }).click();
   await expect(page).toHaveURL(/\/contact$/);
   await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
 

@@ -10,13 +10,15 @@ test.describe('User Space security', () => {
     })
 
     test('keeps favorites and history inside the user surface', async ({ page }) => {
-        const email = process.env.PIXELY_E2E_EMAIL ?? 'admin@example.com'
-        const password = process.env.PIXELY_E2E_PASSWORD ?? 'password'
+        const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
+        const password = process.env.E2E_USER_PASSWORD ?? 'password'
 
-        await page.goto('/login')
-        await page.getByLabel(/email/i).fill(email)
-        await page.getByLabel(/password/i).fill(password)
-        await page.getByRole('button', { name: /log in|login|connexion/i }).click()
+        await page.goto('/login', { waitUntil: 'domcontentloaded' })
+        await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
+        await page.locator('input[autocomplete="username"]').fill(email)
+        await page.locator('input[autocomplete="current-password"]').fill(password)
+        await page.getByRole('button', { name: 'Sign in' }).click()
+        await expect(page).toHaveURL(/\/admin|\/account/)
 
         await page.goto('/account/favorites')
         await expect(page).toHaveURL(/\/account\/favorites/)

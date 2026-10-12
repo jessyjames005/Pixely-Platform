@@ -7,6 +7,8 @@ import {
 import AdminLayout from "@shared/layouts/AdminLayout.vue";
 import DashboardView from "@shared/views/DashboardView.vue";
 import LoginView from "@core/auth/views/LoginView.vue";
+import ForgotPasswordView from "@core/auth/views/ForgotPasswordView.vue";
+import ResetPasswordView from "@core/auth/views/ResetPasswordView.vue";
 import UsersView from "@core/users/views/UsersView.vue";
 import RolesView from "@core/roles/views/RolesView.vue";
 import PermissionsView from "@core/roles/views/PermissionsView.vue";
@@ -40,6 +42,16 @@ const routes: RouteRecordRaw[] = [
     path: "/login",
     name: "login",
     component: LoginView,
+  },
+  {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: ForgotPasswordView,
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: ResetPasswordView,
   },
   {
     path: "/admin",

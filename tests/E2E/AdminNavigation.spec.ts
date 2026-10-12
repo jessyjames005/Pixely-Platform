@@ -38,18 +38,21 @@ test.describe('Administration navigation', () => {
     const extensionsToggle = drawer.getByText('Extensions', { exact: true })
     await expect(extensionsToggle).toBeVisible()
 
-    // Children are hidden until the group is expanded.
+    // The group's children are hidden until it is expanded.
     await expect(drawer.getByText('Manage extensions', { exact: true })).toBeHidden()
-    await expect(drawer.getByText('Gallery', { exact: true })).toBeHidden()
 
     await extensionsToggle.click()
     await expect(drawer.getByText('Manage extensions', { exact: true })).toBeVisible()
-    await expect(drawer.getByText('Gallery', { exact: true })).toBeVisible()
-
-    // Child links carry the expected href (independent of route resolution).
-    const galleryLink = drawer.getByRole('link', { name: 'Gallery' })
-    await expect(galleryLink).toHaveAttribute('href', '/admin/gallery')
     await expect(drawer.getByRole('link', { name: 'Manage extensions' })).toHaveAttribute('href', '/admin/extensions')
+  })
+
+  test('lists runtime extension entries as top-level items', async ({ page }) => {
+    // Extension navigation comes from GET /api/v1/extensions/navigation (SDK v2)
+    // and is appended after the core entries, not nested under "Extensions".
+    const drawer = page.locator('.v-navigation-drawer')
+    const galleryLink = drawer.getByRole('link', { name: 'Gallery' })
+    await expect(galleryLink).toBeVisible()
+    await expect(galleryLink).toHaveAttribute('href', '/admin/gallery')
   })
 
   test('keyboard can reach and toggle the navigation control', async ({ page }) => {
