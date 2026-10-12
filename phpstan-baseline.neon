@@ -135,7 +135,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app/Core/Users/Providers/UserServiceProvider.php
 
 		-
@@ -151,12 +151,6 @@ parameters:
 			path: app/Core/Roles/Http/Controllers/PermissionController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Extensions/CinemaMovie/Providers/CinemaMovieServiceProvider.php
-
-		-
 			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:getJson\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -167,12 +161,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: app/Extensions/CinemaMovie/tests/Functional/CinemaMovieApiTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Extensions/Files/Providers/FilesServiceProvider.php
 
 		-
 			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$filename\.$#'
@@ -187,12 +175,6 @@ parameters:
 			path: app/Extensions/Gallery/Http/Controllers/Api/GalleryController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Extensions/Gallery/Providers/GalleryServiceProvider.php
-
-		-
 			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$filename\.$#'
 			identifier: property.notFound
 			count: 1
@@ -203,18 +185,6 @@ parameters:
 			identifier: property.notFound
 			count: 2
 			path: app/Extensions/Gallery/Upgrades/AddSlugAndFileSizeStep.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Extensions/Translations/Providers/TranslationsServiceProvider.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Foundation\\Application\:\:\$router\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Extensions/Tuleap/Providers/TuleapServiceProvider.php
 
 		-
 			message: '#^Access to an undefined property App\\Extensions\\Tuleap\\Models\\AppConfig\:\:\$value\.$#'

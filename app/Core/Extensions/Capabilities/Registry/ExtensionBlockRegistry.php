@@ -28,7 +28,7 @@ final class ExtensionBlockRegistry
         $globalIds = [];
 
         foreach ($extensions as $extension) {
-            if (! $extension instanceof ExtensionInterface || ! $extension instanceof ExtensionBlocksInterface) {
+            if (! $extension instanceof ExtensionBlocksInterface) {
                 continue;
             }
 

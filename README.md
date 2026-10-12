@@ -9,10 +9,13 @@ Fichiers modifiés (à copier à la racine du dépôt, ils écrasent les version
 
 - `tests/Feature/Core/Users/UserEngagementSurfaceTest.php` : le test attendait un 403, alors que les routes d'engagement sont explicitement sur la surface `user` et répondent 200 à un utilisateur authentifié. Il vérifie désormais que la route est liée à `surface:user` et qu'elle répond 200.
 
+- `phpstan-baseline.neon` : suppression des 5 entrées `$router` devenues inutiles (providers CinemaMovie, Files, Gallery, Translations, Tuleap, qui n'utilisent plus `$this->app->router`) et `count: 2` pour `UserServiceProvider` (2 groupes de routes).
+- `app/Core/Extensions/Capabilities/Registry/ExtensionBlockRegistry.php` : retrait du `instanceof ExtensionInterface` toujours vrai (le type vient du PHPDoc `iterable<ExtensionInterface>`).
+
 ## Vérification
 
 Non exécuté : PHP n'est pas disponible dans l'environnement de travail. À lancer dans le conteneur :
 
 ```bash
-docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature"
+docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature && composer phpstan"
 ```
