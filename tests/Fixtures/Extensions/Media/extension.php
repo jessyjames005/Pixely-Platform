@@ -1,10 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Media extension manifest.
  */
+
+declare(strict_types=1);
 
 return [
     'id' => 'media',

@@ -9,6 +9,21 @@
 
     <rule ref="PSR12"/>
 
+    <!-- Test files use PHPUnit-style snake_case method names (test_it_...) and
+         Pest files declare helper classes inline next to the tests. -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Classes.ClassDeclaration">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+        <!-- Laravel migrations may be classes without a namespace. -->
+        <exclude-pattern>*/migrations/*</exclude-pattern>
+        <exclude-pattern>*/Migrations/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
     <file>app</file>
     <file>tests</file>
     <file>database</file>

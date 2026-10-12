@@ -1,11 +1,11 @@
 <?php
 
+/** User-owned engagement endpoints. */
+
 declare(strict_types=1);
 
 use App\Core\Users\Http\Controllers\UserEngagementController;
 use Illuminate\Support\Facades\Route;
-
-/** User-owned engagement endpoints. */
 
 Route::middleware(['auth:sanctum', 'surface:user', 'throttle:60,1'])
     ->prefix('me')

@@ -12,10 +12,13 @@ Fichiers modifiés (à copier à la racine du dépôt, ils écrasent les version
 - `phpstan-baseline.neon` : suppression des 5 entrées `$router` devenues inutiles (providers CinemaMovie, Files, Gallery, Translations, Tuleap, qui n'utilisent plus `$this->app->router`) et `count: 2` pour `UserServiceProvider` (2 groupes de routes).
 - `app/Core/Extensions/Capabilities/Registry/ExtensionBlockRegistry.php` : retrait du `instanceof ExtensionInterface` toujours vrai (le type vient du PHPDoc `iterable<ExtensionInterface>`).
 
+- `phpcs.xml` : les règles PSR1 `CamelCapsMethodName`, `ClassDeclaration` (namespace / une classe par fichier) et `SideEffects` ne s'appliquent plus à `tests/` (méthodes `test_it_...` de PHPUnit, classes de test inline dans les fichiers Pest). `ClassDeclaration` est aussi désactivée pour les migrations (classes sans namespace).
+- `app/Extensions/{CinemaMovie,Files,Gallery,Translations}/extension.php`, `tests/Fixtures/Extensions/{Gallery,Media}/extension.php`, `app/Core/Users/routes/engagement.php`, `routes/web.php`, `database/migrations/2026_10_07_000000_create_website_engine_tables.php` : le docblock de fichier est déplacé juste après `<?php` (avant `declare`), comme l'exige PSR-12. Aucun changement de code.
+
 ## Vérification
 
 Non exécuté : PHP n'est pas disponible dans l'environnement de travail. À lancer dans le conteneur :
 
 ```bash
-docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature && composer phpstan"
+docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature && composer phpstan && composer cs:check"
 ```

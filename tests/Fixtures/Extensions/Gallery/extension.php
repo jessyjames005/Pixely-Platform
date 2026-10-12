@@ -1,10 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Gallery extension manifest (test fixture only).
  */
+
+declare(strict_types=1);
 
 return [
 

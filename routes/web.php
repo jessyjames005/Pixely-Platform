@@ -1,14 +1,14 @@
 <?php
 
+/**
+ * Public web routes.
+ */
+
 declare(strict_types=1);
 
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
 use App\Core\Websites\Http\Controllers\PublicPageController;
-
-/**
- * Public web routes.
- */
 
 Route::middleware('surface:public')->get('/', function () {
     return view('app');
