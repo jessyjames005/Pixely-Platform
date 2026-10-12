@@ -40,6 +40,34 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->dontReport(
             \LaravelJsonApi\Core\Exceptions\JsonApiException::class,
         );
+        // Registered before the JSON:API parser below: the parser renders
+        // validation errors for `jsonapi:v1` routes (auth endpoints) without
+        // the `code` member the Pixely error contract requires.
+        $exceptions->renderable(function (ValidationException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            $errors = [];
+
+            foreach ($exception->errors() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $errors[] = [
+                        'status' => '422',
+                        'code' => 'VALIDATION_ERROR',
+                        'title' => $field,
+                        'detail' => $message,
+                        'source' => ['pointer' => '/data/attributes/' . str_replace('.', '/', $field)],
+                    ];
+                }
+            }
+
+            return response()->json([
+                'jsonapi' => '1.1',
+                'errors' => $errors,
+            ], 422, ['Content-Type' => 'application/vnd.api+json']);
+        });
+
         $exceptions->render(
             \LaravelJsonApi\Exceptions\ExceptionParser::make()
                 ->acceptsMiddleware('jsonapi:v1')

@@ -1,137 +1,18 @@
-# 🚀 Pixely Platform
+# Correctif CI — tests fonctionnels en échec
 
-> **Build once. Extend forever.**
+Fichiers modifiés (à copier à la racine du dépôt, ils écrasent les versions actuelles) :
 
-Pixely Platform is an open-source modular platform built with Laravel and Vue.
+- `bootstrap/app.php` : les erreurs de validation des routes API sont rendues avec le membre `code: VALIDATION_ERROR`. Le parseur JSON:API était enregistré en premier et les rendait sans `code`, ce qui cassait 7 tests (login, two-factor, mot de passe, reset).
+- `app/Core/Users/Http/Controllers/UserEngagementController.php` : `DELETE /me/favorites/{type}/{id}` répond `200 {"removed": true|false}` au lieu de `204`.
+- `tests/Feature/Core/Extensions/ExtensionPermissionSyncOnEnableTest.php` : l'identifiant d'extension passé à `/enable` est le slug brut (`gallery`), comme le contrôleur l'attend. L'ID encodé `DocumentId` provoquait un 404.
+- `tests/Feature/Core/Providers/PixelyServiceProviderTest.php` : le test attend le binding `InMemoryExtensionStateRepository` en environnement de test, comme le provider le fait volontairement.
 
-Instead of building one monolithic application, Pixely provides a powerful Core that can be extended with independent modules.
+- `tests/Feature/Core/Users/UserEngagementSurfaceTest.php` : le test attendait un 403, alors que les routes d'engagement sont explicitement sur la surface `user` et répondent 200 à un utilisateur authentifié. Il vérifie désormais que la route est liée à `surface:user` et qu'elle répond 200.
 
-Whether you need a photo gallery, a blog, an e-commerce solution or any other business feature, modules plug into the Core without modifying it.
+## Vérification
 
----
+Non exécuté : PHP n'est pas disponible dans l'environnement de travail. À lancer dans le conteneur :
 
-## Why Pixely?
-
-Modern applications quickly become difficult to maintain when every feature is tightly coupled.
-
-Pixely follows a different philosophy.
-
-The Core provides shared services.
-
-Modules provide business features.
-
-This keeps the platform clean, maintainable and extensible.
-
----
-
-## Platform Philosophy
-
-The Core never knows the modules.
-
-Modules plug into the Core.
-
-Everything is extensible.
-
-Documentation comes first.
-
-Architecture before complexity.
-
-Quality over quantity.
-
----
-
-## Core Responsibilities
-
-- Authentication
-- Users
-- Roles & Permissions
-- Settings
-- Localization
-- Dashboard
-- Notifications
-- Events
-- Scheduler
-- API
-- Module Engine
-
----
-
-## Official Modules
-
-📸 Gallery
-
-📝 Blog
-
-🛒 Shop
-
-⭐ Reviews
-
-📊 Statistics
-
-📅 Calendar
-
-More modules will come over time.
-
----
-
-## Technology Stack
-
-Backend
-
-- Laravel
-- PHP
-- MySQL
-- Redis
-- Laravel Debugbar (dev only)
-- Laravel Telescope (dev only, permission-gated)
-
-Frontend
-
-- Vue 3
-- TypeScript
-- Vite
-- Tailwind CSS
-
-Quality
-
-- PHPUnit / Pest
-- PHPStan
-- ESLint
-- Prettier
-
-Infrastructure
-
-- Docker
-- GitHub Actions
-
----
-
-## Roadmap
-
-The detailed, continuously updated roadmap lives in [`ROADMAP.md`](ROADMAP.md).
-
-Current state: Kernel, Extension SDK foundation, Platform API, Gallery Extension (API + upload), and Sanctum SPA Authentication are implemented. Administration Foundation (Vue 3 admin, reusable components, API client) is underway.
-
----
-
-## Documentation
-
-Documentation lives in the `docs/` directory:
-
-- `docs/architecture/` — system architecture, data model, contracts, and diagrams
-- `docs/architecture/adr/` — Architecture Decision Records (ADR), one per significant decision
-- `docs/handbook/` — practical guides for working with Core systems (extensions, dependencies, authentication)
-- `docs/api/` — API query parameters, examples, and the generated OpenAPI specification
-- `docs/development/` — project rules and architecture principles
-
-Every important decision is documented through an ADR before or alongside its implementation.
-
----
-
-## License
-
-MIT
-
----
-
-Made with ❤️ by the Pixely Platform community.
+```bash
+docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature"
+```

@@ -41,11 +41,11 @@ final class UserEngagementController
         return response()->json($favorite, Response::HTTP_CREATED);
     }
 
-    public function destroyFavorite(Request $request, string $resourceType, string $resourceId): Response
+    public function destroyFavorite(Request $request, string $resourceType, string $resourceId): JsonResponse
     {
-        $this->service->removeFavorite($request->user(), $resourceType, $resourceId);
+        $removed = $this->service->removeFavorite($request->user(), $resourceType, $resourceId);
 
-        return response()->noContent();
+        return response()->json(['removed' => $removed]);
     }
 
     public function history(Request $request): JsonResponse

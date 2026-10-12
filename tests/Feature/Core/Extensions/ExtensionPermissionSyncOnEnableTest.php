@@ -7,7 +7,6 @@ use App\Core\Extensions\Enum\ExtensionStatus;
 use App\Core\Extensions\Manager\ExtensionManager;
 use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 use App\Core\Extensions\State\ExtensionState;
-use App\JsonApi\V1\DocumentId;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -30,7 +29,7 @@ beforeEach(function () {
 
     $stateRepository->save(new ExtensionState(extension: $galleryExtension, status: ExtensionStatus::Disabled));
     $stateRepository->save(new ExtensionState(extension: $filesExtension, status: ExtensionStatus::Enabled));
-    $this->galleryId = DocumentId::encode('extension', 'gallery');
+    $this->galleryId = 'gallery';
 });
 
 it('syncs gallery permissions when the extension is enabled via the API', function () {
