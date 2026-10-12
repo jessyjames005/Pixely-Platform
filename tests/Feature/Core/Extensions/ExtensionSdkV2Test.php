@@ -13,23 +13,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->app->singleton(
-        ExtensionStateRepositoryInterface::class,
-        InMemoryExtensionStateRepository::class,
-    );
-
+    // Create declared permissions before testing extension navigation.
     $manager = $this->app->make(ExtensionManager::class);
 
+    $synchronizer = $this->app->make(
+        \App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer::class,
+    );
+
     foreach ($manager->all() as $extension) {
-        $this->app->make(ExtensionStateRepositoryInterface::class)->save(
-            new ExtensionState($extension, ExtensionStatus::Enabled),
-        );
+        $synchronizer->sync($extension);
     }
 });
 
 it('registers extension API routes through the SDK v2 route registrar', function (): void {
     $route = collect(app('router')->getRoutes()->getRoutes())
-        ->first(static fn ($route): bool => $route->uri() === 'api/v1/photos');
+        ->first(static fn($route): bool => $route->uri() === 'api/v1/photos');
 
     expect($route)->not->toBeNull();
     expect($route->gatherMiddleware())->toContain('surface:api');
@@ -41,7 +39,9 @@ it('returns only authorized enabled extension navigation', function (): void {
     $user->givePermissionTo('files.view');
 
     $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v1/extensions/navigation')
+        ->getJson('/api/v1/extensions/navigation', [
+            'Accept' => 'application/vnd.api+json',
+        ])
         ->assertOk()
         ->assertJsonFragment(['id' => 'gallery'])
         ->assertJsonFragment(['id' => 'files'])
@@ -49,7 +49,9 @@ it('returns only authorized enabled extension navigation', function (): void {
 });
 
 it('requires authentication for extension navigation', function (): void {
-    $this->getJson('/api/v1/extensions/navigation')->assertUnauthorized();
+    $this->getJson('/api/v1/extensions/navigation', [
+        'Accept' => 'application/vnd.api+json',
+    ])->assertUnauthorized();
 });
 
 it('does not expose disabled extensions through navigation', function (): void {
@@ -60,7 +62,9 @@ it('does not expose disabled extensions through navigation', function (): void {
     $user->givePermissionTo('gallery.photos.view');
 
     $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v1/extensions/navigation')
+        ->getJson('/api/v1/extensions/navigation', [
+            'Accept' => 'application/vnd.api+json',
+        ])
         ->assertOk()
         ->assertJsonMissing(['id' => 'gallery']);
 });
@@ -76,7 +80,9 @@ it('exposes the block registry through the protected extension API', function ()
     $user->givePermissionTo('system.extensions.view');
 
     $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v1/extensions/blocks')
+        ->getJson('/api/v1/extensions/blocks', [
+            'Accept' => 'application/vnd.api+json',
+        ])
         ->assertOk()
         ->assertJsonPath('meta.total', 0);
 });

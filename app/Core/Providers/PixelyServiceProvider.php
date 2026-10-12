@@ -16,6 +16,7 @@ use App\Core\Extensions\Registry\ExtensionRegistry;
 use App\Core\Extensions\Repositories\JsonExtensionStateRepository;
 use App\Core\Kernel\Kernel;
 use Illuminate\Support\ServiceProvider;
+use App\Core\Extensions\Repositories\InMemoryExtensionStateRepository;
 
 final class PixelyServiceProvider extends ServiceProvider
 {
@@ -58,7 +59,13 @@ final class PixelyServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             ExtensionStateRepositoryInterface::class,
-            function ($app) {
+            function ($app): ExtensionStateRepositoryInterface {
+                // Keep extension state isolated during tests.
+                // Production continues to use the persistent JSON repository.
+                if ($app->environment('testing')) {
+                    return new InMemoryExtensionStateRepository();
+                }
+
                 return new JsonExtensionStateRepository(
                     storage_path('pixely/extensions.json'),
                 );
