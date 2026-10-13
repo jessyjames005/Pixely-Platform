@@ -15,8 +15,8 @@ use Illuminate\Support\Str;
  * skeleton following the platform per-domain structure.
  *
  * API routes and admin navigation are registered automatically by SDK v2.
- * Frontend aliases and route components remain explicit until the dynamic
- * frontend route registry is introduced in a later SDK v2 lot.
+ * Frontend route declarations are generated per extension and connected to the
+ * Core's allowlisted dynamic frontend route registry.
  */
 final class MakeExtension extends Command
 {
@@ -101,6 +101,7 @@ final class MakeExtension extends Command
         File::put("{$jsBase}/models/" . $studly . '.ts', $this->frontendModelStub($studly));
         File::put("{$jsBase}/store/{$id}.store.ts", $this->frontendStoreStub($studly, $id));
         File::put("{$jsBase}/views/{$studly}View.vue", $this->frontendViewStub($studly, $id));
+        File::put("{$jsBase}/routes.ts", $this->frontendRoutesStub($studly, $id));
     }
 
     private function manifestStub(string $studly, string $id): string
@@ -477,13 +478,53 @@ final class MakeExtension extends Command
         VUE;
     }
 
+
+    /**
+     * Generate the frontend route declaration owned by the new extension.
+     * Core registers it only after server-filtered navigation exposes the extension.
+     */
+    private function frontendRoutesStub(string $studly, string $id): string
+    {
+        return <<<TS
+        import type { RouteRecordRaw } from 'vue-router'
+
+        /** Frontend routes owned by the {$studly} extension. */
+        const routes: RouteRecordRaw[] = [
+          {
+            path: '{$id}',
+            name: 'admin.{$id}',
+            component: () => import('./views/{$studly}View.vue'),
+            meta: { requiresPermission: '{$id}.items.view' },
+          },
+        ]
+
+        export default routes
+        TS;
+    }
+
+    private function frontendNavStub(string $studly, string $id): string
+    {
+        return <<<TS
+        import type { NavItem } from '@shared/navigation/types'
+
+        export const {Str::camel($id)}NavItem: NavItem = {
+          label: '{$studly}',
+          to: '/admin/{$id}',
+          icon: 'mdi-puzzle-outline',
+          permission: '{$id}.items.view',
+          extensionId: '{$id}',
+        }
+
+        TS;
+    }
+
     private function printNextSteps(string $studly, string $id): void
     {
         $this->newLine();
         $this->line('<comment>Remaining manual steps:</comment>');
         $this->line('1. Add a Vite/TS alias in vite.config.js and tsconfig.json:');
         $this->line("   \"@extensions/{$id}\": .../app/Extensions/{$studly}/resources/js");
-        $this->line("2. Add the frontend route in resources/js/router/index.ts (frontend route registration remains explicit in S4).");
+        $this->line("2. Review app/Extensions/{$studly}/resources/js/routes.ts and add its lazy loader to resources/js/router/extensionRouteRegistry.ts.");
         $this->line("3. Add {$id}.items.view/manage/delete to database/seeders/RolePermissionSeeder.php (or rely on ExtensionPermissionSynchronizer at enable time).");
         $this->line("4. Run: docker compose exec app php artisan pixely:extension:migrate {$id}  (once you add migrations to Database/Migrations/).");
         $this->line("5. Run: docker compose exec app php artisan pixely:extension:migration-status {$id}");

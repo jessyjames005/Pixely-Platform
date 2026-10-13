@@ -40,3 +40,12 @@ Extensions declare capabilities; Core owns orchestration. In particular, route r
 - Admin navigation is discovered at runtime through `/api/v1/extensions/navigation` and filtered server-side by permissions.
 
 The Extension Manager API now exposes the resolved capability list for each extension.
+
+
+## Frontend route registry
+
+Frontend page routes are declared in each built-in extension's `resources/js/routes.ts` file and are loaded through the Core registry in `resources/js/router/extensionRouteRegistry.ts`. The registry uses a static allowlist of lazy imports: API responses may select an extension ID, but cannot supply an import path or executable module.
+
+The router synchronizes these routes against the current user's server-filtered `/api/v1/extensions/navigation` response. Routes are added only for extensions represented in that response and removed when the extension is no longer visible, is disabled, or navigation refresh fails. Each frontend route must have a stable, extension-specific name and should declare its permission in route metadata where applicable. Unknown `/admin/*` paths must not fall through to public website pages.
+
+This frontend registry is distinct from `ExtensionRoutesInterface`, which declares backend API route files. Adding a new built-in extension's frontend routes currently requires adding its lazy loader to the Core allowlist and declaring its routes in the extension's `resources/js/routes.ts` file.

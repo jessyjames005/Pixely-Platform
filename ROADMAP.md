@@ -338,12 +338,14 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Extension Manager API exposes resolved capabilities
 * [x] Core route registration from extension declarations
 * [x] Core navigation registry from extension declarations
-* [ ] Block registry and renderer contract
-* [ ] Settings schema API and generated admin form
-* [ ] Frontend extension capability loader
+* [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
+* [x] Typed settings schema API endpoint
+* [x] Public block sanitizer: allowlisted block types, bounded text, safe URL schemes, and omission of malformed/unknown blocks
+* [x] Generated admin settings form
+* [x] Frontend extension capability loader (typed block metadata, surface filtering, caching, and navigation loading)
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
-* [ ] Frontend dynamic route registry
+* [x] Frontend dynamic route registry
 
 ### Current SDK adoption
 
@@ -1490,3 +1492,49 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
+
+
+## Platform Foundation Status (2026-10-09)
+
+### Completed foundations
+- [x] **S0 — Multi-Surface Foundation:** `PUBLIC`, `USER`, `ADMIN`, and `API` surface context/resolution, middleware, route metadata, authorization boundaries, and extension surface declarations.
+- [x] **S1 — Website Engine Foundation:** page and menu persistence, CRUD, slugs, publishing workflow, SEO metadata, navigation provider/API, public page rendering, safe content blocks, default content seeder, theme tokens, and public error pages.
+- [x] **S3 — User Space:** authenticated `/account` surface, dashboard/profile/preferences, generic favorites/history, API endpoints, pagination, ownership isolation, validation, timestamps, rate limiting, and automated tests.
+- [x] **Admin navigation foundation** and **extension generator foundation**.
+- [x] **User management foundation** and JSON:API migration foundations (resource objects, error responses, links, content negotiation, response classes, OpenAPI integration, frontend types, and tests).
+- [x] **Swagger UI foundation**; verify full interactive API exploration during release validation.
+
+### Current execution order
+1. S0 — Multi-Surface Foundation — **Complete**
+2. S1 — Website Engine Foundation — **Complete**
+3. S3 — User Space — **Complete**
+4. S4 — Extension SDK v2 — **Current**
+5. S5 — Theme & Design System
+6. S6 — Gallery Full-Surface
+7. S7 — Media & Asset Management
+8. S8 — Search & Discovery
+9. S9 — Notifications
+10. S10 — Jobs & Queue Platform
+11. S11 — Music
+12. S12 — Camping
+13. S13 — Media Converter
+14. S14 — Observability
+15. S15 — Security Hardening
+16. S16 — Performance & Scalability
+17. S17 — Backup & Disaster Recovery
+18. S18 — Developer Experience
+19. S19 — Documentation & Developer Portal
+20. S20 — Pixely Platform v1
+
+### S4 — Extension SDK v2 execution order
+1. Capability model and capability registry
+2. Migrate existing extensions to the SDK v2 structure
+3. Fresh-install extension generator
+4. Automatic route and navigation registration
+5. Block registry and settings schema API (initial implementation complete)
+6. Trusted block renderer contract and generated settings form (settings form implemented; renderer contract remains)
+7. Frontend capability loader (initial implementation complete)
+8. Frontend dynamic route registry — implemented
+9. Coverage and production-quality gate
+
+> **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.
