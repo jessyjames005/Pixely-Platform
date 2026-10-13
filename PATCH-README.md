@@ -1,35 +1,30 @@
-# Pixely Platform — S4 frontend dynamic route registry
+# Pixely Platform — S4 trusted block renderer contract
 
 ## Included changes
 
-- Adds a Core-owned, allowlisted frontend route registry using lazy-loaded extension route modules.
-- Registers routes only when the current user's server-filtered extension navigation exposes the extension.
-- Removes stale extension routes when the extension is disabled, no longer visible, or navigation refresh fails.
-- Protects `/admin/*` paths while dynamic routes are being resolved and prevents unknown admin paths from falling through to public pages.
-- Moves Gallery, Files, Translations, Tuleap, and Cinema Movie frontend route declarations into their owning extension directories.
-- Fixes Gallery's navigation declaration to use `to` and `extensionId`, required by the frontend capability parser.
-- Updates `make:extension` to generate `resources/js/routes.ts` and documents the new convention.
+- Adds a typed contract for locally bundled Vue components that render SDK v2 extension blocks.
+- Adds a Core-owned allowlist keyed by namespaced `qualified_id` values.
+- Requires both API block metadata and the local renderer registration to allow the requested surface.
+- Rejects malformed or duplicate renderer IDs and invalid surface declarations.
+- Adds `ExtensionBlockOutlet.vue` with a safe fallback for unregistered blocks.
+- Documents the security boundary and updates the S4 roadmap and changelog.
+
+The allowlist intentionally contains no concrete renderer yet: no existing extension currently declares a concrete block renderer. This change establishes the contract without pretending that unreviewed extension UI can execute.
 
 ## Apply
 
-Extract the ZIP at the root of the existing Pixely-Platform repository, preserving the included paths. Review the resulting diff before committing.
-
-PowerShell alternative (run from the repository root):
+From the repository root, review `git status --short`, extract the ZIP while preserving paths, then inspect the diff:
 
 ```powershell
-Expand-Archive -LiteralPath .\Pixely-Platform-S4-dynamic-route-registry.zip -DestinationPath . -Force
-```
-
-## Validation
-
-Run in the project's Docker/dev environment:
-
-```powershell
-npm run test -- resources/js/router/extensionRouteRegistry.test.ts
+Expand-Archive -LiteralPath .\Pixely-Platform-S4-trusted-block-renderer.zip -DestinationPath . -Force
+git diff --check
+npm run test -- app/Core/Extensions/resources/js/renderers/TrustedBlockRenderer.test.ts
 npm run typecheck
 npm run build:front
-docker compose exec app php artisan test --filter=MakeExtensionTest
-docker compose exec app php artisan test --filter=ExtensionSdkV2Test
 ```
 
-This patching environment did not have usable Node dependencies (`vitest` was absent) and lacked PHP's DOM extension for Pest, so those suites could not be run here. PHP syntax checks and `git diff --check` passed.
+No commit or push has been performed.
+
+## Validation status
+
+The patch was reviewed for TypeScript structure and file consistency in the patch environment. Vitest, Vue type-checking, and Vite build still need to be run in the project's Docker/dev environment.

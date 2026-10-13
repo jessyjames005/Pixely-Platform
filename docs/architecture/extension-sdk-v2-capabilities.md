@@ -49,3 +49,10 @@ Frontend page routes are declared in each built-in extension's `resources/js/rou
 The router synchronizes these routes against the current user's server-filtered `/api/v1/extensions/navigation` response. Routes are added only for extensions represented in that response and removed when the extension is no longer visible, is disabled, or navigation refresh fails. Each frontend route must have a stable, extension-specific name and should declare its permission in route metadata where applicable. Unknown `/admin/*` paths must not fall through to public website pages.
 
 This frontend registry is distinct from `ExtensionRoutesInterface`, which declares backend API route files. Adding a new built-in extension's frontend routes currently requires adding its lazy loader to the Core allowlist and declaring its routes in the extension's `resources/js/routes.ts` file.
+
+
+## Trusted frontend block renderer contract
+
+Extension block API responses contain metadata and schema only. They never contain a Vue component name, import path, HTML template, or executable code. The frontend resolves `qualified_id` through the Core-owned `trustedBlockRenderers` allowlist. A renderer is selected only when both the block declaration and the local renderer explicitly allow the current surface. Unknown IDs and surface mismatches render a safe unavailable state.
+
+Each trusted renderer must accept `definition`, `value`, and `surface` props (`TrustedBlockRendererProps`). Register renderers only by importing reviewed local Vue components and adding them to `trustedBlockRenderers` in Core code. Do not dynamically import a component from API data. The registry intentionally starts empty until an extension ships a concrete block component.

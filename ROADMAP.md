@@ -346,6 +346,7 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
 * [x] Frontend dynamic route registry
+* [x] Trusted frontend block renderer contract with a local allowlist and surface enforcement
 
 ### Current SDK adoption
 
@@ -1532,7 +1533,7 @@ The roadmap should be updated progressively as each sprint is completed.
 3. Fresh-install extension generator
 4. Automatic route and navigation registration
 5. Block registry and settings schema API (initial implementation complete)
-6. Trusted block renderer contract and generated settings form (settings form implemented; renderer contract remains)
+6. Trusted block renderer contract and generated settings form (both contracts implemented; concrete extension renderers can be added when blocks are introduced)
 7. Frontend capability loader (initial implementation complete)
 8. Frontend dynamic route registry — implemented
 9. Coverage and production-quality gate

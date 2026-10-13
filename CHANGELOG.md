@@ -1,6 +1,9 @@
 # Unreleased
 
 ## Added
+- Added a trusted frontend block-renderer contract with a Core-owned local component allowlist, qualified-ID validation, and surface checks.
+- Added `ExtensionBlockOutlet.vue`, which renders only registered local components and safely handles unknown or disallowed blocks.
+- Added unit tests for trusted renderer registration, duplicate IDs, malformed identifiers, and surface restrictions.
 - Added an allowlisted frontend extension route registry that lazily loads route modules only for extensions exposed by the current user's server-filtered navigation.
 - Moved Gallery, Files, Translations, Tuleap and Cinema Movie frontend route declarations into their owning extension folders.
 - Added route-registry tests for registration, removal, unknown extension IDs and route-name collisions.
