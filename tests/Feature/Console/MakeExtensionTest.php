@@ -18,7 +18,8 @@ it('scaffolds an extension using the SDK v2 surface structure', function (): voi
             ->and(is_dir($path . '/User'))->toBeTrue()
             ->and(is_dir($path . '/Admin'))->toBeTrue()
             ->and(is_dir($path . '/API'))->toBeTrue()
-            ->and(is_file($path . '/API/routes.php'))->toBeTrue();
+            ->and(is_file($path . '/API/routes.php'))->toBeTrue()
+            ->and(is_file($path . '/resources/js/routes.ts'))->toBeTrue();
 
         $manifest = require $path . '/extension.php';
 
@@ -26,6 +27,10 @@ it('scaffolds an extension using the SDK v2 surface structure', function (): voi
         expect(file_get_contents($path . '/SdkV2TestExtension.php'))
             ->toContain('ExtensionNavigationInterface')
             ->toContain('ExtensionRoutesInterface');
+
+        expect(file_get_contents($path . '/resources/js/routes.ts'))
+            ->toContain("name: 'admin.sdk-v2-test'")
+            ->toContain("requiresPermission: 'sdk-v2-test.items.view'");
     } finally {
         File::deleteDirectory($path);
     }

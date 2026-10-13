@@ -48,7 +48,8 @@ final class GalleryExtension implements
             [
                 'id' => 'gallery',
                 'label' => 'Gallery',
-                'route' => '/admin/gallery',
+                'to' => '/admin/gallery',
+                'extensionId' => 'gallery',
                 'icon' => 'mdi-image-multiple',
                 'permission' => 'gallery.photos.view',
                 'surface' => 'admin',

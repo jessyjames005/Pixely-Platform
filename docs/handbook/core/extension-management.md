@@ -191,7 +191,7 @@ docker compose exec app php artisan make:extension CinemaMovie
 
 The generator creates the PHP `extension.php` manifest, extension class and provider, API controller and routes, extension migration and upgrade directories, language files, and frontend model, store, view, and navigation item. It also creates starter tests under `tests/Unit`, `tests/Functional`, and `tests/E2E` inside the extension directory. See [Extension Manifest](../../architecture/extension-manifest.md) for the manifest contract.
 
-The generator prints the frontend integration steps that are specific to the application build: add the Vite and TypeScript aliases, register the navigation item, and add the Vue Router route.
+The generator prints the frontend integration steps that are specific to the application build: add the Vite and TypeScript aliases, add the extension route loader to the Core allowlist in `resources/js/router/extensionRouteRegistry.ts`, and verify the generated `resources/js/routes.ts` declaration. The router then synchronizes extension routes with the current user’s server-filtered navigation.
 
 Run the generated Playwright E2E tests with the opt-in Docker runner after starting the application services and seeding the local test account:
 
