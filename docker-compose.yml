@@ -11,8 +11,23 @@ services:
       DEBUGBAR_ENABLED: "false"
       SANCTUM_STATEFUL_DOMAINS: "localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,nginx,nginx:80"
       SESSION_DOMAIN: "null"
+      # Links in emails (password reset...) must point at the nginx port below.
+      APP_URL: "http://localhost:8080"
+      # Local mail catcher: every email the app sends shows up at http://localhost:8025.
+      MAIL_MAILER: "smtp"
+      MAIL_HOST: "mailpit"
+      MAIL_PORT: "1025"
     volumes:
       - ./:/var/www
+    networks:
+      - pixely
+
+  # Local mail catcher (web UI on http://localhost:8025, SMTP on mailpit:1025).
+  mailpit:
+    image: axllent/mailpit
+    container_name: pixely_mailpit
+    ports:
+      - "8025:8025"
     networks:
       - pixely
 

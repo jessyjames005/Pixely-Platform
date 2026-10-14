@@ -27,6 +27,8 @@ Fichiers modifiés (à copier à la racine du dépôt, ils écrasent les version
 
 - `.github/workflows/ci.yml` : le job `frontend-e2e` est en pause (`if: vars.RUN_E2E == 'true'`). Pour le réactiver, créer la variable de dépôt `RUN_E2E` = `true`. Le job `production-quality` ne dépend plus d'un E2E ignoré (`!cancelled() && !contains(needs.*.result, 'failure')`), mais échoue toujours si un autre job échoue.
 
+- `docker-compose.yml` (sprint « mot de passe oublié ») : ajout du service `mailpit` (interface sur http://localhost:8025) et, pour le conteneur `app` uniquement, `MAIL_MAILER=smtp`, `MAIL_HOST=mailpit`, `MAIL_PORT=1025` et `APP_URL=http://localhost:8080`. Sans ce dernier, le lien du mail de réinitialisation pointait vers `http://localhost` (port 80) au lieu de 8080. `.env.example` n'est pas modifié, donc la CI et les tests gardent `MAIL_MAILER=log`.
+
 ## Non résolu (diagnostic impossible sans exécution)
 
 `UserSpace.spec.ts` (goto `/account` après login → redirigé vers `/login`) et `WebsiteAdmin.spec.ts` (tests « creates a website page/menu » : `page.goto('/admin/website/...')` ne montre pas le bouton) échouent tous deux après un rechargement complet de page suivant le login ; les tests qui restent en navigation client passent. Piste : la session n'est pas reconnue par le middleware `auth` serveur au rechargement. Il faut le trace Playwright (`error-context.md`) de l'un de ces tests.
