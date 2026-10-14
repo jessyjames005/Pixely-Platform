@@ -28,7 +28,7 @@ export const useSettingsStore = defineStore('settings', {
     },
 
     async updatePlatformSettings(payload: Partial<PlatformSettings>): Promise<void> {
-      this.platformSettings = await apiClient.putResource(
+      this.platformSettings = await apiClient.patchResource(
         '/platform-settings/current',
         'platform-settings',
         payload,
@@ -45,7 +45,7 @@ export const useSettingsStore = defineStore('settings', {
     async updateUserSettings(payload: Partial<UserSettings>): Promise<void> {
       const userId = useAuthStore().user?.id
       if (!userId) throw new Error('A signed-in user is required to update user settings.')
-      this.userSettings = await apiClient.putResource(
+      this.userSettings = await apiClient.patchResource(
         `/user-settings/${userId}`,
         'user-settings',
         payload,

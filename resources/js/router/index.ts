@@ -60,10 +60,10 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: "", name: "admin.dashboard", component: DashboardView },
       { path: "gallery", name: "admin.gallery", component: GalleryView, meta: { requiresPermission: 'gallery.photos.view' } },
-      { path: "users", name: "admin.users", component: UsersView, meta: { requiresPermission: 'users.users.view' } },
-      { path: "roles", name: "admin.roles", component: RolesView, meta: { requiresPermission: 'roles.roles.manage' } },
-      { path: "permissions", name: "admin.permissions", component: PermissionsView, meta: { requiresPermission: 'permissions.permissions.manage' } },
-      { path: "settings", name: "admin.settings", component: SettingsView, meta: { requiresPermission: 'settings.settings.manage' } },
+      { path: "users", name: "admin.users", component: UsersView, meta: { requiresPermission: 'users.view' } },
+      { path: "roles", name: "admin.roles", component: RolesView, meta: { requiresPermission: 'roles.view' } },
+      { path: "permissions", name: "admin.permissions", component: PermissionsView, meta: { requiresPermission: 'roles.view' } },
+      { path: "settings", name: "admin.settings", component: SettingsView },
       {
         path: "extensions",
         name: "admin.extensions",
