@@ -379,7 +379,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             color="success"
             density="compact"
             hide-details
-            @update:model-value="handleToggle(item)"
+            @update:model-value="(value: boolean | null) => value !== item.enabled && handleToggle(item)"
           />
         </template>
 
