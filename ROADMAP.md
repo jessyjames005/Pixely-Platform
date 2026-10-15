@@ -46,18 +46,17 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 * [x] Continuous integration foundation
 * [x] MySQL service
 * [x] Redis service
-* [x] Backend unit test job
-* [x] Backend functional test job
-* [x] Frontend unit test job
+* [ ] Backend unit test job
+* [ ] Backend functional test job
+* [ ] Frontend unit test job
 * [ ] Frontend functional test job
-* [x] Playwright end-to-end test job
-* [x] Static analysis (PHPStan)
-* [x] PHP code style checks (`composer cs:check`; errors block, warnings are reported)
-* [x] Frontend code style checks (ESLint, Stylelint)
-* [x] PHP coverage report (pcov, Clover reports merged by `scripts/coverage-gate.mjs`)
-* [x] 80% minimum PHP coverage gate (default 80, overridable with the `PHP_COVERAGE_MIN` repository variable)
-* [x] Production quality gate (waits for code style and the coverage gate)
-* [x] CI also runs on `develop`; a newer push cancels the superseded run
+* [ ] Playwright end-to-end test job
+* [ ] Static analysis
+* [ ] PHP code style checks
+* [ ] Frontend code style checks
+* [ ] PHP coverage report with phpcov
+* [ ] 80% minimum PHP coverage gate
+* [ ] Production quality gate
 * [ ] Continuous deployment
 
 ---
@@ -120,14 +119,11 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Authentication
 * [x] Login
 * [x] Logout
-* [x] Password management (self-service password change)
+* [ ] Password management
 * [x] Authentication API
-* [x] Two-factor authentication (2FA) — TOTP authenticator app, single-use recovery codes
-* [x] Forgot password / password reset flow
-* [x] "Remember me" persistent session
-* [x] Login and password-reset rate limiting
-* [x] 2FA setup QR code (generated in the browser, no dependency)
-* [ ] Email verification
+* [ ] Two-factor authentication (2FA)
+* [ ] Forgot password / password reset flow
+* [ ] "Remember me" persistent session
 
 ### Users
 
@@ -158,7 +154,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission checks
 * [x] Extension-declared permissions (dynamic, not hardcoded) — sync mechanism is done; the richer Roles UI described below is not, see detailed checklist
 
-#### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
+#### Extension-declared permissions and role management
 
 Today, permission sync is automatic: each extension optionally implements
 `ExtensionPermissionsInterface::declaredPermissions()`, and
@@ -325,7 +321,6 @@ Storybook provides an isolated environment for developing and documenting Vue.js
 
 ## S4 — Extension SDK v2
 
-
 The next SDK generation standardizes how extensions declare capabilities consumed by Core and Platform surfaces.
 
 ### Capability model
@@ -339,15 +334,12 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Extension Manager API exposes resolved capabilities
 * [x] Core route registration from extension declarations
 * [x] Core navigation registry from extension declarations
-* [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
-* [x] Typed settings schema API endpoint
-* [x] Public block sanitizer: allowlisted block types, bounded text, safe URL schemes, and omission of malformed/unknown blocks
-* [x] Generated admin settings form
-* [x] Frontend extension capability loader (typed block metadata, surface filtering, caching, and navigation loading)
+* [ ] Block registry and renderer contract
+* [ ] Settings schema API and generated admin form
+* [ ] Frontend extension capability loader
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
-* [x] Frontend dynamic route registry
-* [x] Trusted frontend block renderer contract with a local allowlist and surface enforcement
+* [ ] Frontend dynamic route registry
 
 ### Current SDK adoption
 
@@ -357,17 +349,6 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * Tuleap: navigation + routes + permissions
 * CinemaMovie: navigation + routes + permissions
 * Existing lifecycle, dependencies, configuration and migration mechanisms remain compatible
-
-## v0.7.0 - Database-backed Extension Registry (S5)
-
-### Extension Runtime State
-
-* [x] Persist extension enabled/disabled state in the `extension_states` database table
-* [x] Keep extension manifests and PHP code as the source of identity, version and capabilities
-* [x] Import legacy `storage/pixely/extensions.json` records idempotently without overwriting database-managed state
-* [x] Keep fresh-install migrations bootable before the new table exists
-* [ ] Run repository and migration/import command tests
-* [x] Document the migration and rollback workflow
 
 ## v0.5.0 - Extension SDK
 
@@ -467,14 +448,12 @@ backend, frontend and end-to-end behaviour.
 
 #### Coverage Quality Gate
 
-PHP backend coverage is measured with `pcov`. The unit and functional jobs each upload a Clover report, and the `coverage-gate` job merges them (a line counts as covered when either suite covers it) with `scripts/coverage-gate.mjs`, a dependency-free script, instead of the `phpcov` package, which would have required changing `composer.lock`. See `docs/development/continuous-integration.md`.
+PHP backend coverage is measured with `phpcov`.
 
-* [x] Generate PHP coverage reports
-* [x] Enforce minimum 80% PHP coverage
-* [x] Fail CI when coverage is below 80%
-* [x] Block production eligibility when coverage is below 80%
-* [ ] Measure the baseline on the first CI run; if it is below 80%, set `PHP_COVERAGE_MIN` to the measured value and raise it step by step
-* [ ] Frontend (Vitest) coverage report and gate
+* [ ] Generate PHP coverage reports
+* [ ] Enforce minimum 80% PHP coverage
+* [ ] Fail CI when coverage is below 80%
+* [ ] Block production eligibility when coverage is below 80%
 
 ---
 
@@ -614,9 +593,9 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [x] Favourite tabs/sections per administrator
 * [x] Permission-aware UI
 
-#### Extension Manager UI (reference: Mediboard modules screen, reviewed 2026-08)
+#### Extension Manager UI
 
-* [x] Two tabs — adapted to "Enabled (N)" / "Disabled (N)": Pixely has no catalog of known-but-absent modules the way Mediboard does; an extension discovered on disk is registered and already installed by definition, so "Installed/Not installed" doesn't map to anything real here
+* [x] Two tabs — "Enabled (N)" / "Disabled (N)": extensions discovered on disk are registered as installed, so the manager distinguishes their operational state rather than listing extensions that are not present
 * [x] Table columns: name, dependencies, Configurer button, version, Enabled toggle, actions (details/config/update/uninstall)
 * [ ] "Type" column — not built: nothing in `ExtensionManifest` categorizes extensions today, and every row in this table is an extension by definition (Core modules aren't toggleable entries here), so there's no second dimension to show yet
 * [ ] "Visible" toggle — not built: a disabled extension's nav entries already disappear entirely (`AdminNav.vue` hides anything gated on a disabled extension's permissions), so a second, independent visibility flag would need new state with no clear use case driving it yet
@@ -657,7 +636,7 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [ ] Global settings/configuration search (find any setting across platform + extensions)
 * [ ] Translation management interface (view/edit every translation key, platform and extensions, in one place)
 
-#### Translation Management UI (reference: Mediboard translation screen, reviewed 2026-08)
+#### Translation Management UI
 
 * [ ] Filter by module (Core, or a specific installed extension), target language, and reference language
 * [ ] Per-category completion percentage (e.g. "70.69% — 5297/7493 terms"), with a visible progress indicator
@@ -1100,7 +1079,7 @@ This milestone gathers operational and developer-facing tools that support runni
 
 ### Database Explorer (dedicated admin-only extension)
 
-A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. Reference: a Mediboard-style query builder (screenshots reviewed 2026-08).
+A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. The interface should provide a clear, guided query-builder workflow with validation and safety controls.
 
 #### Query Builder — step wizard (`v-stepper`, 6 steps)
 
@@ -1391,12 +1370,12 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Frontend test coverage
 * [ ] Component test coverage
 * [ ] Storybook component testing
-* [x] Static analysis
-* [x] Code style enforcement
+* [ ] Static analysis
+* [ ] Code style enforcement
 * [ ] Security analysis
 * [ ] Performance testing
 * [ ] Accessibility testing
-* [x] CI/CD pipeline
+* [ ] CI/CD pipeline
 
 ---
 
@@ -1435,7 +1414,7 @@ Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role
 Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
  │
  ▼
-Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/Not-installed — Pixely has no not-yet-installed catalog) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
+Extension Manager UI (Enabled/Disabled tabs; Pixely manages discovered extensions rather than a catalog of extensions that are not installed) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
  │
  ▼
 Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
@@ -1467,7 +1446,7 @@ The Pixely Platform currently has a functional extension foundation with:
 * Users: self-service profile screen (avatar, bio, timezone)
 * Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
 * Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
-* Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
+* Extension Manager UI: Enabled/Disabled tabs, aligned with Pixely's extension discovery and lifecycle model, kept the existing dependency chips, config dialog, and uninstall safety toggle
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
@@ -1505,49 +1484,3 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
-
-
-## Platform Foundation Status (2026-10-09)
-
-### Completed foundations
-- [x] **S0 — Multi-Surface Foundation:** `PUBLIC`, `USER`, `ADMIN`, and `API` surface context/resolution, middleware, route metadata, authorization boundaries, and extension surface declarations.
-- [x] **S1 — Website Engine Foundation:** page and menu persistence, CRUD, slugs, publishing workflow, SEO metadata, navigation provider/API, public page rendering, safe content blocks, default content seeder, theme tokens, and public error pages.
-- [x] **S3 — User Space:** authenticated `/account` surface, dashboard/profile/preferences, generic favorites/history, API endpoints, pagination, ownership isolation, validation, timestamps, rate limiting, and automated tests.
-- [x] **Admin navigation foundation** and **extension generator foundation**.
-- [x] **User management foundation** and JSON:API migration foundations (resource objects, error responses, links, content negotiation, response classes, OpenAPI integration, frontend types, and tests).
-- [x] **Swagger UI foundation**; verify full interactive API exploration during release validation.
-
-### Current execution order
-1. S0 — Multi-Surface Foundation — **Complete**
-2. S1 — Website Engine Foundation — **Complete**
-3. S3 — User Space — **Complete**
-4. S4 — Extension SDK v2 — **Current**
-5. S5 — Theme & Design System
-6. S6 — Gallery Full-Surface
-7. S7 — Media & Asset Management
-8. S8 — Search & Discovery
-9. S9 — Notifications
-10. S10 — Jobs & Queue Platform
-11. S11 — Music
-12. S12 — Camping
-13. S13 — Media Converter
-14. S14 — Observability
-15. S15 — Security Hardening
-16. S16 — Performance & Scalability
-17. S17 — Backup & Disaster Recovery
-18. S18 — Developer Experience
-19. S19 — Documentation & Developer Portal
-20. S20 — Pixely Platform v1
-
-### S4 — Extension SDK v2 execution order
-1. Capability model and capability registry
-2. Migrate existing extensions to the SDK v2 structure
-3. Fresh-install extension generator
-4. Automatic route and navigation registration
-5. Block registry and settings schema API (initial implementation complete)
-6. Trusted block renderer contract and generated settings form (both contracts implemented; concrete extension renderers can be added when blocks are introduced)
-7. Frontend capability loader (initial implementation complete)
-8. Frontend dynamic route registry — implemented
-9. Coverage and production-quality gate
-
-> **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.

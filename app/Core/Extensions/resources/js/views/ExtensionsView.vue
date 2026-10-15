@@ -2,20 +2,14 @@
 // Extension Manager administration screen: list, enable/disable,
 // configure, install/update/uninstall extensions.
 //
-// Reference: Mediboard's modules screen uses "Installed (N)" / "Not
-// installed (N)" tabs, backed by a catalog of every known module
-// whether currently present or not. Pixely has no such catalog — an
-// extension discovered on disk (app/Extensions/*) is registered and,
-// by definition, already installed; the only state that varies from
-// there is Enabled/Disabled. The tabs below use that distinction
-// instead, rather than faking an "installed" concept Pixely doesn't have.
+// Extensions are discovered from the application and grouped by their
+// operational state: enabled or disabled.
 import { computed, onMounted, reactive, ref } from "vue";
 import { useApi } from "@shared/composables/useApi";
 import { useConfirmDialog } from "@shared/composables/useConfirmDialog";
 import { useNotify } from "@shared/composables/useNotify";
 import { useExtensionsStore } from "../store/extensions.store";
 import type { ExtensionSummary, ExtensionDetail } from "../models/Extension";
-import type { ExtensionSettingDefinition } from "../store/extensions.store";
 import ExtensionDependencyGraph from "../components/ExtensionDependencyGraph.vue";
 import { useAuthStore } from '@core/auth/store/auth.store'
 import { translate as t } from '@shared/plugins/i18n'
@@ -79,12 +73,11 @@ const {
 // non-strings has no simple widget, so it falls back to a per-field
 // JSON textarea rather than forcing every extension's config into a
 // flat shape.
-type ConfigFieldKind = "boolean" | "number" | "string" | "string-array" | "select" | "json";
+type ConfigFieldKind = "boolean" | "number" | "string" | "string-array" | "json";
 
 interface ConfigField {
   key: string;
   kind: ConfigFieldKind;
-  definition?: ExtensionSettingDefinition;
 }
 
 const configDialogOpen = ref(false);
@@ -124,27 +117,12 @@ function setStringArrayValue(key: string, value: unknown): void {
     : [];
 }
 
-function fieldKindForSchema(definition: ExtensionSettingDefinition, fallback: unknown): ConfigFieldKind {
-  if (Array.isArray(definition.options)) return "select";
-  if (definition.type === "boolean") return "boolean";
-  if (["integer", "number"].includes(definition.type)) return "number";
-  if (definition.type === "string[]") return "string-array";
-  if (definition.type === "string") return "string";
-  return fieldKindFor(fallback);
-}
-
-const configFields = computed<ConfigField[]>(() => {
-  const defaults = extensionsStore.configDefaults ?? {};
-  const schema = extensionsStore.settingsSchema;
-  if (schema && Object.keys(schema).length > 0) {
-    return Object.entries(schema).map(([key, definition]) => ({
-      key,
-      definition,
-      kind: fieldKindForSchema(definition, defaults[key] ?? definition.default),
-    }));
-  }
-  return Object.entries(defaults).map(([key, value]) => ({ key, kind: fieldKindFor(value) }));
-});
+const configFields = computed<ConfigField[]>(() =>
+  Object.entries(extensionsStore.configDefaults ?? {}).map(([key, value]) => ({
+    key,
+    kind: fieldKindFor(value),
+  })),
+);
 
 function syncFormValues(): void {
   for (const key of Object.keys(formValues)) delete formValues[key];
@@ -152,11 +130,10 @@ function syncFormValues(): void {
 
   const values = extensionsStore.configValues ?? {};
   for (const field of configFields.value) {
-    const value = values[field.key] ?? field.definition?.default ?? null;
     if (field.kind === "json") {
-      jsonDrafts[field.key] = JSON.stringify(value, null, 2);
+      jsonDrafts[field.key] = JSON.stringify(values[field.key] ?? null, null, 2);
     } else {
-      formValues[field.key] = value;
+      formValues[field.key] = values[field.key];
     }
   }
 }
@@ -254,10 +231,7 @@ async function handleUninstall(extension: ExtensionSummary): Promise<void> {
 
 async function openConfigDialog(extension: ExtensionSummary): Promise<void> {
   configTargetId.value = extension.id;
-  await Promise.all([
-    fetchConfig(extension.id),
-    extensionsStore.fetchSettingsSchema(extension.id),
-  ]);
+  await fetchConfig(extension.id);
   syncFormValues();
   configDialogOpen.value = true;
 }
@@ -379,7 +353,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             color="success"
             density="compact"
             hide-details
-            @update:model-value="(value: boolean | null) => value !== item.enabled && handleToggle(item)"
+            @update:model-value="handleToggle(item)"
           />
         </template>
 
@@ -500,59 +474,42 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
               <v-switch
                 v-if="field.kind === 'boolean'"
                 v-model="formValues[field.key]"
-                :label="field.definition?.label ?? labelFor(field.key)"
-                :hint="field.definition?.description"
-                :persistent-hint="Boolean(field.definition?.description)"
+                :label="labelFor(field.key)"
                 density="compact"
-                hide-details="auto"
+                hide-details
               />
               <v-text-field
                 v-else-if="field.kind === 'number'"
                 v-model.number="formValues[field.key]"
-                :label="field.definition?.label ?? labelFor(field.key)"
-                :min="field.definition?.min"
-                :max="field.definition?.max"
-                :hint="field.definition?.description"
-                :persistent-hint="Boolean(field.definition?.description)"
+                :label="labelFor(field.key)"
                 type="number"
-                density="compact"
-              />
-              <v-select
-                v-else-if="field.kind === 'select'"
-                v-model="formValues[field.key]"
-                :items="field.definition?.options ?? []"
-                :label="field.definition?.label ?? labelFor(field.key)"
-                :hint="field.definition?.description"
-                :persistent-hint="Boolean(field.definition?.description)"
                 density="compact"
               />
               <v-text-field
                 v-else-if="field.kind === 'string'"
                 v-model="formValues[field.key]"
-                :label="field.definition?.label ?? labelFor(field.key)"
-                :hint="field.definition?.description"
-                :persistent-hint="Boolean(field.definition?.description)"
+                :label="labelFor(field.key)"
                 density="compact"
               />
               <v-combobox
                 v-else-if="field.kind === 'string-array'"
                 :model-value="stringArrayValue(field.key)"
                 @update:model-value="(value) => setStringArrayValue(field.key, value)"
-                :label="field.definition?.label ?? labelFor(field.key)"
-                :hint="field.definition?.description ?? $t('extensions.msg.press_enter_hint', 'Press enter after each value')"
-                persistent-hint
+                :label="labelFor(field.key)"
                 multiple
                 chips
                 closable-chips
                 density="compact"
+                :hint="$t('extensions.msg.press_enter_hint', 'Press enter after each value')"
+                persistent-hint
               />
               <v-textarea
                 v-else
                 v-model="jsonDrafts[field.key]"
-                :label="`${field.definition?.label ?? labelFor(field.key)} (JSON)`"
+                :label="`${labelFor(field.key)} (JSON)`"
                 rows="4"
                 font="monospace"
-                :hint="field.definition?.description ?? $t('extensions.msg.json_fallback_hint', 'No simple form control for this shape — edit as JSON')"
+                :hint="$t('extensions.msg.json_fallback_hint', 'No simple form control for this shape — edit as JSON')"
                 persistent-hint
               />
             </div>
