@@ -452,10 +452,10 @@ jobs:
 
       # The unit and functional jobs each see part of the code, so their
       # reports are merged before the minimum is applied. Set the repository
-      # variable PHP_COVERAGE_MIN (0-100) to override the 80% default; 0
+      # variable PHP_COVERAGE_MIN (0-100) to override the 50% default; 0
       # reports without failing, which is how to measure a baseline.
       - name: Enforce minimum coverage
-        run: node scripts/coverage-gate.mjs build/coverage --min=${{ vars.PHP_COVERAGE_MIN || '10' }}
+        run: node scripts/coverage-gate.mjs build/coverage --min=${{ vars.PHP_COVERAGE_MIN || '50' }}
 
 
   frontend-e2e:
