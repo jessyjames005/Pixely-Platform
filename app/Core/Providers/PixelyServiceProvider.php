@@ -73,8 +73,10 @@ final class PixelyServiceProvider extends ServiceProvider
                 // A fresh SQLite install may not have created its database file yet, so
                 // avoid querying SQLite until that file exists. In that case, keep using
                 // the legacy JSON repository; the next application boot will select SQL.
-                if (! $this->sqliteDatabaseFileIsMissing($app)
-                    && Schema::hasTable('extension_states')) {
+                if (
+                    ! $this->sqliteDatabaseFileIsMissing($app)
+                    && Schema::hasTable('extension_states')
+                ) {
                     // Import legacy states before Kernel::boot() can initialize new rows as enabled.
                     $app->make(ExtensionStateJsonImporter::class)->import(
                         storage_path('pixely/extensions.json'),
@@ -125,8 +127,10 @@ final class PixelyServiceProvider extends ServiceProvider
 
         // Laravel projects commonly configure an absolute SQLite path. Resolve a
         // relative path against the application base path for consistent detection.
-        if (! str_starts_with($databasePath, DIRECTORY_SEPARATOR)
-            && ! preg_match('/^[A-Za-z]:[\\\\\/]/', $databasePath)) {
+        if (
+            ! str_starts_with($databasePath, DIRECTORY_SEPARATOR)
+            && ! preg_match('/^[A-Za-z]:[\\\\\/]/', $databasePath)
+        ) {
             $databasePath = $app->basePath($databasePath);
         }
 
