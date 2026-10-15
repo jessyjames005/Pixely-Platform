@@ -69,9 +69,12 @@ final class PixelyServiceProvider extends ServiceProvider
                     return new InMemoryExtensionStateRepository();
                 }
 
-                // Keep artisan migrate usable before the new table exists.
-                // Once migrated, runtime state is stored in the database.
-                if (Schema::hasTable('extension_states')) {
+                // Composer's package:discover boots this provider before migrations run.
+                // A fresh SQLite install may not have created its database file yet, so
+                // avoid querying SQLite until that file exists. In that case, keep using
+                // the legacy JSON repository; the next application boot will select SQL.
+                if (! $this->sqliteDatabaseFileIsMissing($app)
+                    && Schema::hasTable('extension_states')) {
                     // Import legacy states before Kernel::boot() can initialize new rows as enabled.
                     $app->make(ExtensionStateJsonImporter::class)->import(
                         storage_path('pixely/extensions.json'),
@@ -97,6 +100,37 @@ final class PixelyServiceProvider extends ServiceProvider
                 );
             },
         );
+    }
+
+    /**
+     * Detect a not-yet-created SQLite file before Schema attempts to connect to it.
+     *
+     * In-memory SQLite databases are intentionally excluded because they are valid
+     * connections even though they do not correspond to a filesystem path.
+     */
+    private function sqliteDatabaseFileIsMissing($app): bool
+    {
+        $connectionName = (string) config('database.default');
+        $connection = config('database.connections.' . $connectionName, []);
+
+        if (($connection['driver'] ?? null) !== 'sqlite') {
+            return false;
+        }
+
+        $databasePath = $connection['database'] ?? null;
+
+        if (! is_string($databasePath) || $databasePath === '' || $databasePath === ':memory:') {
+            return false;
+        }
+
+        // Laravel projects commonly configure an absolute SQLite path. Resolve a
+        // relative path against the application base path for consistent detection.
+        if (! str_starts_with($databasePath, DIRECTORY_SEPARATOR)
+            && ! preg_match('/^[A-Za-z]:[\\\\\/]/', $databasePath)) {
+            $databasePath = $app->basePath($databasePath);
+        }
+
+        return ! is_file($databasePath);
     }
 
     /**
