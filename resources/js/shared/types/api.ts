@@ -96,11 +96,30 @@ export function serializeRelationship(
   return { data: resources.map(({ type, id }) => ({ type, id })) }
 }
 
+const RESOURCE_MEMBERS = ['id', 'type', 'attributes', 'relationships', 'meta', 'links'] as const
+
+/**
+ * Return the attributes of a resource object.
+ *
+ * Some Core endpoints (for example /extensions) answer with flat objects
+ * ({ id, name, enabled, ... }) instead of { id, type, attributes }. Without this
+ * fallback every flat field is lost and the UI shows empty or disabled data.
+ */
+function resourceAttributes<TAttributes extends object>(
+  resource: JsonApiResource<TAttributes>,
+): Partial<TAttributes> {
+  if (resource.attributes !== undefined && resource.attributes !== null) return resource.attributes
+
+  return Object.fromEntries(
+    Object.entries(resource).filter(([key]) => !(RESOURCE_MEMBERS as readonly string[]).includes(key)),
+  ) as Partial<TAttributes>
+}
+
 export function deserializeResource<TAttributes extends object>(
   resource: JsonApiResource<TAttributes>,
 ): JsonApiModel<TAttributes> {
   return {
-    ...resource.attributes,
+    ...resourceAttributes(resource),
     id: resource.id,
     type: resource.type,
     ...(resource.relationships ? { relationships: resource.relationships } : {}),
