@@ -325,6 +325,7 @@ Storybook provides an isolated environment for developing and documenting Vue.js
 
 ## S4 — Extension SDK v2
 
+
 The next SDK generation standardizes how extensions declare capabilities consumed by Core and Platform surfaces.
 
 ### Capability model
@@ -356,6 +357,17 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * Tuleap: navigation + routes + permissions
 * CinemaMovie: navigation + routes + permissions
 * Existing lifecycle, dependencies, configuration and migration mechanisms remain compatible
+
+## v0.7.0 - Database-backed Extension Registry (S5)
+
+### Extension Runtime State
+
+* [x] Persist extension enabled/disabled state in the `extension_states` database table
+* [x] Keep extension manifests and PHP code as the source of identity, version and capabilities
+* [x] Import legacy `storage/pixely/extensions.json` records idempotently without overwriting database-managed state
+* [x] Keep fresh-install migrations bootable before the new table exists
+* [ ] Run repository and migration/import command tests
+* [x] Document the migration and rollback workflow
 
 ## v0.5.0 - Extension SDK
 

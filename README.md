@@ -1,48 +1,164 @@
-# Correctif CI — tests fonctionnels en échec
+# Pixely Platform
 
-Fichiers modifiés (à copier à la racine du dépôt, ils écrasent les versions actuelles) :
+> **Build once. Extend forever.**
 
-- `bootstrap/app.php` : les erreurs de validation rendues par le parseur JSON:API reçoivent le membre `code: VALIDATION_ERROR` (le parseur est appelé tel quel, les pointers et la structure ne changent pas). Corrige 7 tests (login, two-factor, mot de passe, reset).
-- `app/Core/Users/Http/Controllers/UserEngagementController.php` : `DELETE /me/favorites/{type}/{id}` répond `200 {"removed": true|false}` au lieu de `204`.
-- `tests/Feature/Core/Extensions/ExtensionPermissionSyncOnEnableTest.php` : l'identifiant passé à `/enable` est le slug brut (`gallery`), comme le contrôleur l'attend (l'ID `DocumentId` provoquait un 404), et les assertions suivent la réponse réelle du contrôleur (`data.id`, `data.enabled`, `application/json`).
-- `tests/Feature/Core/Providers/PixelyServiceProviderTest.php` : le test attend le binding `InMemoryExtensionStateRepository` en environnement de test, comme le provider le fait volontairement.
+Pixely Platform is an extensible web platform built with **Laravel, PHP, Vue 3 and TypeScript**. It provides a shared Core and an extension system so that features can be developed, enabled and maintained independently instead of being tightly coupled to the application.
 
-- `tests/Feature/Core/Users/UserEngagementSurfaceTest.php` : le test attendait un 403, alors que les routes d'engagement sont explicitement sur la surface `user` et répondent 200 à un utilisateur authentifié. Il vérifie désormais que la route est liée à `surface:user` et qu'elle répond 200.
+The project is under active development. The roadmap is the source of truth for implementation status; planned capabilities should not be assumed to be production-ready.
 
-- `phpstan-baseline.neon` : suppression des 5 entrées `$router` devenues inutiles (providers CinemaMovie, Files, Gallery, Translations, Tuleap, qui n'utilisent plus `$this->app->router`) et `count: 2` pour `UserServiceProvider` (2 groupes de routes).
-- `app/Core/Extensions/Capabilities/Registry/ExtensionBlockRegistry.php` : retrait du `instanceof ExtensionInterface` toujours vrai (le type vient du PHPDoc `iterable<ExtensionInterface>`).
+## What Pixely is for
 
-- `phpcs.xml` : les règles PSR1 `CamelCapsMethodName`, `ClassDeclaration` (namespace / une classe par fichier) et `SideEffects` ne s'appliquent plus à `tests/` (méthodes `test_it_...` de PHPUnit, classes de test inline dans les fichiers Pest). `ClassDeclaration` est aussi désactivée pour les migrations (classes sans namespace).
-- `app/Extensions/{CinemaMovie,Files,Gallery,Translations}/extension.php`, `tests/Fixtures/Extensions/{Gallery,Media}/extension.php`, `app/Core/Users/routes/engagement.php`, `routes/web.php`, `database/migrations/2026_10_07_000000_create_website_engine_tables.php` : le docblock de fichier est déplacé juste après `<?php` (avant `declare`), comme l'exige PSR-12. Aucun changement de code.
+Pixely is intended to provide a reusable foundation for applications that need a combination of:
 
-- `resources/js/shared/navigation/useVisibleNav.integration.test.ts` : le mock de `fetchNavigation` renvoie maintenant une promesse (`mockResolvedValue(undefined)`) et l'utilisateur mocké a un `id`. `useVisibleNav` appelle `.catch()` sur ce retour, et `vi.fn()` renvoyait `undefined` (3 tests Vitest en échec).
+- A public website for pages and navigation.
+- A secure user area for authenticated users.
+- An administration interface for users, roles, permissions, settings and extensions.
+- A versioned API for the platform and its extensions.
+- Independently developed extensions for domain-specific features.
 
-- `resources/js/router/index.ts` : ajout des routes Vue Router `forgot-password` (`/forgot-password`) et `reset-password` (`/reset-password`). `LoginView` pointait vers `{ name: 'forgot-password' }` qui n'existait pas, donc le lien « Forgot your password? » n'était jamais rendu (E2E `AuthRecovery`).
-- `tests/E2E/AdminNavigation.spec.ts` : depuis le SDK v2, les entrées d'extension (Gallery...) viennent de `GET /api/v1/extensions/navigation` et sont affichées au premier niveau, pas dans le groupe « Extensions ». Le test attendait l'ancien sous-menu imbriqué ; il vérifie maintenant que « Manage extensions » s'ouvre dans le groupe et que Gallery est un lien de premier niveau.
+## Architecture at a glance
 
-- `tests/E2E/UserSpaceEngagement.spec.ts`, `UserSpaceSecurity.spec.ts` : login via les sélecteurs `autocomplete` et le bouton « Sign in » (`getByLabel(/password/i)` trouvait aussi l'icône « œil », d'où l'erreur strict mode), avec `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` comme dans le reste de la suite (ces specs utilisaient `admin@example.com`, absent du seed).
-- `tests/E2E/UserEngagement.spec.ts` : attend la fin du login avant les appels `page.request`, et envoie `Referer` + `X-XSRF-TOKEN` (sinon Sanctum ne traite pas la requête comme stateful).
-- `tests/E2E/WebsitePublic.spec.ts` : lien « Contact » en `exact: true` (« Contact us » correspondait aussi).
-- `tests/E2E/WebsitePublicErrors.spec.ts` : une page publique inconnue renvoie un vrai 404 rendu par Laravel (`errors/404.blade.php`), dont le texte est « The requested resource could not be found. ».
+### Core
 
-- `.github/workflows/ci.yml` : le job `frontend-e2e` est en pause (`if: vars.RUN_E2E == 'true'`). Pour le réactiver, créer la variable de dépôt `RUN_E2E` = `true`. Le job `production-quality` ne dépend plus d'un E2E ignoré (`!cancelled() && !contains(needs.*.result, 'failure')`), mais échoue toujours si un autre job échoue.
+The Core provides shared services and contracts, including:
 
-- `docker-compose.yml` (sprint « mot de passe oublié ») : ajout du service `mailpit` (interface sur http://localhost:8025) et, pour le conteneur `app` uniquement, `MAIL_MAILER=smtp`, `MAIL_HOST=mailpit`, `MAIL_PORT=1025` et `APP_URL=http://localhost:8080`. Sans ce dernier, le lien du mail de réinitialisation pointait vers `http://localhost` (port 80) au lieu de 8080. `.env.example` n'est pas modifié, donc la CI et les tests gardent `MAIL_MAILER=log`.
+- Authentication and user management.
+- Roles, permissions and authorization.
+- Platform settings and localization.
+- Extension discovery, lifecycle, configuration and capabilities.
+- Navigation and route registration across supported application surfaces.
+- API infrastructure and common services.
 
-- `resources/js/router/index.ts` (vue Rôles inaccessible) : les routes `admin.users`, `admin.roles`, `admin.permissions`, `admin.settings` exigeaient des permissions inexistantes (`users.users.view`, `roles.roles.manage`, `permissions.permissions.manage`, `settings.settings.manage`). Le garde de route renvoyait vers `login`, puis vers le dashboard : l'admin retombait silencieusement sur le Dashboard. Elles utilisent maintenant les permissions du seeder et de la navigation : `users.view`, `roles.view` (Rôles et Permissions), et aucune pour Paramètres (la vue gère elle-même les onglets de la plateforme).
-- `app/Core/Settings/resources/js/store/settings.store.ts` (405 sur `/api/v1/user-settings/1`) : le store faisait un `PUT` alors que l'API JSON:API n'accepte que `PATCH` (cf. `UserSettingApiTest`, `PlatformSettingApiTest`). Il utilise `patchResource` pour les réglages utilisateur et plateforme.
+### Extensions
 
-- `resources/js/shared/types/api.ts` (+ `api.test.ts`) — **extensions toutes « Disabled » et menu qui disparaît** : `GET /api/v1/extensions` répond avec des objets plats (`{ id, name, enabled, … }`, c'est ce que vérifient les tests PHP `ExtensionApiTest`), alors que le décodeur JSON:API du front ne lisait que `resource.attributes`. Tous les champs se perdaient, donc `enabled` valait `undefined` ; la vue Extensions affichait 0 activée et la navigation masquait chaque entrée d'extension « désactivée ». `deserializeResource` retombe maintenant sur les champs plats quand `attributes` est absent.
-- `app/Core/Extensions/resources/js/views/ExtensionsView.vue` : garde `value !== item.enabled` sur l'interrupteur. Non lié à ce bug (l'onglet Network a montré qu'aucun `disable` n'est envoyé) mais sans risque ; peut être ignoré.
+Extensions add optional features without requiring business-specific code to be placed in the Core. An extension can declare its identity, version, dependencies, permissions, configuration and supported surfaces through the extension contracts and manifest.
 
-## Non résolu (diagnostic impossible sans exécution)
+Gallery is an example extension. The extensions available in a given checkout depend on the source code and their configuration; the roadmap describes their current implementation status.
 
-`UserSpace.spec.ts` (goto `/account` après login → redirigé vers `/login`) et `WebsiteAdmin.spec.ts` (tests « creates a website page/menu » : `page.goto('/admin/website/...')` ne montre pas le bouton) échouent tous deux après un rechargement complet de page suivant le login ; les tests qui restent en navigation client passent. Piste : la session n'est pas reconnue par le middleware `auth` serveur au rechargement. Il faut le trace Playwright (`error-context.md`) de l'un de ces tests.
+### Application surfaces
 
-## Vérification
+Pixely is evolving as a multi-surface platform:
 
-Non exécuté : PHP n'est pas disponible dans l'environnement de travail. À lancer dans le conteneur :
+- **Public website** — public pages and navigation.
+- **User space** — authenticated, user-facing features.
+- **Administration** — platform and extension management.
+- **API** — programmatic access to platform and extension capabilities.
 
-```bash
-docker exec docker-php-1 bash -c "cd /var/www/html && php artisan test tests/Feature && composer phpstan && composer cs:check && npm test && npm run test:e2e"
+Access to protected features is controlled through authentication, surface authorization and permissions.
+
+## Integration with external software
+
+Pixely is designed to support integrations with **external software and services** through dedicated extensions, adapters and APIs. An integration can exchange data with another system when the relevant connector, authentication, permissions and configuration have been implemented.
+
+This is an architectural capability, not a promise that every external product is already integrated. Each integration must be assessed, implemented and tested independently. Credentials and other secrets should be stored using the application's secure configuration mechanisms, not committed to source control.
+
+## Technology stack
+
+| Area | Technologies |
+| --- | --- |
+| Backend | PHP 8.3+, Laravel |
+| Frontend | Vue 3, TypeScript, Vue Router, Vuetify, Vite |
+| API | JSON:API conventions and generated API documentation |
+| Database and services | MySQL, Redis |
+| Testing and quality | Pest / PHPUnit, Vitest, Playwright, PHPStan, PHPCS, ESLint, TypeScript checks |
+| Development environment | Docker Compose, Composer, Node.js / npm |
+| CI | GitHub Actions |
+
+The exact supported versions are defined by `composer.json`, `package.json` and the lock files.
+
+## Getting started
+
+### Requirements
+
+- Docker Desktop with Docker Compose, or an equivalent Docker environment.
+- Git.
+
+The Docker setup provides the PHP application, web server, Node.js tooling, MySQL and Redis services.
+
+### Start the containers
+
+From the repository root, run:
+
+```powershell
+docker compose up -d --build
 ```
+
+Install backend dependencies and initialise the Laravel application inside the PHP container:
+
+```powershell
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate
+```
+
+Install frontend dependencies and build the assets inside the Node container:
+
+```powershell
+docker compose exec node npm ci
+docker compose exec node npm run build:front
+```
+
+Open the application at **http://localhost:8080**.
+
+> **Environment note:** review `.env.example` and the Docker Compose configuration before using a non-local environment. Do not reuse development credentials or expose development-only tools in production. If your local environment already has a configured `.env` and application key, do not overwrite them unnecessarily.
+
+## Useful development commands
+
+Run backend tests:
+
+```powershell
+docker compose exec app php artisan test
+```
+
+Run backend static analysis and coding-standard checks:
+
+```powershell
+docker compose exec app composer phpstan
+docker compose exec app composer cs:check
+```
+
+Run frontend tests, type checks, linting and a production build:
+
+```powershell
+docker compose exec node npm test
+docker compose exec node npm run typecheck
+docker compose exec node npm run lint
+docker compose exec node npm run build:front
+```
+
+Run end-to-end tests when the E2E profile and its environment are configured:
+
+```powershell
+docker compose --profile e2e run --rm e2e
+```
+
+Use the project's CI configuration and `package.json` / `composer.json` as the definitive reference for available checks.
+
+## Documentation
+
+- [`VISION.md`](VISION.md) — product goals and principles.
+- [`ROADMAP.md`](ROADMAP.md) — implementation status and planned work.
+- [`CHANGELOG.md`](CHANGELOG.md) — notable changes.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — high-level architecture.
+- [`docs/architecture/`](docs/architecture/) — architecture documentation and decisions.
+- [`docs/handbook/`](docs/handbook/) — practical guides.
+- [`docs/api/`](docs/api/) — API documentation and generated specifications.
+- [`docs/development/`](docs/development/) — development conventions and project rules.
+
+Significant architectural decisions should be documented in Architecture Decision Records (ADRs).
+
+## Project status
+
+Pixely Platform is actively evolving. Some foundations and extension capabilities are implemented, while other product features and integrations remain in progress or planned. Check [`ROADMAP.md`](ROADMAP.md) before relying on a capability or assuming it is complete.
+
+## Contributing
+
+1. Check the roadmap and relevant architecture documentation before starting work.
+2. Keep extension-specific business logic out of the Core whenever an extension contract is appropriate.
+3. Add or update tests and documentation with each change.
+4. Run the relevant quality checks before opening a pull request.
+5. Follow the repository's branch, commit and pull-request conventions.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE) if present in this checkout.

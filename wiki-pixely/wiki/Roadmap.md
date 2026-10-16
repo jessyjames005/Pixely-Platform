@@ -160,7 +160,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission checks
 * [x] Extension-declared permissions (dynamic, not hardcoded) — sync mechanism is done; the richer Roles UI described below is not, see detailed checklist
 
-#### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
+#### Extension-declared permissions (reviewed 2026-08)
 
 Today, permission sync is automatic: each extension optionally implements
 `ExtensionPermissionsInterface::declaredPermissions()`, and
@@ -601,9 +601,9 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [x] Favourite tabs/sections per administrator
 * [x] Permission-aware UI
 
-#### Extension Manager UI (reference: Mediboard modules screen, reviewed 2026-08)
+#### Extension Manager UI (reviewed 2026-08)
 
-* [x] Two tabs — adapted to "Enabled (N)" / "Disabled (N)": Pixely has no catalog of known-but-absent modules the way Mediboard does; an extension discovered on disk is registered and already installed by definition, so "Installed/Not installed" doesn't map to anything real here
+* [x] Two tabs — adapted to "Enabled (N)" / "Disabled (N)": Pixely has no catalog of known-but-absent modules the way external app does; an extension discovered on disk is registered and already installed by definition, so "Installed/Not installed" doesn't map to anything real here
 * [x] Table columns: name, dependencies, Configurer button, version, Enabled toggle, actions (details/config/update/uninstall)
 * [ ] "Type" column — not built: nothing in `ExtensionManifest` categorizes extensions today, and every row in this table is an extension by definition (Core modules aren't toggleable entries here), so there's no second dimension to show yet
 * [ ] "Visible" toggle — not built: a disabled extension's nav entries already disappear entirely (`AdminNav.vue` hides anything gated on a disabled extension's permissions), so a second, independent visibility flag would need new state with no clear use case driving it yet
@@ -644,7 +644,7 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [ ] Global settings/configuration search (find any setting across platform + extensions)
 * [ ] Translation management interface (view/edit every translation key, platform and extensions, in one place)
 
-#### Translation Management UI (reference: Mediboard translation screen, reviewed 2026-08)
+#### Translation Management UI (reviewed 2026-08)
 
 * [ ] Filter by module (Core, or a specific installed extension), target language, and reference language
 * [ ] Per-category completion percentage (e.g. "70.69% — 5297/7493 terms"), with a visible progress indicator
@@ -1087,7 +1087,7 @@ This milestone gathers operational and developer-facing tools that support runni
 
 ### Database Explorer (dedicated admin-only extension)
 
-A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. Reference: a Mediboard-style query builder (screenshots reviewed 2026-08).
+A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. Reference: a external app query builder (screenshots reviewed 2026-08).
 
 #### Query Builder — step wizard (`v-stepper`, 6 steps)
 
@@ -1422,7 +1422,7 @@ Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role
 Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
  │
  ▼
-Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/Not-installed — Pixely has no not-yet-installed catalog) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
+Extension Manager UI — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
  │
  ▼
 Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
@@ -1454,7 +1454,7 @@ The Pixely Platform currently has a functional extension foundation with:
 * Users: self-service profile screen (avatar, bio, timezone)
 * Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
 * Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
-* Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
+* Extension Manager UI: Enabled/Disabled tabs, kept the existing dependency chips, config dialog, and uninstall safety toggle
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
