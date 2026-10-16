@@ -129,7 +129,7 @@ final class PixelyServiceProvider extends ServiceProvider
         // relative path against the application base path for consistent detection.
         if (
             ! str_starts_with($databasePath, DIRECTORY_SEPARATOR)
-            && ! preg_match('/^[A-Za-z]:[\\\\/]/', $databasePath)
+            && ! preg_match('~^[A-Za-z]:[\\\\/]~', $databasePath)
         ) {
             $databasePath = $app->basePath($databasePath);
         }
