@@ -230,16 +230,16 @@ The Administration layer provides the first visual interface for managing the Pi
 * [x] Vuetify integration
 * [x] Pixely Design System
 * [x] Design tokens (via Vuetify theme)
-* [ ] Typography system (au-delà des defaults Vuetify)
-* [ ] Spacing system (au-delà des defaults Vuetify)
+* [x] Typography system (shared type scale and line-height tokens; existing screens still need incremental adoption)
+* [x] Spacing system (shared 4px-based token scale; existing screens still need incremental adoption)
 * [ ] Icon system
 * [x] Colour system
 * [x] Theme system
 * [x] Light theme
 * [x] Dark theme
-* [ ] Responsive design rules
-* [ ] Accessibility rules
-* [ ] Dedicated visual identity for the System/Tooling/Administration area (black, electric blue, white palette), distinct from the general platform theme
+* [x] Responsive design rules (baseline breakpoints and mobile gutters documented)
+* [x] Accessibility rules (visible keyboard focus and reduced-motion baseline; full audit remains outstanding)
+* [x] Dedicated visual identity foundation for the System/Tooling/Administration area (neutral dark/white foundation and electric-blue primary; full component migration remains outstanding)
 
 ### UI Design & Prototyping
 
@@ -247,7 +247,7 @@ The Administration layer provides the first visual interface for managing the Pi
 * [ ] Figma or equivalent free design tool
 * [ ] Administration wireframes
 * [ ] Administration layout mockups
-* [ ] Design System documentation
+* [x] Design System documentation (initial foundations and conventions in `docs/design-system/DESIGN_SYSTEM.md`)
 * [ ] Component specifications
 * [ ] Responsive mockups
 * [ ] Dark mode mockups
