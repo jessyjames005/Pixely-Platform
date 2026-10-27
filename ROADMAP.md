@@ -1353,6 +1353,19 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Audit system
 * [ ] Backup system
 
+### Database Architecture & Scalability
+
+* [ ] Configurable external database connections: register multiple named connections (supported drivers, host/port/database, TLS options) through secure configuration rather than hard-coded connection details
+* [ ] Connection management UI and API: test connectivity, display health/status, enable/disable a connection, and restrict management to authorised administrators
+* [ ] Secure credential handling: keep secrets out of source control and logs; use environment/secret configuration and encrypted-at-rest storage where persisted credentials are required
+* [ ] Per-connection schema versioning: track applied migration identifiers and versions independently for each managed database
+* [ ] Versioned database migrations: ordered, repeatable and auditable upgrades, migration locks, preflight checks, dry-run/plan output, and clear failure reporting
+* [ ] Safe migration policy: backups or verified recovery points before production migrations; document rollback limits for destructive or data-transforming migrations
+* [ ] Primary/read-replica configuration for production: route writes and consistency-sensitive reads to the primary, and eligible read-only queries to configured replicas
+* [ ] Replica health and lag monitoring, configurable fallback to the primary when a replica is unavailable or too far behind, and clear logging/metrics for routing decisions
+* [ ] Tests for multiple connections, migration history isolation, read/write routing, replica failure, and stale-read-sensitive operations
+* [ ] Operational documentation covering setup, credentials, replication prerequisites, migration procedures, recovery, and troubleshooting
+
 ### Frontend Platform
 
 * [ ] Vue.js 3 platform architecture
@@ -1538,6 +1551,24 @@ The roadmap should be updated progressively as each sprint is completed.
 18. S18 — Developer Experience
 19. S19 — Documentation & Developer Portal
 20. S20 — Pixely Platform v1
+21. S21 — External Database Connections & Read Replication
+
+### S21 — External Database Connections & Read Replication (planned)
+
+**Goal:** allow Pixely to connect safely to additional databases, manage their schema evolution, and reduce production read load by routing eligible reads to database replicas.
+
+* [ ] Define supported database drivers and a typed configuration contract for named connections
+* [ ] Implement secure connection registration, connection testing, health status, and permission-gated administration
+* [ ] Keep credentials in environment/secret configuration; never expose secrets through APIs, UI responses, logs, or exception messages
+* [ ] Implement a per-connection migration ledger so schema versions and applied migrations remain isolated between databases
+* [ ] Add migration planning/preflight checks, locking, failure recovery guidance, and an explicit policy for destructive migrations
+* [ ] Implement primary/write and replica/read connection roles; keep writes and consistency-sensitive reads on the primary
+* [ ] Route only eligible read-only queries to healthy replicas, with configurable lag thresholds and fallback to the primary
+* [ ] Expose replica health and replication lag through authorised diagnostics/monitoring
+* [ ] Add automated tests for connection isolation, migration versioning, routing, replica unavailability, and consistency-sensitive reads
+* [ ] Document deployment configuration, database permissions, replication setup, migration operations, and recovery procedures
+
+> **Safety rule:** read replicas are not independent write targets. Pixely must never route writes to a read replica. Migration execution against external databases must be explicit, permission-gated, and auditable.
 
 ### S4 — Extension SDK v2 execution order
 1. Capability model and capability registry
