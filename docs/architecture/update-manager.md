@@ -170,3 +170,21 @@ The current Docker topology deliberately separates PHP/Composer (`app`) from Nod
 - No automatic restoration of lockfiles yet; the orchestrator will own snapshots and recovery.
 - No extension discovery, registry calls, artifact downloads or extension installation (U3–U5).
 - No automatic major-version upgrades and no `npm audit fix --force`.
+
+
+## U3 — Installed extension inventory and registry discovery
+
+U3 adds a read-only inventory and discovery vertical slice on top of the existing extension subsystem. `InstalledExtensionInventory` delegates filesystem discovery and manifest parsing to the existing `ExtensionRepository::manifests()` and reads the authoritative installed version from `ExtensionVersionRepository`. For legacy extensions without a version row, it falls back to the manifest version. It does not instantiate extension classes or modify extension state.
+
+Local extension identifiers remain unchanged (for example `gallery`). `PixelyExtensionPackageIdResolver` maps them to official registry identifiers (`pixely/gallery`). The mapping is isolated behind `ExtensionPackageIdResolverInterface` so a future verified namespace mapping can replace the default without changing discovery.
+
+`ExtensionUpdateDiscovery` submits one `UpdateQuery` per installed extension to `UpdateRegistryInterface`. Registry results are treated as untrusted: only extension candidates with the exact expected package identifier and requested channel, and a strictly newer version, are eligible. The highest eligible version is returned. The service is read-only and does not download archives, verify signatures or install code.
+
+No registry HTTP endpoint, response schema, authentication flow or API client is invented in U3. The official-registry transport is implemented only after its API contract is defined. GitHub and GitLab remain artifact hosts and cannot author release metadata.
+
+### U3 non-goals
+
+- No HTTP registry client or registry server implementation.
+- No artifact downloads, archive extraction or signature verification (U4).
+- No dependency graph planning, installation, migrations or rollback (U5).
+- No CLI command or update UI (U6).
