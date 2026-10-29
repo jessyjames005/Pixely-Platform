@@ -371,6 +371,22 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [ ] Run repository and migration/import command tests
 * [x] Document the migration and rollback workflow
 
+## U1 — Pixely Update Manager Foundation
+
+The Update Manager provides one orchestration boundary for platform dependencies and installable extensions, plugins and themes. The official Pixely Registry is the authoritative release catalogue; Pixely, GitHub and GitLab may host release artifacts.
+
+### Architecture and contracts
+
+* [x] Record the official-registry and artifact-hosting decision (ADR-0009)
+* [x] Document the Update Manager boundaries, lifecycle and security requirements
+* [x] Define registry, artifact-source, verifier and installer contracts
+* [x] Define immutable update query, release, artifact, plan and installation DTOs
+* [x] Define component types, release channels and artifact providers
+* [x] Add DTO invariant unit tests
+* [ ] Implement registry, hosting, verification and installation adapters (U3–U5)
+* [ ] Implement Composer/npm dependency adapters (U2)
+* [ ] Implement the unified Artisan command and update history (U6)
+
 ## v0.5.0 - Extension SDK
 
 The Extension SDK provides a stable foundation for building independent Pixely extensions.
