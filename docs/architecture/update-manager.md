@@ -149,3 +149,24 @@ The planned single entry point is `php artisan pixely:update`. It will support `
 ## Testing strategy
 
 U1 contracts are intentionally framework-independent. Tests for DTO invariants are added with their implementations. Subsequent phases must use fake registry/source/verifier/installer implementations to test orchestration without network access, then add integration tests for the real adapters and Docker execution.
+
+## U2 — Composer and npm dependency adapters
+
+U2 introduces process-backed adapters for Composer and npm behind `DependencyUpdaterInterface` and `ProcessRunnerInterface`.
+
+- Composer checks direct dependencies with `composer outdated --direct --format=json` and updates within the constraints already declared in `composer.json` using `composer update --with-all-dependencies --no-interaction`.
+- npm checks the installed project with `npm outdated --json`, updates within the semver ranges already declared in `package.json` using `npm update`, and applies non-forced security fixes with `npm audit fix`. Composer reports security advisories through `composer audit`; it deliberately refuses a misleading “security-only update” because Composer has no equivalent safe selective operation.
+- Neither adapter uses a shell, `--force`, hand-edits lockfiles, or silently changes declared version ranges.
+- Dry-run is passed to the underlying package manager. Audit results preserve non-zero exit codes because an audit finding is report data, not a process-launch failure.
+- Package-manager execution is bounded by a one-hour process timeout. A later orchestration layer must capture the pre-update lockfiles and restore them if a package-manager operation fails.
+
+### Docker execution boundary
+
+The current Docker topology deliberately separates PHP/Composer (`app`) from Node/npm (`node`). The npm adapter must therefore execute inside the Node service (or another explicitly configured Node runtime); it must not assume that `npm` exists in the PHP container. The final single-command CLI in U6 will coordinate both service contexts through the supported host/Compose entry point. Do not install a second, drifting Node toolchain into the PHP application image merely to make the adapters share a process.
+
+### U2 non-goals
+
+- No unified Artisan command or cross-container dispatcher yet (U6).
+- No automatic restoration of lockfiles yet; the orchestrator will own snapshots and recovery.
+- No extension discovery, registry calls, artifact downloads or extension installation (U3–U5).
+- No automatic major-version upgrades and no `npm audit fix --force`.

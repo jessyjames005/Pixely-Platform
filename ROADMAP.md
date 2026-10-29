@@ -384,7 +384,7 @@ The Update Manager provides one orchestration boundary for platform dependencies
 * [x] Define component types, release channels and artifact providers
 * [x] Add DTO invariant unit tests
 * [ ] Implement registry, hosting, verification and installation adapters (U3–U5)
-* [ ] Implement Composer/npm dependency adapters (U2)
+* [x] Implement Composer/npm dependency adapters (U2)
 * [ ] Implement the unified Artisan command and update history (U6)
 
 ## v0.5.0 - Extension SDK
@@ -1600,3 +1600,11 @@ The roadmap should be updated progressively as each sprint is completed.
 9. Coverage and production-quality gate
 
 > **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.
+
+## U2 — Composer and npm Dependency Adapters
+
+* [x] Add process-runner and dependency-updater contracts
+* [x] Add Composer and npm adapters with constrained updates, check, dry-run and audit operations
+* [x] Add unit tests for command construction and failure handling
+* [ ] Integrate lockfile snapshots/recovery and cross-container orchestration (U6)
+
