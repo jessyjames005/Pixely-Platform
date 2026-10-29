@@ -42,9 +42,9 @@
   --px-radius-pill: 999px;
 
   /* Elevation */
-  --px-elevation-1: 0 1px 2px rgb(15 23 42 / 0.08);
-  --px-elevation-2: 0 4px 12px rgb(15 23 42 / 0.10);
-  --px-elevation-3: 0 12px 28px rgb(15 23 42 / 0.14);
+  --px-elevation-1: 0 1px 2px rgb(15 23 42 / 8%);
+  --px-elevation-2: 0 4px 12px rgb(15 23 42 / 10%);
+  --px-elevation-3: 0 12px 28px rgb(15 23 42 / 14%);
 
   /* Interaction and layout */
   --px-focus-ring-width: 3px;
@@ -95,7 +95,7 @@
 }
 
 /* Keep layout gutters predictable on small screens. */
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .v-application .v-container {
     padding-inline: var(--px-space-4);
   }

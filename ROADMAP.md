@@ -58,6 +58,8 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 * [x] 80% minimum PHP coverage gate (default 80, overridable with the `PHP_COVERAGE_MIN` repository variable)
 * [x] Production quality gate (waits for code style and the coverage gate)
 * [x] CI also runs on `develop`; a newer push cancels the superseded run
+* [x] Adopt the MIT license for Pixely Platform (`LICENSE`; copyright: Pixely Platform contributors)
+* [ ] SonarQube Cloud integration for public-repository code-quality analysis (GitHub Actions, PHP and TypeScript/Vue; configure coverage import and Quality Gate when supported)
 * [ ] Continuous deployment
 
 ---
@@ -230,16 +232,16 @@ The Administration layer provides the first visual interface for managing the Pi
 * [x] Vuetify integration
 * [x] Pixely Design System
 * [x] Design tokens (via Vuetify theme)
-* [x] Typography system (shared type scale and line-height tokens; existing screens still need incremental adoption)
-* [x] Spacing system (shared 4px-based token scale; existing screens still need incremental adoption)
+* [ ] Typography system (au-delà des defaults Vuetify)
+* [ ] Spacing system (au-delà des defaults Vuetify)
 * [ ] Icon system
 * [x] Colour system
 * [x] Theme system
 * [x] Light theme
 * [x] Dark theme
-* [x] Responsive design rules (baseline breakpoints and mobile gutters documented)
-* [x] Accessibility rules (visible keyboard focus and reduced-motion baseline; full audit remains outstanding)
-* [x] Dedicated visual identity foundation for the System/Tooling/Administration area (neutral dark/white foundation and electric-blue primary; full component migration remains outstanding)
+* [ ] Responsive design rules
+* [ ] Accessibility rules
+* [ ] Dedicated visual identity for the System/Tooling/Administration area (black, electric blue, white palette), distinct from the general platform theme
 
 ### UI Design & Prototyping
 
@@ -247,7 +249,7 @@ The Administration layer provides the first visual interface for managing the Pi
 * [ ] Figma or equivalent free design tool
 * [ ] Administration wireframes
 * [ ] Administration layout mockups
-* [x] Design System documentation (initial foundations and conventions in `docs/design-system/DESIGN_SYSTEM.md`)
+* [ ] Design System documentation
 * [ ] Component specifications
 * [ ] Responsive mockups
 * [ ] Dark mode mockups
