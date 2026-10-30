@@ -58,6 +58,8 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 * [x] 80% minimum PHP coverage gate (default 80, overridable with the `PHP_COVERAGE_MIN` repository variable)
 * [x] Production quality gate (waits for code style and the coverage gate)
 * [x] CI also runs on `develop`; a newer push cancels the superseded run
+* [x] Adopt the MIT license for Pixely Platform (`LICENSE`; copyright: Pixely Platform contributors)
+* [ ] SonarQube Cloud integration for public-repository code-quality analysis (GitHub Actions, PHP and TypeScript/Vue; configure coverage import and Quality Gate when supported)
 * [ ] Continuous deployment
 
 ---
@@ -325,6 +327,7 @@ Storybook provides an isolated environment for developing and documenting Vue.js
 
 ## S4 — Extension SDK v2
 
+
 The next SDK generation standardizes how extensions declare capabilities consumed by Core and Platform surfaces.
 
 ### Capability model
@@ -356,6 +359,33 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * Tuleap: navigation + routes + permissions
 * CinemaMovie: navigation + routes + permissions
 * Existing lifecycle, dependencies, configuration and migration mechanisms remain compatible
+
+## v0.7.0 - Database-backed Extension Registry (S5)
+
+### Extension Runtime State
+
+* [x] Persist extension enabled/disabled state in the `extension_states` database table
+* [x] Keep extension manifests and PHP code as the source of identity, version and capabilities
+* [x] Import legacy `storage/pixely/extensions.json` records idempotently without overwriting database-managed state
+* [x] Keep fresh-install migrations bootable before the new table exists
+* [ ] Run repository and migration/import command tests
+* [x] Document the migration and rollback workflow
+
+## U1 — Pixely Update Manager Foundation
+
+The Update Manager provides one orchestration boundary for platform dependencies and installable extensions, plugins and themes. The official Pixely Registry is the authoritative release catalogue; Pixely, GitHub and GitLab may host release artifacts.
+
+### Architecture and contracts
+
+* [x] Record the official-registry and artifact-hosting decision (ADR-0009)
+* [x] Document the Update Manager boundaries, lifecycle and security requirements
+* [x] Define registry, artifact-source, verifier and installer contracts
+* [x] Define immutable update query, release, artifact, plan and installation DTOs
+* [x] Define component types, release channels and artifact providers
+* [x] Add DTO invariant unit tests
+* [ ] Implement registry, hosting, verification and installation adapters (U3–U5)
+* [x] Implement Composer/npm dependency adapters (U2)
+* [ ] Implement the unified Artisan command and update history (U6)
 
 ## v0.5.0 - Extension SDK
 
@@ -1341,6 +1371,19 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Audit system
 * [ ] Backup system
 
+### Database Architecture & Scalability
+
+* [ ] Configurable external database connections: register multiple named connections (supported drivers, host/port/database, TLS options) through secure configuration rather than hard-coded connection details
+* [ ] Connection management UI and API: test connectivity, display health/status, enable/disable a connection, and restrict management to authorised administrators
+* [ ] Secure credential handling: keep secrets out of source control and logs; use environment/secret configuration and encrypted-at-rest storage where persisted credentials are required
+* [ ] Per-connection schema versioning: track applied migration identifiers and versions independently for each managed database
+* [ ] Versioned database migrations: ordered, repeatable and auditable upgrades, migration locks, preflight checks, dry-run/plan output, and clear failure reporting
+* [ ] Safe migration policy: backups or verified recovery points before production migrations; document rollback limits for destructive or data-transforming migrations
+* [ ] Primary/read-replica configuration for production: route writes and consistency-sensitive reads to the primary, and eligible read-only queries to configured replicas
+* [ ] Replica health and lag monitoring, configurable fallback to the primary when a replica is unavailable or too far behind, and clear logging/metrics for routing decisions
+* [ ] Tests for multiple connections, migration history isolation, read/write routing, replica failure, and stale-read-sensitive operations
+* [ ] Operational documentation covering setup, credentials, replication prerequisites, migration procedures, recovery, and troubleshooting
+
 ### Frontend Platform
 
 * [ ] Vue.js 3 platform architecture
@@ -1526,6 +1569,24 @@ The roadmap should be updated progressively as each sprint is completed.
 18. S18 — Developer Experience
 19. S19 — Documentation & Developer Portal
 20. S20 — Pixely Platform v1
+21. S21 — External Database Connections & Read Replication
+
+### S21 — External Database Connections & Read Replication (planned)
+
+**Goal:** allow Pixely to connect safely to additional databases, manage their schema evolution, and reduce production read load by routing eligible reads to database replicas.
+
+* [ ] Define supported database drivers and a typed configuration contract for named connections
+* [ ] Implement secure connection registration, connection testing, health status, and permission-gated administration
+* [ ] Keep credentials in environment/secret configuration; never expose secrets through APIs, UI responses, logs, or exception messages
+* [ ] Implement a per-connection migration ledger so schema versions and applied migrations remain isolated between databases
+* [ ] Add migration planning/preflight checks, locking, failure recovery guidance, and an explicit policy for destructive migrations
+* [ ] Implement primary/write and replica/read connection roles; keep writes and consistency-sensitive reads on the primary
+* [ ] Route only eligible read-only queries to healthy replicas, with configurable lag thresholds and fallback to the primary
+* [ ] Expose replica health and replication lag through authorised diagnostics/monitoring
+* [ ] Add automated tests for connection isolation, migration versioning, routing, replica unavailability, and consistency-sensitive reads
+* [ ] Document deployment configuration, database permissions, replication setup, migration operations, and recovery procedures
+
+> **Safety rule:** read replicas are not independent write targets. Pixely must never route writes to a read replica. Migration execution against external databases must be explicit, permission-gated, and auditable.
 
 ### S4 — Extension SDK v2 execution order
 1. Capability model and capability registry
@@ -1539,3 +1600,11 @@ The roadmap should be updated progressively as each sprint is completed.
 9. Coverage and production-quality gate
 
 > **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.
+
+## U2 — Composer and npm Dependency Adapters
+
+* [x] Add process-runner and dependency-updater contracts
+* [x] Add Composer and npm adapters with constrained updates, check, dry-run and audit operations
+* [x] Add unit tests for command construction and failure handling
+* [ ] Integrate lockfile snapshots/recovery and cross-container orchestration (U6)
+

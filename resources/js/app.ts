@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import "@mdi/font/css/materialdesignicons.css";
+import "./shared/styles/design-system.scss";
 
 import SwaggerUIBundle from "swagger-ui-dist/swagger-ui-bundle.js";
 import SwaggerUIStandalonePreset from "swagger-ui-dist/swagger-ui-standalone-preset.js";

@@ -1,0 +1,102 @@
+/**
+ * Pixely Platform Design System foundations.
+ *
+ * These CSS custom properties are the shared token layer for platform-owned
+ * UI. Component styles should consume these tokens instead of hard-coding
+ * spacing, radii, colours, or elevation values.
+ */
+
+:root {
+  /* Typography */
+  --px-font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --px-font-size-xs: 0.75rem;
+  --px-font-size-sm: 0.875rem;
+  --px-font-size-md: 1rem;
+  --px-font-size-lg: 1.125rem;
+  --px-font-size-xl: 1.25rem;
+  --px-font-size-2xl: 1.5rem;
+  --px-font-size-3xl: 1.875rem;
+  --px-font-size-display: clamp(2rem, 4vw, 2.75rem);
+  --px-line-height-tight: 1.25;
+  --px-line-height-normal: 1.5;
+  --px-line-height-relaxed: 1.7;
+
+  /* Spacing scale: multiples of 4px at the default root font size. */
+  --px-space-0: 0;
+  --px-space-1: 0.25rem;
+  --px-space-2: 0.5rem;
+  --px-space-3: 0.75rem;
+  --px-space-4: 1rem;
+  --px-space-5: 1.25rem;
+  --px-space-6: 1.5rem;
+  --px-space-8: 2rem;
+  --px-space-10: 2.5rem;
+  --px-space-12: 3rem;
+  --px-space-16: 4rem;
+
+  /* Shape */
+  --px-radius-sm: 0.25rem;
+  --px-radius-md: 0.5rem;
+  --px-radius-lg: 0.75rem;
+  --px-radius-xl: 1rem;
+  --px-radius-pill: 999px;
+
+  /* Elevation */
+  --px-elevation-1: 0 1px 2px rgb(15 23 42 / 8%);
+  --px-elevation-2: 0 4px 12px rgb(15 23 42 / 10%);
+  --px-elevation-3: 0 12px 28px rgb(15 23 42 / 14%);
+
+  /* Interaction and layout */
+  --px-focus-ring-width: 3px;
+  --px-focus-ring-offset: 2px;
+  --px-content-max-width: 80rem;
+  --px-layout-gutter: clamp(1rem, 2.5vw, 2rem);
+}
+
+/**
+ * Administration-only aliases map to Vuetify's active theme, so they adapt
+ * automatically when the user switches between light and dark mode.
+ */
+.v-application {
+  --px-admin-bg: rgb(var(--v-theme-background));
+  --px-admin-surface: rgb(var(--v-theme-surface));
+  --px-admin-surface-variant: rgb(var(--v-theme-surface-variant));
+  --px-admin-text: rgb(var(--v-theme-on-background));
+  --px-admin-text-muted: rgb(var(--v-theme-on-surface-variant));
+  --px-admin-primary: rgb(var(--v-theme-primary));
+  --px-admin-border: rgb(var(--v-theme-outline));
+  --px-admin-radius: var(--px-radius-lg);
+  --px-admin-card-shadow: var(--px-elevation-1);
+
+  font-family: var(--px-font-family);
+  color: var(--px-admin-text);
+  background-color: var(--px-admin-bg);
+}
+
+.v-application .v-card {
+  border-radius: var(--px-admin-radius);
+}
+
+.v-application :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--px-focus-ring-width) solid var(--px-admin-primary);
+  outline-offset: var(--px-focus-ring-offset);
+}
+
+/* Avoid forcing animations on users who request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep layout gutters predictable on small screens. */
+@media (width <= 600px) {
+  .v-application .v-container {
+    padding-inline: var(--px-space-4);
+  }
+}
