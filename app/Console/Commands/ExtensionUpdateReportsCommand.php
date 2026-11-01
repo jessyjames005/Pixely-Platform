@@ -20,7 +20,10 @@ final class ExtensionUpdateReportsCommand extends Command
     protected $signature = 'pixely:update:reports
         {--show= : Display one report by filename}
         {--limit=20 : Maximum number of reports to list}
-        {--prune= : Delete reports older than this many days (requires --force)}\n        {--force : Confirm deletion of expired reports};
+        {--status= : Filter reports by outcome: success, failed, or dry-run}
+        {--export-csv= : Export report summaries to a CSV file}
+        {--prune= : Delete reports older than this many days (requires --force)}
+        {--force : Confirm deletion of expired reports}';
 
     protected $description = 'List, inspect, and prune Pixely extension update reports.';
 
@@ -34,6 +37,11 @@ final class ExtensionUpdateReportsCommand extends Command
             return $this->showReport($directory, (string) $show);
         }
 
+        $exportPath = $this->option('export-csv');
+        if ($exportPath !== null) {
+            return $this->exportCsv($directory, (string) $exportPath);
+        }
+
         $prune = $this->option('prune');
         if ($prune !== null) {
             return $this->pruneReports($directory, (string) $prune);
@@ -45,7 +53,33 @@ final class ExtensionUpdateReportsCommand extends Command
             return self::INVALID;
         }
 
+        $statusFilter = $this->option('status');
+        if ($statusFilter !== null && ! in_array($statusFilter, ['success', 'failed', 'dry-run'], true)) {
+            $this->components->error('--status must be one of: success, failed, dry-run.');
+            return self::INVALID;
+        }
+
         $reports = $this->reportFiles($directory);
+        if ($statusFilter !== null) {
+            $reports = array_values(array_filter($reports, function (string $path) use ($statusFilter): bool {
+                try {
+                    $data = $this->readReport($path);
+                } catch (Throwable) {
+                    return false;
+                }
+
+                if ($statusFilter === 'dry-run') {
+                    return ($data['mode'] ?? null) === 'dry-run';
+                }
+
+                $summary = is_array($data['summary'] ?? null) ? $data['summary'] : [];
+                $failed = (int) ($summary['failed'] ?? 0);
+                $exitCode = (int) ($summary['exit_code'] ?? 0);
+
+                return $statusFilter === 'failed' ? ($failed > 0 || $exitCode !== 0) : ($failed === 0 && $exitCode === 0 && ($data['mode'] ?? null) !== 'dry-run');
+            }));
+        }
+
         if ($reports === []) {
             $this->components->info('No update reports found.');
             return self::SUCCESS;
@@ -73,6 +107,66 @@ final class ExtensionUpdateReportsCommand extends Command
         $this->line('Showing ' . count($rows) . ' of ' . count($reports) . ' report(s).');
 
         return self::SUCCESS;
+    }
+
+    /** Export report summaries to CSV, preventing spreadsheet formula injection. */
+    private function exportCsv(string $directory, string $destination): int
+    {
+        if ($destination === '') {
+            $this->components->error('--export-csv requires a destination path.');
+            return self::INVALID;
+        }
+
+        $destination = str_starts_with($destination, DIRECTORY_SEPARATOR) || preg_match('/^[A-Za-z]:[\\\\\/]/', $destination) === 1
+            ? $destination
+            : base_path($destination);
+        $parent = dirname($destination);
+
+        if (! is_dir($parent) || is_link($destination) || (file_exists($destination) && ! is_file($destination))) {
+            $this->components->error('CSV destination parent must exist and destination must be a regular file path.');
+            return self::FAILURE;
+        }
+
+        $handle = @fopen($destination, 'wb');
+        if ($handle === false) {
+            $this->components->error('Unable to open CSV destination for writing.');
+            return self::FAILURE;
+        }
+
+        $written = 0;
+        try {
+            fputcsv($handle, ['report', 'started_at', 'finished_at', 'mode', 'processed', 'failed', 'exit_code']);
+            foreach ($this->reportFiles($directory) as $path) {
+                try {
+                    $data = $this->readReport($path);
+                } catch (Throwable) {
+                    continue;
+                }
+                $summary = is_array($data['summary'] ?? null) ? $data['summary'] : [];
+                $row = [
+                    basename($path),
+                    $data['started_at'] ?? '',
+                    $data['finished_at'] ?? '',
+                    $data['mode'] ?? '',
+                    $summary['processed'] ?? 0,
+                    $summary['failed'] ?? 0,
+                    $summary['exit_code'] ?? 0,
+                ];
+                fputcsv($handle, array_map(fn ($value): string => $this->csvSafeValue((string) $value), $row));
+                $written++;
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        $this->components->info("Exported {$written} report(s) to [{$destination}].");
+        return self::SUCCESS;
+    }
+
+    /** Prefix spreadsheet formula-like text so exported data is treated as text. */
+    private function csvSafeValue(string $value): string
+    {
+        return preg_match('/^[\\s]*[=+@\\-]/u', $value) === 1 ? "'" . $value : $value;
     }
 
     private function showReport(string $directory, string $filename): int
