@@ -152,8 +152,10 @@ final class ExtensionPackageValidator
 
         $requireVersions = $manifest['require_versions'] ?? [];
         foreach ($requireVersions as $dependencyId => $minimumVersion) {
-            if (! is_string($dependencyId) || preg_match('/^[a-z0-9-]+$/', $dependencyId) !== 1
-                || ! is_string($minimumVersion) || preg_match('/^\d+\.\d+\.\d+$/', $minimumVersion) !== 1) {
+            if (
+                ! is_string($dependencyId) || preg_match('/^[a-z0-9-]+$/', $dependencyId) !== 1
+                || ! is_string($minimumVersion) || preg_match('/^\d+\.\d+\.\d+$/', $minimumVersion) !== 1
+            ) {
                 throw new \RuntimeException('Manifest require_versions must map valid extension ids to semantic versions.');
             }
             if (! in_array($dependencyId, $requires, true)) {

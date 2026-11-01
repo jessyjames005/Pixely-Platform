@@ -18,9 +18,9 @@ final class SodiumUpdateVerifierTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->directory = sys_get_temp_dir().'/pixely-update-test-'.bin2hex(random_bytes(8));
+        $this->directory = sys_get_temp_dir() . '/pixely-update-test-' . bin2hex(random_bytes(8));
         mkdir($this->directory, 0700, true);
-        $this->path = $this->directory.'/artifact.zip';
+        $this->path = $this->directory . '/artifact.zip';
     }
 
     protected function tearDown(): void

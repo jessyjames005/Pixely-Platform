@@ -39,7 +39,7 @@ final readonly class HttpArtifactSource implements ArtifactSourceInterface
             throw new RuntimeException('Artifact staging directory is not writable.');
         }
 
-        $path = rtrim($stagingDirectory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'artifact-'.bin2hex(random_bytes(16)).'.part';
+        $path = rtrim($stagingDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'artifact-' . bin2hex(random_bytes(16)) . '.part';
         $stream = fopen($path, 'xb');
         if ($stream === false) {
             throw new RuntimeException('Unable to create staged artifact file.');
@@ -86,10 +86,10 @@ final readonly class HttpArtifactSource implements ArtifactSourceInterface
                 throw new RuntimeException('Artifact exceeds the configured download size limit.');
             }
             if ($success === false) {
-                throw new RuntimeException('Artifact download failed: '.curl_error($curl));
+                throw new RuntimeException('Artifact download failed: ' . curl_error($curl));
             }
             if ($status < 200 || $status >= 300) {
-                throw new RuntimeException('Artifact host returned HTTP '.$status.'.');
+                throw new RuntimeException('Artifact host returned HTTP ' . $status . '.');
             }
             if ($written === 0) {
                 throw new RuntimeException('Artifact host returned an empty artifact.');

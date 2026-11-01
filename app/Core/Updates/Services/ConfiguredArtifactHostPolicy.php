@@ -18,8 +18,10 @@ final readonly class ConfiguredArtifactHostPolicy implements ArtifactHostPolicyI
     public function allows(ArtifactProvider $provider, string $url): bool
     {
         $parts = parse_url($url);
-        if (!is_array($parts) || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
-            || empty($parts['host']) || isset($parts['user']) || isset($parts['pass'])) {
+        if (
+            !is_array($parts) || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
+            || empty($parts['host']) || isset($parts['user']) || isset($parts['pass'])
+        ) {
             return false;
         }
 

@@ -22,10 +22,18 @@ final class ExtensionUpdateDiscoveryTest extends TestCase
     public function test_it_selects_the_highest_newer_release_for_the_exact_package_and_channel(): void
     {
         $installed = $this->installed();
-        $inventory = new class($installed) implements InstalledExtensionInventoryInterface {
-            public function __construct(private InstalledExtension $item) {}
-            public function all(): array { return [$this->item]; }
-            public function find(string $extensionId): ?InstalledExtension { return $extensionId === $this->item->id ? $this->item : null; }
+        $inventory = new class ($installed) implements InstalledExtensionInventoryInterface {
+            public function __construct(private InstalledExtension $item)
+            {
+            }
+            public function all(): array
+            {
+                return [$this->item];
+            }
+            public function find(string $extensionId): ?InstalledExtension
+            {
+                return $extensionId === $this->item->id ? $this->item : null;
+            }
         };
 
         $registry = new class implements UpdateRegistryInterface {
@@ -39,7 +47,10 @@ final class ExtensionUpdateDiscoveryTest extends TestCase
                     new UpdateCandidate(UpdateTargetType::Extension, 'pixely/gallery', 'Gallery', '2.0.0-beta.1', UpdateChannel::Beta, $this->artifact()),
                 ];
             }
-            public function findRelease(string $packageId, string $version): ?UpdateCandidate { return null; }
+            public function findRelease(string $packageId, string $version): ?UpdateCandidate
+            {
+                return null;
+            }
             private function candidate(string $version): UpdateCandidate
             {
                 return new UpdateCandidate(UpdateTargetType::Extension, 'pixely/gallery', 'Gallery', $version, UpdateChannel::Stable, self::artifact());
@@ -60,14 +71,28 @@ final class ExtensionUpdateDiscoveryTest extends TestCase
     public function test_it_returns_no_update_when_registry_has_no_newer_release(): void
     {
         $installed = $this->installed();
-        $inventory = new class($installed) implements InstalledExtensionInventoryInterface {
-            public function __construct(private InstalledExtension $item) {}
-            public function all(): array { return [$this->item]; }
-            public function find(string $extensionId): ?InstalledExtension { return $this->item; }
+        $inventory = new class ($installed) implements InstalledExtensionInventoryInterface {
+            public function __construct(private InstalledExtension $item)
+            {
+            }
+            public function all(): array
+            {
+                return [$this->item];
+            }
+            public function find(string $extensionId): ?InstalledExtension
+            {
+                return $this->item;
+            }
         };
         $registry = new class implements UpdateRegistryInterface {
-            public function findUpdates(UpdateQuery $query): iterable { return []; }
-            public function findRelease(string $packageId, string $version): ?UpdateCandidate { return null; }
+            public function findUpdates(UpdateQuery $query): iterable
+            {
+                return [];
+            }
+            public function findRelease(string $packageId, string $version): ?UpdateCandidate
+            {
+                return null;
+            }
         };
 
         $result = (new ExtensionUpdateDiscovery($inventory, $registry))->check('gallery');

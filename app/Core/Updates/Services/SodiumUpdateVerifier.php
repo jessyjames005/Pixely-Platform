@@ -37,9 +37,11 @@ final readonly class SodiumUpdateVerifier implements UpdateVerifierInterface
         $encodedKey = $this->publicKeys[$artifact->keyId] ?? null;
         $signature = base64_decode($artifact->signature, true);
         $publicKey = is_string($encodedKey) ? base64_decode($encodedKey, true) : false;
-        if (!is_string($signature) || !is_string($publicKey)
+        if (
+            !is_string($signature) || !is_string($publicKey)
             || strlen($signature) !== SODIUM_CRYPTO_SIGN_BYTES
-            || strlen($publicKey) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+            || strlen($publicKey) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
+        ) {
             throw new UpdateVerificationException('Unknown signing key or malformed signature metadata.');
         }
 
