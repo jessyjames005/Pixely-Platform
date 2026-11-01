@@ -5,9 +5,22 @@ declare(strict_types=1);
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Update\ExtensionUpdatePlanner;
 
+/**
+ * Create a candidate extension manifest for update planner tests.
+ *
+ * @param string[] $dependencies Required extension identifiers.
+ */
 function updateCandidate(array $dependencies = []): ExtensionManifest
 {
-    return new ExtensionManifest('player', 'Player', '2.0.0', 'App\\Extensions\\Player\\PlayerExtension', '/tmp/player', $dependencies);
+    return new ExtensionManifest(
+        id: 'player',
+        name: 'Player',
+        version: '2.0.0',
+        minimum_kernel_version: '1.0.0',
+        class: 'App\\Extensions\\Player\\PlayerExtension',
+        path: '/tmp/player',
+        dependencies: $dependencies,
+    );
 }
 
 it('creates a dependency-aware update plan without modifying installed versions', function () {
