@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Core\Extensions\Installer\ExtensionInstaller;
 use App\Core\Extensions\Versioning\ExtensionVersionRepository;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Mockery\MockInterface;
 
 beforeEach(function (): void {
@@ -42,9 +44,15 @@ MANIFEST;
     $archive->addFromString('extension.php', $manifest);
     $archive->close();
 
-    $this->mock(ExtensionVersionRepository::class, function (MockInterface $mock): void {
-        $mock->shouldReceive('find')->once()->with('sample-extension')->andReturn('1.0.0');
+    // ExtensionVersionRepository is intentionally final; use its real implementation
+    // with a minimal schema instead of attempting to mock the class.
+    Schema::create('extension_installed_versions', function (Blueprint $table): void {
+        $table->id();
+        $table->string('extension_id')->unique();
+        $table->string('version');
+        $table->timestamps();
     });
+    app(ExtensionVersionRepository::class)->set('sample-extension', '1.0.0');
     $this->mock(ExtensionInstaller::class, function (MockInterface $mock): void {
         $mock->shouldNotReceive('update');
     });
