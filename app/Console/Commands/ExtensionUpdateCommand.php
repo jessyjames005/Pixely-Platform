@@ -9,6 +9,7 @@ use App\Core\Extensions\Installer\ExtensionPackageValidator;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Update\ExtensionUpdatePlanner;
 use App\Core\Extensions\Versioning\ExtensionVersionRepository;
+use App\Core\Extensions\Update\ExtensionUpdateReport;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Throwable;
@@ -25,7 +26,8 @@ final class ExtensionUpdateCommand extends Command
     protected $signature = 'pixely:update
         {--extension= : Update only the extension with this manifest id}
         {--dry-run : Validate and display the update plan without changing live files}
-        {--source= : Override the local update-package directory}';
+        {--source= : Override the local update-package directory}
+        {--report= : Override the JSON execution report path}';
 
     protected $description = 'Discover, validate and install available Pixely extension updates.';
 
@@ -34,6 +36,7 @@ final class ExtensionUpdateCommand extends Command
         private readonly ExtensionUpdatePlanner $planner,
         private readonly ExtensionVersionRepository $versions,
         private readonly ExtensionInstaller $installer,
+        private readonly ExtensionUpdateReport $reporter,
     ) {
         parent::__construct();
     }
@@ -69,8 +72,11 @@ final class ExtensionUpdateCommand extends Command
         $seen = [];
         $processed = 0;
         $failed = 0;
+        $reportItems = [];
+        $startedAt = now()->toIso8601String();
 
         foreach ($packages as $packagePath) {
+            $id = null;
             try {
                 $manifest = $this->readPackageManifest($packagePath);
                 $id = $manifest['id'];
@@ -108,20 +114,27 @@ final class ExtensionUpdateCommand extends Command
                 );
 
                 $processed++;
+                $item = ['extension' => $id, 'from' => $plan['from'], 'to' => $plan['to'], 'status' => $this->option('dry-run') ? 'planned' : 'running', 'message' => null];
                 $this->components->twoColumnDetail("{$id} ({$plan['from']} → {$plan['to']})", $this->option('dry-run') ? 'planned' : 'updating');
 
                 if ($this->option('dry-run')) {
                     foreach ($plan['actions'] as $action) {
                         $this->line("  • {$action}");
                     }
+                    $reportItems[] = $item;
                     continue;
                 }
 
                 $result = $this->installer->update($packagePath, $id, null);
                 $installed[$id] = $result['version'];
+                $item['status'] = 'updated';
+                $item['to'] = $result['version'];
+                $item['message'] = 'Update completed successfully.';
+                $reportItems[] = $item;
                 $this->components->info("Updated [{$id}] to version [{$result['version']}].");
             } catch (Throwable $exception) {
                 $failed++;
+                $reportItems[] = ['package' => basename($packagePath), 'extension' => $id ?? null, 'status' => 'failed', 'message' => $exception->getMessage()];
                 $this->components->error(basename($packagePath) . ': ' . $exception->getMessage());
             }
         }
@@ -131,9 +144,30 @@ final class ExtensionUpdateCommand extends Command
         }
 
         $this->newLine();
+        $exitCode = $failed > 0 ? self::FAILURE : self::SUCCESS;
+        $reportPath = (string) ($this->option('report') ?: storage_path('app/extension-update-reports/' . now()->format('Ymd-His') . '-' . bin2hex(random_bytes(3)) . '.json'));
+
+        try {
+            $savedPath = $this->reporter->write($reportPath, [
+                'schema_version' => 1,
+                'command' => 'pixely:update',
+                'started_at' => $startedAt,
+                'finished_at' => now()->toIso8601String(),
+                'mode' => $this->option('dry-run') ? 'dry-run' : 'apply',
+                'source' => $source,
+                'filter' => $requestedId,
+                'summary' => ['processed' => $processed, 'failed' => $failed, 'exit_code' => $exitCode],
+                'items' => $reportItems,
+            ]);
+            $this->components->info("Execution report: {$savedPath}");
+        } catch (Throwable $exception) {
+            $this->components->error('Could not write execution report: ' . $exception->getMessage());
+            return self::FAILURE;
+        }
+
         $this->line("Packages processed: {$processed}; failed: {$failed}.");
 
-        return $failed > 0 ? self::FAILURE : self::SUCCESS;
+        return $exitCode;
     }
 
     /**
