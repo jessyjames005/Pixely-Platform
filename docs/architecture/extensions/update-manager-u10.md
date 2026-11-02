@@ -255,3 +255,28 @@ U10.3 adds unit coverage for recursive canonicalization, root-only signature rem
 ### Security boundary and deferred work
 
 The current verifier expects the caller to provide a duplicate-free decoded JSON object and the structurally validated signature DTO. It does not implement a raw-JSON duplicate-member detector, key rotation/revocation distribution, or a remote trust-store update protocol. Those controls must be addressed before enabling unattended remote updates.
+
+
+## U10.4: Official Registry API contract
+
+U10.4 defines the read-only Registry HTTP contract in `update-registry-api-u10.md`:
+
+- `GET /api/v1/releases` lists signed manifests for one exact package, with channel, installed-version and runtime filters.
+- `GET /api/v1/releases/resolve` retrieves one exact immutable package release.
+- Cursor pagination, deterministic SemVer ordering, RFC 9457 error responses, cache validators and transport limits are specified.
+- Package IDs are query parameters rather than path segments, so identifiers containing `/` remain unambiguous.
+- Registry metadata remains untrusted until the U10.3 manifest verifier succeeds. Runtime compatibility, artifact host policy, checksum and artifact-signature checks remain mandatory client-side controls.
+
+The current `UpdateRegistryInterface::findRelease(string $packageId, string $version)` does not carry the package type required by the Registry's canonical identity tuple. U10.5 must resolve this mismatch explicitly; an adapter must not guess the package type or choose an arbitrary match.
+
+This is a contract-only step. It adds no Registry server, routes, controllers, database tables, authentication or handwritten OpenAPI document. When HTTP endpoints are implemented, API documentation must follow the project's established Scramble generation workflow from PHP source.
+
+### U10.4 acceptance checklist
+
+- [x] List and exact-release endpoints are defined.
+- [x] Package identity and channel semantics are explicit.
+- [x] Cursor pagination and stable ordering are defined.
+- [x] Success and RFC 9457 error envelopes are defined.
+- [x] Caching, immutability and transport security rules are defined.
+- [x] Mapping to the current update registry contract is documented, including the package-type gap.
+- [x] No runtime implementation or handwritten OpenAPI file is introduced.
