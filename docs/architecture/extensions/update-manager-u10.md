@@ -195,3 +195,27 @@ This step does not define or implement:
 - **U10.4:** specify the official Registry API endpoints and response envelopes.
 - **U10.5:** integrate the validated registry response with `UpdateRegistryInterface`.
 - **U10.6:** document and test the complete contract.
+
+## U10.2: Typed PHP DTOs and structural validation
+
+U10.2 introduces immutable DTOs for the schema-v1 release manifest under `App\Core\Updates\DTO`:
+
+- `ReleaseManifest` is the root object and rejects unsupported schema identifiers, schema versions and unknown root fields.
+- `ReleaseManifestPackage` maps package identity to `UpdateTargetType`.
+- `ReleaseManifestRelease` maps release metadata to `UpdateChannel` and `DateTimeImmutable`.
+- `ReleaseManifestCompatibility` validates runtime constraint maps and requires `php` for platform releases or `pixely` for extension, theme and plugin releases.
+- `ReleaseManifestDependencies` validates required and conflicting package maps.
+- `ReleaseManifestArtifact` maps provider to `ArtifactProvider` and validates HTTPS URI, filename, positive size and lowercase SHA-256.
+- `ReleaseManifestSignature` validates the Ed25519 algorithm, key identifier and canonical Base64 encoding of a 64-byte signature.
+- `ReleaseManifestValue` contains shared structural validation helpers.
+
+`ReleaseManifest::fromArray()` accepts decoded associative JSON data. The JSON decoding boundary remains responsible for rejecting invalid UTF-8 and duplicate object member names; this cannot be reliably detected after decoding into a PHP associative array.
+
+These DTOs perform structural validation only. They do not verify trust, canonicalize JSON, fetch artifacts or map an unverified manifest to `UpdateCandidate`. Those responsibilities remain in U10.3 and U10.5 respectively. Version constraints are retained as strings here; semantic constraint evaluation remains with the existing update planner.
+
+### U10.2 verification
+
+```powershell
+docker compose exec app php artisan test --compact tests/Unit/Core/Updates/ReleaseManifestTest.php
+docker compose exec app php artisan test --compact tests/Unit/Core/Updates
+```
