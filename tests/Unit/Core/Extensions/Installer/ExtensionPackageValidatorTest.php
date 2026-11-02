@@ -38,8 +38,35 @@ it('locates and validates a well-formed manifest', function () {
     $manifest = $this->validator->locateAndValidateManifest($this->stagingDir);
 
     expect($manifest['id'])->toBe('demo')
-        ->and($manifest['version'])->toBe('2.1.0');
+        ->and($manifest['version'])->toBe('2.1.0')
+        ->and($manifest['minimum_kernel_version'])->toBe('1.0.0');
 });
+
+it('preserves a declared minimum kernel version in the validated manifest', function () {
+    file_put_contents($this->stagingDir . '/extension.php', '<?php return ' . var_export([
+        'id' => 'demo',
+        'name' => 'Demo Extension',
+        'version' => '1.0.0',
+        'minimum_kernel_version' => '2.0.0',
+        'class' => 'App\\Extensions\\Demo\\DemoExtension',
+    ], true) . ';');
+
+    $manifest = $this->validator->locateAndValidateManifest($this->stagingDir);
+
+    expect($manifest['minimum_kernel_version'])->toBe('2.0.0');
+});
+
+it('rejects a manifest with an invalid minimum kernel version', function () {
+    file_put_contents($this->stagingDir . '/extension.php', '<?php return ' . var_export([
+        'id' => 'demo',
+        'name' => 'Demo Extension',
+        'version' => '1.0.0',
+        'minimum_kernel_version' => 'invalid',
+        'class' => 'App\\Extensions\\Demo\\DemoExtension',
+    ], true) . ';');
+
+    $this->validator->locateAndValidateManifest($this->stagingDir);
+})->throws(RuntimeException::class, 'minimum_kernel_version');
 
 it('rejects a package with no manifest', function () {
     $zipPath = FakeExtensionPackageBuilder::missingManifestPackage();

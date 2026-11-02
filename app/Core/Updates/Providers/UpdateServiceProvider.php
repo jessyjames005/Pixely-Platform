@@ -59,7 +59,6 @@ final class UpdateServiceProvider extends ServiceProvider
                 (int) $app['config']->get('update-manager.registry_timeout_seconds', 10),
                 (int) $app['config']->get('update-manager.registry_per_page', 20),
                 $app->make(JsonObjectKeyUniquenessGuard::class),
-                $app->make(ReleaseManifestCanonicalizer::class),
                 $app->make(SodiumReleaseManifestVerifier::class),
             ),
         );

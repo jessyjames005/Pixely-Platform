@@ -58,11 +58,40 @@ final class HttpUpdateRegistryTest extends TestCase
         self::assertSame('1.2.0', $results[0]->version);
         self::assertSame('1.0.0', $results[0]->runtimeConstraints['pixely']);
         self::assertSame('https://registry.pixely.test/releases/gallery/1.2.0', $results[0]->releaseNotes);
-        Http::assertSent(fn ($request): bool => $request->url() === 'https://registry.pixely.test/api/v1/releases'
+        Http::assertSent(fn ($request): bool => parse_url($request->url(), PHP_URL_SCHEME) === 'https'
+            && parse_url($request->url(), PHP_URL_HOST) === 'registry.pixely.test'
+            && parse_url($request->url(), PHP_URL_PATH) === '/api/v1/releases'
             && $request['package_type'] === 'extension'
             && $request['package_id'] === 'pixely/gallery'
             && $request['channel'] === 'stable'
-            && $request['after_version'] === '1.0.0');
+            && $request['after_version'] === '1.0.0'
+            && ($request['runtime']['php'] ?? null) === '8.3.0'
+            && ($request['runtime']['pixely'] ?? null) === '1.0.0');
+    }
+
+    public function test_it_omits_invalid_runtime_versions_from_registry_requests(): void
+    {
+        Http::fake([
+            'registry.pixely.test/api/v1/releases*' => Http::response([
+                'data' => [],
+                'meta' => ['per_page' => 20, 'next_cursor' => null, 'has_more' => false],
+            ]),
+        ]);
+
+        $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+            runtimeVersions: [
+                'php' => '8.3.0',
+                'invalid' => null,
+                1 => 'not-a-runtime-name',
+            ],
+        ));
+
+        Http::assertSent(fn ($request): bool => ($request['runtime']['php'] ?? null) === '8.3.0'
+            && !isset($request['runtime']['invalid'])
+            && !isset($request['runtime'][1]));
     }
 
     public function test_it_rejects_a_manifest_whose_signed_metadata_was_changed(): void
@@ -103,7 +132,9 @@ final class HttpUpdateRegistryTest extends TestCase
         self::assertNotNull($candidate);
         self::assertSame(UpdateTargetType::Extension, $candidate->type);
         self::assertSame('1.2.0', $candidate->version);
-        Http::assertSent(fn ($request): bool => $request->url() === 'https://registry.pixely.test/api/v1/releases/resolve'
+        Http::assertSent(fn ($request): bool => parse_url($request->url(), PHP_URL_SCHEME) === 'https'
+            && parse_url($request->url(), PHP_URL_HOST) === 'registry.pixely.test'
+            && parse_url($request->url(), PHP_URL_PATH) === '/api/v1/releases/resolve'
             && $request['package_type'] === 'extension');
     }
 
@@ -315,7 +346,6 @@ final class HttpUpdateRegistryTest extends TestCase
             5,
             20,
             new JsonObjectKeyUniquenessGuard(),
-            $canonicalizer,
             new SodiumReleaseManifestVerifier($canonicalizer, ['registry-2026' => $this->keys[1]]),
         );
     }

@@ -85,7 +85,17 @@ final class ExtensionPackageValidator
      * the zip contains a single wrapping folder (common when zipping
      * a folder directly) — exactly one of the two is accepted.
      *
-     * @return array{root: string, id: string, name: string, version: string, class: string, requires: array, require_versions: array, conflicts: array}
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
      * @throws \RuntimeException
      */
     public function locateAndValidateManifest(string $stagingDir): array
@@ -109,7 +119,17 @@ final class ExtensionPackageValidator
     }
 
     /**
-     * @return array{root: string, id: string, name: string, version: string, class: string, requires: array, require_versions: array, conflicts: array}
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
      */
     private function validateManifestFile(string $manifestPath, string $root): array
     {
@@ -127,6 +147,14 @@ final class ExtensionPackageValidator
             if (empty($manifest[$requiredKey]) || ! is_string($manifest[$requiredKey])) {
                 throw new \RuntimeException("extension.php is missing a valid '{$requiredKey}' field.");
             }
+        }
+
+        $minimumKernelVersion = $manifest['minimum_kernel_version'] ?? '1.0.0';
+        if (
+            ! is_string($minimumKernelVersion)
+            || preg_match('/^\d+\.\d+\.\d+$/', $minimumKernelVersion) !== 1
+        ) {
+            throw new \RuntimeException('Manifest minimum_kernel_version must follow semantic versioning (e.g. 1.0.0).');
         }
 
         if (preg_match('/^[a-z0-9\-]+$/', $manifest['id']) !== 1) {
@@ -175,6 +203,7 @@ final class ExtensionPackageValidator
             'id' => $manifest['id'],
             'name' => $manifest['name'],
             'version' => $manifest['version'],
+            'minimum_kernel_version' => $minimumKernelVersion,
             'class' => $manifest['class'],
             'requires' => array_values($requires),
             'require_versions' => $requireVersions,

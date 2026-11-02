@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Extensions\Http\Controllers;
 
 use App\Core\Extensions\Audit\ExtensionAuditLogger;
-use App\Core\Extensions\Installer\ExtensionInstaller;
+use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\JsonApi\V1\DocumentId;
 use App\JsonApi\V1\DocumentResource;
 use Dedoc\Scramble\Attributes\Group;
@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class ExtensionInstallController
 {
     public function __construct(
-        private readonly ExtensionInstaller $installer,
+        private readonly ExtensionInstallerInterface $installer,
         private readonly ExtensionAuditLogger $auditLogger,
     ) {
     }

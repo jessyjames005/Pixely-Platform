@@ -29,7 +29,6 @@ final readonly class HttpUpdateRegistry implements UpdateRegistryInterface
         private int $timeoutSeconds,
         private int $perPage,
         private JsonObjectKeyUniquenessGuard $jsonGuard,
-        private ReleaseManifestCanonicalizer $canonicalizer,
         private SodiumReleaseManifestVerifier $manifestVerifier,
     ) {
         $scheme = parse_url($this->baseUrl, PHP_URL_SCHEME);

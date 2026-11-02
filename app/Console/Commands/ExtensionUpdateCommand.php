@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Core\Extensions\Installer\ExtensionInstaller;
+use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\Core\Extensions\Installer\ExtensionPackageValidator;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Update\ExtensionUpdatePlanner;
@@ -35,7 +35,7 @@ final class ExtensionUpdateCommand extends Command
         private readonly ExtensionPackageValidator $validator,
         private readonly ExtensionUpdatePlanner $planner,
         private readonly ExtensionVersionRepository $versions,
-        private readonly ExtensionInstaller $installer,
+        private readonly ExtensionInstallerInterface $installer,
         private readonly ExtensionUpdateReport $reporter,
     ) {
         parent::__construct();
@@ -100,6 +100,7 @@ final class ExtensionUpdateCommand extends Command
                     id: $id,
                     name: $manifest['name'],
                     version: $manifest['version'],
+                    minimum_kernel_version: $manifest['minimum_kernel_version'],
                     class: $manifest['class'],
                     path: $manifest['root'],
                     dependencies: $manifest['requires'],
@@ -174,7 +175,17 @@ final class ExtensionUpdateCommand extends Command
      * Extract one candidate into a disposable directory and validate its manifest.
      * The installer repeats validation immediately before installation.
      *
-     * @return array{root:string,id:string,name:string,version:string,class:string,requires:array,require_versions:array,conflicts:array}
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
      */
     private function readPackageManifest(string $packagePath): array
     {
@@ -225,7 +236,7 @@ final class ExtensionUpdateCommand extends Command
 
             $manifest = include $manifestPath;
             if (is_array($manifest) && is_string($manifest['id'] ?? null) && is_array($manifest['requires'] ?? [])) {
-                $graph[$manifest['id']] = array_values(array_filter($manifest['requires'], 'is_string'));
+                $graph[$manifest['id']] = array_values(array_filter($manifest['requires'] ?? [], 'is_string'));
             }
         }
 

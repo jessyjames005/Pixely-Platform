@@ -53,6 +53,15 @@ final class ReleaseManifestTest extends TestCase
         ReleaseManifest::fromArray($data);
     }
 
+    public function test_it_rejects_non_string_runtime_compatibility_values(): void
+    {
+        $data = $this->validManifest();
+        $data['compatibility']['pixely'] = 1;
+
+        $this->expectException(\InvalidArgumentException::class);
+        ReleaseManifest::fromArray($data);
+    }
+
     public function test_it_rejects_non_canonical_artifact_checksums(): void
     {
         $data = $this->validManifest();

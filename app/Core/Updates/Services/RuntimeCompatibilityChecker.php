@@ -32,12 +32,9 @@ final class RuntimeCompatibilityChecker
 
         foreach ($candidate->runtimeConstraints as $runtime => $constraint) {
             if (
-                !is_string($runtime)
-                || !in_array($runtime, ['php', 'laravel', 'pixely'], true)
-                || !is_string($constraint)
+                !in_array($runtime, ['php', 'laravel', 'pixely'], true)
                 || trim($constraint) === ''
                 || !array_key_exists($runtime, $runtimeVersions)
-                || !is_string($runtimeVersions[$runtime])
                 || trim($runtimeVersions[$runtime]) === ''
             ) {
                 return false;

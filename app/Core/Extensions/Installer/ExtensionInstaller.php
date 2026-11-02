@@ -22,7 +22,7 @@ use Symfony\Component\Process\Process;
  * Every step that can fail rolls back cleanly: nothing is left
  * half-installed in app/Extensions.
  */
-final class ExtensionInstaller
+final class ExtensionInstaller implements ExtensionInstallerInterface
 {
     private const EXTENSIONS_BASE_PATH = 'app/Extensions';
 
@@ -112,6 +112,7 @@ final class ExtensionInstaller
                     id: $manifest['id'],
                     name: $manifest['name'],
                     version: $manifest['version'],
+                    minimum_kernel_version: $manifest['minimum_kernel_version'],
                     class: $manifest['class'],
                     path: $manifest['root'],
                     dependencies: $manifest['requires'],

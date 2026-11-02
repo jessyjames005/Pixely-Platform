@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Core\Extensions\Installer\ExtensionInstaller;
+use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\Core\Extensions\Versioning\ExtensionVersionRepository;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -53,7 +53,7 @@ MANIFEST;
         $table->timestamps();
     });
     app(ExtensionVersionRepository::class)->set('sample-extension', '1.0.0');
-    $this->mock(ExtensionInstaller::class, function (MockInterface $mock): void {
+    $this->mock(ExtensionInstallerInterface::class, function (MockInterface $mock): void {
         $mock->shouldNotReceive('update');
     });
 

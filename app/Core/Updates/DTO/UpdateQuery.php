@@ -13,7 +13,7 @@ use App\Core\Updates\Enums\UpdateTargetType;
 final readonly class UpdateQuery
 {
     /**
-     * @param array<string, string> $runtimeVersions Runtime constraints such as php, laravel and pixely.
+     * @param array<mixed, mixed> $runtimeVersions Runtime versions supplied to the registry request.
      */
     public function __construct(
         public UpdateTargetType $type,

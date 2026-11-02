@@ -13,10 +13,10 @@ final readonly class ReleaseManifestCompatibility
     public function __construct(public array $constraints)
     {
         foreach ($this->constraints as $runtime => $constraint) {
-            if (!is_string($runtime) || preg_match('/^[a-z][a-z0-9._-]*$/', $runtime) !== 1) {
+            if (preg_match('/^[a-z][a-z0-9._-]*$/', $runtime) !== 1) {
                 throw new \InvalidArgumentException('compatibility keys must be lowercase runtime identifiers.');
             }
-            if (!is_string($constraint) || trim($constraint) === '') {
+            if (trim($constraint) === '') {
                 throw new \InvalidArgumentException('compatibility constraints must be non-empty strings.');
             }
         }
