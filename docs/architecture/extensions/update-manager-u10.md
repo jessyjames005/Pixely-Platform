@@ -280,3 +280,23 @@ This is a contract-only step. It adds no Registry server, routes, controllers, d
 - [x] Caching, immutability and transport security rules are defined.
 - [x] Mapping to the current update registry contract is documented, including the package-type gap.
 - [x] No runtime implementation or handwritten OpenAPI file is introduced.
+
+
+## U10.5 — Official Registry client integration
+
+U10.5 adds the Laravel HTTP client adapter described in `update-registry-client-u10.md`. The adapter retrieves Registry release envelopes, rejects duplicate JSON object member names, verifies the root Ed25519 signature against locally configured keys, validates the typed manifest, and only then maps it to `UpdateCandidate`.
+
+`UpdateRegistryInterface::findRelease()` now includes `UpdateTargetType` because the Registry release identity is `(package type, package ID, version)`. Implementations and test doubles must provide this explicit type; the adapter never guesses it.
+
+The client disables redirects, requires an HTTPS Registry base URL, applies a request timeout, validates pagination metadata and caps cursor traversal. Exact-release HTTP 404 responses map to `null`; other non-success responses raise `RegistryApiException`.
+
+Configuration uses `PIXELY_REGISTRY_URL`, `PIXELY_REGISTRY_TIMEOUT` and `PIXELY_REGISTRY_PER_PAGE`. The default `.example` host is a placeholder and must be replaced for deployment.
+
+### U10.5 acceptance checklist
+
+- [x] Laravel HTTP Registry adapter is registered for `UpdateRegistryInterface`.
+- [x] Manifest signature verification precedes DTO mapping.
+- [x] Duplicate JSON object member names are rejected.
+- [x] List and exact-release requests are implemented with cursor pagination.
+- [x] Exact release lookup includes package type.
+- [x] Registry transport failures are surfaced as `RegistryApiException`.

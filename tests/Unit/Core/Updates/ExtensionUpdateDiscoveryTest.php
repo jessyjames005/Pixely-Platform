@@ -47,7 +47,7 @@ final class ExtensionUpdateDiscoveryTest extends TestCase
                     new UpdateCandidate(UpdateTargetType::Extension, 'pixely/gallery', 'Gallery', '2.0.0-beta.1', UpdateChannel::Beta, $this->artifact()),
                 ];
             }
-            public function findRelease(string $packageId, string $version): ?UpdateCandidate
+            public function findRelease(UpdateTargetType $type, string $packageId, string $version): ?UpdateCandidate
             {
                 return null;
             }
@@ -89,7 +89,7 @@ final class ExtensionUpdateDiscoveryTest extends TestCase
             {
                 return [];
             }
-            public function findRelease(string $packageId, string $version): ?UpdateCandidate
+            public function findRelease(UpdateTargetType $type, string $packageId, string $version): ?UpdateCandidate
             {
                 return null;
             }

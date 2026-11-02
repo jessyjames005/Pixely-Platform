@@ -6,6 +6,7 @@ namespace App\Core\Updates\Contracts;
 
 use App\Core\Updates\DTO\UpdateCandidate;
 use App\Core\Updates\DTO\UpdateQuery;
+use App\Core\Updates\Enums\UpdateTargetType;
 
 /**
  * Reads release metadata from the official Pixely Registry.
@@ -24,5 +25,5 @@ interface UpdateRegistryInterface
     /**
      * Retrieve an exact release from the official registry.
      */
-    public function findRelease(string $packageId, string $version): ?UpdateCandidate;
+    public function findRelease(UpdateTargetType $type, string $packageId, string $version): ?UpdateCandidate;
 }
