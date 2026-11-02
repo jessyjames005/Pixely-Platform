@@ -219,3 +219,39 @@ These DTOs perform structural validation only. They do not verify trust, canonic
 docker compose exec app php artisan test --compact tests/Unit/Core/Updates/ReleaseManifestTest.php
 docker compose exec app php artisan test --compact tests/Unit/Core/Updates
 ```
+
+
+## U10.3: JCS canonicalization and manifest signature verification
+
+U10.3 adds a dedicated trust-verification path for the root release-manifest signature. It does not replace `SodiumUpdateVerifier`, which continues to verify detached signatures over downloaded archive bytes.
+
+### Runtime components
+
+- `ReleaseManifestCanonicalizer` removes only the root-level `signature` member and serializes the remaining object using JCS ordering and JSON string escaping.
+- `SodiumReleaseManifestVerifier` resolves the manifest `key_id` against locally configured public keys and verifies the detached Ed25519 signature with PHP Sodium.
+- `UpdateVerificationException` is used for malformed trust metadata, unknown keys, unsupported canonicalization values and failed verification.
+
+### Canonicalization contract
+
+The verifier receives a manifest decoded from valid UTF-8 JSON into `stdClass` objects. Object members are sorted recursively by UTF-16 code units, arrays preserve their order, and strings use JSON escaping without escaping `/` or non-control Unicode characters. Only the root `signature` member is excluded; `artifact.signature` remains included in the signed bytes.
+
+The schema-v1 manifest uses integer numeric fields only (`schema_version` and `artifact.size`). The canonicalizer rejects floating-point values rather than relying on PHP's floating-point serializer, which is not guaranteed to produce ECMAScript/JCS number serialization. A future schema that requires decimal numbers must add a fully RFC 8785-compliant IEEE-754 serialization implementation and test vectors before accepting them.
+
+The JSON parser at the boundary MUST reject duplicate object member names before constructing the `stdClass` tree. PHP's standard `json_decode()` silently keeps the last duplicate member and therefore is not, by itself, sufficient to enforce this requirement. The canonicalizer cannot recover duplicate members after parsing.
+
+### Trust rules
+
+- Public keys are supplied through local application configuration and indexed by key ID.
+- A key included in the manifest is never used as a trust anchor.
+- Public-key Base64 must be canonical and decode to exactly one Ed25519 public key.
+- The supplied `ReleaseManifestSignature` must exactly match the root signature envelope in the manifest.
+- The manifest signature must verify before the manifest is mapped to trusted update metadata or its artifact URI is acted upon.
+- Artifact verification remains a separate mandatory step after download.
+
+### Tests
+
+U10.3 adds unit coverage for recursive canonicalization, root-only signature removal, UTF-16 key ordering, rejection of floating-point values, valid Ed25519 signatures, tampering and unknown signing keys.
+
+### Security boundary and deferred work
+
+The current verifier expects the caller to provide a duplicate-free decoded JSON object and the structurally validated signature DTO. It does not implement a raw-JSON duplicate-member detector, key rotation/revocation distribution, or a remote trust-store update protocol. Those controls must be addressed before enabling unattended remote updates.
