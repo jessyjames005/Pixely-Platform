@@ -19,10 +19,14 @@ use App\Core\Updates\Enums\UpdateTargetType;
  */
 final class ExtensionUpdateDiscovery
 {
+    private readonly RuntimeCompatibilityChecker $compatibility;
+
     public function __construct(
         private readonly InstalledExtensionInventoryInterface $inventory,
         private readonly UpdateRegistryInterface $registry,
+        ?RuntimeCompatibilityChecker $compatibility = null,
     ) {
+        $this->compatibility = $compatibility ?? new RuntimeCompatibilityChecker();
     }
 
     /** @return list<ExtensionUpdateAvailability> */
@@ -30,29 +34,49 @@ final class ExtensionUpdateDiscovery
         UpdateChannel $channel = UpdateChannel::Stable,
         array $runtimeVersions = [],
     ): array {
+        $actualRuntimeVersions = $this->compatibility->runtimeVersions();
+        $queryRuntimeVersions = array_replace($runtimeVersions, $actualRuntimeVersions);
+
         return array_map(
-            fn ($extension) => $this->checkOne($extension, $channel, $runtimeVersions),
+            fn ($extension) => $this->checkOne(
+                $extension,
+                $channel,
+                $queryRuntimeVersions,
+                $actualRuntimeVersions,
+            ),
             $this->inventory->all(),
         );
     }
 
-    public function check(string $extensionId, UpdateChannel $channel = UpdateChannel::Stable, array $runtimeVersions = []): ?ExtensionUpdateAvailability
-    {
+    public function check(
+        string $extensionId,
+        UpdateChannel $channel = UpdateChannel::Stable,
+        array $runtimeVersions = [],
+    ): ?ExtensionUpdateAvailability {
         $extension = $this->inventory->find($extensionId);
 
-        return $extension === null
-            ? null
-            : $this->checkOne($extension, $channel, $runtimeVersions);
+        if ($extension === null) {
+            return null;
+        }
+
+        $actualRuntimeVersions = $this->compatibility->runtimeVersions();
+        $queryRuntimeVersions = array_replace($runtimeVersions, $actualRuntimeVersions);
+
+        return $this->checkOne($extension, $channel, $queryRuntimeVersions, $actualRuntimeVersions);
     }
 
-    private function checkOne(InstalledExtension $extension, UpdateChannel $channel, array $runtimeVersions): ExtensionUpdateAvailability
-    {
+    private function checkOne(
+        InstalledExtension $extension,
+        UpdateChannel $channel,
+        array $queryRuntimeVersions,
+        array $actualRuntimeVersions,
+    ): ExtensionUpdateAvailability {
         $query = new UpdateQuery(
             type: UpdateTargetType::Extension,
             packageId: $extension->packageId,
             installedVersion: $extension->version,
             channel: $channel,
-            runtimeVersions: $runtimeVersions,
+            runtimeVersions: $queryRuntimeVersions,
         );
 
         $newer = [];
@@ -65,6 +89,7 @@ final class ExtensionUpdateDiscovery
                 || $candidate->packageId !== $extension->packageId
                 || $candidate->channel !== $channel
                 || version_compare($candidate->version, $extension->version, '<=')
+                || !$this->compatibility->supports($candidate, $actualRuntimeVersions)
             ) {
                 continue;
             }
