@@ -99,10 +99,18 @@ final readonly class HttpUpdateRegistry implements UpdateRegistryInterface
                 }
             }
 
+            $pageSize = $meta->per_page ?? null;
             $hasMore = $meta->has_more ?? null;
             $nextCursor = $meta->next_cursor ?? null;
 
-            if (!is_bool($hasMore) || ($hasMore && (!is_string($nextCursor) || $nextCursor === ''))) {
+            if (
+                !is_int($pageSize)
+                || $pageSize < 1
+                || $pageSize > 100
+                || !is_bool($hasMore)
+                || ($hasMore && (!is_string($nextCursor) || $nextCursor === ''))
+                || (!$hasMore && $nextCursor !== null)
+            ) {
                 throw new RegistryApiException('The Registry pagination metadata is invalid.');
             }
 

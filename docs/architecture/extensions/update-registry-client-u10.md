@@ -73,3 +73,12 @@ Runtime compatibility constraints remain attached to `UpdateCandidate`; callers/
 - [x] Package type is explicit in exact-release lookup.
 - [x] Pagination loops and unexpected response envelopes are rejected.
 - [x] No Registry server, persistence or publishing functionality is introduced.
+
+
+## U10.6 — Contract conformance
+
+The adapter validates `meta.per_page` as an integer between 1 and 100. A response with `has_more: true` must provide a non-empty opaque `next_cursor`; a final response with `has_more: false` must provide `next_cursor: null`. Repeated cursors and traversal beyond 1,000 pages are rejected.
+
+The conformance tests also cover exact-release `404` as `null`, other non-success statuses as `RegistryApiException`, malformed envelopes, unexpected exact-release identity, supported runtime filters and cursor forwarding.
+
+The API contract recommends ETag-based conditional caching but does not require it. U10.6 does not add conditional requests. The adapter currently reports non-success status through `RegistryApiException` and does not expose parsed RFC 9457 fields; the Registry server must nevertheless return the Problem Details response defined by the API contract.

@@ -194,7 +194,7 @@ This step does not define or implement:
 - **U10.3:** implement RFC 8785 canonicalization and a dedicated manifest-signature verifier, with tests against known Ed25519 test vectors; retain `SodiumUpdateVerifier` for archive-byte signatures.
 - **U10.4:** specify the official Registry API endpoints and response envelopes.
 - **U10.5:** integrate the validated registry response with `UpdateRegistryInterface`.
-- **U10.6:** document and test the complete contract.
+- **U10.6:** document and test the complete contract, including client conformance and pagination edge cases.
 
 ## U10.2: Typed PHP DTOs and structural validation
 
@@ -267,7 +267,7 @@ U10.4 defines the read-only Registry HTTP contract in `update-registry-api-u10.m
 - Package IDs are query parameters rather than path segments, so identifiers containing `/` remain unambiguous.
 - Registry metadata remains untrusted until the U10.3 manifest verifier succeeds. Runtime compatibility, artifact host policy, checksum and artifact-signature checks remain mandatory client-side controls.
 
-The current `UpdateRegistryInterface::findRelease(string $packageId, string $version)` does not carry the package type required by the Registry's canonical identity tuple. U10.5 must resolve this mismatch explicitly; an adapter must not guess the package type or choose an arbitrary match.
+At the time U10.4 was specified, `UpdateRegistryInterface::findRelease()` did not carry the package type required by the Registry's canonical identity tuple. U10.5 resolves this mismatch by adding an explicit `UpdateTargetType` argument; an adapter must never guess the package type or choose an arbitrary match.
 
 This is a contract-only step. It adds no Registry server, routes, controllers, database tables, authentication or handwritten OpenAPI document. When HTTP endpoints are implemented, API documentation must follow the project's established Scramble generation workflow from PHP source.
 
@@ -300,3 +300,19 @@ Configuration uses `PIXELY_REGISTRY_URL`, `PIXELY_REGISTRY_TIMEOUT` and `PIXELY_
 - [x] List and exact-release requests are implemented with cursor pagination.
 - [x] Exact release lookup includes package type.
 - [x] Registry transport failures are surfaced as `RegistryApiException`.
+
+
+## U10.6 — Registry contract conformance
+
+U10.6 completes the read-only Registry client contract verification. The API contract mapping now matches the typed `findRelease(UpdateTargetType $type, string $packageId, string $version)` interface introduced in U10.5.
+
+The client rejects invalid pagination metadata, including out-of-range `per_page`, missing cursors on non-final pages and non-null cursors on final pages. The expanded HTTP adapter tests cover exact-release not-found handling, HTTP failures, malformed envelopes, unexpected release identities, runtime filters and cursor forwarding. See `update-registry-client-u10.md` and `update-registry-api-u10.md` for the detailed contract and explicit optional/deferred behaviour.
+
+### U10.6 acceptance checklist
+
+- [x] Registry API mapping and client interface are consistent.
+- [x] Pagination metadata is validated against the API contract.
+- [x] HTTP success, not-found and failure paths have unit coverage.
+- [x] Identity, signature, runtime-filter and cursor behaviour have unit coverage.
+- [x] Optional caching and RFC 9457 client parsing limitations are documented.
+- [x] No Registry server or remote installation behaviour is introduced.

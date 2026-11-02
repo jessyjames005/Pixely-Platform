@@ -193,9 +193,9 @@ Published release identity and signed manifest content are immutable. A correcti
 | `UpdateRegistryInterface` operation | Registry request | Mapping |
 |---|---|---|
 | `findUpdates(UpdateQuery $query)` | `GET /releases` | Query package type/ID, channel, installed version as `after_version`, and supported runtime versions. Verify each manifest before mapping it to `UpdateCandidate`. |
-| `findRelease(string $packageId, string $version)` | `GET /releases/resolve` | Query exact package ID and version. The adapter must also know the package type from its caller/context; it MUST NOT guess a type from the package ID. Verify the manifest before mapping it. |
+| `findRelease(UpdateTargetType $type, string $packageId, string $version)` | `GET /releases/resolve` | Query exact package type, package ID and version. Verify the manifest before mapping it and reject any returned identity mismatch. |
 
-`UpdateRegistryInterface::findRelease()` currently has no package-type parameter. U10.5 MUST resolve this mismatch explicitly, preferably by adding a typed overload/query DTO or by introducing a backwards-compatible exact-release query object. An adapter MUST NOT query all package types and silently select the first matching ID/version.
+U10.5 resolved the original package-type gap by adding `UpdateTargetType` as the first argument to `UpdateRegistryInterface::findRelease()`. The client MUST NOT infer package type from the package ID or select an arbitrary matching release.
 
 The existing `UpdateCandidate` and `ArtifactReference` are created only after the manifest has passed structural validation and Ed25519 signature verification. `SodiumUpdateVerifier` remains responsible for detached signatures over downloaded artifact bytes.
 
@@ -219,3 +219,32 @@ The existing `UpdateCandidate` and `ArtifactReference` are created only after th
 - [x] HTTP caching and immutable-release rules are defined.
 - [x] The contract maps to `UpdateRegistryInterface`, including the existing package-type gap.
 - [x] No handwritten OpenAPI YAML/JSON is added. Runtime API documentation will be generated from the PHP source using the project's established Scramble workflow when server endpoints are implemented.
+
+
+## 12. U10.6 client conformance and verification
+
+U10.6 closes the client-side contract verification loop. The Registry remains a proposed external service contract; this step does not implement its server.
+
+The Laravel client conformance tests cover:
+
+- Signed manifest verification before mapping to update DTOs, including tampering rejection.
+- Exact package type and release identity on resolution.
+- The documented `404` exact-release behaviour (`null`) and exception behaviour for other non-success HTTP statuses.
+- Rejection of malformed success envelopes and invalid pagination metadata.
+- Opaque cursor forwarding across pages and forwarding of supported runtime filters.
+- Duplicate JSON object member rejection before decoding.
+
+The client validates `meta.per_page` as an integer from 1 through 100, requires a non-empty cursor when `has_more` is true, and requires `next_cursor: null` on the final page. It independently filters package identity, channel and strictly newer versions, then sorts results by SemVer descending.
+
+Conditional caching (`ETag`, `If-None-Match`, `304`) remains optional at the API contract level and is not implemented by this client. The client does not parse RFC 9457 error bodies; it raises `RegistryApiException` with the HTTP status in its message. This does not change the server's obligation to return the documented Problem Details envelope.
+
+### U10.6 acceptance criteria
+
+- [x] The API mapping reflects the typed `findRelease()` signature introduced in U10.5.
+- [x] List and exact-release success envelopes have client conformance tests.
+- [x] Exact-release not-found and non-success HTTP behaviour are tested.
+- [x] Invalid response envelopes and pagination metadata are rejected.
+- [x] Runtime filters and opaque cursor forwarding are tested.
+- [x] The client enforces the documented final-page cursor rule and page-size bounds.
+- [x] Optional caching and current error-body handling are explicitly documented.
+- [x] No Registry server, persistence, publishing or artifact download/install flow is introduced.

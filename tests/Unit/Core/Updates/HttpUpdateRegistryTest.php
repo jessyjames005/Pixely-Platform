@@ -107,6 +107,26 @@ final class HttpUpdateRegistryTest extends TestCase
             && $request['package_type'] === 'extension');
     }
 
+
+    public function test_it_rejects_duplicate_json_keys_at_the_http_boundary(): void
+    {
+        Http::fake([
+            'registry.pixely.test/api/v1/releases*' => Http::response(
+                '{"data":[],"data":[],"meta":{"per_page":20,"next_cursor":null,"has_more":false}}',
+                200,
+                ['Content-Type' => 'application/json'],
+            ),
+        ]);
+
+        $this->expectException(RegistryApiException::class);
+
+        $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+        ));
+    }
+
     public function test_it_rejects_duplicate_json_object_member_names(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -135,6 +155,155 @@ final class HttpUpdateRegistryTest extends TestCase
 
         self::assertCount(1, $results);
         Http::assertSentCount(2);
+    }
+
+
+
+    public function test_it_filters_exact_package_and_channel_and_sorts_newer_versions(): void
+    {
+        $older = $this->manifestWith(releaseVersion: '1.1.0');
+        $newer = $this->manifestWith(releaseVersion: '1.3.0');
+        $beta = $this->manifestWith(releaseVersion: '1.5.0', channel: 'beta');
+        $otherPackage = $this->manifestWith(releaseVersion: '2.0.0', packageId: 'pixely/other');
+        $notNewer = $this->manifestWith(releaseVersion: '1.0.0');
+
+        Http::fake([
+            'registry.pixely.test/api/v1/releases*' => Http::response([
+                'data' => array_map(
+                    static fn (array $manifest): array => ['manifest' => $manifest],
+                    [$older, $newer, $beta, $otherPackage, $notNewer],
+                ),
+                'meta' => ['per_page' => 20, 'next_cursor' => null, 'has_more' => false],
+            ]),
+        ]);
+
+        $results = $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+            channel: UpdateChannel::Stable,
+        ));
+
+        self::assertSame(['1.3.0', '1.1.0'], array_map(
+            static fn ($candidate): string => $candidate->version,
+            $results,
+        ));
+    }
+
+    public function test_it_rejects_a_non_null_cursor_on_the_final_page(): void
+    {
+        Http::fake([
+            'registry.pixely.test/api/v1/releases*' => Http::response([
+                'data' => [],
+                'meta' => ['per_page' => 20, 'next_cursor' => 'unexpected-cursor', 'has_more' => false],
+            ]),
+        ]);
+
+        $this->expectException(RegistryApiException::class);
+
+        $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+        ));
+    }
+
+    public function test_it_returns_null_when_an_exact_release_is_not_found(): void
+    {
+        Http::fake([
+            'registry.pixely.test/api/v1/releases/resolve*' => Http::response([], 404),
+        ]);
+
+        self::assertNull($this->registry()->findRelease(
+            UpdateTargetType::Extension,
+            'pixely/gallery',
+            '9.9.9',
+        ));
+    }
+
+    public function test_it_raises_a_registry_exception_for_non_success_http_responses(): void
+    {
+        Http::fake([
+            'registry.pixely.test/api/v1/releases*' => Http::response([
+                'type' => 'about:blank',
+                'title' => 'Unavailable',
+                'status' => 503,
+            ], 503),
+        ]);
+
+        $this->expectException(RegistryApiException::class);
+
+        $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+        ));
+    }
+
+    public function test_it_rejects_invalid_success_envelopes(): void
+    {
+        Http::fake([
+            'registry.pixely.test/api/v1/releases*' => Http::response([
+                'data' => [],
+                'meta' => ['has_more' => true, 'next_cursor' => null],
+            ]),
+        ]);
+
+        $this->expectException(RegistryApiException::class);
+
+        $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+        ));
+    }
+
+    public function test_it_rejects_an_exact_release_with_an_unexpected_identity(): void
+    {
+        $manifest = $this->signedManifest();
+        $manifest['release']['version'] = '1.3.0';
+        $manifest = $this->resignManifest($manifest);
+
+        Http::fake([
+            'registry.pixely.test/api/v1/releases/resolve*' => Http::response([
+                'data' => ['manifest' => $manifest],
+            ]),
+        ]);
+
+        $this->expectException(RegistryApiException::class);
+
+        $this->registry()->findRelease(
+            UpdateTargetType::Extension,
+            'pixely/gallery',
+            '1.2.0',
+        );
+    }
+
+    public function test_it_forwards_runtime_filters_and_the_next_cursor(): void
+    {
+        $manifest = $this->signedManifest();
+        Http::fakeSequence()
+            ->push([
+                'data' => [],
+                'meta' => ['per_page' => 20, 'next_cursor' => 'opaque-next-page', 'has_more' => true],
+            ])
+            ->push([
+                'data' => [['manifest' => $manifest]],
+                'meta' => ['per_page' => 20, 'next_cursor' => null, 'has_more' => false],
+            ]);
+
+        $results = $this->registry()->findUpdates(new UpdateQuery(
+            type: UpdateTargetType::Extension,
+            packageId: 'pixely/gallery',
+            installedVersion: '1.0.0',
+            channel: UpdateChannel::Stable,
+            runtimeVersions: ['php' => '8.3.14', 'pixely' => '1.0.0'],
+        ));
+
+        self::assertCount(1, $results);
+        Http::assertSent(fn ($request): bool => ($request['cursor'] ?? null) === 'opaque-next-page'
+            && ($request['runtime']['php'] ?? null) === '8.3.14'
+            && ($request['runtime']['pixely'] ?? null) === '1.0.0');
     }
 
     private function registry(): HttpUpdateRegistry
@@ -186,6 +355,29 @@ final class HttpUpdateRegistryTest extends TestCase
             ],
         ];
 
+        return $this->resignManifest($manifest);
+    }
+
+
+    /** @return array<string, mixed> */
+    private function manifestWith(
+        string $releaseVersion,
+        string $channel = 'stable',
+        string $packageId = 'pixely/gallery',
+    ): array {
+        $manifest = $this->signedManifest();
+        $manifest['release']['version'] = $releaseVersion;
+        $manifest['release']['channel'] = $channel;
+        $manifest['package']['id'] = $packageId;
+
+        return $this->resignManifest($manifest);
+    }
+
+    /** @param array<string, mixed> $manifest
+     *  @return array<string, mixed>
+     */
+    private function resignManifest(array $manifest): array
+    {
         $unsigned = json_decode(json_encode($manifest, JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR);
         $canonicalizer = new ReleaseManifestCanonicalizer();
         $message = $canonicalizer->canonicalizeUnsignedManifest($unsigned);
