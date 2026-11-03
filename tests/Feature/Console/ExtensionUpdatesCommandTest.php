@@ -19,23 +19,25 @@ use Tests\TestCase;
 
 final class ExtensionUpdatesCommandTest extends TestCase
 {
-    private string $reportsDirectory;
+    private string $testStoragePath;
 
-    /** @var list<string> */
-    private array $existingReports;
+    private string $reportsDirectory;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->testStoragePath = storage_path(
+            'framework/testing/extension-updates-command-' . bin2hex(random_bytes(6)),
+        );
+        $this->app->useStoragePath($this->testStoragePath);
         $this->reportsDirectory = storage_path('app/extension-update-reports');
         File::ensureDirectoryExists($this->reportsDirectory);
-        $this->existingReports = glob($this->reportsDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
     }
 
     protected function tearDown(): void
     {
-        $this->removeTestReports();
+        File::deleteDirectory($this->testStoragePath);
 
         parent::tearDown();
     }
@@ -208,14 +210,5 @@ final class ExtensionUpdatesCommandTest extends TestCase
         sort($reports, SORT_STRING);
 
         return (string) end($reports);
-    }
-
-    private function removeTestReports(): void
-    {
-        foreach (glob($this->reportsDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [] as $path) {
-            if (! in_array($path, $this->existingReports ?? [], true)) {
-                @unlink($path);
-            }
-        }
     }
 }
