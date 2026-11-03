@@ -193,7 +193,7 @@ final class StaticExtensionManifestParser
     }
 
     /**
-     * @param array<int, array{id: int|string, text: string}> $tokens
+     * @param list<array{int, string, int}|string> $tokens
      * @return array<int, array{id: int|string, text: string}>
      */
     private function significantTokens(array $tokens): array
