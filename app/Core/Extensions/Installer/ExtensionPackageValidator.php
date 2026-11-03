@@ -55,17 +55,27 @@ final class ExtensionPackageValidator
                 || $unixMode === 0120000
             ) {
                 $zip->close();
-                throw new \RuntimeException("Unsafe path detected in archive: {$entryName}");
+                throw new \RuntimeException(
+                    "Unsafe path detected in archive: {$entryName}",
+                );
             }
 
-            $destination = $realStagingDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $normalisedName);
+            $destination = $realStagingDir . DIRECTORY_SEPARATOR
+                . str_replace('/', DIRECTORY_SEPARATOR, $normalisedName);
             $resolvedDestinationDir = dirname($destination);
 
             // Re-validate after path resolution: the target must stay
             // strictly inside the staging directory.
-            if (! str_starts_with($resolvedDestinationDir . DIRECTORY_SEPARATOR, $realStagingDir . DIRECTORY_SEPARATOR)) {
+            if (
+                ! str_starts_with(
+                    $resolvedDestinationDir . DIRECTORY_SEPARATOR,
+                    $realStagingDir . DIRECTORY_SEPARATOR,
+                )
+            ) {
                 $zip->close();
-                throw new \RuntimeException("Unsafe path detected in archive: {$entryName}");
+                throw new \RuntimeException(
+                    "Unsafe path detected in archive: {$entryName}",
+                );
             }
         }
 
@@ -100,6 +110,45 @@ final class ExtensionPackageValidator
      */
     public function locateAndValidateManifest(string $stagingDir): array
     {
+        return $this->locateManifest($stagingDir, false);
+    }
+
+    /**
+     * Locates and validates a manifest using the bounded, non-executing parser.
+     *
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
+     * @throws \RuntimeException
+     */
+    public function locateAndValidateStaticManifest(string $stagingDir): array
+    {
+        return $this->locateManifest($stagingDir, true);
+    }
+
+    /**
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
+     */
+    private function locateManifest(string $stagingDir, bool $static): array
+    {
         $candidateRoots = [$stagingDir];
 
         $topLevelEntries = array_values(array_diff(scandir($stagingDir) ?: [], ['.', '..']));
@@ -111,7 +160,7 @@ final class ExtensionPackageValidator
             $manifestPath = $root . '/extension.php';
 
             if (is_file($manifestPath)) {
-                return $this->validateManifestFile($manifestPath, $root);
+                return $this->validateManifestFile($manifestPath, $root, $static);
             }
         }
 
@@ -131,13 +180,14 @@ final class ExtensionPackageValidator
      *     conflicts: array
      * }
      */
-    private function validateManifestFile(string $manifestPath, string $root): array
+    private function validateManifestFile(string $manifestPath, string $root, bool $static): array
     {
-        // The manifest is a plain PHP array return, evaluated in
-        // isolation — it must not reference anything beyond this
-        // file, since the extension's own classes aren't autoloaded
-        // yet at this point (Composer hasn't seen these files).
-        $manifest = include $manifestPath;
+        if ($static) {
+            $manifest = (new StaticExtensionManifestParser())->parseFile($manifestPath);
+        } else {
+            // This legacy installer path remains trusted local-package behavior.
+            $manifest = include $manifestPath;
+        }
 
         if (! is_array($manifest)) {
             throw new \RuntimeException('extension.php must return an array.');
@@ -154,7 +204,9 @@ final class ExtensionPackageValidator
             ! is_string($minimumKernelVersion)
             || preg_match('/^\d+\.\d+\.\d+$/', $minimumKernelVersion) !== 1
         ) {
-            throw new \RuntimeException('Manifest minimum_kernel_version must follow semantic versioning (e.g. 1.0.0).');
+            throw new \RuntimeException(
+                'Manifest minimum_kernel_version must follow semantic versioning (e.g. 1.0.0).',
+            );
         }
 
         if (preg_match('/^[a-z0-9\-]+$/', $manifest['id']) !== 1) {
@@ -184,7 +236,9 @@ final class ExtensionPackageValidator
                 ! is_string($dependencyId) || preg_match('/^[a-z0-9-]+$/', $dependencyId) !== 1
                 || ! is_string($minimumVersion) || preg_match('/^\d+\.\d+\.\d+$/', $minimumVersion) !== 1
             ) {
-                throw new \RuntimeException('Manifest require_versions must map valid extension ids to semantic versions.');
+                throw new \RuntimeException(
+                    'Manifest require_versions must map valid extension ids to semantic versions.',
+                );
             }
             if (! in_array($dependencyId, $requires, true)) {
                 throw new \RuntimeException("Minimum version declared for undeclared dependency [{$dependencyId}].");

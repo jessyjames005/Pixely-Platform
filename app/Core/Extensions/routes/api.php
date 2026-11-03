@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Extensions\Http\Controllers\ExtensionAuditLogController;
 use App\Core\Extensions\Http\Controllers\ExtensionController;
 use App\Core\Extensions\Http\Controllers\ExtensionInstallController;
 use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
@@ -15,6 +16,12 @@ JsonApiRoute::server('v1')
             ->prefix('extensions')
             ->group(function (): void {
                 Route::get('/navigation', [ExtensionController::class, 'navigation']);
+            });
+
+        Route::middleware(['auth:sanctum', 'permission:system.extensions.install'])
+            ->prefix('extensions')
+            ->group(function (): void {
+                Route::get('/audit-logs', [ExtensionAuditLogController::class, 'index']);
             });
 
         Route::middleware(['auth:sanctum', 'permission:system.extensions.view'])

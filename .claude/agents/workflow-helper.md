@@ -17,6 +17,10 @@ Specialized agent for Git workflows, Merge Requests, and branching conventions i
 ## Commit Rules
 - One logical change per commit
 - Conventional commits format: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+- Work is grouped into sprints with numbered lots (for example, sprint `U12`, lots `U12.1`, `U12.2`).
+- Finish and validate one lot at a time. Summarize the lot and propose its commit message; wait for explicit user authorization before committing and user validation before starting the next lot.
+- At sprint close, update the roadmap and changelog and draft the full PR description using `.github/PULL_REQUEST_TEMPLATE.md`.
+- Follow `.claude/skills/PP_sprint_delivery/SKILL.md` and `docs/development/SPRINT_WORKFLOW.md`.
 - Never commit generated or temporary files
 - Run `composer cs:check` and `npm run lint` before commit
 - Run `php artisan test` before commit

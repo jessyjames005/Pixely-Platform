@@ -262,6 +262,7 @@ final readonly class HttpUpdateRegistry implements UpdateRegistryInterface
                 sha256: $manifest->artifact->sha256,
                 signature: $manifest->artifact->signature->value,
                 keyId: $manifest->artifact->signature->keyId,
+                expectedSize: $manifest->artifact->size,
             ),
             requires: $manifest->dependencies->requires,
             conflicts: $manifest->dependencies->conflicts,

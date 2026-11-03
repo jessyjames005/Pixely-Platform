@@ -66,7 +66,12 @@ final class ExtensionUpgradeRunner
             }
 
             $this->versionRepository->set($extensionId, $step->version());
-            $this->auditLogger->log($extensionId, 'upgrade_step', $step->version(), ['description' => $step->description()]);
+            $this->auditLogger->logSafely(
+                $extensionId,
+                'upgrade_step',
+                $step->version(),
+                ['outcome' => 'success', 'stage' => 'upgrade'],
+            );
             $applied[] = "{$step->version()}: {$step->description()}";
         }
 

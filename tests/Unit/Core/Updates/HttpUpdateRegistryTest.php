@@ -56,6 +56,7 @@ final class HttpUpdateRegistryTest extends TestCase
         self::assertCount(1, $results);
         self::assertSame('pixely/gallery', $results[0]->packageId);
         self::assertSame('1.2.0', $results[0]->version);
+        self::assertSame(1024, $results[0]->artifact->expectedSize);
         self::assertSame('1.0.0', $results[0]->runtimeConstraints['pixely']);
         self::assertSame('https://registry.pixely.test/releases/gallery/1.2.0', $results[0]->releaseNotes);
         Http::assertSent(fn ($request): bool => parse_url($request->url(), PHP_URL_SCHEME) === 'https'
@@ -132,6 +133,7 @@ final class HttpUpdateRegistryTest extends TestCase
         self::assertNotNull($candidate);
         self::assertSame(UpdateTargetType::Extension, $candidate->type);
         self::assertSame('1.2.0', $candidate->version);
+        self::assertSame(1024, $candidate->artifact->expectedSize);
         Http::assertSent(fn ($request): bool => parse_url($request->url(), PHP_URL_SCHEME) === 'https'
             && parse_url($request->url(), PHP_URL_HOST) === 'registry.pixely.test'
             && parse_url($request->url(), PHP_URL_PATH) === '/api/v1/releases/resolve'

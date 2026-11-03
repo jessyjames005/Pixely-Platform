@@ -19,8 +19,8 @@ use Symfony\Component\Process\Process;
  * Orchestrates the full install/update/uninstall flow for extensions
  * uploaded as a zip package.
  *
- * Every step that can fail rolls back cleanly: nothing is left
- * half-installed in app/Extensions.
+ * Install/update failures attempt filesystem rollback and report rollback
+ * errors. Database mutations are not automatically rolled back.
  */
 final class ExtensionInstaller implements ExtensionInstallerInterface
 {
@@ -88,14 +88,28 @@ final class ExtensionInstaller implements ExtensionInstallerInterface
     {
         $stagingDir = storage_path('app/extension-staging/' . uniqid('ext_', true));
         File::ensureDirectoryExists($stagingDir);
+        if (! is_dir($stagingDir)) {
+            throw new \RuntimeException("Could not create extension staging directory [{$stagingDir}].");
+        }
+
+        $filesystem = new ExtensionInstallerFilesystem();
         $targetPath = null;
         $backupPath = null;
-        $liveReplacementStarted = false;
+        $replacementAttempted = false;
+        $databaseWorkStarted = false;
         $committed = false;
+        $primaryFailure = null;
+        $result = null;
+        $auditExtensionId = null;
+        $auditVersion = null;
+        $failureStage = 'package_validation';
 
         try {
             $this->validator->extractSafely($zipPath, $stagingDir);
             $manifest = $this->validator->locateAndValidateManifest($stagingDir);
+            $auditExtensionId = $manifest['id'];
+            $auditVersion = $manifest['version'];
+            $failureStage = 'release_validation';
 
             if ($mode === 'update' && $manifest['id'] !== $expectedId) {
                 throw new \RuntimeException(
@@ -140,65 +154,115 @@ final class ExtensionInstaller implements ExtensionInstallerInterface
 
             // Move into place. For updates, the old directory is backed
             // up (not deleted) until the new one is verified below.
+            $failureStage = 'file_replacement';
             $backupPath = $alreadyExists ? $targetPath . '.backup-' . bin2hex(random_bytes(6)) : null;
 
             if ($backupPath !== null) {
-                File::moveDirectory($targetPath, $backupPath);
-                $liveReplacementStarted = true;
+                $filesystem->moveDirectory($targetPath, $backupPath, 'Backing up the installed extension');
             }
 
-            File::moveDirectory($manifest['root'], $targetPath);
-            $liveReplacementStarted = true;
+            $replacementAttempted = true;
+            $filesystem->moveDirectory($manifest['root'], $targetPath, 'Installing the extension files');
 
+            $failureStage = 'extension_boot';
             $this->refreshAutoloader();
 
             $this->assertClassIsValidExtension($manifest['class'], $targetPath, $backupPath);
 
             // Sync declared permissions now that the extension's class is
             // verified and autoloadable.
+            $failureStage = 'permissions';
             $extensionInstance = new ($manifest['class'])();
             $this->permissionSynchronizer->sync($extensionInstance);
 
             // Keep the backup until migrations and upgrade steps have completed.
+            $databaseWorkStarted = true;
+            $failureStage = 'migrations';
             $this->migrationRunner->migrate($manifest['id']);
 
             if ($mode === 'install') {
                 $this->upgradeRunner->recordFreshInstall($manifest['id'], $manifest['version']);
             } else {
+                $failureStage = 'upgrade';
                 $appliedSteps = $this->upgradeRunner->upgrade($extensionInstance, $manifest['version']);
             }
 
-            $this->auditLogger->log(
+            $committed = true;
+            if ($backupPath !== null) {
+                $failureStage = 'file_replacement';
+                $filesystem->deleteDirectory($backupPath, 'Removing the previous extension backup');
+            }
+
+            $this->auditLogger->logSafely(
                 $manifest['id'],
                 $mode,
                 $manifest['version'],
-                ['name' => $manifest['name']],
+                ['outcome' => 'success', 'stage' => $mode],
+                $userId,
             );
 
-            $committed = true;
-            if ($backupPath !== null) {
-                File::deleteDirectory($backupPath);
-            }
-
-            return [
+            $result = [
                 'id' => $manifest['id'],
                 'name' => $manifest['name'],
                 'version' => $manifest['version'],
             ];
-        } finally {
-            if (! $committed && $liveReplacementStarted && $targetPath !== null && is_dir($targetPath)) {
-                File::deleteDirectory($targetPath);
-            }
-            if (! $committed && $backupPath !== null && is_dir($backupPath) && $targetPath !== null) {
-                File::moveDirectory($backupPath, $targetPath);
-                try {
-                    $this->refreshAutoloader();
-                } catch (\Throwable) {
-                    // Preserve the original failure; deployment tooling can rebuild the autoloader.
-                }
-            }
-            File::deleteDirectory($stagingDir);
+        } catch (\Throwable $exception) {
+            $primaryFailure = $exception;
         }
+
+        $rollbackErrors = [];
+        $filesystemMayBeInconsistent = false;
+        if (! $committed) {
+            $rollbackResult = $filesystem->rollback(
+                $targetPath,
+                $backupPath,
+                $replacementAttempted,
+                $stagingDir,
+                fn () => $this->refreshAutoloader(),
+            );
+            $rollbackErrors = $rollbackResult['errors'];
+            $filesystemMayBeInconsistent = $rollbackResult['filesystem_may_be_inconsistent'];
+        } else {
+            try {
+                $filesystem->deleteDirectory($stagingDir, 'Removing extension staging files');
+            } catch (\Throwable $exception) {
+                $rollbackErrors[] = $exception->getMessage();
+            }
+        }
+
+        if ($primaryFailure !== null) {
+            if ($auditExtensionId !== null && $auditVersion !== null) {
+                $this->auditLogger->logSafely(
+                    $auditExtensionId,
+                    $mode,
+                    $auditVersion,
+                    ['outcome' => 'failure', 'stage' => $failureStage],
+                    $userId,
+                );
+            }
+
+            if ($rollbackErrors !== [] || $databaseWorkStarted || $committed) {
+                throw $filesystem->failure(
+                    $primaryFailure,
+                    $rollbackErrors,
+                    $backupPath,
+                    $databaseWorkStarted,
+                    $committed,
+                    $manifest['id'] ?? null,
+                    $filesystemMayBeInconsistent,
+                );
+            }
+
+            throw $primaryFailure;
+        }
+
+        if ($rollbackErrors !== []) {
+            throw new \RuntimeException(
+                "Extension installation completed, but cleanup failed:\n- " . implode("\n- ", $rollbackErrors),
+            );
+        }
+
+        return $result;
     }
 
 

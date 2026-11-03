@@ -20,6 +20,31 @@ final class ArtifactReferenceTest extends TestCase
 
         $this->assertSame(ArtifactProvider::GitHub, $artifact->provider);
         $this->assertSame(str_repeat('a', 64), $artifact->sha256);
+        $this->assertNull($artifact->expectedSize);
+    }
+
+    public function test_it_accepts_a_positive_expected_size(): void
+    {
+        $artifact = new ArtifactReference(
+            provider: ArtifactProvider::Pixely,
+            uri: 'https://updates.pixely.example/releases/gallery.zip',
+            sha256: str_repeat('a', 64),
+            expectedSize: 123,
+        );
+
+        $this->assertSame(123, $artifact->expectedSize);
+    }
+
+    public function test_it_rejects_a_non_positive_expected_size(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        new ArtifactReference(
+            provider: ArtifactProvider::Pixely,
+            uri: 'https://updates.pixely.example/releases/gallery.zip',
+            sha256: str_repeat('a', 64),
+            expectedSize: 0,
+        );
     }
 
     public function test_it_rejects_an_invalid_checksum(): void
