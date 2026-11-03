@@ -6,7 +6,7 @@ U6 introduces one Artisan entry point for discovering and applying extension upd
 
 ## Package source
 
-The default package inbox is `storage/app/extension-updates`. Place one ZIP archive per extension in this directory. A package must contain a valid `extension.php` manifest at its root or inside one wrapping directory. The `pixely:update` apply command remains local-inbox-only; it does not fetch remote artifacts. Exact remote release downloads are handled separately by `pixely:extension:download` and are quarantined pending U12.2 verification, so they cannot be installed by this command.
+The default package inbox is `storage/app/extension-updates`. Place one ZIP archive per extension in this directory. A package must contain a valid `extension.php` manifest at its root or inside one wrapping directory. The `pixely:update` apply command remains local-inbox-only; it does not fetch remote artifacts. Exact remote release downloads are handled separately by `pixely:extension:download`; they are verified and quarantined, but not installable.
 
 ## Usage
 

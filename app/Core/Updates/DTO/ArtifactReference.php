@@ -17,6 +17,7 @@ final readonly class ArtifactReference
         public string $sha256,
         public ?string $signature = null,
         public ?string $keyId = null,
+        public ?int $expectedSize = null,
     ) {
         $scheme = parse_url($this->uri, PHP_URL_SCHEME);
 
@@ -26,6 +27,10 @@ final readonly class ArtifactReference
 
         if (preg_match('/^[a-f0-9]{64}$/i', $this->sha256) !== 1) {
             throw new \InvalidArgumentException('The artifact SHA-256 checksum must contain 64 hexadecimal characters.');
+        }
+
+        if ($this->expectedSize !== null && $this->expectedSize < 1) {
+            throw new \InvalidArgumentException('The expected artifact size must be a positive byte count.');
         }
 
         if (($this->signature === null) !== ($this->keyId === null)) {

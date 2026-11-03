@@ -22,6 +22,15 @@ final readonly class SodiumUpdateVerifier implements UpdateVerifierInterface
             throw new UpdateVerificationException('Artifact file does not exist or is not readable.');
         }
 
+        if ($artifact->expectedSize === null || $artifact->expectedSize < 1) {
+            throw new UpdateVerificationException('A valid expected artifact size is required.');
+        }
+
+        $actualSize = filesize($artifactPath);
+        if (!is_int($actualSize) || $actualSize !== $artifact->expectedSize) {
+            throw new UpdateVerificationException('Artifact size does not match registry metadata.');
+        }
+
         $actualHash = hash_file('sha256', $artifactPath);
         if (!is_string($actualHash) || !hash_equals(strtolower($artifact->sha256), strtolower($actualHash))) {
             throw new UpdateVerificationException('Artifact SHA-256 checksum does not match registry metadata.');

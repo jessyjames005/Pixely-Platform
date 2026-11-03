@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Core\Updates\Contracts\ArtifactSourceInterface;
 use App\Core\Updates\Contracts\UpdateRegistryInterface;
+use App\Core\Updates\Contracts\UpdateVerifierInterface;
 use App\Core\Updates\DTO\ReleaseManifestValue;
 use App\Core\Updates\Enums\UpdateChannel;
 use App\Core\Updates\Enums\UpdateTargetType;
@@ -29,6 +30,7 @@ final class DownloadExtensionReleaseCommand extends Command
     public function __construct(
         private readonly UpdateRegistryInterface $registry,
         private readonly ArtifactSourceInterface $artifactSource,
+        private readonly UpdateVerifierInterface $verifier,
         private readonly RuntimeCompatibilityChecker $compatibility,
     ) {
         parent::__construct();
@@ -91,6 +93,7 @@ final class DownloadExtensionReleaseCommand extends Command
             $stagingDirectory = $this->createDownloadDirectory($quarantineRoot);
             $stagedPath = $this->artifactSource->download($candidate->artifact, $stagingDirectory);
             $this->assertQuarantinedArtifact($stagedPath, $stagingDirectory);
+            $this->verifier->verify($stagedPath, $candidate->artifact);
         } catch (Throwable $exception) {
             $cleanupFailures = [];
             if ($stagingDirectory !== null) {
@@ -105,9 +108,10 @@ final class DownloadExtensionReleaseCommand extends Command
             return self::FAILURE;
         }
 
-        $this->line("Quarantined artifact downloaded to: {$stagedPath}");
+        $this->line("Verified artifact remains quarantined at: {$stagedPath}");
         $this->line(
-            'Pending U12.2 verification; this artifact is not installable and was not passed to an installer.',
+            'Artifact verification succeeded; it is not installable and was not passed to an installer. '
+            . 'Explicit administrator installation remains a separate workflow (U12.3).',
         );
 
         return self::SUCCESS;

@@ -6,12 +6,14 @@ namespace Tests\Feature\Console;
 
 use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\Core\Updates\Contracts\ArtifactSourceInterface;
+use App\Core\Updates\Contracts\UpdateVerifierInterface;
 use App\Core\Updates\Contracts\UpdateRegistryInterface;
 use App\Core\Updates\DTO\ArtifactReference;
 use App\Core\Updates\DTO\UpdateCandidate;
 use App\Core\Updates\Enums\ArtifactProvider;
 use App\Core\Updates\Enums\UpdateChannel;
 use App\Core\Updates\Enums\UpdateTargetType;
+use App\Core\Updates\Exceptions\UpdateVerificationException;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
@@ -42,14 +44,26 @@ final class DownloadExtensionReleaseCommandTest extends TestCase
 
     public function testDownloadsExactReleaseToPrivateQuarantineWithoutInstallingIt(): void
     {
-        $registry = $this->bindRegistry($this->candidate());
+        $candidate = $this->candidate();
+        $registry = $this->bindRegistry($candidate);
         $source = $this->bindArtifactSource();
+        $verifier = $this->createMock(UpdateVerifierInterface::class);
+        $verifier->expects(self::once())
+            ->method('verify')
+            ->with(
+                self::callback(fn (string $path): bool => $path === $source->path
+                    && is_file($path)
+                    && file_get_contents($path) === 'payload-not-yet-verified'),
+                $candidate->artifact,
+            );
+        $this->app->instance(UpdateVerifierInterface::class, $verifier);
         $installer = $this->createMock(ExtensionInstallerInterface::class);
         $installer->expects(self::never())->method('update');
         $this->app->instance(ExtensionInstallerInterface::class, $installer);
 
         $this->artisan('pixely:extension:download pixely/gallery 1.2.0')
-            ->expectsOutputToContain('Pending U12.2 verification; this artifact is not installable')
+            ->expectsOutputToContain('Verified artifact remains quarantined at:')
+            ->expectsOutputToContain('verification succeeded; it is not installable')
             ->assertExitCode(0);
 
         self::assertSame(
@@ -61,6 +75,28 @@ final class DownloadExtensionReleaseCommandTest extends TestCase
         self::assertSame(0700, fileperms($this->stagingDirectory) & 0777);
         self::assertSame(0600, fileperms($source->path) & 0777);
         self::assertStringStartsWith($this->stagingDirectory . DIRECTORY_SEPARATOR, $source->path);
+    }
+
+    public function testCleansUpTheStagedArtifactWhenVerificationFails(): void
+    {
+        $candidate = $this->candidate();
+        $this->bindRegistry($candidate);
+        $source = $this->bindArtifactSource();
+        $verifier = $this->createMock(UpdateVerifierInterface::class);
+        $verifier->expects(self::once())
+            ->method('verify')
+            ->with(self::anything(), $candidate->artifact)
+            ->willThrowException(new UpdateVerificationException('Artifact signature verification failed.'));
+        $this->app->instance(UpdateVerifierInterface::class, $verifier);
+
+        $this->artisan('pixely:extension:download pixely/gallery 1.2.0')
+            ->expectsOutputToContain('Artifact signature verification failed')
+            ->assertExitCode(1);
+
+        self::assertSame(1, $source->calls);
+        self::assertFileDoesNotExist($source->path);
+        self::assertDirectoryDoesNotExist(dirname($source->path));
+        self::assertSame([], glob($this->stagingDirectory . DIRECTORY_SEPARATOR . '*') ?: []);
     }
 
     public function testRejectsInvalidPackageOrVersionInputWithoutRegistryAccess(): void
@@ -264,6 +300,7 @@ final class DownloadExtensionReleaseCommandTest extends TestCase
                 ArtifactProvider::Pixely,
                 'https://updates.pixely.test/artifacts/gallery.zip',
                 str_repeat('a', 64),
+                expectedSize: strlen('payload-not-yet-verified'),
             ),
             runtimeConstraints: $runtimeConstraints,
         );
