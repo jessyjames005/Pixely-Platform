@@ -10,6 +10,7 @@ use App\Core\Updates\Contracts\UpdateVerifierInterface;
 use App\Core\Updates\DTO\ReleaseManifestValue;
 use App\Core\Updates\Enums\UpdateChannel;
 use App\Core\Updates\Enums\UpdateTargetType;
+use App\Core\Updates\Services\ExtensionReleasePreflight;
 use App\Core\Updates\Services\RuntimeCompatibilityChecker;
 use Illuminate\Console\Command;
 use RuntimeException;
@@ -32,6 +33,7 @@ final class DownloadExtensionReleaseCommand extends Command
         private readonly ArtifactSourceInterface $artifactSource,
         private readonly UpdateVerifierInterface $verifier,
         private readonly RuntimeCompatibilityChecker $compatibility,
+        private readonly ExtensionReleasePreflight $preflight,
     ) {
         parent::__construct();
     }
@@ -59,6 +61,7 @@ final class DownloadExtensionReleaseCommand extends Command
 
         $stagedPath = null;
         $stagingDirectory = null;
+        $inspectionDirectory = null;
 
         try {
             $candidate = $this->registry->findRelease(
@@ -94,10 +97,29 @@ final class DownloadExtensionReleaseCommand extends Command
             $stagedPath = $this->artifactSource->download($candidate->artifact, $stagingDirectory);
             $this->assertQuarantinedArtifact($stagedPath, $stagingDirectory);
             $this->verifier->verify($stagedPath, $candidate->artifact);
+            $inspectionDirectory = $this->createInspectionDirectory($stagingDirectory);
+            $this->preflight->validate($stagedPath, $inspectionDirectory, $packageId, $version);
+            $cleanupFailures = $this->cleanupInspectionDirectory($inspectionDirectory);
+            if ($cleanupFailures !== []) {
+                throw new RuntimeException(
+                    'Unable to clean temporary extension inspection files: '
+                    . implode(' ', $cleanupFailures),
+                );
+            }
+            $inspectionDirectory = null;
         } catch (Throwable $exception) {
             $cleanupFailures = [];
+            if ($inspectionDirectory !== null) {
+                $cleanupFailures = array_merge(
+                    $cleanupFailures,
+                    $this->cleanupInspectionDirectory($inspectionDirectory),
+                );
+            }
             if ($stagingDirectory !== null) {
-                $cleanupFailures = $this->cleanupDownloadDirectory($stagingDirectory);
+                $cleanupFailures = array_merge(
+                    $cleanupFailures,
+                    $this->cleanupDownloadDirectory($stagingDirectory),
+                );
             }
 
             $this->components->error('Extension release download failed: ' . $exception->getMessage());
@@ -110,8 +132,8 @@ final class DownloadExtensionReleaseCommand extends Command
 
         $this->line("Verified artifact remains quarantined at: {$stagedPath}");
         $this->line(
-            'Artifact verification succeeded; it is not installable and was not passed to an installer. '
-            . 'Explicit administrator installation remains a separate workflow (U12.3).',
+            'Artifact verification and static package preflight succeeded; it is not installable and was not '
+            . 'passed to an installer. No installation occurred; explicit installation is a separate workflow (U12.4).',
         );
 
         return self::SUCCESS;
@@ -168,6 +190,32 @@ final class DownloadExtensionReleaseCommand extends Command
             throw new RuntimeException(
                 'Unable to resolve the private artifact download directory.'
                 . ($cleanupFailure === null ? '' : ' ' . $cleanupFailure),
+            );
+        }
+
+        return $realPath;
+    }
+
+    private function createInspectionDirectory(string $downloadDirectory): string
+    {
+        $path = $downloadDirectory . DIRECTORY_SEPARATOR . 'inspection';
+        if (!mkdir($path, 0700) || !chmod($path, 0700)) {
+            $cleanupFailures = $this->cleanupInspectionDirectory($path);
+            throw new RuntimeException(
+                'Unable to create a private extension inspection directory.'
+                . ($cleanupFailures === [] ? '' : ' ' . implode(' ', $cleanupFailures)),
+            );
+        }
+
+        $realPath = realpath($path);
+        if (
+            $realPath === false
+            || !str_starts_with($realPath, $downloadDirectory . DIRECTORY_SEPARATOR)
+        ) {
+            $cleanupFailures = $this->cleanupInspectionDirectory($path);
+            throw new RuntimeException(
+                'Unable to resolve the private extension inspection directory.'
+                . ($cleanupFailures === [] ? '' : ' ' . implode(' ', $cleanupFailures)),
             );
         }
 
@@ -234,6 +282,66 @@ final class DownloadExtensionReleaseCommand extends Command
             static fn (string $directory): bool => rmdir($directory),
             $stagingDirectory,
             'remove the staging directory',
+        );
+        if ($failure !== null) {
+            $failures[] = $failure;
+        }
+
+        return $failures;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function cleanupInspectionDirectory(string $inspectionDirectory): array
+    {
+        if (is_link($inspectionDirectory)) {
+            return ['Refused to clean an inspection path that is a symbolic link.'];
+        }
+        if (!is_dir($inspectionDirectory)) {
+            return file_exists($inspectionDirectory)
+                ? ['The inspection path is no longer a directory.']
+                : [];
+        }
+
+        $failures = [];
+        try {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator(
+                    $inspectionDirectory,
+                    \FilesystemIterator::SKIP_DOTS,
+                ),
+                \RecursiveIteratorIterator::CHILD_FIRST,
+            );
+            foreach ($iterator as $entry) {
+                $path = $entry->getPathname();
+                if ($entry->isLink() || $entry->isFile()) {
+                    $failure = $this->attemptCleanup(
+                        static fn (string $file): bool => unlink($file),
+                        $path,
+                        'remove inspected package data',
+                    );
+                } elseif ($entry->isDir()) {
+                    $failure = $this->attemptCleanup(
+                        static fn (string $directory): bool => rmdir($directory),
+                        $path,
+                        'remove an inspection directory',
+                    );
+                } else {
+                    $failure = null;
+                }
+                if ($failure !== null) {
+                    $failures[] = $failure;
+                }
+            }
+        } catch (Throwable $exception) {
+            $failures[] = 'Unable to inspect temporary package files: ' . $exception->getMessage();
+        }
+
+        $failure = $this->attemptCleanup(
+            static fn (string $directory): bool => rmdir($directory),
+            $inspectionDirectory,
+            'remove the inspection directory',
         );
         if ($failure !== null) {
             $failures[] = $failure;
