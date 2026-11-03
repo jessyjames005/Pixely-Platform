@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Extensions\Providers;
 
+use App\Core\Extensions\Installer\ExtensionInstaller;
+use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -11,6 +13,11 @@ use Illuminate\Support\ServiceProvider;
  */
 final class ExtensionManagementServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(ExtensionInstallerInterface::class, ExtensionInstaller::class);
+    }
+
     public function boot(): void
     {
         $this->app->router

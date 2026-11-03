@@ -40,17 +40,25 @@ final class ExtensionPackageValidator
 
             // Reject absolute paths, parent-directory traversal, and
             // null bytes — the classic zip-slip attack vectors.
+            $normalisedName = str_replace('\\', '/', $entryName);
+            $segments = explode('/', $normalisedName);
+            $unixMode = $zip->getExternalAttributesIndex($i, $opsys, $attributes)
+                ? (($attributes >> 16) & 0170000)
+                : 0;
+
             if (
-                str_contains($entryName, '..')
-                || str_starts_with($entryName, '/')
-                || str_contains($entryName, "\0")
-                || preg_match('#^[a-zA-Z]:#', $entryName) === 1
+                str_starts_with($normalisedName, '/')
+                || str_contains($normalisedName, "\0")
+                || preg_match('#^[a-zA-Z]:#', $normalisedName) === 1
+                || in_array('..', $segments, true)
+                || in_array('.', $segments, true)
+                || $unixMode === 0120000
             ) {
                 $zip->close();
                 throw new \RuntimeException("Unsafe path detected in archive: {$entryName}");
             }
 
-            $destination = $realStagingDir . DIRECTORY_SEPARATOR . $entryName;
+            $destination = $realStagingDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $normalisedName);
             $resolvedDestinationDir = dirname($destination);
 
             // Re-validate after path resolution: the target must stay
@@ -77,7 +85,17 @@ final class ExtensionPackageValidator
      * the zip contains a single wrapping folder (common when zipping
      * a folder directly) — exactly one of the two is accepted.
      *
-     * @return array{root: string, id: string, name: string, version: string, class: string}
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
      * @throws \RuntimeException
      */
     public function locateAndValidateManifest(string $stagingDir): array
@@ -101,7 +119,17 @@ final class ExtensionPackageValidator
     }
 
     /**
-     * @return array{root: string, id: string, name: string, version: string, class: string}
+     * @return array{
+     *     root: string,
+     *     id: string,
+     *     name: string,
+     *     version: string,
+     *     minimum_kernel_version: string,
+     *     class: string,
+     *     requires: array,
+     *     require_versions: array,
+     *     conflicts: array
+     * }
      */
     private function validateManifestFile(string $manifestPath, string $root): array
     {
@@ -121,6 +149,14 @@ final class ExtensionPackageValidator
             }
         }
 
+        $minimumKernelVersion = $manifest['minimum_kernel_version'] ?? '1.0.0';
+        if (
+            ! is_string($minimumKernelVersion)
+            || preg_match('/^\d+\.\d+\.\d+$/', $minimumKernelVersion) !== 1
+        ) {
+            throw new \RuntimeException('Manifest minimum_kernel_version must follow semantic versioning (e.g. 1.0.0).');
+        }
+
         if (preg_match('/^[a-z0-9\-]+$/', $manifest['id']) !== 1) {
             throw new \RuntimeException('Extension id must contain only lowercase letters, digits, and hyphens.');
         }
@@ -129,12 +165,49 @@ final class ExtensionPackageValidator
             throw new \RuntimeException('Extension version must follow semantic versioning (e.g. 1.0.0).');
         }
 
+        foreach (['requires', 'require_versions', 'conflicts'] as $key) {
+            if (isset($manifest[$key]) && ! is_array($manifest[$key])) {
+                throw new \RuntimeException("Manifest field '{$key}' must be an array.");
+            }
+        }
+
+        $requires = $manifest['requires'] ?? [];
+        foreach ($requires as $dependencyId) {
+            if (! is_string($dependencyId) || preg_match('/^[a-z0-9-]+$/', $dependencyId) !== 1) {
+                throw new \RuntimeException('Manifest dependencies must contain valid extension ids.');
+            }
+        }
+
+        $requireVersions = $manifest['require_versions'] ?? [];
+        foreach ($requireVersions as $dependencyId => $minimumVersion) {
+            if (
+                ! is_string($dependencyId) || preg_match('/^[a-z0-9-]+$/', $dependencyId) !== 1
+                || ! is_string($minimumVersion) || preg_match('/^\d+\.\d+\.\d+$/', $minimumVersion) !== 1
+            ) {
+                throw new \RuntimeException('Manifest require_versions must map valid extension ids to semantic versions.');
+            }
+            if (! in_array($dependencyId, $requires, true)) {
+                throw new \RuntimeException("Minimum version declared for undeclared dependency [{$dependencyId}].");
+            }
+        }
+
+        $conflicts = $manifest['conflicts'] ?? [];
+        foreach ($conflicts as $conflictId) {
+            if (! is_string($conflictId) || preg_match('/^[a-z0-9-]+$/', $conflictId) !== 1) {
+                throw new \RuntimeException('Manifest conflicts must contain valid extension ids.');
+            }
+        }
+
         return [
             'root' => $root,
             'id' => $manifest['id'],
             'name' => $manifest['name'],
             'version' => $manifest['version'],
+            'minimum_kernel_version' => $minimumKernelVersion,
             'class' => $manifest['class'],
+            'requires' => array_values($requires),
+            'require_versions' => $requireVersions,
+            'conflicts' => array_values($conflicts),
         ];
     }
 }

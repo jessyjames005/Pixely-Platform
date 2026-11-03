@@ -102,7 +102,7 @@ Versioning follows Semantic Versioning.
 
 ### Added
 
-- Added Enabled/Disabled tabs to the Extension Manager screen (adapted from the Mediboard reference's Installed/Not installed tabs — Pixely has no catalog of known-but-absent extensions, so that distinction doesn't apply here; every discovered extension is already "installed" by definition).
+- - Added Enabled/Disabled tabs to the Extension Manager screen. Pixely does not maintain a catalog of known-but-absent extensions; every discovered extension is registered and considered installed.
 
 ### Changed
 

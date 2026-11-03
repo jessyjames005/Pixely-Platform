@@ -10,6 +10,8 @@ use App\Core\Extensions\Permissions\ExtensionPermissionSynchronizer;
 use App\Core\Extensions\Versioning\ExtensionUpgradeRunner;
 use App\Core\Extensions\Versioning\ExtensionVersionRepository;
 use App\Core\Extensions\Database\ExtensionMigrationRunner;
+use App\Core\Extensions\Manifest\ExtensionManifest;
+use App\Core\Extensions\Update\ExtensionUpdatePlanner;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
 
@@ -20,7 +22,7 @@ use Symfony\Component\Process\Process;
  * Every step that can fail rolls back cleanly: nothing is left
  * half-installed in app/Extensions.
  */
-final class ExtensionInstaller
+final class ExtensionInstaller implements ExtensionInstallerInterface
 {
     private const EXTENSIONS_BASE_PATH = 'app/Extensions';
 
@@ -86,6 +88,10 @@ final class ExtensionInstaller
     {
         $stagingDir = storage_path('app/extension-staging/' . uniqid('ext_', true));
         File::ensureDirectoryExists($stagingDir);
+        $targetPath = null;
+        $backupPath = null;
+        $liveReplacementStarted = false;
+        $committed = false;
 
         try {
             $this->validator->extractSafely($zipPath, $stagingDir);
@@ -98,13 +104,27 @@ final class ExtensionInstaller
             }
 
             if ($mode === 'update') {
-                $installedVersion = app(ExtensionVersionRepository::class)->find($manifest['id']) ?? '0.0.0';
+                $versionRepository = app(ExtensionVersionRepository::class);
+                $installedVersions = $this->discoverInstalledVersions();
+                $installedVersions[$manifest['id']] = $versionRepository->find($manifest['id']) ?? ($installedVersions[$manifest['id']] ?? '0.0.0');
 
-                if (version_compare($manifest['version'], $installedVersion, '<=')) {
-                    throw new \RuntimeException(
-                        "Package version [{$manifest['version']}] is not newer than the installed version [{$installedVersion}].",
-                    );
-                }
+                $candidate = new ExtensionManifest(
+                    id: $manifest['id'],
+                    name: $manifest['name'],
+                    version: $manifest['version'],
+                    minimum_kernel_version: $manifest['minimum_kernel_version'],
+                    class: $manifest['class'],
+                    path: $manifest['root'],
+                    dependencies: $manifest['requires'],
+                );
+
+                app(ExtensionUpdatePlanner::class)->plan(
+                    $candidate,
+                    $installedVersions,
+                    $manifest['require_versions'],
+                    $manifest['conflicts'],
+                    $this->discoverInstalledDependencyGraph(),
+                );
             }
 
             $targetPath = base_path(self::EXTENSIONS_BASE_PATH . '/' . $this->safeDirectoryName($manifest['id']));
@@ -120,13 +140,15 @@ final class ExtensionInstaller
 
             // Move into place. For updates, the old directory is backed
             // up (not deleted) until the new one is verified below.
-            $backupPath = $alreadyExists ? $targetPath . '.backup-' . time() : null;
+            $backupPath = $alreadyExists ? $targetPath . '.backup-' . bin2hex(random_bytes(6)) : null;
 
             if ($backupPath !== null) {
                 File::moveDirectory($targetPath, $backupPath);
+                $liveReplacementStarted = true;
             }
 
             File::moveDirectory($manifest['root'], $targetPath);
+            $liveReplacementStarted = true;
 
             $this->refreshAutoloader();
 
@@ -137,11 +159,7 @@ final class ExtensionInstaller
             $extensionInstance = new ($manifest['class'])();
             $this->permissionSynchronizer->sync($extensionInstance);
 
-            // Success: the backup (if any) is no longer needed.
-            if ($backupPath !== null) {
-                File::deleteDirectory($backupPath);
-            }
-
+            // Keep the backup until migrations and upgrade steps have completed.
             $this->migrationRunner->migrate($manifest['id']);
 
             if ($mode === 'install') {
@@ -157,14 +175,84 @@ final class ExtensionInstaller
                 ['name' => $manifest['name']],
             );
 
+            $committed = true;
+            if ($backupPath !== null) {
+                File::deleteDirectory($backupPath);
+            }
+
             return [
                 'id' => $manifest['id'],
                 'name' => $manifest['name'],
                 'version' => $manifest['version'],
             ];
         } finally {
+            if (! $committed && $liveReplacementStarted && $targetPath !== null && is_dir($targetPath)) {
+                File::deleteDirectory($targetPath);
+            }
+            if (! $committed && $backupPath !== null && is_dir($backupPath) && $targetPath !== null) {
+                File::moveDirectory($backupPath, $targetPath);
+                try {
+                    $this->refreshAutoloader();
+                } catch (\Throwable) {
+                    // Preserve the original failure; deployment tooling can rebuild the autoloader.
+                }
+            }
             File::deleteDirectory($stagingDir);
         }
+    }
+
+
+    /**
+     * Discover installed extension versions from their manifests. The tracked
+     * version repository remains authoritative for the extension being updated.
+     *
+     * @return array<string, string>
+     */
+    private function discoverInstalledVersions(): array
+    {
+        $versions = [];
+        $base = base_path(self::EXTENSIONS_BASE_PATH);
+
+        foreach (File::directories($base) as $directory) {
+            $manifestPath = $directory . DIRECTORY_SEPARATOR . 'extension.php';
+            if (! is_file($manifestPath)) {
+                continue;
+            }
+
+            $data = include $manifestPath;
+            if (is_array($data) && is_string($data['id'] ?? null) && is_string($data['version'] ?? null)) {
+                $versions[$data['id']] = $data['version'];
+            }
+        }
+
+        return $versions;
+    }
+
+
+    /**
+     * Read dependency declarations for installed extensions to detect cycles
+     * introduced by an update candidate before replacing any live files.
+     *
+     * @return array<string, string[]>
+     */
+    private function discoverInstalledDependencyGraph(): array
+    {
+        $graph = [];
+        $base = base_path(self::EXTENSIONS_BASE_PATH);
+
+        foreach (File::directories($base) as $directory) {
+            $manifestPath = $directory . DIRECTORY_SEPARATOR . 'extension.php';
+            if (! is_file($manifestPath)) {
+                continue;
+            }
+
+            $data = include $manifestPath;
+            if (is_array($data) && is_string($data['id'] ?? null) && is_array($data['requires'] ?? [])) {
+                $graph[$data['id']] = array_values(array_filter($data['requires'], 'is_string'));
+            }
+        }
+
+        return $graph;
     }
 
     /**
@@ -176,14 +264,8 @@ final class ExtensionInstaller
     private function assertClassIsValidExtension(string $class, string $installedPath, ?string $backupPath): void
     {
         if (! class_exists($class) || ! is_subclass_of($class, ExtensionInterface::class) && ! (is_a($class, ExtensionInterface::class, true))) {
-            File::deleteDirectory($installedPath);
-
-            if ($backupPath !== null) {
-                File::moveDirectory($backupPath, $installedPath);
-            }
-
             throw new \RuntimeException(
-                "The declared class [{$class}] does not exist or does not implement ExtensionInterface. Installation rolled back.",
+                "The declared class [{$class}] does not exist or does not implement ExtensionInterface. Installation will be rolled back.",
             );
         }
     }
