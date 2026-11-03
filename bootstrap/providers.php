@@ -12,6 +12,7 @@ return [
     App\Core\Tooling\Providers\ToolingServiceProvider::class,
     App\Core\Translations\Providers\CoreTranslationsServiceProvider::class,
     App\Core\Updates\Providers\UpdateServiceProvider::class,
+    App\Core\Updates\Providers\UpdateArtifactServiceProvider::class,
     App\Core\Users\Providers\UserServiceProvider::class,
     App\Core\Websites\Providers\WebsiteEngineServiceProvider::class,
     App\Providers\AppServiceProvider::class,
