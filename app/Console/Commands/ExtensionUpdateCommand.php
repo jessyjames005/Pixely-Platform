@@ -75,6 +75,10 @@ final class ExtensionUpdateCommand extends Command
         $reportItems = [];
         $startedAt = now()->toIso8601String();
 
+        if ($this->option('dry-run')) {
+            return $this->handleDryRun($packages, $requestedId, $source, $installed, $dependencyGraph, $startedAt);
+        }
+
         foreach ($packages as $packagePath) {
             $id = null;
             try {
@@ -167,6 +171,150 @@ final class ExtensionUpdateCommand extends Command
         }
 
         $this->line("Packages processed: {$processed}; failed: {$failed}.");
+
+        return $exitCode;
+    }
+
+    /**
+     * Plan all selected local candidates together without invoking the installer.
+     *
+     * @param string[] $packages
+     * @param array<string, string> $installed
+     * @param array<string, string[]> $dependencyGraph
+     */
+    private function handleDryRun(
+        array $packages,
+        ?string $requestedId,
+        string $source,
+        array $installed,
+        array $dependencyGraph,
+        string $startedAt,
+    ): int {
+        $candidates = [];
+        $packagePaths = [];
+        $reportItems = [];
+        $failed = 0;
+
+        foreach ($packages as $packagePath) {
+            $id = null;
+
+            try {
+                $manifest = $this->readPackageManifest($packagePath);
+                $id = $manifest['id'];
+
+                if ($requestedId !== null && $id !== $requestedId) {
+                    continue;
+                }
+
+                $from = $this->versions->find($id) ?? ($installed[$id] ?? null);
+                if ($from === null) {
+                    throw new \RuntimeException(
+                        "Extension [{$id}] is not installed; this command only handles updates.",
+                    );
+                }
+
+                $installed[$id] = $from;
+                $candidates[] = [
+                    'manifest' => new ExtensionManifest(
+                        id: $id,
+                        name: $manifest['name'],
+                        version: $manifest['version'],
+                        minimum_kernel_version: $manifest['minimum_kernel_version'],
+                        class: $manifest['class'],
+                        path: $manifest['root'],
+                        dependencies: $manifest['requires'],
+                    ),
+                    'required_versions' => $manifest['require_versions'],
+                    'conflicts' => $manifest['conflicts'],
+                ];
+                $packagePaths[$id][] = $packagePath;
+            } catch (Throwable $exception) {
+                $failed++;
+                $message = $exception->getMessage();
+                $reportItems[] = [
+                    'package' => basename($packagePath),
+                    'extension' => $id,
+                    'status' => 'failed',
+                    'message' => $message,
+                ];
+                $this->components->error(basename($packagePath) . ': ' . $message);
+            }
+        }
+
+        $plans = [];
+        $executionOrder = [];
+
+        if ($candidates !== []) {
+            try {
+                $plans = $this->planner->planBatch($candidates, $installed, $dependencyGraph);
+                $executionOrder = array_column($plans, 'extension');
+                $this->line('Execution order: ' . implode(' → ', $executionOrder));
+
+                foreach ($plans as $plan) {
+                    $id = $plan['extension'];
+                    $this->components->twoColumnDetail("{$id} ({$plan['from']} → {$plan['to']})", 'planned');
+                    foreach ($plan['actions'] as $action) {
+                        $this->line("  • {$action}");
+                    }
+
+                    $reportItems[] = [
+                        'extension' => $id,
+                        'from' => $plan['from'],
+                        'to' => $plan['to'],
+                        'status' => 'planned',
+                        'message' => null,
+                    ];
+                }
+            } catch (Throwable $exception) {
+                $message = $exception->getMessage();
+                $this->components->error('Batch update plan blocked: ' . $message);
+
+                foreach ($packagePaths as $id => $paths) {
+                    foreach ($paths as $packagePath) {
+                        $failed++;
+                        $reportItems[] = [
+                            'package' => basename($packagePath),
+                            'extension' => $id,
+                            'status' => 'failed',
+                            'message' => $message,
+                        ];
+                    }
+                }
+            }
+        }
+
+        if ($requestedId !== null && $plans === [] && $failed === 0) {
+            $this->components->warn("No update package found for extension [{$requestedId}].");
+        }
+
+        $this->newLine();
+        $exitCode = $failed > 0 ? self::FAILURE : self::SUCCESS;
+        $reportPath = (string) ($this->option('report') ?: storage_path(
+            'app/extension-update-reports/' . now()->format('Ymd-His') . '-'
+                . bin2hex(random_bytes(3)) . '.json',
+        ));
+
+        try {
+            $savedPath = $this->reporter->write($reportPath, [
+                'schema_version' => 1,
+                'command' => 'pixely:update',
+                'started_at' => $startedAt,
+                'finished_at' => now()->toIso8601String(),
+                'mode' => 'dry-run',
+                'source' => $source,
+                'filter' => $requestedId,
+                'summary' => ['processed' => count($plans), 'failed' => $failed, 'exit_code' => $exitCode],
+                'execution_order' => $executionOrder,
+                'items' => $reportItems,
+            ]);
+            $this->components->info("Execution report: {$savedPath}");
+        } catch (Throwable $exception) {
+            $this->components->error('Could not write execution report: ' . $exception->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $this->line('Packages processed: ' . count($plans) . "; failed: {$failed}.");
 
         return $exitCode;
     }
