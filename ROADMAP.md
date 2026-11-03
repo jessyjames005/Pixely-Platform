@@ -1621,3 +1621,30 @@ The roadmap should be updated progressively as each sprint is completed.
 * [ ] Integrate Composer/npm dependency operations and lockfile snapshots/recovery
 * [ ] Add cross-container orchestration for PHP and Node operations
 * [ ] Define and implement update execution/application under a separately approved scope; `pixely:updates` cannot apply or install updates
+
+## U12 — Extension Update & Installation System (in progress)
+
+**Goal:** allow an administrator to download, verify, preflight, and explicitly install or update an extension release with traceable outcomes and recoverable file replacement.
+
+### Completed lots
+
+* [x] U12.1 — Download an exact extension release into private quarantine
+* [x] U12.2 — Verify artifact size, SHA-256, and Ed25519 signature
+* [x] U12.3 — Preflight package metadata and compatibility without executing package PHP
+* [x] U12.4 — Require explicit approval before installing or replacing a quarantined release
+* [x] U12.5 — Reuse the existing migration and versioned upgrade pipeline
+* [x] U12.6 — Report filesystem rollback failures and database recovery limitations
+* [x] U12.7 — Record U12 operation outcomes and expose protected audit history
+
+### Remaining lot
+
+* [ ] U12.8 — Run the complete focused integration/regression suite, review the final documentation, and prepare the sprint pull request description.
+
+### Proposed follow-on sprints
+
+* U13 — Advanced extension dependency management
+* U14 — Central Registry and extension catalogue
+* U15 — Extension SDK and developer documentation
+* U16 — Sample Cinema reference extension
+* U17 — Administration and user-experience consolidation
+* U18 — Stable release preparation

@@ -56,6 +56,10 @@ directly (the RTK "Token Killer" wrapper).
 - Never commit or push without explicit user authorization. Each commit/push requires separate, explicit authorization.
 - Conventional Commits, scope = domain: `fix(ci): …`, `feat(i18n): …` (matches recent `git log`).
 - No AI attribution in commits (no `Co-Authored-By`, no AI mentions).
+- Work is organized as **sprints** (for example `U12`) containing numbered **lots** (for example `U12.1`, `U12.2`).
+- Finish and validate one lot at a time. At each lot boundary, summarize the result and validation, propose one Conventional Commit message for that lot, and wait for explicit user approval before committing or starting the next lot.
+- At sprint close, update the roadmap and changelog, then prepare a complete pull request description with context, scope, technical changes, validation, deployment notes, and user-facing release notes.
+- Follow `docs/development/SPRINT_WORKFLOW.md` and use `.claude/skills/PP_sprint_delivery/SKILL.md` for the detailed process and templates.
 
 ## Language
 

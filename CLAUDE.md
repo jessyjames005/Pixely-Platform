@@ -85,6 +85,17 @@ sh .claude/sync-setup.sh
 
 ---
 
+## Sprint and lot delivery
+
+Work is organized as sprints (for example `U12`) containing numbered lots
+(for example `U12.1`, `U12.2`). Complete and validate one lot at a time,
+propose its Conventional Commit message, and wait for explicit user approval
+before committing or moving to the next lot. At sprint close, update the
+roadmap and changelog and prepare a complete PR description.
+
+Follow `docs/development/SPRINT_WORKFLOW.md` and
+`.claude/skills/PP_sprint_delivery/SKILL.md`.
+
 ## Commits
 
 - **NEVER commit or push without explicit user authorization.**

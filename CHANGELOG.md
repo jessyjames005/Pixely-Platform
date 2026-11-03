@@ -4,6 +4,14 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
+### Added — U12 Extension package installation and update flow
+
+- Added an explicit Registry release download workflow that keeps packages in private quarantine until separately approved for installation.
+- Added exact artifact-size, SHA-256, and Ed25519 verification, plus static package preflight that does not execute package PHP.
+- Added an explicitly approved install/replace command that re-verifies releases and uses the existing migration and upgrade pipeline.
+- Improved file rollback and cleanup error reporting while warning operators that database migrations and completed upgrade steps are not automatically reversed.
+- Added a protected, paginated extension audit-history API and outcome records for trusted download, preflight, install, and update operations.
+
 ### Added — S5 Database-backed Extension Registry
 
 - Added a database table and repository for persistent extension runtime state.
