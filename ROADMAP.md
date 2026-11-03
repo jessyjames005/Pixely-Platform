@@ -385,7 +385,7 @@ The Update Manager provides one orchestration boundary for platform dependencies
 * [x] Add DTO invariant unit tests
 * [ ] Implement registry, hosting, verification and installation adapters (U3–U5)
 * [x] Implement Composer/npm dependency adapters (U2)
-* [ ] Implement the unified Artisan command and update history (U6)
+* [x] Implement U6.1: read-only Registry-backed extension discovery/plans and update history
 
 ## v0.5.0 - Extension SDK
 
@@ -1606,5 +1606,18 @@ The roadmap should be updated progressively as each sprint is completed.
 * [x] Add process-runner and dependency-updater contracts
 * [x] Add Composer and npm adapters with constrained updates, check, dry-run and audit operations
 * [x] Add unit tests for command construction and failure handling
-* [ ] Integrate lockfile snapshots/recovery and cross-container orchestration (U6)
+* [ ] Integrate Composer/npm operations, lockfile snapshots/recovery, and cross-container orchestration (future U6 scope; deferred)
 
+## U6 — Unified Update Command and History (in progress)
+
+### U6.1 — Read-only extension discovery and history
+
+* [x] Add `pixely:updates` for read-only, Registry-backed extension update discovery and compatible update plans
+* [x] Persist machine-readable reports in the existing extension update history directory and expose them through `pixely:update:reports`
+* [x] Surface Registry failures as failed command outcomes and failed history records
+
+### Deferred U6 scope
+
+* [ ] Integrate Composer/npm dependency operations and lockfile snapshots/recovery
+* [ ] Add cross-container orchestration for PHP and Node operations
+* [ ] Define and implement update execution/application under a separately approved scope; `pixely:updates` cannot apply or install updates
