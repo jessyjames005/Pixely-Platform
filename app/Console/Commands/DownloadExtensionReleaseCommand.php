@@ -132,8 +132,8 @@ final class DownloadExtensionReleaseCommand extends Command
 
         $this->line("Verified artifact remains quarantined at: {$stagedPath}");
         $this->line(
-            'Artifact verification and static package preflight succeeded; it is not installable and was not '
-            . 'passed to an installer. No installation occurred; explicit installation is a separate workflow (U12.4).',
+            'Artifact verification and static package preflight succeeded; it remains quarantined and was not '
+            . 'installed. Use pixely:extension:install with this exact path to re-verify and request installation.',
         );
 
         return self::SUCCESS;

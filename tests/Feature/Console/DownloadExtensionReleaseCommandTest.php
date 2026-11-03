@@ -72,7 +72,7 @@ final class DownloadExtensionReleaseCommandTest extends TestCase
 
         $this->artisan('pixely:extension:download pixely/gallery 1.2.0')
             ->expectsOutputToContain('Verified artifact remains quarantined at:')
-            ->expectsOutputToContain('static package preflight succeeded; it is not installable')
+            ->expectsOutputToContain('remains quarantined and was not')
             ->assertExitCode(0);
 
         self::assertSame(
