@@ -1,8 +1,8 @@
-# Update Manager U12.1–U12.4: Quarantined Extension Downloads and Explicit Installation
+# Update Manager U12.1–U12.5: Quarantined Extension Downloads and Installation
 
 ## Scope
 
-U12.1 adds an explicit Artisan-only entry point to download one exact extension package release from the official Registry. U12.3 adds a non-executing static preflight after artifact authentication. U12.4 adds a separate explicit Artisan-only installation/replacement command. No UI, API endpoint or automatic download/install path is added.
+U12.1 adds an explicit Artisan-only entry point to download one exact extension package release from the official Registry. U12.3 adds a non-executing static preflight after artifact authentication. U12.4 adds a separate explicit Artisan-only installation/replacement command. U12.5 uses the existing installer pipeline to run extension migrations and versioned upgrade steps. No UI, API endpoint or automatic download/install path is added.
 
 ## Usage
 
@@ -48,7 +48,15 @@ The install command accepts only a regular, non-symlink file exactly one directo
 
 By default, the command asks an interactive confirmation naming the extension and version and warning that publisher PHP may execute, files may be replaced, and migrations or upgrade steps can change the database. A declined prompt makes no installer call and leaves the artifact untouched. Automation must explicitly pass `--yes`; non-interactive use without `--yes` is rejected. The existing installer owns backup, replacement, autoloading, permission synchronization, migrations and upgrade steps. Its file rollback does not generally reverse database changes or migrations, so the administrator is responsible for a database backup before approval.
 
-### U12.1–U12.4 completion checklist
+### U12.5: Migration and upgrade execution
+
+The existing installer runs the extension migration runner after placing and validating the new extension files. Pending extension migrations are discovered from that extension's migration directory, checked against the minimum Pixely kernel version declared in its manifest, executed in migration order, and recorded in the extension migration repository. The installer then records the target version for a fresh installation or, for an update, applies declared upgrade steps strictly after the installed version and up to the target version.
+
+Each declared upgrade step is applied in its own database transaction where supported. Its installed-version marker and audit entry are recorded after the step succeeds. If a later step fails, earlier successful steps remain applied and recorded; later steps do not run. The installer restores the previous extension files on failure, but migrations and completed upgrade steps are not generally reversible and are not covered by that file rollback. Back up the database before approving an installation or update.
+
+U12.5 reuses `ExtensionInstaller`, `ExtensionMigrationRunner`, and `ExtensionUpgradeRunner`; it introduces no parallel migration mechanism and does not add automatic rollback of database changes.
+
+### U12.1–U12.5 completion checklist
 
 - [x] Preserve the signed manifest's exact byte size in the candidate artifact reference.
 - [x] Verify exact size, SHA-256, and Ed25519 authenticity after download.
@@ -58,10 +66,12 @@ By default, the command asks an interactive confirmation naming the extension an
 - [x] Keep installation, activation and migrations out of the download command.
 - [x] Add an explicit quarantine-only install/replacement command with re-verification and operator approval.
 - [x] Preserve the authenticated artifact after installation and document database backup responsibility.
+- [x] Run pending extension migrations and versioned upgrade steps through the existing installer pipeline.
 
 ### Validation commands
 
 ```bash
+docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Database/ExtensionMigrationRunnerTest.php tests/Feature/Core/Extensions/Versioning/ExtensionUpgradeRunnerTest.php tests/Feature/Extensions/Gallery/GalleryUpgradeStepsTest.php'
 docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Installer/StaticExtensionManifestParserTest.php tests/Unit/Core/Extensions/Installer/ExtensionPackageValidatorTest.php tests/Unit/Core/Extensions/Update/ExtensionUpdatePlannerTest.php tests/Unit/Core/Updates/ArtifactReferenceTest.php tests/Unit/Core/Updates/HttpUpdateRegistryTest.php tests/Unit/Core/Updates/RuntimeCompatibilityCheckerTest.php tests/Unit/Core/Updates/SodiumUpdateVerifierTest.php tests/Feature/Console/DownloadExtensionReleaseCommandTest.php tests/Feature/Console/InstallExtensionReleaseCommandTest.php'
 docker exec pixely_app sh -lc 'cd /var/www && composer phpstan'
 docker exec pixely_app sh -lc 'cd /var/www && composer cs:check'
