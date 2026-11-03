@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console;
 
+use App\Core\Extensions\Audit\ExtensionAuditLog;
 use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\Core\Updates\Contracts\InstalledExtensionInventoryInterface;
 use App\Core\Updates\Contracts\UpdateRegistryInterface;
@@ -14,12 +15,15 @@ use App\Core\Updates\DTO\UpdateCandidate;
 use App\Core\Updates\Enums\ArtifactProvider;
 use App\Core\Updates\Enums\UpdateChannel;
 use App\Core\Updates\Enums\UpdateTargetType;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
 use Tests\TestCase;
 
 final class InstallExtensionReleaseCommandTest extends TestCase
 {
+    use RefreshDatabase;
+
     private string $testStoragePath;
 
     private string $quarantineRoot;
@@ -136,6 +140,19 @@ final class InstallExtensionReleaseCommandTest extends TestCase
             ['artifact.zip'],
             array_values(array_map('basename', glob(dirname($artifact) . DIRECTORY_SEPARATOR . '*') ?: [])),
         );
+        self::assertDatabaseHas('extension_audit_logs', [
+            'extension_id' => 'gallery',
+            'action' => 'preflight',
+            'version' => '1.2.0',
+        ]);
+        self::assertSame(
+            1,
+            ExtensionAuditLog::query()
+                ->where('action', 'preflight')
+                ->where('details->outcome', 'failure')
+                ->where('details->stage', 'preflight')
+                ->count(),
+        );
     }
 
     public function testInstallsOnlyAfterInteractiveApprovalAndRetainsTheArtifact(): void
@@ -173,6 +190,11 @@ final class InstallExtensionReleaseCommandTest extends TestCase
             ['artifact.zip'],
             array_values(array_map('basename', glob(dirname($artifact) . DIRECTORY_SEPARATOR . '*') ?: [])),
         );
+        self::assertDatabaseHas('extension_audit_logs', [
+            'extension_id' => 'gallery',
+            'action' => 'preflight',
+            'version' => '1.2.0',
+        ]);
     }
 
     public function testReplacesAnInstalledExtensionWithItsExactLocalIdAfterApproval(): void
@@ -236,6 +258,17 @@ final class InstallExtensionReleaseCommandTest extends TestCase
         $this->artisan($this->command($artifact, '--no-interaction'))
             ->expectsOutputToContain('Use --yes to explicitly approve')
             ->assertExitCode(1);
+
+        self::assertSame(
+            1,
+            ExtensionAuditLog::query()
+                ->where('extension_id', 'gallery')
+                ->where('action', 'install')
+                ->where('version', '1.2.0')
+                ->where('details->outcome', 'failure')
+                ->where('details->stage', 'approval')
+                ->count(),
+        );
     }
 
     private function bindRegistry(?UpdateCandidate $candidate): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Core\Extensions\Audit\ExtensionAuditLogger;
 use App\Core\Updates\Contracts\ArtifactSourceInterface;
 use App\Core\Updates\Contracts\UpdateRegistryInterface;
 use App\Core\Updates\Contracts\UpdateVerifierInterface;
@@ -34,6 +35,7 @@ final class DownloadExtensionReleaseCommand extends Command
         private readonly UpdateVerifierInterface $verifier,
         private readonly RuntimeCompatibilityChecker $compatibility,
         private readonly ExtensionReleasePreflight $preflight,
+        private readonly ExtensionAuditLogger $auditLogger,
     ) {
         parent::__construct();
     }
@@ -62,6 +64,8 @@ final class DownloadExtensionReleaseCommand extends Command
         $stagedPath = null;
         $stagingDirectory = null;
         $inspectionDirectory = null;
+        $auditExtensionId = null;
+        $failureStage = 'download';
 
         try {
             $candidate = $this->registry->findRelease(
@@ -82,6 +86,9 @@ final class DownloadExtensionReleaseCommand extends Command
                 throw new RuntimeException('The Registry returned a release with an unexpected identity.');
             }
 
+            $packageParts = explode('/', $packageId);
+            $auditExtensionId = (string) end($packageParts);
+
             if ($candidate->channel !== $channel) {
                 throw new RuntimeException('The requested release does not match the selected channel.');
             }
@@ -97,6 +104,12 @@ final class DownloadExtensionReleaseCommand extends Command
             $stagedPath = $this->artifactSource->download($candidate->artifact, $stagingDirectory);
             $this->assertQuarantinedArtifact($stagedPath, $stagingDirectory);
             $this->verifier->verify($stagedPath, $candidate->artifact);
+            $this->recordAudit($auditExtensionId, 'download', $version, [
+                'outcome' => 'success',
+                'stage' => 'download',
+            ]);
+
+            $failureStage = 'preflight';
             $inspectionDirectory = $this->createInspectionDirectory($stagingDirectory);
             $this->preflight->validate($stagedPath, $inspectionDirectory, $packageId, $version);
             $cleanupFailures = $this->cleanupInspectionDirectory($inspectionDirectory);
@@ -107,6 +120,10 @@ final class DownloadExtensionReleaseCommand extends Command
                 );
             }
             $inspectionDirectory = null;
+            $this->recordAudit($auditExtensionId, 'preflight', $version, [
+                'outcome' => 'success',
+                'stage' => 'preflight',
+            ]);
         } catch (Throwable $exception) {
             $cleanupFailures = [];
             if ($inspectionDirectory !== null) {
@@ -119,6 +136,15 @@ final class DownloadExtensionReleaseCommand extends Command
                 $cleanupFailures = array_merge(
                     $cleanupFailures,
                     $this->cleanupDownloadDirectory($stagingDirectory),
+                );
+            }
+
+            if ($auditExtensionId !== null) {
+                $this->recordAudit(
+                    $auditExtensionId,
+                    $failureStage === 'preflight' ? 'preflight' : 'download',
+                    $version,
+                    ['outcome' => 'failure', 'stage' => $failureStage],
                 );
             }
 
@@ -137,6 +163,16 @@ final class DownloadExtensionReleaseCommand extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param array{outcome: 'success'|'failure', stage: string} $details
+     */
+    private function recordAudit(string $extensionId, string $action, string $version, array $details): void
+    {
+        if (! $this->auditLogger->logSafely($extensionId, $action, $version, $details)) {
+            $this->components->warn('The audit event could not be persisted.');
+        }
     }
 
     private function prepareStagingDirectory(string $path): string

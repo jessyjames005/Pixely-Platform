@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console;
 
+use App\Core\Extensions\Audit\ExtensionAuditLog;
 use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\Core\Updates\Contracts\InstalledExtensionInventoryInterface;
 use App\Core\Updates\Contracts\ArtifactSourceInterface;
@@ -16,11 +17,14 @@ use App\Core\Updates\Enums\ArtifactProvider;
 use App\Core\Updates\Enums\UpdateChannel;
 use App\Core\Updates\Enums\UpdateTargetType;
 use App\Core\Updates\Exceptions\UpdateVerificationException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 final class DownloadExtensionReleaseCommandTest extends TestCase
 {
+    use RefreshDatabase;
+
     private string $testStoragePath;
 
     private string $stagingDirectory;
@@ -87,6 +91,16 @@ final class DownloadExtensionReleaseCommandTest extends TestCase
             [basename($source->path)],
             array_values(array_map('basename', glob(dirname($source->path) . DIRECTORY_SEPARATOR . '*') ?: [])),
         );
+        self::assertDatabaseHas('extension_audit_logs', [
+            'extension_id' => 'gallery',
+            'action' => 'download',
+            'version' => '1.2.0',
+        ]);
+        self::assertDatabaseHas('extension_audit_logs', [
+            'extension_id' => 'gallery',
+            'action' => 'preflight',
+            'version' => '1.2.0',
+        ]);
     }
 
     public function testCleansUpTheStagedArtifactWhenVerificationFails(): void
@@ -109,6 +123,19 @@ final class DownloadExtensionReleaseCommandTest extends TestCase
         self::assertFileDoesNotExist($source->path);
         self::assertDirectoryDoesNotExist(dirname($source->path));
         self::assertSame([], glob($this->stagingDirectory . DIRECTORY_SEPARATOR . '*') ?: []);
+        self::assertDatabaseHas('extension_audit_logs', [
+            'extension_id' => 'gallery',
+            'action' => 'download',
+            'version' => '1.2.0',
+        ]);
+        self::assertSame(
+            1,
+            ExtensionAuditLog::query()
+                ->where('action', 'download')
+                ->where('details->outcome', 'failure')
+                ->where('details->stage', 'download')
+                ->count(),
+        );
     }
 
     public function testRejectsInvalidPackageOrVersionInputWithoutRegistryAccess(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Core\Extensions\Audit\ExtensionAuditLogger;
 use App\Core\Extensions\Installer\ExtensionInstallerInterface;
 use App\Core\Updates\Contracts\InstalledExtensionInventoryInterface;
 use App\Core\Updates\Contracts\UpdateRegistryInterface;
@@ -38,6 +39,7 @@ final class InstallExtensionReleaseCommand extends Command
         private readonly ExtensionReleasePreflight $preflight,
         private readonly InstalledExtensionInventoryInterface $inventory,
         private readonly ExtensionInstallerInterface $installer,
+        private readonly ExtensionAuditLogger $auditLogger,
     ) {
         parent::__construct();
     }
@@ -65,6 +67,10 @@ final class InstallExtensionReleaseCommand extends Command
         }
 
         $inspectionDirectory = null;
+        $extensionId = null;
+        $auditIdentityTrusted = false;
+        $auditAction = 'install';
+        $failureStage = 'release_validation';
         try {
             $artifactPath = $this->assertQuarantinedArtifact($artifactPath);
             $candidate = $this->registry->findRelease(
@@ -85,6 +91,10 @@ final class InstallExtensionReleaseCommand extends Command
                 throw new RuntimeException('The Registry returned a release with an unexpected identity.');
             }
 
+            $parts = explode('/', $packageId);
+            $extensionId = (string) end($parts);
+            $auditIdentityTrusted = true;
+
             if ($candidate->channel !== $channel) {
                 throw new RuntimeException('The requested release does not match the selected channel.');
             }
@@ -93,9 +103,8 @@ final class InstallExtensionReleaseCommand extends Command
                 throw new RuntimeException('The requested release is not compatible with this runtime.');
             }
 
-            $parts = explode('/', $packageId);
-            $extensionId = (string) end($parts);
             $installed = $this->inventory->find($extensionId);
+            $auditAction = $installed === null ? 'install' : 'update';
             if ($installed !== null && $installed->packageId !== $packageId) {
                 throw new RuntimeException(
                     "Installed extension [{$extensionId}] belongs to Registry package "
@@ -104,6 +113,7 @@ final class InstallExtensionReleaseCommand extends Command
             }
 
             $this->verifier->verify($artifactPath, $candidate->artifact);
+            $failureStage = 'preflight';
             $inspectionDirectory = $this->createInspectionDirectory(dirname($artifactPath));
             $this->preflight->validate($artifactPath, $inspectionDirectory, $packageId, $version);
             $cleanupFailures = $this->cleanupInspectionDirectory($inspectionDirectory);
@@ -114,10 +124,23 @@ final class InstallExtensionReleaseCommand extends Command
                     . implode(' ', $cleanupFailures),
                 );
             }
+            $this->recordAudit($extensionId, 'preflight', $version, [
+                'outcome' => 'success',
+                'stage' => 'preflight',
+            ]);
         } catch (Throwable $exception) {
             $cleanupFailures = $inspectionDirectory === null
                 ? []
                 : $this->cleanupInspectionDirectory($inspectionDirectory);
+
+            if ($auditIdentityTrusted && $extensionId !== null) {
+                $this->recordAudit(
+                    $extensionId,
+                    $failureStage === 'preflight' ? 'preflight' : $auditAction,
+                    $version,
+                    ['outcome' => 'failure', 'stage' => $failureStage],
+                );
+            }
 
             $this->components->error('Extension installation failed: ' . $exception->getMessage());
             foreach ($cleanupFailures as $cleanupFailure) {
@@ -130,6 +153,12 @@ final class InstallExtensionReleaseCommand extends Command
         $action = $installed === null ? 'install' : 'replace';
         if (!$this->option('yes')) {
             if (!$this->input->isInteractive()) {
+                $this->recordAudit(
+                    $extensionId,
+                    $auditAction,
+                    $version,
+                    ['outcome' => 'failure', 'stage' => 'approval'],
+                );
                 $this->components->error(
                     'Use --yes to explicitly approve this installation in a non-interactive environment.',
                 );
@@ -154,10 +183,13 @@ final class InstallExtensionReleaseCommand extends Command
             }
         }
 
+        $installerStarted = false;
         try {
             $artifactPath = $this->assertQuarantinedArtifact($artifactPath);
             $this->verifier->verify($artifactPath, $candidate->artifact);
 
+            $failureStage = 'release_validation';
+            $installerStarted = true;
             $result = $installed === null
                 ? $this->installer->install($artifactPath, null)
                 : $this->installer->update($artifactPath, $extensionId, null);
@@ -170,9 +202,28 @@ final class InstallExtensionReleaseCommand extends Command
 
             return self::SUCCESS;
         } catch (Throwable $exception) {
+            if (! $installerStarted) {
+                $this->recordAudit(
+                    $extensionId,
+                    $auditAction,
+                    $version,
+                    ['outcome' => 'failure', 'stage' => $failureStage],
+                );
+            }
+
             $this->components->error('Extension installation failed: ' . $exception->getMessage());
 
             return self::FAILURE;
+        }
+    }
+
+    /**
+     * @param array{outcome: 'success'|'failure', stage: string} $details
+     */
+    private function recordAudit(string $extensionId, string $action, string $version, array $details): void
+    {
+        if (! $this->auditLogger->logSafely($extensionId, $action, $version, $details)) {
+            $this->components->warn('The audit event could not be persisted.');
         }
     }
 

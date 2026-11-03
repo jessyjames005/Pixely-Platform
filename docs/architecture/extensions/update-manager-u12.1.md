@@ -1,8 +1,8 @@
-# Update Manager U12.1–U12.5: Quarantined Extension Downloads and Installation
+# Update Manager U12.1–U12.7: Quarantined Extension Downloads and Installation
 
 ## Scope
 
-U12.1 adds an explicit Artisan-only entry point to download one exact extension package release from the official Registry. U12.3 adds a non-executing static preflight after artifact authentication. U12.4 adds a separate explicit Artisan-only installation/replacement command. U12.5 uses the existing installer pipeline to run extension migrations and versioned upgrade steps. No UI, API endpoint or automatic download/install path is added.
+U12.1 adds an explicit Artisan-only entry point to download one exact extension package release from the official Registry. U12.3 adds a non-executing static preflight after artifact authentication. U12.4 adds a separate explicit Artisan-only installation/replacement command. U12.5 uses the existing installer pipeline to run extension migrations and versioned upgrade steps. U12.6 improves filesystem rollback error reporting without attempting database rollback. U12.7 exposes a protected, read-only audit history and records outcomes for the U12 package flow. No automatic download/install path is added.
 
 ## Usage
 
@@ -56,7 +56,21 @@ Each declared upgrade step is applied in its own database transaction where supp
 
 U12.5 reuses `ExtensionInstaller`, `ExtensionMigrationRunner`, and `ExtensionUpgradeRunner`; it introduces no parallel migration mechanism and does not add automatic rollback of database changes.
 
-### U12.1–U12.5 completion checklist
+### U12.6: File rollback and recovery reporting
+
+The installer checks that directory backup, replacement, removal, restoration, and staging cleanup operations actually complete. If an install or update fails, it preserves the original failure as the primary reason and appends any file rollback errors with the failed action and path. If the previous extension cannot be restored, the error warns that the extension may be left in an inconsistent filesystem state and identifies the backup path when it remains available. The restored files trigger an autoloader refresh; a refresh failure is included in rollback details rather than discarded.
+
+A failed fresh installation removes the candidate live directory when possible; a failed update restores the previous extension directory when possible. Successful updates continue to remove the backup after migration and upgrade work completes. No database migration or upgrade rollback is attempted. If a failure occurs after migration or upgrade work begins, the operator is warned that database changes may have partially applied, are not automatically rolled back, and require a database backup plus manual assessment before retry or restoration. This warning does not imply that all changes were applied.
+
+### U12.7: Extension audit history
+
+The append-only `extension_audit_logs` table and `ExtensionAuditLogger` remain the single audit store. The read-only collection is available at `GET /api/v1/extensions/audit-logs` and requires authentication plus `system.extensions.install`, because audit records can reveal operational details. It accepts `page` (default 1), `per_page` (default 15, maximum 100), `extension_id`, `action`, and `outcome` (`success` or `failure`) filters. Invalid values return the API's JSON:API validation error.
+
+The response is a JSON:API collection: each `data` resource has type `extension-audit-logs`, its numeric `id`, and `attributes` for `user_id`, `extension_id`, `action`, `version`, `outcome`, `stage`, safe `details`, and `created_at`. Pagination is in `meta.pagination` (`current_page`, `last_page`, `per_page`, `total`) and page URLs are in `links` (`first`, `last`, `prev`, `next`). Historical free-form details such as package-provided descriptions are not returned; only recognized outcome and stage values are exposed.
+
+The exact Registry download and install commands record successful and failed download/preflight stages when the Registry identity and version have been verified. The shared installer records successful and failed install/update outcomes once the package manifest identity and version are trustworthy. Records contain only outcome and a bounded stage name; raw package contents, file paths, and exception messages are not persisted as audit details. Audit persistence failures are reported but do not replace the operation's result or trigger a filesystem rollback.
+
+### U12.1–U12.7 completion checklist
 
 - [x] Preserve the signed manifest's exact byte size in the candidate artifact reference.
 - [x] Verify exact size, SHA-256, and Ed25519 authenticity after download.
@@ -67,11 +81,15 @@ U12.5 reuses `ExtensionInstaller`, `ExtensionMigrationRunner`, and `ExtensionUpg
 - [x] Add an explicit quarantine-only install/replacement command with re-verification and operator approval.
 - [x] Preserve the authenticated artifact after installation and document database backup responsibility.
 - [x] Run pending extension migrations and versioned upgrade steps through the existing installer pipeline.
+- [x] Check file replacement, restoration, and cleanup outcomes; report rollback paths and database recovery caveats without automatic database rollback.
+- [x] Expose the append-only audit history behind `system.extensions.install`, with validated filters and pagination.
+- [x] Record trusted download, preflight, install, and update outcomes without persisting package contents, paths, or exception messages.
 
 ### Validation commands
 
 ```bash
 docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Database/ExtensionMigrationRunnerTest.php tests/Feature/Core/Extensions/Versioning/ExtensionUpgradeRunnerTest.php tests/Feature/Extensions/Gallery/GalleryUpgradeStepsTest.php'
+docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Installer/ExtensionInstallerFilesystemTest.php'
 docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Installer/StaticExtensionManifestParserTest.php tests/Unit/Core/Extensions/Installer/ExtensionPackageValidatorTest.php tests/Unit/Core/Extensions/Update/ExtensionUpdatePlannerTest.php tests/Unit/Core/Updates/ArtifactReferenceTest.php tests/Unit/Core/Updates/HttpUpdateRegistryTest.php tests/Unit/Core/Updates/RuntimeCompatibilityCheckerTest.php tests/Unit/Core/Updates/SodiumUpdateVerifierTest.php tests/Feature/Console/DownloadExtensionReleaseCommandTest.php tests/Feature/Console/InstallExtensionReleaseCommandTest.php'
 docker exec pixely_app sh -lc 'cd /var/www && composer phpstan'
 docker exec pixely_app sh -lc 'cd /var/www && composer cs:check'
