@@ -1622,9 +1622,9 @@ The roadmap should be updated progressively as each sprint is completed.
 * [ ] Add cross-container orchestration for PHP and Node operations
 * [ ] Define and implement update execution/application under a separately approved scope; `pixely:updates` cannot apply or install updates
 
-## U12 — Extension Update & Installation System (in progress)
+## U12 — Extension Update & Installation System (complete)
 
-**Goal:** allow an administrator to download, verify, preflight, and explicitly install or update an extension release with traceable outcomes and recoverable file replacement.
+**Goal:** allow an administrator to download, verify, preflight, and explicitly install or update an extension release with traceable outcomes and best-effort file rollback reporting.
 
 ### Completed lots
 
@@ -1636,9 +1636,9 @@ The roadmap should be updated progressively as each sprint is completed.
 * [x] U12.6 — Report filesystem rollback failures and database recovery limitations
 * [x] U12.7 — Record U12 operation outcomes and expose protected audit history
 
-### Remaining lot
+### Sprint close
 
-* [ ] U12.8 — Run the complete focused integration/regression suite, review the final documentation, and prepare the sprint pull request description.
+* [x] U12.8 — Run the focused integration/regression suite, review the final documentation, and prepare the sprint pull request description.
 
 ### Proposed follow-on sprints
 

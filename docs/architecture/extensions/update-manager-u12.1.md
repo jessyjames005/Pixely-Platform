@@ -1,8 +1,8 @@
-# Update Manager U12.1–U12.7: Quarantined Extension Downloads and Installation
+# Update Manager U12: Quarantined Extension Downloads and Installation
 
 ## Scope
 
-U12.1 adds an explicit Artisan-only entry point to download one exact extension package release from the official Registry. U12.3 adds a non-executing static preflight after artifact authentication. U12.4 adds a separate explicit Artisan-only installation/replacement command. U12.5 uses the existing installer pipeline to run extension migrations and versioned upgrade steps. U12.6 improves filesystem rollback error reporting without attempting database rollback. U12.7 exposes a protected, read-only audit history and records outcomes for the U12 package flow. No automatic download/install path is added.
+U12.1 adds an explicit Artisan-only entry point to download one exact extension package release from the official Registry. U12.2 verifies the artifact's size, checksum, and signature. U12.3 adds a non-executing static preflight after artifact authentication. U12.4 adds a separate explicit Artisan-only installation/replacement command. U12.5 uses the existing installer pipeline to run extension migrations and versioned upgrade steps. U12.6 improves filesystem rollback error reporting without attempting database rollback. U12.7 exposes a protected, read-only audit history and records outcomes for the U12 package flow. U12.8 validates the integrated flow and final documentation. No automatic download/install path is added.
 
 ## Usage
 
@@ -70,7 +70,7 @@ The response is a JSON:API collection: each `data` resource has type `extension-
 
 The exact Registry download and install commands record successful and failed download/preflight stages when the Registry identity and version have been verified. The shared installer records successful and failed install/update outcomes once the package manifest identity and version are trustworthy. Records contain only outcome and a bounded stage name; raw package contents, file paths, and exception messages are not persisted as audit details. Audit persistence failures are reported but do not replace the operation's result or trigger a filesystem rollback.
 
-### U12.1–U12.7 completion checklist
+### U12.1–U12.8 completion checklist
 
 - [x] Preserve the signed manifest's exact byte size in the candidate artifact reference.
 - [x] Verify exact size, SHA-256, and Ed25519 authenticity after download.
@@ -84,13 +84,15 @@ The exact Registry download and install commands record successful and failed do
 - [x] Check file replacement, restoration, and cleanup outcomes; report rollback paths and database recovery caveats without automatic database rollback.
 - [x] Expose the append-only audit history behind `system.extensions.install`, with validated filters and pagination.
 - [x] Record trusted download, preflight, install, and update outcomes without persisting package contents, paths, or exception messages.
+- [x] Run focused U12 integration/regression tests, PHPStan, coding standards, and whitespace checks; review the final documentation and prepare the sprint PR summary.
 
 ### Validation commands
 
 ```bash
-docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Database/ExtensionMigrationRunnerTest.php tests/Feature/Core/Extensions/Versioning/ExtensionUpgradeRunnerTest.php tests/Feature/Extensions/Gallery/GalleryUpgradeStepsTest.php'
-docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Installer/ExtensionInstallerFilesystemTest.php'
-docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Installer/StaticExtensionManifestParserTest.php tests/Unit/Core/Extensions/Installer/ExtensionPackageValidatorTest.php tests/Unit/Core/Extensions/Update/ExtensionUpdatePlannerTest.php tests/Unit/Core/Updates/ArtifactReferenceTest.php tests/Unit/Core/Updates/HttpUpdateRegistryTest.php tests/Unit/Core/Updates/RuntimeCompatibilityCheckerTest.php tests/Unit/Core/Updates/SodiumUpdateVerifierTest.php tests/Feature/Console/DownloadExtensionReleaseCommandTest.php tests/Feature/Console/InstallExtensionReleaseCommandTest.php'
+docker exec pixely_app sh -lc 'cd /var/www && php artisan test --compact tests/Unit/Core/Extensions/Database/ExtensionMigrationRunnerTest.php tests/Unit/Core/Extensions/Installer/ExtensionInstallerFilesystemTest.php tests/Unit/Core/Extensions/Installer/StaticExtensionManifestParserTest.php tests/Unit/Core/Extensions/Installer/ExtensionPackageValidatorTest.php tests/Unit/Core/Extensions/Update/ExtensionUpdatePlannerTest.php tests/Unit/Core/Updates/ArtifactReferenceTest.php tests/Unit/Core/Updates/HttpUpdateRegistryTest.php tests/Unit/Core/Updates/RuntimeCompatibilityCheckerTest.php tests/Unit/Core/Updates/SodiumUpdateVerifierTest.php tests/Feature/Console/DownloadExtensionReleaseCommandTest.php tests/Feature/Console/InstallExtensionReleaseCommandTest.php tests/Feature/Core/Extensions/ExtensionAuditLogApiTest.php tests/Feature/Core/Extensions/ExtensionInstallApiTest.php tests/Feature/Core/Extensions/Versioning/ExtensionUpgradeRunnerTest.php tests/Feature/Extensions/Gallery/GalleryUpgradeStepsTest.php'
 docker exec pixely_app sh -lc 'cd /var/www && composer phpstan'
 docker exec pixely_app sh -lc 'cd /var/www && composer cs:check'
+rtk git diff --check
 ```
+
+Final U12.8 validation: 111 tests passed, 1 test skipped, and 447 assertions passed. PHPStan reported no errors across 399 files. `composer cs:check` exited successfully with no errors and reported line-length warnings. `git diff --check` passed. The skipped invalid-class install test requires `composer dump-autoload` inside the test process and remains covered by the documented manual QA note.
