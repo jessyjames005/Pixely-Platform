@@ -174,3 +174,30 @@ it('rejects duplicate update candidates for one extension', function () {
         ['player' => '1.0.0'],
     );
 })->throws(RuntimeException::class, 'More than one update candidate');
+
+it('rejects an update candidate without a valid manifest', function () {
+    (new ExtensionUpdatePlanner())->planBatch(
+        [['manifest' => 'invalid']],
+        [],
+    );
+})->throws(InvalidArgumentException::class, 'must include an extension manifest');
+
+it('rejects invalid required version metadata', function () {
+    (new ExtensionUpdatePlanner())->planBatch(
+        [[
+            'manifest' => updateCandidate(),
+            'required_versions' => ['media-core' => false],
+        ]],
+        ['player' => '1.0.0'],
+    );
+})->throws(InvalidArgumentException::class, 'metadata for extension [player] is invalid');
+
+it('rejects invalid conflict metadata', function () {
+    (new ExtensionUpdatePlanner())->planBatch(
+        [[
+            'manifest' => updateCandidate(),
+            'conflicts' => [42],
+        ]],
+        ['player' => '1.0.0'],
+    );
+})->throws(InvalidArgumentException::class, 'metadata for extension [player] is invalid');

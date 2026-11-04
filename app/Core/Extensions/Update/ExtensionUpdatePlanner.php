@@ -18,11 +18,7 @@ final class ExtensionUpdatePlanner
      * Plan a complete set of locally available updates in deterministic
      * dependency-first order.
      *
-     * @param array<int, array{
-     *     manifest: ExtensionManifest,
-     *     required_versions?: array<string, string>,
-     *     conflicts?: string[]
-     * }> $candidates
+     * @param array<int, mixed> $candidates Untrusted update candidates validated by the planner.
      * @param array<string, string> $installedVersions Installed extension versions keyed by id.
      * @param array<string, string[]> $installedDependencies Dependency graph for installed extensions.
      * @return array<int, array{
@@ -42,6 +38,12 @@ final class ExtensionUpdatePlanner
         $candidateVersions = [];
 
         foreach ($candidates as $candidate) {
+            if (! is_array($candidate)) {
+                throw new \InvalidArgumentException(
+                    'Every update candidate must include an extension manifest.',
+                );
+            }
+
             $manifest = $candidate['manifest'] ?? null;
             if (! $manifest instanceof ExtensionManifest) {
                 throw new \InvalidArgumentException(
@@ -63,10 +65,32 @@ final class ExtensionUpdatePlanner
                 );
             }
 
+            $validatedRequiredVersions = [];
+            foreach ($requiredVersions as $dependencyId => $minimumVersion) {
+                if (! is_string($dependencyId) || ! is_string($minimumVersion)) {
+                    throw new \InvalidArgumentException(
+                        "Update candidate metadata for extension [{$manifest->id}] is invalid.",
+                    );
+                }
+
+                $validatedRequiredVersions[$dependencyId] = $minimumVersion;
+            }
+
+            $validatedConflicts = [];
+            foreach ($conflicts as $conflictId) {
+                if (! is_string($conflictId)) {
+                    throw new \InvalidArgumentException(
+                        "Update candidate metadata for extension [{$manifest->id}] is invalid.",
+                    );
+                }
+
+                $validatedConflicts[] = $conflictId;
+            }
+
             $candidatesById[$manifest->id] = [
                 'manifest' => $manifest,
-                'required_versions' => $requiredVersions,
-                'conflicts' => $conflicts,
+                'required_versions' => $validatedRequiredVersions,
+                'conflicts' => $validatedConflicts,
             ];
             $candidateVersions[$manifest->id] = $manifest->version;
         }
