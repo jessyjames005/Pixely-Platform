@@ -4,6 +4,12 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
+### Added — U14 Central Registry and extension catalogue
+
+- Added operator-controlled import of locally stored, trusted schema-v1 release manifests with signature verification, idempotency, and immutable package/version records.
+- Added public release listing and exact resolution, preserving the original signed manifest and providing SemVer filters, encrypted cursor pagination, RFC 9457 errors, caching headers, and per-IP/per-client rate limits.
+- Added public package discovery with case-insensitive partial search by name or package ID, package-type filtering, cursor pagination, and stable/latest available release summaries.
+
 ### Added — U13 Dependency-aware extension update batches
 
 - Added global validation and deterministic dependency-first planning for locally available extension update packages, including candidate-supplied minimum dependency versions.
@@ -28,4 +34,6 @@ All notable changes to Pixely Platform are documented in this file.
 
 ### Migration notes
 
-After deploying this change, run `php artisan migrate`, then `php artisan pixely:extensions:import-state`. The JSON file is retained as a migration source and is not deleted automatically. Back up the database and JSON file before deployment.
+For U14, run `php artisan migrate`, configure trusted public keys under `update-manager.signing_public_keys`, and import signed manifests with `php artisan pixely:registry:import <manifest-path>`. Back up the database and manifest source files before deployment.
+
+For S5, run `php artisan migrate`, then `php artisan pixely:extensions:import-state`. The JSON file is retained as a migration source and is not deleted automatically. Back up the database and JSON file before deployment.

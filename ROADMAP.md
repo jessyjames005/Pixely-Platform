@@ -1654,10 +1654,26 @@ The roadmap should be updated progressively as each sprint is completed.
 
 * [x] U13.4 — Run the focused regression suite, reconcile the roadmap and changelog, review technical documentation, and prepare the sprint pull request description.
 
+### U14 — Central Registry and extension catalogue (complete)
+
+**Goal:** provide an operator-controlled, signed-manifest Registry with public release resolution and package discovery.
+
+#### Completed lots
+
+* [x] U14.1 — Import trusted local schema-v1 manifests into immutable relational package and release records.
+* [x] U14.2 — Expose public release listing and exact resolution with SemVer filtering, encrypted cursors, Problem Details, and per-IP/per-client rate limits.
+* [x] U14.3 — Add public package search and discovery with type filters, cursor pagination, and latest-release summaries.
+* [x] U14.4 — Run Registry regression and quality checks, reconcile sprint documentation, and prepare the pull request description.
+
+#### Deferred U14 scope
+
+* Publishing and upload workflows, Registry accounts and moderation.
+* Search by categories, ratings, download statistics, or compatibility-filtered runtime versions.
+* Conditional `304` responses, cursor expiration, and bounded SemVer scans for large release histories.
+
 ### Proposed follow-on sprints
 
-* U14 — Central Registry and extension catalogue
-* U15 — Extension SDK and developer documentation
-* U16 — Sample Cinema reference extension
+* U15 — Extension SDK: developer tools and documentation
+* U16 — Sample Cinema: complete reference extension
 * U17 — Administration and user-experience consolidation
 * U18 — Stable release preparation
