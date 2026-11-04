@@ -64,6 +64,8 @@ The response is filtered server-side against the authenticated user's permission
 
 `php artisan make:extension Blog` now creates the surface directories, an `API/routes.php` entrypoint, SDK v2 navigation/routes contracts, and the required Unit/Functional/Playwright test skeletons.
 
+The generated service provider does not auto-register extension migrations with Laravel. Add migration files under `Database/Migrations` and run them through Pixely's extension migration runner.
+
 The generator no longer asks developers to register extension navigation manually in the global navigation registry.
 
 ## Compatibility

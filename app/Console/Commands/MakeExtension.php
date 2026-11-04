@@ -20,13 +20,23 @@ use Illuminate\Support\Str;
  */
 final class MakeExtension extends Command
 {
-    protected $signature = 'make:extension {name : StudlyCase extension name, e.g. Blog}';
+    protected $signature = 'make:extension {name : Extension name in StudlyCase, kebab-case, or snake_case}';
 
     protected $description = 'Scaffold a new, empty extension (backend + frontend skeleton)';
 
     public function handle(): int
     {
-        $studly = Str::studly($this->argument('name'));
+        $name = (string) $this->argument('name');
+
+        if (preg_match('/\A[A-Za-z][A-Za-z0-9]*(?:[-_][A-Za-z0-9]+)*\z/', $name) !== 1) {
+            $this->error(
+                "Invalid extension name [{$name}]. Start with a letter; use letters, numbers, hyphens, or underscores."
+            );
+
+            return self::FAILURE;
+        }
+
+        $studly = Str::studly($name);
         $id = Str::kebab($studly);
         $basePath = base_path("app/Extensions/{$studly}");
 
@@ -239,17 +249,12 @@ final class MakeExtension extends Command
         use Illuminate\\Support\\ServiceProvider;
 
         /**
-         * Registers {$studly} extension services and migrations.
+         * Registers {$studly} extension services.
+         * Extension migrations are run by Pixely's extension migration runner.
          * API routes are registered centrally by the Extension SDK v2.
          */
         final class {$studly}ServiceProvider extends ServiceProvider
         {
-            public function boot(): void
-            {
-                \$this->loadMigrationsFrom(
-                    __DIR__ . '/../Database/Migrations'
-                );
-            }
         }
 
         PHP;
