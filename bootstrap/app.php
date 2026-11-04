@@ -75,6 +75,25 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->renderable(),
         );
 
+        $exceptions->render(function (
+            \Illuminate\Http\Exceptions\ThrottleRequestsException $exception,
+            Request $request,
+        ) {
+            if (!$request->routeIs('api.registry.*')) {
+                return null;
+            }
+
+            return response()->json([
+                'type' => 'https://registry.pixely.example/problems/rate-limited',
+                'title' => 'Rate limit exceeded',
+                'status' => 429,
+                'detail' => 'The Registry request limit has been reached. Try again later.',
+                'code' => 'rate_limited',
+            ], 429, array_merge($exception->getHeaders(), [
+                'Content-Type' => 'application/problem+json',
+            ]));
+        });
+
         $exceptions->renderable(function (\Throwable $exception, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
