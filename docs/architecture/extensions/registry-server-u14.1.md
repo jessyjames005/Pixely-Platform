@@ -1,8 +1,9 @@
-# Registry server foundation — U14.1
+# Registry server — U14.1 and U14.2
 
 U14.1 adds the Registry's local relational store and an operator-run importer
-for already signed schema-v1 release manifests. It does not expose Registry
-HTTP endpoints.
+for already signed schema-v1 release manifests. U14.2 exposes a public,
+read-only release catalogue over those imported manifests. It does not add
+package discovery/search, publishing, or upload workflows.
 
 ## Import a signed manifest
 
@@ -50,8 +51,69 @@ manifest was imported or was already present.
 The raw signed JSON is retained for later read-only Registry endpoints; the
 importer does not reconstruct or normalize it.
 
+## Public release API — U14.2
+
+The API is public (no authentication), read-only, and mounted under `/api/v1`.
+It does not redirect to another origin. The endpoints implement the U10
+release-list and exact-release contract:
+
+### `GET /api/v1/releases`
+
+Required query parameters are `package_type` (`platform`, `extension`, `theme`,
+or `plugin`) and the exact non-empty `package_id`. `channel` defaults to
+`stable` and accepts `stable`, `beta`, or `dev`. Optional `after_version` must
+be valid SemVer and excludes that version and every older version. `per_page`
+defaults to 20 and is limited to 1–100. `cursor` is opaque, encrypted and
+authenticated with the application key, bound to those filters, and rejected
+as `400 invalid_cursor` if tampered with or reused with different filters.
+
+Results are ordered by SemVer descending, then deterministic version and
+release-ID tie-breaks. The cursor captures a release-ID snapshot, so releases
+imported after traversal begins do not shift subsequent pages. The success
+body is `{data: [{manifest: <complete manifest>}, ...], meta: {per_page,
+next_cursor, has_more}}`. The original `manifest_json` is embedded without
+reconstructing, changing, or re-signing it. A package that exists but has no
+matching releases returns an empty `data`, `has_more: false`, and
+`next_cursor: null`; an unknown package returns `404 package_not_found`.
+
+Optional `runtime[php]`, `runtime[pixely]`, and `runtime[laravel]` members must
+be scalar SemVer versions. Unknown runtime members, arrays, and malformed
+versions return `400 invalid_query`. These values are currently advisory only:
+they are validated but do not filter releases.
+
+### `GET /api/v1/releases/resolve`
+
+Requires `package_type`, exact `package_id`, and exact valid SemVer `version`.
+It returns `{data: {manifest: <complete manifest>}}`. Missing package and
+missing release return separate `404 package_not_found` and
+`404 release_not_found` problems.
+
+Invalid query parameters use `400 invalid_query`; anticipated Registry errors
+use RFC 9457 Problem Details with `Content-Type: application/problem+json`.
+The endpoints enforce independent limits of 60 requests per minute per IP and
+120 requests per minute per `X-Pixely-Client` label. A limit response uses
+`429 rate_limited` Problem Details and includes `Retry-After`. Client labels
+are untrusted, non-authenticating identifiers, limited to 128 ASCII
+letters/digits or `.`, `_`, `:`, and `-`; absent or invalid labels fall back to
+the requesting IP for the client limit. The per-IP limit remains an
+independent backstop. Deployments must configure trusted proxies correctly so
+the framework derives the real client IP safely.
+
+Successful list responses advertise `Cache-Control: public, max-age=60`;
+exact-release responses advertise `max-age=300` and an ETag. Reads do not
+re-verify signatures: imported manifests have already been verified, and the
+Registry serves their stored signed JSON as-is. Clients remain responsible for
+local signature verification and compatibility checks.
+
+Runtime compatibility values are validated but currently ignored; the U10
+contract leaves server-side runtime filtering advisory. Conditional `304`
+responses, cursor expiration, and package search/discovery are not
+implemented. Query strings are limited to 4096 bytes, package IDs to 255
+characters, and cursors to 2048 characters. SemVer ordering is computed in
+memory over the matching releases for one package; pagination response size
+is capped, but the per-package scan is not currently bounded.
+
 ## U14.1 scope
 
-This lot provides database persistence and the local Artisan import command
-only. There are no public or administrative HTTP routes, search/list APIs,
-publishing or upload portal, account management, or moderation workflows.
+U14.1 provided database persistence and the local Artisan import command.
+Publishing, upload, account management, and moderation remain out of scope.
