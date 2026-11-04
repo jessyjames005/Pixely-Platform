@@ -1640,9 +1640,22 @@ The roadmap should be updated progressively as each sprint is completed.
 
 * [x] U12.8 — Run the focused integration/regression suite, review the final documentation, and prepare the sprint pull request description.
 
+### U13 — Advanced extension dependency management (complete)
+
+**Goal:** plan and apply locally available extension updates as a dependency-aware batch while preserving explicit operator control. Dependency packages are never downloaded, installed, or removed automatically.
+
+#### Planned lots
+
+* [x] U13.1 — Resolve the complete set of local update candidates against installed and candidate versions; reject unsatisfied requirements, conflicts, and cycles; return a deterministic dependency-first execution order.
+* [x] U13.2 — Use the global plan for `pixely:update --dry-run` and report the proposed order and blockers.
+* [x] U13.3 — Require explicit confirmation before applying the planned batch; block dependents of failed updates, continue independent candidates, and report partial outcomes.
+
+### Sprint close
+
+* [x] U13.4 — Run the focused regression suite, reconcile the roadmap and changelog, review technical documentation, and prepare the sprint pull request description.
+
 ### Proposed follow-on sprints
 
-* U13 — Advanced extension dependency management
 * U14 — Central Registry and extension catalogue
 * U15 — Extension SDK and developer documentation
 * U16 — Sample Cinema reference extension

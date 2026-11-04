@@ -4,6 +4,14 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
+### Added — U13 Dependency-aware extension update batches
+
+- Added global validation and deterministic dependency-first planning for locally available extension update packages, including candidate-supplied minimum dependency versions.
+- Added a dependency-ordered dry-run that reports the proposed execution order and planning blockers.
+- Required explicit approval before batch updates; non-interactive runs require `--yes`.
+- Added partial outcome reporting: failed updates block dependent extensions while independent updates continue.
+- Documented that batches are sequential and do not provide a global transaction or guaranteed database rollback.
+
 ### Added — U12 Extension package installation and update flow
 
 - Added an explicit Registry release download workflow that keeps packages in private quarantine until separately approved for installation.
