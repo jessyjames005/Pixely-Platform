@@ -79,7 +79,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Exceptions\ThrottleRequestsException $exception,
             Request $request,
         ) {
-            if (!$request->routeIs('api.registry.releases.*')) {
+            if (!$request->routeIs('api.registry.*')) {
                 return null;
             }
 

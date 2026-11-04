@@ -1,9 +1,10 @@
-# Registry server — U14.1 and U14.2
+# Registry server — U14.1, U14.2 and U14.3
 
 U14.1 adds the Registry's local relational store and an operator-run importer
 for already signed schema-v1 release manifests. U14.2 exposes a public,
-read-only release catalogue over those imported manifests. It does not add
-package discovery/search, publishing, or upload workflows.
+read-only release catalogue over those imported manifests. U14.3 adds public
+package discovery and search. Publishing and upload workflows remain out of
+scope.
 
 ## Import a signed manifest
 
@@ -107,11 +108,38 @@ local signature verification and compatibility checks.
 
 Runtime compatibility values are validated but currently ignored; the U10
 contract leaves server-side runtime filtering advisory. Conditional `304`
-responses, cursor expiration, and package search/discovery are not
-implemented. Query strings are limited to 4096 bytes, package IDs to 255
-characters, and cursors to 2048 characters. SemVer ordering is computed in
-memory over the matching releases for one package; pagination response size
-is capped, but the per-package scan is not currently bounded.
+responses and cursor expiration are not implemented. Query strings are limited
+to 4096 bytes, package IDs to 255 characters, and cursors to 2048 characters.
+SemVer ordering is computed in memory over the matching releases for one
+package; pagination response size is capped, but the per-package scan is not
+currently bounded.
+
+## Public package catalogue — U14.3
+
+`GET /api/v1/packages` is public and read-only. It lists packages that have at
+least one imported release. `q` optionally performs a case-insensitive partial
+match against the package name or opaque package ID; `package_type` optionally
+limits results to `platform`, `extension`, `theme`, or `plugin`. Search text is
+trimmed, limited to 100 characters, and treats SQL wildcard characters
+literally. `per_page` defaults to 20 and is limited to 1–100.
+
+The response is `{data: [{type, package_id, name, latest_release:
+{version, channel, published_at}}, ...], meta: {per_page, next_cursor,
+has_more}}`. Each package's summary selects the SemVer-highest stable release;
+if no stable release exists, it selects the SemVer-highest available release
+across channels. The catalogue is ordered by package insertion ID ascending.
+Opaque encrypted cursors bind the normalized query, package type and page
+size, and capture package/release ID high-water marks so newly imported
+packages and releases do not extend an in-progress traversal. Invalid or
+filter-mismatched cursors return `400 invalid_cursor`; invalid search and
+pagination parameters return `400 invalid_query`. Empty results use `data: []`
+and null `next_cursor`.
+
+Catalogue queries share the Registry's per-IP 60/minute and per-client
+120/minute limits and return RFC 9457 Problem Details on throttling. Responses
+advertise `Cache-Control: public, max-age=60`. This catalogue does not expose
+release manifests, descriptions, categories, ratings, download statistics, or
+publishing operations.
 
 ## U14.1 scope
 

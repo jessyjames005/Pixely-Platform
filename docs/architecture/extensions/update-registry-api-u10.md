@@ -248,3 +248,32 @@ Conditional caching (`ETag`, `If-None-Match`, `304`) remains optional at the API
 - [x] The client enforces the documented final-page cursor rule and page-size bounds.
 - [x] Optional caching and current error-body handling are explicitly documented.
 - [x] No Registry server, persistence, publishing or artifact download/install flow is introduced.
+
+## 13. U14.3 public package discovery extension
+
+U14.3 extends the read-only v1 Registry contract with:
+
+`GET /packages`
+
+Optional query parameters:
+
+| Parameter | Type | Rules |
+|---|---|---|
+| `q` | string | Case-insensitive partial match against package name or package ID; trimmed and limited to 100 characters. |
+| `package_type` | string | `platform`, `extension`, `theme`, or `plugin`. |
+| `per_page` | integer | Default `20`; minimum `1`; maximum `100`. |
+| `cursor` | string | Opaque cursor bound to the normalized filters and page size. |
+
+Only packages with at least one imported release are listed. Results are ordered
+by stable package insertion ID ascending. Each item contains `type`,
+`package_id`, `name`, and `latest_release` with `version`, `channel`, and
+`published_at`. The latest stable release by SemVer is summarized when one
+exists; otherwise the SemVer-highest release across channels is used.
+
+The success response follows the same cursor envelope as the release-list
+endpoint: `data` is an array and `meta` contains `per_page`, `next_cursor`, and
+`has_more`. Empty results have `data: []`, `next_cursor: null`, and
+`has_more: false`. Search and pagination errors use the existing RFC 9457
+`invalid_query` and `invalid_cursor` codes. The endpoint is public and
+read-only, shares Registry rate limits, and does not change the manifest
+signature, trust, or compatibility requirements.
