@@ -27,7 +27,8 @@ final class ExtensionUpdateCommand extends Command
         {--extension= : Update only the extension with this manifest id}
         {--dry-run : Validate and display the update plan without changing live files}
         {--source= : Override the local update-package directory}
-        {--report= : Override the JSON execution report path}';
+        {--report= : Override the JSON execution report path}
+        {--yes : Explicitly approve updates without an interactive prompt}';
 
     protected $description = 'Discover, validate and install available Pixely extension updates.';
 
@@ -69,18 +70,42 @@ final class ExtensionUpdateCommand extends Command
 
         $installed = $this->discoverInstalledVersions();
         $dependencyGraph = $this->discoverInstalledDependencyGraph();
-        $seen = [];
-        $processed = 0;
-        $failed = 0;
-        $reportItems = [];
         $startedAt = now()->toIso8601String();
 
         if ($this->option('dry-run')) {
             return $this->handleDryRun($packages, $requestedId, $source, $installed, $dependencyGraph, $startedAt);
         }
 
+        return $this->handleApply($packages, $requestedId, $source, $installed, $dependencyGraph, $startedAt);
+    }
+
+    /**
+     * Plan and apply selected updates in dependency-first order after operator approval.
+     *
+     * @param string[] $packages
+     * @param array<string, string> $installed
+     * @param array<string, string[]> $dependencyGraph
+     */
+    private function handleApply(
+        array $packages,
+        ?string $requestedId,
+        string $source,
+        array $installed,
+        array $dependencyGraph,
+        string $startedAt,
+    ): int {
+        $candidates = [];
+        $packagePaths = [];
+        $reportItems = [];
+        $seen = [];
+        $processed = 0;
+        $updated = 0;
+        $failed = 0;
+        $blocked = 0;
+
         foreach ($packages as $packagePath) {
             $id = null;
+
             try {
                 $manifest = $this->readPackageManifest($packagePath);
                 $id = $manifest['id'];
@@ -90,67 +115,195 @@ final class ExtensionUpdateCommand extends Command
                 }
 
                 if (isset($seen[$id])) {
-                    throw new \RuntimeException("More than one update package was found for extension [{$id}]. Keep only one candidate package.");
+                    throw new \RuntimeException(
+                        "More than one update package was found for extension [{$id}]. Keep only one candidate package.",
+                    );
                 }
                 $seen[$id] = true;
 
                 $from = $this->versions->find($id) ?? ($installed[$id] ?? null);
                 if ($from === null) {
-                    throw new \RuntimeException("Extension [{$id}] is not installed; this command only handles updates.");
+                    throw new \RuntimeException(
+                        "Extension [{$id}] is not installed; this command only handles updates.",
+                    );
                 }
 
                 $installed[$id] = $from;
-                $candidate = new ExtensionManifest(
-                    id: $id,
-                    name: $manifest['name'],
-                    version: $manifest['version'],
-                    minimum_kernel_version: $manifest['minimum_kernel_version'],
-                    class: $manifest['class'],
-                    path: $manifest['root'],
-                    dependencies: $manifest['requires'],
-                );
-
-                $plan = $this->planner->plan(
-                    $candidate,
-                    $installed,
-                    $manifest['require_versions'],
-                    $manifest['conflicts'],
-                    $dependencyGraph,
-                );
-
-                $processed++;
-                $item = ['extension' => $id, 'from' => $plan['from'], 'to' => $plan['to'], 'status' => $this->option('dry-run') ? 'planned' : 'running', 'message' => null];
-                $this->components->twoColumnDetail("{$id} ({$plan['from']} → {$plan['to']})", $this->option('dry-run') ? 'planned' : 'updating');
-
-                if ($this->option('dry-run')) {
-                    foreach ($plan['actions'] as $action) {
-                        $this->line("  • {$action}");
-                    }
-                    $reportItems[] = $item;
-                    continue;
-                }
-
-                $result = $this->installer->update($packagePath, $id, null);
-                $installed[$id] = $result['version'];
-                $item['status'] = 'updated';
-                $item['to'] = $result['version'];
-                $item['message'] = 'Update completed successfully.';
-                $reportItems[] = $item;
-                $this->components->info("Updated [{$id}] to version [{$result['version']}].");
+                $candidates[] = [
+                    'manifest' => new ExtensionManifest(
+                        id: $id,
+                        name: $manifest['name'],
+                        version: $manifest['version'],
+                        minimum_kernel_version: $manifest['minimum_kernel_version'],
+                        class: $manifest['class'],
+                        path: $manifest['root'],
+                        dependencies: $manifest['requires'],
+                    ),
+                    'required_versions' => $manifest['require_versions'],
+                    'conflicts' => $manifest['conflicts'],
+                ];
+                $packagePaths[$id] = $packagePath;
             } catch (Throwable $exception) {
                 $failed++;
-                $reportItems[] = ['package' => basename($packagePath), 'extension' => $id ?? null, 'status' => 'failed', 'message' => $exception->getMessage()];
-                $this->components->error(basename($packagePath) . ': ' . $exception->getMessage());
+                $message = $exception->getMessage();
+                $reportItems[] = [
+                    'package' => basename($packagePath),
+                    'extension' => $id,
+                    'status' => 'failed',
+                    'message' => $message,
+                ];
+                $this->components->error(basename($packagePath) . ': ' . $message);
             }
         }
 
-        if ($requestedId !== null && $processed === 0 && $failed === 0) {
+        if ($requestedId !== null && $candidates === [] && $failed === 0) {
             $this->components->warn("No update package found for extension [{$requestedId}].");
         }
 
+        $plans = [];
+        $executionOrder = [];
+
+        if ($candidates !== []) {
+            try {
+                $plans = $this->planner->planBatch($candidates, $installed, $dependencyGraph);
+                $executionOrder = array_column($plans, 'extension');
+                $this->line('Execution order: ' . implode(' → ', $executionOrder));
+
+                foreach ($plans as $plan) {
+                    $this->components->twoColumnDetail(
+                        "{$plan['extension']} ({$plan['from']} → {$plan['to']})",
+                        'planned',
+                    );
+                }
+            } catch (Throwable $exception) {
+                $message = $exception->getMessage();
+                $this->components->error('Batch update plan blocked: ' . $message);
+
+                foreach ($candidates as $candidate) {
+                    $id = $candidate['manifest']->id;
+                    $failed++;
+                    $reportItems[] = [
+                        'package' => basename($packagePaths[$id]),
+                        'extension' => $id,
+                        'status' => 'failed',
+                        'message' => $message,
+                    ];
+                }
+            }
+        }
+
+        $exitCode = self::SUCCESS;
+        if ($plans !== []) {
+            $this->components->warn(
+                'Updates run sequentially without a global transaction or a guaranteed database rollback. '
+                . 'Ensure you have a database backup before proceeding.',
+            );
+            $approved = (bool) $this->option('yes');
+
+            if (! $approved) {
+                if (! $this->input->isInteractive()) {
+                    $message = 'Use --yes to explicitly approve updates in a non-interactive environment.';
+                    $this->components->error($message);
+                    $exitCode = self::FAILURE;
+
+                    foreach ($plans as $plan) {
+                        $reportItems[] = [
+                            'extension' => $plan['extension'],
+                            'from' => $plan['from'],
+                            'to' => $plan['to'],
+                            'status' => 'approval_required',
+                            'message' => $message,
+                        ];
+                    }
+                } else {
+                    $approved = $this->confirm('Proceed with the dependency-first extension update plan?', false);
+                    if (! $approved) {
+                        $this->components->info('Update cancelled; no extension files were changed.');
+
+                        foreach ($plans as $plan) {
+                            $reportItems[] = [
+                                'extension' => $plan['extension'],
+                                'from' => $plan['from'],
+                                'to' => $plan['to'],
+                                'status' => 'cancelled',
+                                'message' => 'Operator declined the update plan.',
+                            ];
+                        }
+                    }
+                }
+            }
+
+            if ($approved) {
+                $candidateIds = array_fill_keys(array_keys($packagePaths), true);
+                $statuses = [];
+
+                foreach ($plans as $plan) {
+                    $id = $plan['extension'];
+                    $blockedDependencies = [];
+
+                    foreach (array_keys($plan['dependencies']) as $dependencyId) {
+                        if (
+                            isset($candidateIds[$dependencyId])
+                            && ($statuses[$dependencyId] ?? null) !== 'updated'
+                        ) {
+                            $blockedDependencies[] = $dependencyId;
+                        }
+                    }
+
+                    if ($blockedDependencies !== []) {
+                        $message = 'Blocked because update dependency or dependencies did not complete successfully: '
+                            . implode(', ', $blockedDependencies) . '.';
+                        $statuses[$id] = 'blocked';
+                        $blocked++;
+                        $reportItems[] = [
+                            'extension' => $id,
+                            'from' => $plan['from'],
+                            'to' => $plan['to'],
+                            'status' => 'blocked',
+                            'message' => $message,
+                        ];
+                        $this->components->error("Blocked [{$id}]: {$message}");
+                        continue;
+                    }
+
+                    $processed++;
+                    try {
+                        $result = $this->installer->update($packagePaths[$id], $id, null);
+                        $installed[$id] = $result['version'];
+                        $statuses[$id] = 'updated';
+                        $updated++;
+                        $reportItems[] = [
+                            'extension' => $id,
+                            'from' => $plan['from'],
+                            'to' => $result['version'],
+                            'status' => 'updated',
+                            'message' => 'Update completed successfully.',
+                        ];
+                        $this->components->info("Updated [{$id}] to version [{$result['version']}].");
+                    } catch (Throwable $exception) {
+                        $statuses[$id] = 'failed';
+                        $failed++;
+                        $reportItems[] = [
+                            'extension' => $id,
+                            'from' => $plan['from'],
+                            'to' => $plan['to'],
+                            'status' => 'failed',
+                            'message' => $exception->getMessage(),
+                        ];
+                        $this->components->error("Update failed for [{$id}]: " . $exception->getMessage());
+                    }
+                }
+            }
+        }
+
+        if ($failed > 0 || $blocked > 0) {
+            $exitCode = self::FAILURE;
+        }
+
         $this->newLine();
-        $exitCode = $failed > 0 ? self::FAILURE : self::SUCCESS;
-        $reportPath = (string) ($this->option('report') ?: storage_path('app/extension-update-reports/' . now()->format('Ymd-His') . '-' . bin2hex(random_bytes(3)) . '.json'));
+        $reportPath = (string) ($this->option('report') ?: storage_path(
+            'app/extension-update-reports/' . now()->format('Ymd-His') . '-' . bin2hex(random_bytes(3)) . '.json',
+        ));
 
         try {
             $savedPath = $this->reporter->write($reportPath, [
@@ -158,19 +311,32 @@ final class ExtensionUpdateCommand extends Command
                 'command' => 'pixely:update',
                 'started_at' => $startedAt,
                 'finished_at' => now()->toIso8601String(),
-                'mode' => $this->option('dry-run') ? 'dry-run' : 'apply',
+                'mode' => 'apply',
                 'source' => $source,
                 'filter' => $requestedId,
-                'summary' => ['processed' => $processed, 'failed' => $failed, 'exit_code' => $exitCode],
+                'execution_order' => $executionOrder,
+                'summary' => [
+                    'processed' => $processed,
+                    'updated' => $updated,
+                    'failed' => $failed,
+                    'blocked' => $blocked,
+                    'exit_code' => $exitCode,
+                ],
+                'limitations' => [
+                    'Updates are sequential; there is no global transaction or guaranteed database rollback.',
+                ],
                 'items' => $reportItems,
             ]);
             $this->components->info("Execution report: {$savedPath}");
         } catch (Throwable $exception) {
             $this->components->error('Could not write execution report: ' . $exception->getMessage());
+
             return self::FAILURE;
         }
 
-        $this->line("Packages processed: {$processed}; failed: {$failed}.");
+        $this->line(
+            "Packages processed: {$processed}; updated: {$updated}; failed: {$failed}; blocked: {$blocked}.",
+        );
 
         return $exitCode;
     }
