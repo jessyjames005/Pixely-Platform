@@ -4,6 +4,12 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
+### Added — U15 Extension SDK developer tools and documentation
+
+- Hardened `php artisan make:extension` with extension-name validation, safe directory handling, SDK v2 test starters, and migration-runner guidance.
+- Added standard PHPUnit discovery for extension-local backend tests and a reusable helper for JSON:API headers and users with declared extension permissions.
+- Added extension SDK, development, frontend, Design System, testing, and Storybook guidance. Storybook itself remains uninstalled and unconfigured.
+
 ### Added — U14 Central Registry and extension catalogue
 
 - Added operator-controlled import of locally stored, trusted schema-v1 release manifests with signature verification, idempotency, and immutable package/version records.

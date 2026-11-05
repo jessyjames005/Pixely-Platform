@@ -189,7 +189,11 @@ Use the extension generator to create a complete starting structure:
 docker compose exec app php artisan make:extension CinemaMovie
 ```
 
+For the full development workflow, capability contracts, and test guidance, see the [Extension Development Guide](../extensions/development.md).
+
 The generator creates the PHP `extension.php` manifest, extension class and provider, API controller and routes, extension migration and upgrade directories, language files, and frontend model, store, view, and navigation item. It also creates starter tests under `tests/Unit`, `tests/Functional`, and `tests/E2E` inside the extension directory. See [Extension Manifest](../../architecture/extension-manifest.md) for the manifest contract.
+
+The generated service provider does not register the extension migration directory with Laravel. Add migrations under `Database/Migrations` and run them with Pixely's extension migration commands below.
 
 The generator prints the frontend integration steps that are specific to the application build: add the Vite and TypeScript aliases, add the extension route loader to the Core allowlist in `resources/js/router/extensionRouteRegistry.ts`, and verify the generated `resources/js/routes.ts` declaration. The router then synchronizes extension routes with the current user’s server-filtered navigation.
 
@@ -234,6 +238,15 @@ app/Extensions/<Name>/tests/
 ```
 
 Unit tests cover extension-level logic, Functional tests exercise the Laravel application and API, and E2E tests use Playwright against the administration interface. Backend CI runs Unit and Functional suites separately and discovers these extension-local directories.
+
+The default PHPUnit suite discovers PHP `*Test.php` files under `app/Extensions`, including each extension's Unit and Functional tests. Run the full suite or focus on one extension with:
+
+```bash
+docker compose exec app php artisan test
+docker compose exec app php artisan test app/Extensions/<Name>/tests/Unit app/Extensions/<Name>/tests/Functional
+```
+
+Playwright tests under `tests/E2E` are not part of PHPUnit; run them with the opt-in E2E runner above. Functional API tests can use `Tests\Support\Extensions\ExtensionApiTestHelper::jsonApiHeaders()` and `$this->actingAs(ExtensionApiTestHelper::createUserWithPermission($extension, '<declared permission>'))`. The helper verifies the permission is declared by the supplied extension, creates that permission and a user assigned to it, and returns the user. Authentication is explicit at the call site. It does not enable extensions or reset the database; tests should opt into database isolation when needed.
 
 # Artisan Commands
 

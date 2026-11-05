@@ -20,13 +20,23 @@ use Illuminate\Support\Str;
  */
 final class MakeExtension extends Command
 {
-    protected $signature = 'make:extension {name : StudlyCase extension name, e.g. Blog}';
+    protected $signature = 'make:extension {name : Extension name in StudlyCase, kebab-case, or snake_case}';
 
     protected $description = 'Scaffold a new, empty extension (backend + frontend skeleton)';
 
     public function handle(): int
     {
-        $studly = Str::studly($this->argument('name'));
+        $name = (string) $this->argument('name');
+
+        if (preg_match('/\A[A-Za-z][A-Za-z0-9]*(?:[-_][A-Za-z0-9]+)*\z/', $name) !== 1) {
+            $this->error(
+                "Invalid extension name [{$name}]. Start with a letter; use letters, numbers, hyphens, or underscores."
+            );
+
+            return self::FAILURE;
+        }
+
+        $studly = Str::studly($name);
         $id = Str::kebab($studly);
         $basePath = base_path("app/Extensions/{$studly}");
 
@@ -239,17 +249,12 @@ final class MakeExtension extends Command
         use Illuminate\\Support\\ServiceProvider;
 
         /**
-         * Registers {$studly} extension services and migrations.
+         * Registers {$studly} extension services.
+         * Extension migrations are run by Pixely's extension migration runner.
          * API routes are registered centrally by the Extension SDK v2.
          */
         final class {$studly}ServiceProvider extends ServiceProvider
         {
-            public function boot(): void
-            {
-                \$this->loadMigrationsFrom(
-                    __DIR__ . '/../Database/Migrations'
-                );
-            }
         }
 
         PHP;
@@ -362,13 +367,27 @@ final class MakeExtension extends Command
 
         declare(strict_types=1);
 
+        use App\\Extensions\\{$studly}\\{$studly}Extension;
+        use Tests\\Support\\Extensions\\ExtensionApiTestHelper;
         use Tests\\TestCase;
 
         uses(TestCase::class);
 
-        it('requires authentication to list {$studly} items', function () {
-            // Enable the {$id} extension before running this API feature test.
-            \$this->getJson('/api/v1/{$id}')->assertUnauthorized();
+        it('requires authentication to list {$studly} items', function (): void {
+            \$this->getJson('/api/v1/{$id}', ExtensionApiTestHelper::jsonApiHeaders())
+                ->assertUnauthorized();
+        });
+
+        it('allows users with the {$id} view permission to list items', function (): void {
+            /** @var TestCase \$testCase */
+            \$testCase = \$this;
+            \$testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+                new {$studly}Extension(),
+                '{$id}.items.view',
+            ));
+
+            \$this->getJson('/api/v1/{$id}', ExtensionApiTestHelper::jsonApiHeaders())
+                ->assertOk();
         });
 
         PHP;
