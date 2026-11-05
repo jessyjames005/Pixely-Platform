@@ -17,5 +17,6 @@ test('logs in and opens the CinemaMovie administration screen', async ({ page })
 
   await page.goto('/admin/cinema-movie', { waitUntil: 'domcontentloaded' })
 
-  await expect(page.getByRole('heading', { name: 'CinemaMovie' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Cinema movies|Films/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Movie catalogue|Catalogue des films/ })).toBeVisible()
 })

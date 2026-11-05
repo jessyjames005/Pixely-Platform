@@ -39,6 +39,17 @@ The admin navigation label and routes remain declared through the server-side
 extension capabilities and Core's static frontend route allowlist. CinemaMovie
 does not need a separate local navigation registry entry.
 
+## Administration screen
+
+The CinemaMovie admin view lists movies with pagination, shows their English
+title (falling back to the original title or slug), and supports create, edit,
+and confirmed delete actions. The form edits release metadata and English and
+French titles and overviews. Create and edit actions require `movies.manage`;
+delete controls require `movies.delete`. The screen uses the shared API,
+notification, and confirmation composables with Vuetify table, form, and dialog
+components. Genre administration and assigning genres in the movie form are
+not part of this slice.
+
 ## Catalogue model
 
 The current slice stores movies, genres, their many-to-many relationship, and
@@ -57,6 +68,5 @@ not Laravel's global migration discovery. The runner resolves hyphenated
 extension IDs to their StudlyCase directories (for example,
 `cinema-movie` to `CinemaMovie`).
 
-This lot provides the domain and API foundation. The administration workflows,
-media integration, TMDB import, people and credits, and public-facing catalogue
-remain later U16 work.
+Media integration, TMDB import, people and credits, and the public-facing
+catalogue remain later U16 work.

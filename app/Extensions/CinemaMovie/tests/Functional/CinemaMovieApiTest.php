@@ -96,3 +96,38 @@ it('requires a default-locale title before publishing a movie', function (): voi
     ], ExtensionApiTestHelper::jsonApiHeaders())
         ->assertUnprocessable();
 });
+
+it('creates a movie translation before allowing the movie to be published', function (): void {
+    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+        new CinemaMovieExtension(),
+        'cinema-movie.movies.manage',
+    ));
+
+    $movieResponse = $this->postJson('/api/v1/cinema-movies', [
+        'data' => [
+            'type' => 'cinema-movies',
+            'attributes' => ['originalTitle' => 'Arrival'],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
+    $movieId = $movieResponse->json('data.id');
+
+    $this->postJson('/api/v1/cinema-movie-translations', [
+        'data' => [
+            'type' => 'cinema-movie-translations',
+            'attributes' => ['locale' => 'en', 'title' => 'Arrival'],
+            'relationships' => [
+                'movie' => ['data' => ['type' => 'cinema-movies', 'id' => $movieId]],
+            ],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
+
+    $this->patchJson('/api/v1/cinema-movies/' . $movieId, [
+        'data' => [
+            'type' => 'cinema-movies',
+            'id' => $movieId,
+            'attributes' => ['publicationStatus' => 'published'],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders())
+        ->assertOk()
+        ->assertJsonPath('data.attributes.publicationStatus', 'published');
+});
