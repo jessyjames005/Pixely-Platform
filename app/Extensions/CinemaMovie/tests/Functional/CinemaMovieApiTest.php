@@ -20,8 +20,10 @@ beforeEach(function (): void {
 });
 
 it('publishes its English and French UI translations to the platform', function (): void {
+    /** @var TestCase $testCase */
+    $testCase = $this;
     $extension = new CinemaMovieExtension();
-    $this->app->register(CinemaMovieServiceProvider::class);
+    app()->register(CinemaMovieServiceProvider::class);
 
     expect($extension->translationsPath())->toBe(base_path('app/Extensions/CinemaMovie/lang'))
         ->and(trans('cinema-movie::cinema-movie.title.admin', [], 'en'))->toBe('Cinema movies')
@@ -29,13 +31,17 @@ it('publishes its English and French UI translations to the platform', function 
 });
 
 it('requires authentication to list CinemaMovie movies', function (): void {
-    $this->getJson('/api/v1/cinema-movies', ExtensionApiTestHelper::jsonApiHeaders())
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->getJson('/api/v1/cinema-movies', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertUnauthorized()
         ->assertHeader('Content-Type', 'application/vnd.api+json');
 });
 
 it('forbids authenticated users without the CinemaMovie view permission', function (): void {
-    $this->actingAs(User::factory()->create())
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(User::factory()->create())
         ->getJson('/api/v1/cinema-movies', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertForbidden();
 });
@@ -60,7 +66,7 @@ it('returns a paginated JSON:API movie collection', function (): void {
 
     $query = '?include=translations,genres,genres.translations';
 
-    $response = $this->getJson('/api/v1/cinema-movies' . $query, ExtensionApiTestHelper::jsonApiHeaders());
+    $response = $testCase->getJson('/api/v1/cinema-movies' . $query, ExtensionApiTestHelper::jsonApiHeaders());
     $response
         ->assertOk()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
@@ -72,12 +78,14 @@ it('returns a paginated JSON:API movie collection', function (): void {
 });
 
 it('rejects unsupported production states when creating movies', function (): void {
-    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.movies.manage',
     ));
 
-    $this->postJson('/api/v1/cinema-movies', [
+    $testCase->postJson('/api/v1/cinema-movies', [
         'data' => [
             'type' => 'cinema-movies',
             'attributes' => [
@@ -90,12 +98,14 @@ it('rejects unsupported production states when creating movies', function (): vo
 });
 
 it('requires a default-locale title before publishing a movie', function (): void {
-    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.movies.manage',
     ));
 
-    $this->postJson('/api/v1/cinema-movies', [
+    $testCase->postJson('/api/v1/cinema-movies', [
         'data' => [
             'type' => 'cinema-movies',
             'attributes' => [
@@ -108,12 +118,14 @@ it('requires a default-locale title before publishing a movie', function (): voi
 });
 
 it('creates a movie translation before allowing the movie to be published', function (): void {
-    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.movies.manage',
     ));
 
-    $movieResponse = $this->postJson('/api/v1/cinema-movies', [
+    $movieResponse = $testCase->postJson('/api/v1/cinema-movies', [
         'data' => [
             'type' => 'cinema-movies',
             'attributes' => ['originalTitle' => 'Arrival'],
@@ -121,7 +133,7 @@ it('creates a movie translation before allowing the movie to be published', func
     ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
     $movieId = $movieResponse->json('data.id');
 
-    $this->postJson('/api/v1/cinema-movie-translations', [
+    $testCase->postJson('/api/v1/cinema-movie-translations', [
         'data' => [
             'type' => 'cinema-movie-translations',
             'attributes' => ['locale' => 'en', 'title' => 'Arrival'],
@@ -131,7 +143,7 @@ it('creates a movie translation before allowing the movie to be published', func
         ],
     ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
 
-    $this->patchJson('/api/v1/cinema-movies/' . $movieId, [
+    $testCase->patchJson('/api/v1/cinema-movies/' . $movieId, [
         'data' => [
             'type' => 'cinema-movies',
             'id' => $movieId,
@@ -143,14 +155,16 @@ it('creates a movie translation before allowing the movie to be published', func
 });
 
 it('allows a movie manager to assign existing genres through the resource update', function (): void {
-    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.movies.manage',
     ));
     $movie = Movie::query()->create(['original_title' => 'Arrival']);
     $genre = Genre::query()->create(['slug' => 'science-fiction']);
 
-    $this->patchJson('/api/v1/cinema-movies/' . $movie->getKey(), [
+    $testCase->patchJson('/api/v1/cinema-movies/' . $movie->getKey(), [
         'data' => [
             'type' => 'cinema-movies',
             'id' => (string) $movie->getKey(),
@@ -167,12 +181,14 @@ it('allows a movie manager to assign existing genres through the resource update
 });
 
 it('creates a genre with a locale-specific name', function (): void {
-    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.movies.manage',
     ));
 
-    $genreResponse = $this->postJson('/api/v1/cinema-genres', [
+    $genreResponse = $testCase->postJson('/api/v1/cinema-genres', [
         'data' => [
             'type' => 'cinema-genres',
             'attributes' => ['slug' => 'science-fiction'],
@@ -180,7 +196,7 @@ it('creates a genre with a locale-specific name', function (): void {
     ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
     $genreId = $genreResponse->json('data.id');
 
-    $this->postJson('/api/v1/cinema-genre-translations', [
+    $testCase->postJson('/api/v1/cinema-genre-translations', [
         'data' => [
             'type' => 'cinema-genre-translations',
             'attributes' => ['locale' => 'en', 'name' => 'Science fiction'],

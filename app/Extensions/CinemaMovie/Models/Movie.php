@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
+/**
+ * @property string $slug
+ * @property string|null $original_title
+ * @property string|null $original_language
+ */
 final class Movie extends Model
 {
     use HasFactory;
