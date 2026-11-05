@@ -3,8 +3,8 @@
 /**
  * CinemaMovie extension API routes.
  *
- * Registered under api/v1 by CinemaMovieServiceProvider, following
- * the same per-extension routing convention as other extensions.
+ * Declared by CinemaMovie and registered under api/v1 by Core through the
+ * ExtensionRoutesInterface capability.
  */
 
 declare(strict_types=1);
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware([
     EnsureJsonApiMediaType::class,
     'auth:sanctum',
-    'permission:cinema-movie.items.view',
+    'permission:cinema-movie.movies.view',
 ])->group(function () {
     Route::get('/cinema-movie', [CinemaMovieController::class, 'index']);
 });

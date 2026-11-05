@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 return [
-    // Follow the platform naming convention:
-    // object.<object>.<property>[.hint], action.<verb>,
-    // title.<context>, msg.<context>, tab.<name>,
-    // preference.<name>, permission.<name>
+    'title' => [
+        'admin' => 'Cinema movies',
+    ],
+    'state' => [
+        'loading' => 'Loading movies…',
+        'empty' => 'No movies yet.',
+    ],
 ];
