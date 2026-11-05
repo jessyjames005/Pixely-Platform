@@ -10,6 +10,7 @@ use LaravelJsonApi\Eloquent\Fields\DateTime;
 use LaravelJsonApi\Eloquent\Fields\ID;
 use LaravelJsonApi\Eloquent\Fields\Number;
 use LaravelJsonApi\Eloquent\Fields\Relations\BelongsToMany;
+use LaravelJsonApi\Eloquent\Fields\Relations\BelongsTo;
 use LaravelJsonApi\Eloquent\Fields\Relations\HasMany;
 use LaravelJsonApi\Eloquent\Fields\Str;
 use LaravelJsonApi\Eloquent\Filters\Where;
@@ -50,6 +51,8 @@ final class MovieSchema extends Schema
             Number::make('voteCount'),
             HasMany::make('translations')->type('cinema-movie-translations'),
             BelongsToMany::make('genres')->type('cinema-genres'),
+            BelongsTo::make('poster')->type('files'),
+            BelongsTo::make('backdrop')->type('files'),
         ];
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\JsonApi\V1\CinemaMovie;
 
 use App\Extensions\CinemaMovie\Models\Movie;
+use App\Extensions\Files\Models\File;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use LaravelJsonApi\Laravel\Http\Requests\ResourceRequest;
@@ -30,12 +31,28 @@ final class MovieRequest extends ResourceRequest
             'voteAverage' => ['nullable', 'numeric', 'between:0,10'],
             'voteCount' => ['sometimes', 'integer', 'min:0'],
             'genres' => [JsonApiRule::toMany()],
+            'poster' => [JsonApiRule::toOne()],
+            'backdrop' => [JsonApiRule::toOne()],
         ];
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            foreach (['poster', 'backdrop'] as $mediaField) {
+                $fileId = $this->input('data.relationships.' . $mediaField . '.data.id');
+
+                if (
+                    $fileId !== null
+                    && ! File::query()->whereKey($fileId)->where('mime_type', 'like', 'image/%')->exists()
+                ) {
+                    $validator->errors()->add(
+                        $mediaField,
+                        'The selected media must be an image managed by the Files extension.',
+                    );
+                }
+            }
+
             $publicationStatus = $this->input(
                 'data.attributes.publicationStatus',
                 $this->model()?->publication_status,

@@ -11,6 +11,7 @@ import type {
   MovieAttributes,
   MovieTranslation,
   MovieTranslationAttributes,
+  CinemaMediaFile,
 } from '../models/CinemaMovie'
 
 interface MovieInput extends Partial<MovieAttributes> {
@@ -23,10 +24,12 @@ type GenreTranslationInput = GenreTranslationAttributes
 interface CinemaMovieState {
   items: CinemaMovieItem[]
   genres: CinemaGenre[]
+  mediaFiles: CinemaMediaFile[]
   meta: PaginationMeta | null
 }
 
 type Relationship = { data?: Array<{ id: string; type: string }> | null }
+type ToOneRelationship = { data?: { id: string; type: string } | null }
 
 function slugify(value: string): string {
   return value
@@ -41,13 +44,14 @@ export const useCinemaMovieStore = defineStore('cinemaMovie', {
   state: (): CinemaMovieState => ({
     items: [],
     genres: [],
+    mediaFiles: [],
     meta: null,
   }),
 
   actions: {
     async fetchItems(page = 1, perPage = 20): Promise<void> {
       const result = await apiClient.getCollection<MovieAttributes>('/cinema-movies', {
-        include: 'translations,genres,genres.translations',
+        include: 'translations,genres,genres.translations,poster,backdrop',
         'page[number]': page,
         'page[size]': perPage,
       })
@@ -76,9 +80,24 @@ export const useCinemaMovieStore = defineStore('cinemaMovie', {
           })
           return [{ ...resource.attributes, id: resource.id, type: resource.type, translations: genreTranslations } as CinemaGenre]
         })
-        return { ...movie, translations, genres }
+        const poster = movie.relationships?.poster as ToOneRelationship | undefined
+        const backdrop = movie.relationships?.backdrop as ToOneRelationship | undefined
+        return {
+          ...movie,
+          translations,
+          genres,
+          posterId: poster?.data?.id ?? null,
+          backdropId: backdrop?.data?.id ?? null,
+        }
       })
       this.meta = (result.meta as PaginationMeta | undefined) ?? null
+    },
+
+    async fetchMediaFiles(): Promise<void> {
+      const result = await apiClient.getCollection<Omit<CinemaMediaFile, 'id'>>('/files', {
+        'page[size]': 100,
+      })
+      this.mediaFiles = result.resources.filter((file) => file.mime_type.startsWith('image/'))
     },
 
     async fetchGenres(): Promise<void> {
@@ -108,6 +127,8 @@ export const useCinemaMovieStore = defineStore('cinemaMovie', {
       attributes: MovieInput,
       translations: TranslationInput[],
       genreIds: string[],
+      posterId: string | null,
+      backdropId: string | null,
     ): Promise<CinemaMovieItem> {
       const requestedPublicationStatus = attributes.publicationStatus ?? 'draft'
       const movieAttributes: Partial<MovieAttributes> = { ...attributes }
@@ -124,6 +145,8 @@ export const useCinemaMovieStore = defineStore('cinemaMovie', {
         ...saved,
         translations: [...(existing?.translations ?? [])],
         genres: [...(existing?.genres ?? [])],
+        posterId,
+        backdropId,
       }
       const existingIndex = this.items.findIndex((item) => item.id === saved.id)
       if (existingIndex < 0) this.items.unshift(updated)
@@ -159,6 +182,8 @@ export const useCinemaMovieStore = defineStore('cinemaMovie', {
           id: saved.id,
           relationships: {
             genres: { data: genreIds.map((id) => ({ type: 'cinema-genres', id })) },
+            poster: { data: posterId ? { type: 'files', id: posterId } : null },
+            backdrop: { data: backdropId ? { type: 'files', id: backdropId } : null },
           },
         },
       })

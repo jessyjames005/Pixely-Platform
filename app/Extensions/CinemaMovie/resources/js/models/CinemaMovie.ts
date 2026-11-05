@@ -18,6 +18,14 @@ export interface MovieAttributes {
   voteCount: number
 }
 
+export interface CinemaMediaFile {
+  id: string
+  original_name: string
+  mime_type: string
+  url: string
+  thumbnail_url: string | null
+}
+
 export interface MovieTranslationAttributes {
   locale: string
   title: string
@@ -42,4 +50,6 @@ export type CinemaGenre = JsonApiModel<GenreAttributes> & {
 export type CinemaMovieItem = JsonApiModel<MovieAttributes> & {
   translations: MovieTranslation[]
   genres: CinemaGenre[]
+  posterId: string | null
+  backdropId: string | null
 }

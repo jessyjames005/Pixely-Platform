@@ -18,8 +18,14 @@ The catalogue uses JSON:API resources at `/cinema-movies`, `/cinema-genres`,
 `/cinema-movie-translations`, and `/cinema-genre-translations`. All require an
 authenticated API user. Read operations require `movies.view`, create/update
 require `movies.manage`, and deletion requires `movies.delete`. The extension's
-package version is `1.1.0`; the platform roadmap's `v0.8.0` heading is a
+package version is `1.2.0`; the platform roadmap's `v0.8.0` heading is a
 platform release milestone, not this package version.
+
+CinemaMovie declares Files (`files`) as a required extension dependency. The
+admin movie form can attach existing image records from Files as a poster and
+backdrop; upload and manage those records in the Files extension first. The
+JSON:API movie resource exposes optional `poster` and `backdrop` relationships
+to `files`. The database clears either reference if its file record is deleted.
 
 ## Permissions and translations
 
@@ -72,5 +78,5 @@ not Laravel's global migration discovery. The runner resolves hyphenated
 extension IDs to their StudlyCase directories (for example,
 `cinema-movie` to `CinemaMovie`).
 
-Media integration, TMDB import, people and credits, and the public-facing
-catalogue remain later U16 work.
+TMDB import, people and credits, and the public-facing catalogue remain later
+work.

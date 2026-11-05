@@ -38,11 +38,11 @@ final class CinemaMovieExtension implements
         return new ExtensionManifest(
             id: 'cinema-movie',
             name: 'CinemaMovie',
-            version: '1.1.0',
+            version: '1.2.0',
             minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/CinemaMovie',
-            dependencies: [],
+            dependencies: ['files'],
             surfaces: ['admin', 'api'],
         );
     }

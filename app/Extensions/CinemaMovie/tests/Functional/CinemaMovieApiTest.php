@@ -11,11 +11,15 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Extensions\ExtensionApiTestHelper;
 use Tests\TestCase;
+use Spatie\Permission\Models\Permission;
 
 uses(TestCase::class);
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('files')) {
+        app(ExtensionMigrationRunner::class)->migrate('files');
+    }
     app(ExtensionMigrationRunner::class)->migrate('cinema-movie');
 });
 
@@ -164,7 +168,7 @@ it('allows a movie manager to assign existing genres through the resource update
     $movie = Movie::query()->create(['original_title' => 'Arrival']);
     $genre = Genre::query()->create(['slug' => 'science-fiction']);
 
-    $testCase->patchJson('/api/v1/cinema-movies/' . $movie->getKey(), [
+    $response = $testCase->patchJson('/api/v1/cinema-movies/' . $movie->getKey(), [
         'data' => [
             'type' => 'cinema-movies',
             'id' => (string) $movie->getKey(),
@@ -178,6 +182,51 @@ it('allows a movie manager to assign existing genres through the resource update
         ->assertOk();
 
     expect($movie->fresh()->genres->modelKeys())->toBe([$genre->getKey()]);
+});
+
+it('lets a movie manager attach existing files as poster and backdrop', function (): void {
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $user = ExtensionApiTestHelper::createUserWithPermission(
+        new CinemaMovieExtension(),
+        'cinema-movie.movies.manage',
+    );
+    $user->givePermissionTo(Permission::findOrCreate('cinema-movie.movies.view', 'web'));
+    $testCase->actingAs($user);
+    $movie = Movie::query()->create(['original_title' => 'Arrival']);
+    $poster = \App\Extensions\Files\Models\File::query()->create([
+        'disk' => 'public', 'path' => 'files/poster.jpg', 'original_name' => 'poster.jpg',
+        'mime_type' => 'image/jpeg', 'size' => 100,
+    ]);
+    $backdrop = \App\Extensions\Files\Models\File::query()->create([
+        'disk' => 'public', 'path' => 'files/backdrop.jpg', 'original_name' => 'backdrop.jpg',
+        'mime_type' => 'image/jpeg', 'size' => 200,
+    ]);
+
+    $response = $testCase->patchJson('/api/v1/cinema-movies/' . $movie->getKey(), [
+        'data' => [
+            'type' => 'cinema-movies',
+            'id' => (string) $movie->getKey(),
+            'relationships' => [
+                'poster' => ['data' => ['type' => 'files', 'id' => (string) $poster->getKey()]],
+                'backdrop' => ['data' => ['type' => 'files', 'id' => (string) $backdrop->getKey()]],
+            ],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders());
+    $response
+        ->assertOk();
+
+    $testCase->getJson(
+        '/api/v1/cinema-movies/' . $movie->getKey() . '?include=poster,backdrop',
+        ExtensionApiTestHelper::jsonApiHeaders(),
+    )
+        ->assertOk()
+        ->assertJsonPath('data.relationships.poster.data.id', (string) $poster->getKey())
+        ->assertJsonPath('data.relationships.backdrop.data.id', (string) $backdrop->getKey());
+
+    $poster->delete();
+    expect($movie->fresh()->poster_file_id)->toBeNull()
+        ->and($movie->fresh()->backdrop_file_id)->toBe($backdrop->getKey());
 });
 
 it('creates a genre with a locale-specific name', function (): void {

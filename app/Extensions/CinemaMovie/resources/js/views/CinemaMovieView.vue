@@ -19,6 +19,8 @@ interface MovieForm {
   englishOverview: string
   frenchTitle: string
   frenchOverview: string
+  posterId: string | null
+  backdropId: string | null
 }
 
 const headers = [
@@ -55,6 +57,7 @@ const { loading, error, execute: fetchItems } = useApi(store.fetchItems)
 const { loading: saving, error: saveError, execute: submitSave } = useApi(store.saveMovie)
 const { loading: deleting, error: deleteError, execute: submitDelete } = useApi(store.deleteMovie)
 const { loading: genresLoading, error: genresError, execute: fetchGenres } = useApi(store.fetchGenres)
+const { loading: mediaLoading, error: mediaError, execute: fetchMediaFiles } = useApi(store.fetchMediaFiles)
 const { loading: savingGenre, error: genreSaveError, execute: submitGenreSave } = useApi(store.saveGenre)
 const { loading: deletingGenre, error: genreDeleteError, execute: submitGenreDelete } = useApi(store.deleteGenre)
 
@@ -81,10 +84,12 @@ function emptyForm(): MovieForm {
     englishOverview: '',
     frenchTitle: '',
     frenchOverview: '',
+    posterId: null,
+    backdropId: null,
   }
 }
 
-onMounted(() => Promise.all([fetchItems(currentPage.value, perPage), fetchGenres()]))
+onMounted(() => Promise.all([fetchItems(currentPage.value, perPage), fetchGenres(), fetchMediaFiles()]))
 
 function openCreateDialog(): void {
   editingMovie.value = null
@@ -110,6 +115,8 @@ function openEditDialog(movie: CinemaMovieItem): void {
     englishOverview: english?.overview ?? '',
     frenchTitle: french?.title ?? '',
     frenchOverview: french?.overview ?? '',
+    posterId: movie.posterId,
+    backdropId: movie.backdropId,
   })
   dialogOpen.value = true
 }
@@ -127,7 +134,14 @@ async function save(): Promise<void> {
     { locale: 'en', title: form.englishTitle.trim(), overview: form.englishOverview || null, tagline: null },
     { locale: 'fr', title: form.frenchTitle.trim(), overview: form.frenchOverview || null, tagline: null },
   ]
-  const result = await submitSave(editingMovie.value?.id ?? null, attributes, translations, selectedGenreIds.value)
+  const result = await submitSave(
+    editingMovie.value?.id ?? null,
+    attributes,
+    translations,
+    selectedGenreIds.value,
+    form.posterId,
+    form.backdropId,
+  )
   if (!result) return
 
   notify.success(t('cinema-movie.msg.movie_saved', 'Movie saved.'))
@@ -378,6 +392,32 @@ async function removeGenre(genre: (typeof store.genres)[number]): Promise<void> 
               :loading="genresLoading"
               :error-messages="genresError?.message"
             />
+            <div class="d-sm-flex ga-3">
+              <v-select
+                v-model="form.posterId"
+                :items="store.mediaFiles"
+                item-title="original_name"
+                item-value="id"
+                clearable
+                :loading="mediaLoading"
+                :error-messages="mediaError?.message"
+                :label="t('cinema-movie.object.movie.poster', 'Poster image')"
+                :hint="t('cinema-movie.msg.media_files_hint', 'Select an image already uploaded in Files.')"
+                persistent-hint
+              />
+              <v-select
+                v-model="form.backdropId"
+                :items="store.mediaFiles"
+                item-title="original_name"
+                item-value="id"
+                clearable
+                :loading="mediaLoading"
+                :error-messages="mediaError?.message"
+                :label="t('cinema-movie.object.movie.backdrop', 'Backdrop image')"
+                persistent-hint
+                :hint="t('cinema-movie.msg.media_files_hint', 'Select an image already uploaded in Files.')"
+              />
+            </div>
 
             <v-divider class="my-4" />
             <div class="text-subtitle-1 mb-2">
