@@ -237,6 +237,15 @@ app/Extensions/<Name>/tests/
 
 Unit tests cover extension-level logic, Functional tests exercise the Laravel application and API, and E2E tests use Playwright against the administration interface. Backend CI runs Unit and Functional suites separately and discovers these extension-local directories.
 
+The default PHPUnit suite discovers PHP `*Test.php` files under `app/Extensions`, including each extension's Unit and Functional tests. Run the full suite or focus on one extension with:
+
+```bash
+docker compose exec app php artisan test
+docker compose exec app php artisan test app/Extensions/<Name>/tests/Unit app/Extensions/<Name>/tests/Functional
+```
+
+Playwright tests under `tests/E2E` are not part of PHPUnit; run them with the opt-in E2E runner above. Functional API tests can use `Tests\Support\Extensions\ExtensionApiTestHelper::jsonApiHeaders()` and `actingAsUserWithPermission($this, $extension, '<declared permission>')`. The helper verifies the permission is declared by the supplied extension, creates that permission and a user, and authenticates the user. It does not enable extensions or reset the database; tests should opt into database isolation when needed.
+
 # Artisan Commands
 
 ## List registered extensions

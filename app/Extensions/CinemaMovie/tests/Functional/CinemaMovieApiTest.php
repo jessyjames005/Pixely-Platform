@@ -2,30 +2,35 @@
 
 declare(strict_types=1);
 
-use Tests\TestCase;
+use App\Extensions\CinemaMovie\CinemaMovieExtension;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Permission;
+use Tests\TestCase;
+use Tests\Support\Extensions\ExtensionApiTestHelper;
 
 uses(TestCase::class);
 uses(RefreshDatabase::class);
 
-$jsonApiHeaders = ['Accept' => 'application/vnd.api+json'];
-
-it('requires authentication to list CinemaMovie items', function () use ($jsonApiHeaders) {
-    // Enable the cinema-movie extension before running this API feature test.
-    $this->getJson('/api/v1/cinema-movie', $jsonApiHeaders)
+it('requires authentication to list CinemaMovie items', function (): void {
+    $this->getJson('/api/v1/cinema-movie', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertUnauthorized()
         ->assertHeader('Content-Type', 'application/vnd.api+json');
 });
 
-it('returns an allowlisted JSON:API collection for CinemaMovie items', function () use ($jsonApiHeaders) {
-    Permission::firstOrCreate(['name' => 'cinema-movie.items.view', 'guard_name' => 'web']);
-    $user = User::factory()->create();
-    $user->givePermissionTo('cinema-movie.items.view');
-    $this->actingAs($user);
+it('forbids authenticated users without the CinemaMovie view permission', function (): void {
+    $this->actingAs(User::factory()->create())
+        ->getJson('/api/v1/cinema-movie', ExtensionApiTestHelper::jsonApiHeaders())
+        ->assertForbidden();
+});
 
-    $this->getJson('/api/v1/cinema-movie', $jsonApiHeaders)
+it('returns an allowlisted JSON:API collection for CinemaMovie items', function (): void {
+    ExtensionApiTestHelper::actingAsUserWithPermission(
+        $this,
+        new CinemaMovieExtension(),
+        'cinema-movie.items.view',
+    );
+
+    $this->getJson('/api/v1/cinema-movie', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertOk()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonPath('data', [])

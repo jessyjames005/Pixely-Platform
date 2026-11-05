@@ -25,6 +25,13 @@ it('scaffolds an extension using the SDK v2 surface structure', function (): voi
             ->and(is_file($path . "/tests/Functional/{$name}ApiTest.php"))->toBeTrue()
             ->and(is_file($path . "/tests/E2E/{$name}.spec.ts"))->toBeTrue();
 
+        $functionalTest = file_get_contents($path . "/tests/Functional/{$name}ApiTest.php");
+        expect($functionalTest)
+            ->toContain('ExtensionApiTestHelper::jsonApiHeaders()')
+            ->toContain("new {$name}Extension()")
+            ->toContain("'{$id}.items.view'")
+            ->not->toContain('Enable the');
+
         $manifest = require $path . '/extension.php';
 
         expect($manifest['surfaces'])->toBe(['admin', 'api']);

@@ -367,13 +367,26 @@ final class MakeExtension extends Command
 
         declare(strict_types=1);
 
+        use App\\Extensions\\{$studly}\\{$studly}Extension;
+        use Tests\\Support\\Extensions\\ExtensionApiTestHelper;
         use Tests\\TestCase;
 
         uses(TestCase::class);
 
-        it('requires authentication to list {$studly} items', function () {
-            // Enable the {$id} extension before running this API feature test.
-            \$this->getJson('/api/v1/{$id}')->assertUnauthorized();
+        it('requires authentication to list {$studly} items', function (): void {
+            \$this->getJson('/api/v1/{$id}', ExtensionApiTestHelper::jsonApiHeaders())
+                ->assertUnauthorized();
+        });
+
+        it('allows users with the {$id} view permission to list items', function (): void {
+            ExtensionApiTestHelper::actingAsUserWithPermission(
+                \$this,
+                new {$studly}Extension(),
+                '{$id}.items.view',
+            );
+
+            \$this->getJson('/api/v1/{$id}', ExtensionApiTestHelper::jsonApiHeaders())
+                ->assertOk();
         });
 
         PHP;
