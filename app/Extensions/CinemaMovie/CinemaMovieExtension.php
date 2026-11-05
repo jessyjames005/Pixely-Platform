@@ -6,6 +6,8 @@ namespace App\Extensions\CinemaMovie;
 
 use App\Core\Extensions\Capabilities\Contracts\ExtensionNavigationInterface;
 use App\Core\Extensions\Capabilities\Contracts\ExtensionRoutesInterface;
+use App\Core\Extensions\Capabilities\Contracts\ExtensionSettingsInterface;
+use App\Core\Extensions\Configuration\ExtensionConfigurableInterface;
 use App\Core\Extensions\Contracts\ExtensionInterface;
 use App\Core\Extensions\Manifest\ExtensionManifest;
 use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
@@ -26,6 +28,8 @@ final class CinemaMovieExtension implements
     ExtensionNavigationInterface,
     ExtensionRoutesInterface,
     ExtensionPermissionsInterface,
+    ExtensionSettingsInterface,
+    ExtensionConfigurableInterface,
     ExtensionTranslatableInterface,
     ExtensionUpgradableInterface
 {
@@ -94,6 +98,28 @@ final class CinemaMovieExtension implements
     public function boot(): void
     {
         // Nothing to boot.
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function settings(): array
+    {
+        return [
+            'supported_locales' => [
+                'type' => 'string[]',
+                'label' => 'Supported content locales',
+                'default' => ['en', 'fr'],
+            ],
+        ];
+    }
+
+    public function defaultConfiguration(): array
+    {
+        return array_map(
+            static fn (array $setting): mixed => $setting['default'],
+            $this->settings(),
+        );
     }
 
     /**

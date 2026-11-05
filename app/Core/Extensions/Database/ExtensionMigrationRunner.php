@@ -6,6 +6,7 @@ namespace App\Core\Extensions\Database;
 
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use App\Core\Extensions\Database\ExtensionMigrationCompatibilityChecker;
 use App\Core\Versioning\KernelVersionProvider;
 
@@ -75,7 +76,7 @@ final class ExtensionMigrationRunner
     private function extensionManifest(string $extensionId): array
     {
         $manifestPath = base_path(
-            'app/Extensions/' . ucfirst($extensionId) . '/extension.php'
+            'app/Extensions/' . $this->extensionDirectoryName($extensionId) . '/extension.php'
         );
 
         if (! $this->files->isFile($manifestPath)) {
@@ -175,9 +176,14 @@ final class ExtensionMigrationRunner
     private function migrationPath(string $extensionId): ?string
     {
         $path = base_path(
-            'app/Extensions/' . ucfirst($extensionId) . '/Database/Migrations'
+            'app/Extensions/' . $this->extensionDirectoryName($extensionId) . '/Database/Migrations'
         );
 
         return $this->files->isDirectory($path) ? $path : null;
+    }
+
+    private function extensionDirectoryName(string $extensionId): string
+    {
+        return Str::studly($extensionId);
     }
 }

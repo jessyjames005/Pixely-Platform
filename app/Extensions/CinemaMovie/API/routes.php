@@ -1,22 +1,42 @@
 <?php
 
-/**
- * CinemaMovie extension API routes.
- *
- * Declared by CinemaMovie and registered under api/v1 by Core through the
- * ExtensionRoutesInterface capability.
- */
+/** CinemaMovie JSON:API resources. */
 
 declare(strict_types=1);
 
 use App\Extensions\CinemaMovie\Http\Controllers\Api\CinemaMovieController;
-use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
-use Illuminate\Support\Facades\Route;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
-Route::middleware([
-    EnsureJsonApiMediaType::class,
-    'auth:sanctum',
-    'permission:cinema-movie.movies.view',
-])->group(function () {
-    Route::get('/cinema-movie', [CinemaMovieController::class, 'index']);
-});
+JsonApiRoute::server('v1')->middleware('surface:api', 'auth:sanctum')->resources(
+    function (ResourceRegistrar $server): void {
+        $server->resource('cinema-movies', CinemaMovieController::class)->middleware([
+            'index' => 'permission:cinema-movie.movies.view',
+            'show' => 'permission:cinema-movie.movies.view',
+            'store' => 'permission:cinema-movie.movies.manage',
+            'update' => 'permission:cinema-movie.movies.manage',
+            'destroy' => 'permission:cinema-movie.movies.delete',
+        ]);
+        $server->resource('cinema-genres', CinemaMovieController::class)->middleware([
+            'index' => 'permission:cinema-movie.movies.view',
+            'show' => 'permission:cinema-movie.movies.view',
+            'store' => 'permission:cinema-movie.movies.manage',
+            'update' => 'permission:cinema-movie.movies.manage',
+            'destroy' => 'permission:cinema-movie.movies.delete',
+        ]);
+        $server->resource('cinema-movie-translations', CinemaMovieController::class)->middleware([
+            'index' => 'permission:cinema-movie.movies.view',
+            'show' => 'permission:cinema-movie.movies.view',
+            'store' => 'permission:cinema-movie.movies.manage',
+            'update' => 'permission:cinema-movie.movies.manage',
+            'destroy' => 'permission:cinema-movie.movies.delete',
+        ]);
+        $server->resource('cinema-genre-translations', CinemaMovieController::class)->middleware([
+            'index' => 'permission:cinema-movie.movies.view',
+            'show' => 'permission:cinema-movie.movies.view',
+            'store' => 'permission:cinema-movie.movies.manage',
+            'update' => 'permission:cinema-movie.movies.manage',
+            'destroy' => 'permission:cinema-movie.movies.delete',
+        ]);
+    },
+);

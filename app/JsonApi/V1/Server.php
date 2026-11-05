@@ -23,7 +23,10 @@ use App\JsonApi\V1\Tooling\DatabaseRowSchema;
 use App\JsonApi\V1\Tooling\DatabaseTableSchema;
 use App\JsonApi\V1\Tooling\LogEntrySchema;
 use App\JsonApi\V1\Tooling\LogFileSchema;
-use App\JsonApi\V1\CinemaMovie\CinemaMovieItemSchema;
+use App\JsonApi\V1\CinemaMovie\GenreSchema;
+use App\JsonApi\V1\CinemaMovie\GenreTranslationSchema;
+use App\JsonApi\V1\CinemaMovie\MovieSchema;
+use App\JsonApi\V1\CinemaMovie\MovieTranslationSchema;
 use App\JsonApi\V1\Tuleap\TuleapBurndownCacheSchema;
 use App\JsonApi\V1\Tuleap\TuleapCacheInfoSchema;
 use App\JsonApi\V1\Tuleap\TuleapCafHistorySchema;
@@ -69,7 +72,10 @@ final class Server extends BaseServer
             DatabaseTableSchema::class,
             DatabaseColumnSchema::class,
             DatabaseRowSchema::class,
-            CinemaMovieItemSchema::class,
+            MovieSchema::class,
+            GenreSchema::class,
+            MovieTranslationSchema::class,
+            GenreTranslationSchema::class,
             TuleapProjectSchema::class,
             TuleapProjectMemberSchema::class,
             TuleapMilestoneSchema::class,

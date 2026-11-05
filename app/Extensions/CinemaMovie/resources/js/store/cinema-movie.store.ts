@@ -14,8 +14,8 @@ export const useCinemaMovieStore = defineStore('cinemaMovie', {
 
   actions: {
     async fetchItems(): Promise<void> {
-      const result = await apiClient.getCollection<object>('/cinema-movie')
-      this.items = result.resources.map((item) => ({ ...item, type: 'cinema-movie-items' }))
+      const result = await apiClient.getCollection<object>('/cinema-movies')
+      this.items = result.resources.map((item) => ({ ...item, type: 'cinema-movies' }))
     },
   },
 })

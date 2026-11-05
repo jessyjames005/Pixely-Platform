@@ -14,9 +14,12 @@ the extension-owned patterns as they are implemented, with links to their code.
 - `ExtensionUpgradableInterface` declares versioned data-preserving upgrades.
 
 The API route file is registered by Core under `/api/v1` and the `api` surface.
-Keep authentication and permission middleware on each protected route. The
-extension's package version is `1.1.0`; the platform roadmap's `v0.8.0` heading
-is a platform release milestone, not this package version.
+The catalogue uses JSON:API resources at `/cinema-movies`, `/cinema-genres`,
+`/cinema-movie-translations`, and `/cinema-genre-translations`. All require an
+authenticated API user. Read operations require `movies.view`, create/update
+require `movies.manage`, and deletion requires `movies.delete`. The extension's
+package version is `1.1.0`; the platform roadmap's `v0.8.0` heading is a
+platform release milestone, not this package version.
 
 ## Permissions and translations
 
@@ -36,10 +39,24 @@ The admin navigation label and routes remain declared through the server-side
 extension capabilities and Core's static frontend route allowlist. CinemaMovie
 does not need a separate local navigation registry entry.
 
-## Next implementation steps
+## Catalogue model
 
-The current API endpoint is still a scaffold response. Domain models and their
-JSON:API resources will be added in the next lot. Put future database migrations
-under `app/Extensions/CinemaMovie/Database/Migrations` and run them with Pixely's
+The current slice stores movies, genres, their many-to-many relationship, and
+locale-specific movie and genre text in extension-owned tables. English and
+French are the default supported locales; the `supported_locales` extension
+setting controls accepted translation locales. Movie slugs are generated from
+the original title when omitted. Production and publication states are
+validated against the model's declared values. Movie lists use JSON:API page
+pagination with a default page size of 20. A movie cannot be published until
+its default supported locale has a non-empty title.
+
+The platform extension migration runner owns installation and rollback of
+these tables. Run migrations with Pixely's
 [extension migration commands](../core/extension-management.md#extension-migrations),
-not Laravel's global migration discovery.
+not Laravel's global migration discovery. The runner resolves hyphenated
+extension IDs to their StudlyCase directories (for example,
+`cinema-movie` to `CinemaMovie`).
+
+This lot provides the domain and API foundation. The administration workflows,
+media integration, TMDB import, people and credits, and public-facing catalogue
+remain later U16 work.
