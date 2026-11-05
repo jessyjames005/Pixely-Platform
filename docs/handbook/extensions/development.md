@@ -165,6 +165,9 @@ opt-in E2E Docker runner and setup documented in
 
 ## Further references
 
+- [Extension frontend development](frontend-development.md)
+- [Extension Design System guidelines](design-system.md)
+- [Extension Storybook guidelines](storybook.md)
 - [Extension lifecycle](lifecycle.md)
 - [Extension manifest](../../architecture/extension-manifest.md)
 - [SDK v2 capabilities](../../architecture/extension-sdk-v2-capabilities.md)
