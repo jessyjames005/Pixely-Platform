@@ -457,14 +457,14 @@ Today, `update()` replaces an extension's entire directory from a new zip. The t
 
 ### Developer Experience
 
-* [ ] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an empty, valid extension: `extension.php` manifest, main class implementing `ExtensionInterface`, `Providers/`, `Http/Controllers/`, `routes/api.php`, `Database/Migrations/`, `resources/js/{store,models,views,tests}` following the established domain-driven frontend structure
+* [x] Extension generator — `php artisan make:extension <name>` scaffolds an SDK v2 extension; validates names, avoids overwriting existing extensions, and creates backend, API, frontend, and test starters
 * [ ] Extension development template
-* [ ] Extension testing helpers
-* [ ] Extension SDK documentation
-* [ ] Extension development guidelines
-* [ ] Extension frontend guidelines
-* [ ] Extension Design System guidelines
-* [ ] Extension Storybook guidelines
+* [x] Extension testing helpers
+* [x] Extension SDK documentation
+* [x] Extension development guidelines
+* [x] Extension frontend guidelines
+* [x] Extension Design System guidelines
+* [x] Extension Storybook guidelines (guidance only; Storybook integration deferred)
 
 ### Extension Quality & Testing
 
@@ -479,9 +479,9 @@ backend, frontend and end-to-end behaviour.
 * [ ] All test suites runnable locally
 * [ ] All test suites runnable in CI/CD
 * [ ] Test commands separated by category
-* [ ] Extension testing helpers
+* [x] Extension testing helpers
 * [ ] Extension test fixtures
-* [ ] Extension testing documentation
+* [x] Extension testing documentation
 
 #### Coverage Quality Gate
 
@@ -1673,7 +1673,21 @@ The roadmap should be updated progressively as each sprint is completed.
 
 ### Proposed follow-on sprints
 
-* U15 — Extension SDK: developer tools and documentation
+* [x] U15 — Extension SDK: developer tools and documentation — **Complete**
 * U16 — Sample Cinema: complete reference extension
 * U17 — Administration and user-experience consolidation
 * U18 — Stable release preparation
+
+### U15 — Extension SDK: developer tools and documentation
+
+#### Completed lots
+
+* [x] U15.1 — Harden the existing extension generator, reject unsafe names, and use Pixely's extension migration runner rather than Laravel migration auto-discovery.
+* [x] U15.2 — Discover extension backend tests through PHPUnit, add reusable API test helpers, and document local/CI test execution.
+* [x] U15.3 — Document the SDK, extension development workflow, capabilities, lifecycle, dependencies, and migrations.
+* [x] U15.4 — Document extension frontend, Design System, and Storybook guidance.
+
+#### Deferred U15 scope
+
+* A separate downloadable/development template beyond the `make:extension` generator.
+* Storybook package/configuration, runnable stories, and CI integration; this sprint documents intended usage only.

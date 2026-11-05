@@ -379,11 +379,12 @@ final class MakeExtension extends Command
         });
 
         it('allows users with the {$id} view permission to list items', function (): void {
-            ExtensionApiTestHelper::actingAsUserWithPermission(
-                \$this,
+            /** @var TestCase \$testCase */
+            \$testCase = \$this;
+            \$testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
                 new {$studly}Extension(),
                 '{$id}.items.view',
-            );
+            ));
 
             \$this->getJson('/api/v1/{$id}', ExtensionApiTestHelper::jsonApiHeaders())
                 ->assertOk();

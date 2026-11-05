@@ -28,8 +28,11 @@ it('scaffolds an extension using the SDK v2 surface structure', function (): voi
         $functionalTest = file_get_contents($path . "/tests/Functional/{$name}ApiTest.php");
         expect($functionalTest)
             ->toContain('ExtensionApiTestHelper::jsonApiHeaders()')
+            ->toContain('/** @var TestCase $testCase */')
+            ->toContain('$testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(')
             ->toContain("new {$name}Extension()")
             ->toContain("'{$id}.items.view'")
+            ->not->toContain('actingAsUserWithPermission')
             ->not->toContain('Enable the');
 
         $manifest = require $path . '/extension.php';

@@ -246,7 +246,7 @@ docker compose exec app php artisan test
 docker compose exec app php artisan test app/Extensions/<Name>/tests/Unit app/Extensions/<Name>/tests/Functional
 ```
 
-Playwright tests under `tests/E2E` are not part of PHPUnit; run them with the opt-in E2E runner above. Functional API tests can use `Tests\Support\Extensions\ExtensionApiTestHelper::jsonApiHeaders()` and `actingAsUserWithPermission($this, $extension, '<declared permission>')`. The helper verifies the permission is declared by the supplied extension, creates that permission and a user, and authenticates the user. It does not enable extensions or reset the database; tests should opt into database isolation when needed.
+Playwright tests under `tests/E2E` are not part of PHPUnit; run them with the opt-in E2E runner above. Functional API tests can use `Tests\Support\Extensions\ExtensionApiTestHelper::jsonApiHeaders()` and `$this->actingAs(ExtensionApiTestHelper::createUserWithPermission($extension, '<declared permission>'))`. The helper verifies the permission is declared by the supplied extension, creates that permission and a user assigned to it, and returns the user. Authentication is explicit at the call site. It does not enable extensions or reset the database; tests should opt into database isolation when needed.
 
 # Artisan Commands
 

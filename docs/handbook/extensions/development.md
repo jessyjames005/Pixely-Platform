@@ -143,11 +143,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('lists example items for an authorized user', function (): void {
-    ExtensionApiTestHelper::actingAsUserWithPermission(
-        $this,
+    $user = ExtensionApiTestHelper::createUserWithPermission(
         new ExampleExtension(),
         'example.items.view',
     );
+    $this->actingAs($user);
 
     $this->getJson('/api/v1/example', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertOk();
@@ -155,9 +155,10 @@ it('lists example items for an authorized user', function (): void {
 ```
 
 The helper verifies and creates the declared permission, then creates and
-authenticates a user. It does not enable the extension or reset database state.
-Use database isolation such as `RefreshDatabase` when the test changes
-persistent data.
+returns a user assigned to it. Authenticate explicitly with `$this->actingAs($user)`
+so the authentication side effect remains visible in the test. It does not enable
+the extension or reset database state. Use database isolation such as
+`RefreshDatabase` when the test changes persistent data.
 
 Playwright tests live under `tests/E2E` and are not part of PHPUnit. Use the
 opt-in E2E Docker runner and setup documented in

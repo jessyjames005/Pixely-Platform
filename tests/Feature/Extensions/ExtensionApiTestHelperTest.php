@@ -17,11 +17,10 @@ it('provides strict JSON:API request headers', function (): void {
     ]);
 });
 
-it('authenticates a user with the requested extension permission', function (): void {
+it('creates and explicitly authenticates a user with the requested extension permission', function (): void {
     $permissionName = 'cinema-movie.items.view';
 
-    $user = ExtensionApiTestHelper::actingAsUserWithPermission(
-        $this,
+    $user = ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         $permissionName,
     );
@@ -30,12 +29,13 @@ it('authenticates a user with the requested extension permission', function (): 
         ->and($user->can($permissionName))->toBeTrue()
         ->and(Permission::query()->where('name', $permissionName)->where('guard_name', 'web')->count())->toBe(1);
 
+    $this->assertGuest();
+    $this->actingAs($user);
     $this->assertAuthenticatedAs($user);
 });
 
 it('does not create state for a permission the extension has not declared', function (): void {
-    expect(fn () => ExtensionApiTestHelper::actingAsUserWithPermission(
-        $this,
+    expect(fn () => ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.unknown.view',
     ))->toThrow(InvalidArgumentException::class);

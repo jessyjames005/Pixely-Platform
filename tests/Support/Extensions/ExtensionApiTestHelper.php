@@ -8,7 +8,6 @@ use App\Core\Extensions\Permissions\ExtensionPermissionsInterface;
 use App\Models\User;
 use InvalidArgumentException;
 use Spatie\Permission\Models\Permission;
-use Tests\TestCase;
 
 final class ExtensionApiTestHelper
 {
@@ -24,10 +23,9 @@ final class ExtensionApiTestHelper
     }
 
     /**
-     * Creates a user assigned to the named declared permission and authenticates it for the test.
+     * Creates a user assigned to the named permission declared by the extension.
      */
-    public static function actingAsUserWithPermission(
-        TestCase $testCase,
+    public static function createUserWithPermission(
         ExtensionPermissionsInterface $extension,
         string $declaredPermission,
     ): User {
@@ -43,7 +41,6 @@ final class ExtensionApiTestHelper
         ]);
         $user = User::factory()->create();
         $user->givePermissionTo($permission);
-        $testCase->actingAs($user);
 
         return $user;
     }

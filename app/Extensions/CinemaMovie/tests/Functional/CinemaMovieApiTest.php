@@ -24,11 +24,12 @@ it('forbids authenticated users without the CinemaMovie view permission', functi
 });
 
 it('returns an allowlisted JSON:API collection for CinemaMovie items', function (): void {
-    ExtensionApiTestHelper::actingAsUserWithPermission(
-        $this,
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->actingAs(ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),
         'cinema-movie.items.view',
-    );
+    ));
 
     $this->getJson('/api/v1/cinema-movie', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertOk()
