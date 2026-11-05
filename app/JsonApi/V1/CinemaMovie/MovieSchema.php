@@ -20,6 +20,7 @@ final class MovieSchema extends Schema
 {
     public static string $model = Movie::class;
     protected static string $resourceType = 'cinema-movies';
+    protected int $maxDepth = 2;
 
     public static function type(): string
     {

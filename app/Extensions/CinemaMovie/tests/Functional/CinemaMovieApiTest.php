@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Extensions\CinemaMovie\CinemaMovieExtension;
-use App\Extensions\CinemaMovie\Models\Movie;
 use App\Core\Extensions\Database\ExtensionMigrationRunner;
+use App\Extensions\CinemaMovie\CinemaMovieExtension;
+use App\Extensions\CinemaMovie\Models\Genre;
+use App\Extensions\CinemaMovie\Models\Movie;
 use App\Extensions\CinemaMovie\Providers\CinemaMovieServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Tests\Support\Extensions\ExtensionApiTestHelper;
+use Tests\TestCase;
 
 uses(TestCase::class);
 uses(RefreshDatabase::class);
@@ -47,17 +48,26 @@ it('returns a paginated JSON:API movie collection', function (): void {
         'cinema-movie.movies.view',
     ));
 
-    Movie::query()->create([
+    $movie = Movie::query()->create([
         'original_title' => 'Arrival',
         'production_status' => 'released',
         'publication_status' => 'published',
     ]);
+    $movie->translations()->create(['locale' => 'en', 'title' => 'Arrival']);
+    $genre = Genre::query()->create(['slug' => 'science-fiction']);
+    $genre->translations()->create(['locale' => 'en', 'name' => 'Science fiction']);
+    $movie->genres()->attach($genre);
 
-    $this->getJson('/api/v1/cinema-movies', ExtensionApiTestHelper::jsonApiHeaders())
+    $query = '?include=translations,genres,genres.translations';
+
+    $response = $this->getJson('/api/v1/cinema-movies' . $query, ExtensionApiTestHelper::jsonApiHeaders());
+    $response
         ->assertOk()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonPath('data.0.type', 'cinema-movies')
         ->assertJsonPath('data.0.attributes.slug', 'arrival')
+        ->assertJsonPath('data.0.relationships.genres.data.0.type', 'cinema-genres')
+        ->assertJsonFragment(['type' => 'cinema-genre-translations'])
         ->assertJsonPath('jsonapi.version', '1.0');
 });
 
@@ -130,4 +140,56 @@ it('creates a movie translation before allowing the movie to be published', func
     ], ExtensionApiTestHelper::jsonApiHeaders())
         ->assertOk()
         ->assertJsonPath('data.attributes.publicationStatus', 'published');
+});
+
+it('allows a movie manager to assign existing genres through the resource update', function (): void {
+    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+        new CinemaMovieExtension(),
+        'cinema-movie.movies.manage',
+    ));
+    $movie = Movie::query()->create(['original_title' => 'Arrival']);
+    $genre = Genre::query()->create(['slug' => 'science-fiction']);
+
+    $this->patchJson('/api/v1/cinema-movies/' . $movie->getKey(), [
+        'data' => [
+            'type' => 'cinema-movies',
+            'id' => (string) $movie->getKey(),
+            'relationships' => [
+                'genres' => [
+                    'data' => [['type' => 'cinema-genres', 'id' => (string) $genre->getKey()]],
+                ],
+            ],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders())
+        ->assertOk();
+
+    expect($movie->fresh()->genres->modelKeys())->toBe([$genre->getKey()]);
+});
+
+it('creates a genre with a locale-specific name', function (): void {
+    $this->actingAs(ExtensionApiTestHelper::createUserWithPermission(
+        new CinemaMovieExtension(),
+        'cinema-movie.movies.manage',
+    ));
+
+    $genreResponse = $this->postJson('/api/v1/cinema-genres', [
+        'data' => [
+            'type' => 'cinema-genres',
+            'attributes' => ['slug' => 'science-fiction'],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
+    $genreId = $genreResponse->json('data.id');
+
+    $this->postJson('/api/v1/cinema-genre-translations', [
+        'data' => [
+            'type' => 'cinema-genre-translations',
+            'attributes' => ['locale' => 'en', 'name' => 'Science fiction'],
+            'relationships' => [
+                'genre' => ['data' => ['type' => 'cinema-genres', 'id' => $genreId]],
+            ],
+        ],
+    ], ExtensionApiTestHelper::jsonApiHeaders())->assertCreated();
+
+    expect(Genre::query()->findOrFail($genreId)->translations()->value('name'))
+        ->toBe('Science fiction');
 });

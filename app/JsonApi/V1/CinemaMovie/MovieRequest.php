@@ -8,6 +8,7 @@ use App\Extensions\CinemaMovie\Models\Movie;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use LaravelJsonApi\Laravel\Http\Requests\ResourceRequest;
+use LaravelJsonApi\Validation\Rule as JsonApiRule;
 
 final class MovieRequest extends ResourceRequest
 {
@@ -28,6 +29,7 @@ final class MovieRequest extends ResourceRequest
             'revenue' => ['nullable', 'integer', 'min:0'],
             'voteAverage' => ['nullable', 'numeric', 'between:0,10'],
             'voteCount' => ['sometimes', 'integer', 'min:0'],
+            'genres' => [JsonApiRule::toMany()],
         ];
     }
 

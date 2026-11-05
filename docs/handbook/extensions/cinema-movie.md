@@ -43,12 +43,12 @@ does not need a separate local navigation registry entry.
 
 The CinemaMovie admin view lists movies with pagination, shows their English
 title (falling back to the original title or slug), and supports create, edit,
-and confirmed delete actions. The form edits release metadata and English and
-French titles and overviews. Create and edit actions require `movies.manage`;
-delete controls require `movies.delete`. The screen uses the shared API,
+and confirmed delete actions. The form edits release metadata, English and
+French titles and overviews, and genre associations. A separate genre table
+supports bilingual genre maintenance. Create and edit actions require
+`movies.manage`; delete controls require `movies.delete`. The screen uses the shared API,
 notification, and confirmation composables with Vuetify table, form, and dialog
-components. Genre administration and assigning genres in the movie form are
-not part of this slice.
+components. Genre names are currently entered in English and French.
 
 ## Catalogue model
 
@@ -60,6 +60,10 @@ the original title when omitted. Production and publication states are
 validated against the model's declared values. Movie lists use JSON:API page
 pagination with a default page size of 20. A movie cannot be published until
 its default supported locale has a non-empty title.
+
+Movie-to-genre assignment is sent as part of the authorized movie update;
+there is no separately exposed relationship mutation route. Deleting a genre
+removes its movie associations through the database cascade.
 
 The platform extension migration runner owns installation and rollback of
 these tables. Run migrations with Pixely's

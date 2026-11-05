@@ -28,6 +28,11 @@ const headers = [
   { title: t('cinema-movie.object.movie.publication_status.label', 'Publication'), key: 'publicationStatus' },
   { title: '', key: 'actions', align: 'end' as const, sortable: false },
 ]
+const genreHeaders = [
+  { title: t('cinema-movie.object.genre.name', 'Genre'), key: 'name' },
+  { title: t('cinema-movie.object.genre.slug', 'Slug'), key: 'slug' },
+  { title: '', key: 'actions', align: 'end' as const, sortable: false },
+]
 const productionStatuses: MovieStatus[] = [
   'rumored', 'planned', 'in_production', 'post_production', 'released', 'canceled',
 ]
@@ -49,11 +54,19 @@ const { confirm } = useConfirmDialog()
 const { loading, error, execute: fetchItems } = useApi(store.fetchItems)
 const { loading: saving, error: saveError, execute: submitSave } = useApi(store.saveMovie)
 const { loading: deleting, error: deleteError, execute: submitDelete } = useApi(store.deleteMovie)
+const { loading: genresLoading, error: genresError, execute: fetchGenres } = useApi(store.fetchGenres)
+const { loading: savingGenre, error: genreSaveError, execute: submitGenreSave } = useApi(store.saveGenre)
+const { loading: deletingGenre, error: genreDeleteError, execute: submitGenreDelete } = useApi(store.deleteGenre)
 
 const dialogOpen = ref(false)
+const genreDialogOpen = ref(false)
 const editingMovie = ref<CinemaMovieItem | null>(null)
+const editingGenre = ref<string | null>(null)
 const currentPage = ref(1)
 const form = reactive<MovieForm>(emptyForm())
+const selectedGenreIds = ref<string[]>([])
+const englishGenreName = ref('')
+const frenchGenreName = ref('')
 const isEditing = computed(() => editingMovie.value !== null)
 
 function emptyForm(): MovieForm {
@@ -71,16 +84,18 @@ function emptyForm(): MovieForm {
   }
 }
 
-onMounted(() => fetchItems(currentPage.value, perPage))
+onMounted(() => Promise.all([fetchItems(currentPage.value, perPage), fetchGenres()]))
 
 function openCreateDialog(): void {
   editingMovie.value = null
+  selectedGenreIds.value = []
   Object.assign(form, emptyForm())
   dialogOpen.value = true
 }
 
 function openEditDialog(movie: CinemaMovieItem): void {
   editingMovie.value = movie
+  selectedGenreIds.value = movie.genres.map((genre) => genre.id)
   const english = movie.translations.find((translation) => translation.locale === 'en')
   const french = movie.translations.find((translation) => translation.locale === 'fr')
   Object.assign(form, {
@@ -112,7 +127,7 @@ async function save(): Promise<void> {
     { locale: 'en', title: form.englishTitle.trim(), overview: form.englishOverview || null, tagline: null },
     { locale: 'fr', title: form.frenchTitle.trim(), overview: form.frenchOverview || null, tagline: null },
   ]
-  const result = await submitSave(editingMovie.value?.id ?? null, attributes, translations)
+  const result = await submitSave(editingMovie.value?.id ?? null, attributes, translations, selectedGenreIds.value)
   if (!result) return
 
   notify.success(t('cinema-movie.msg.movie_saved', 'Movie saved.'))
@@ -143,6 +158,51 @@ function displayTitle(movie: CinemaMovieItem): string {
 async function changePage(page: number): Promise<void> {
   currentPage.value = page
   await fetchItems(page, perPage)
+}
+
+function displayGenre(genre: (typeof store.genres)[number]): string {
+  return genre.translations.find((translation) => translation.locale === 'en')?.name
+    || genre.translations.find((translation) => translation.locale === 'fr')?.name
+    || genre.slug
+}
+
+function openCreateGenreDialog(): void {
+  editingGenre.value = null
+  englishGenreName.value = ''
+  frenchGenreName.value = ''
+  genreDialogOpen.value = true
+}
+
+function openEditGenreDialog(genre: (typeof store.genres)[number]): void {
+  editingGenre.value = genre.id
+  englishGenreName.value = genre.translations.find((translation) => translation.locale === 'en')?.name ?? ''
+  frenchGenreName.value = genre.translations.find((translation) => translation.locale === 'fr')?.name ?? ''
+  genreDialogOpen.value = true
+}
+
+async function saveGenre(): Promise<void> {
+  const result = await submitGenreSave(editingGenre.value, [
+    { locale: 'en', name: englishGenreName.value.trim() },
+    { locale: 'fr', name: frenchGenreName.value.trim() },
+  ])
+  if (!result) return
+
+  notify.success(t('cinema-movie.msg.genre_saved', 'Genre saved.'))
+  genreDialogOpen.value = false
+  await Promise.all([fetchGenres(), fetchItems(currentPage.value, perPage)])
+}
+
+async function removeGenre(genre: (typeof store.genres)[number]): Promise<void> {
+  if (!await confirm({
+    title: t('cinema-movie.title.delete_genre', 'Delete genre'),
+    message: t('cinema-movie.msg.confirm_delete_genre', 'Delete “:name”? Movies will lose this genre.', { name: displayGenre(genre) }),
+    confirmText: t('common.action.delete', 'Delete'),
+  })) return
+
+  await submitGenreDelete(genre.id)
+  if (genreDeleteError.value) return
+  notify.success(t('cinema-movie.msg.genre_deleted', 'Genre deleted.'))
+  await Promise.all([fetchGenres(), fetchItems(currentPage.value, perPage)])
 }
 </script>
 
@@ -306,6 +366,18 @@ async function changePage(page: number): Promise<void> {
                 :label="t('cinema-movie.object.movie.publication_status.label', 'Publication status')"
               />
             </div>
+            <v-select
+              v-model="selectedGenreIds"
+              :items="store.genres"
+              :item-title="displayGenre"
+              item-value="id"
+              :label="t('cinema-movie.object.movie.genres', 'Genres')"
+              multiple
+              chips
+              closable-chips
+              :loading="genresLoading"
+              :error-messages="genresError?.message"
+            />
 
             <v-divider class="my-4" />
             <div class="text-subtitle-1 mb-2">
@@ -358,6 +430,120 @@ async function changePage(page: number): Promise<void> {
             :loading="saving"
             :disabled="!form.originalTitle.trim() || (form.publicationStatus === 'published' && !form.englishTitle.trim())"
             @click="save"
+          >
+            {{ t('common.action.save', 'Save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-card class="mt-6">
+      <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-3">
+        {{ t('cinema-movie.title.genres', 'Genres') }}
+        <v-btn
+          v-if="authStore.can('cinema-movie.movies.manage')"
+          size="small"
+          color="primary"
+          prepend-icon="mdi-plus"
+          @click="openCreateGenreDialog"
+        >
+          {{ t('cinema-movie.action.add_genre', 'Add genre') }}
+        </v-btn>
+      </v-card-title>
+      <v-alert
+        v-if="genresError"
+        type="error"
+        density="compact"
+        class="mx-4"
+      >
+        {{ genresError.message }}
+      </v-alert>
+      <v-alert
+        v-if="genreDeleteError"
+        type="error"
+        density="compact"
+        class="mx-4"
+      >
+        {{ genreDeleteError.message }}
+      </v-alert>
+      <v-data-table
+        :headers="genreHeaders"
+        :items="store.genres"
+        :loading="genresLoading"
+        item-value="id"
+        :items-per-page="100"
+        hide-default-footer
+      >
+        <template #no-data>
+          <div class="py-6 text-center text-medium-emphasis">
+            {{ genresLoading ? t('cinema-movie.state.loading_genres', 'Loading genres…') : t('cinema-movie.state.empty_genres', 'No genres yet.') }}
+          </div>
+        </template>
+        <template #item.name="{ item }">
+          {{ displayGenre(item) }}
+        </template>
+        <template #item.actions="{ item }">
+          <v-btn
+            v-if="authStore.can('cinema-movie.movies.manage')"
+            icon="mdi-pencil"
+            size="small"
+            variant="text"
+            :aria-label="t('cinema-movie.action.edit_genre', 'Edit genre')"
+            @click="openEditGenreDialog(item)"
+          />
+          <v-btn
+            v-if="authStore.can('cinema-movie.movies.delete')"
+            icon="mdi-delete"
+            size="small"
+            variant="text"
+            color="error"
+            :loading="deletingGenre"
+            :aria-label="t('cinema-movie.action.delete_genre', 'Delete genre')"
+            @click="removeGenre(item)"
+          />
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <v-dialog
+      v-model="genreDialogOpen"
+      max-width="560"
+      persistent
+    >
+      <v-card :title="editingGenre ? t('cinema-movie.title.edit_genre', 'Edit genre') : t('cinema-movie.title.add_genre', 'Add genre')">
+        <v-card-text>
+          <v-text-field
+            v-model="englishGenreName"
+            :label="t('cinema-movie.object.genre.english_name', 'English name')"
+            required
+          />
+          <v-text-field
+            v-model="frenchGenreName"
+            :label="t('cinema-movie.object.genre.french_name', 'French name')"
+          />
+          <v-alert
+            v-if="genreSaveError"
+            type="error"
+            density="compact"
+            class="mt-3"
+          >
+            {{ genreSaveError.message }}
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            :disabled="savingGenre"
+            @click="genreDialogOpen = false"
+          >
+            {{ t('common.action.cancel', 'Cancel') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            :loading="savingGenre"
+            :disabled="!englishGenreName.trim()"
+            @click="saveGenre"
           >
             {{ t('common.action.save', 'Save') }}
           </v-btn>

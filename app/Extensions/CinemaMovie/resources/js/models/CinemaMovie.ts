@@ -25,7 +25,21 @@ export interface MovieTranslationAttributes {
   tagline: string | null
 }
 
+export interface GenreAttributes {
+  slug: string
+}
+
+export interface GenreTranslationAttributes {
+  locale: string
+  name: string
+}
+
 export type MovieTranslation = JsonApiModel<MovieTranslationAttributes>
+export type GenreTranslation = JsonApiModel<GenreTranslationAttributes>
+export type CinemaGenre = JsonApiModel<GenreAttributes> & {
+  translations: GenreTranslation[]
+}
 export type CinemaMovieItem = JsonApiModel<MovieAttributes> & {
   translations: MovieTranslation[]
+  genres: CinemaGenre[]
 }
