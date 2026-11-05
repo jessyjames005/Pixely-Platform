@@ -62,7 +62,9 @@ Disabled
 
 ## Registration
 
-When an extension is registered, it is added to the registry and an initial runtime state is persisted.
+When an extension is registered, it is added to the registry. An initial
+`Enabled` state is persisted only if the extension has no existing state;
+registration preserves a previously saved `Disabled` state.
 
 ```text
 Extension
@@ -70,10 +72,8 @@ Extension
 ExtensionManager::register()
     ↓
 ExtensionRegistry
-    ↓
-ExtensionStateRepository
-    ↓
-Enabled
+    ├── existing state ──> preserved
+    └── no state ────────> Enabled
 ```
 
 Registration does not remove or replace the extension instance.
@@ -82,19 +82,17 @@ Registration does not remove or replace the extension instance.
 
 ## Boot
 
-The `boot()` operation starts all registered extensions.
+The `boot()` operation starts currently enabled extensions only.
 
 ```text
 ExtensionManager::boot()
         ↓
-ExtensionRegistry::boot()
+ExtensionManager::enabled()
         ↓
 Extension::boot()
 ```
 
-After booting, the manager synchronises the extension state repository.
-
-The lifecycle therefore keeps the runtime state associated with the registered extension.
+Booting does not change or synchronize extension state.
 
 ---
 
@@ -127,7 +125,9 @@ StateRepository
     └── Status = Disabled
 ```
 
-This distinction is important.
+This distinction is important. A registered but disabled extension remains
+available to management operations but is excluded from `enabled()` and from
+the manager's `boot()` loop.
 
 ---
 
@@ -241,22 +241,12 @@ The current lifecycle can be represented as:
                 │
                 ▼
             Register
-                │
-                ▼
-             Enabled
-                │
-          ┌─────┴─────┐
-          │           │
-       Disable      Boot
-          │           │
-          ▼           ▼
-       Disabled     Booted
-          │
-          │
-        Enable
-          │
-          ▼
-       Enabled
+                ├── no saved state ──> Enabled
+                └── saved state ─────> Preserved
+
+       Enable / Disable updates saved state
+
+       Enabled extensions ──> ExtensionManager::boot() calls boot()
 ```
 
 The boot operation and enabled state are related but deliberately represented by separate concepts.

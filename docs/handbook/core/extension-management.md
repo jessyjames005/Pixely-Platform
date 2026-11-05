@@ -189,6 +189,8 @@ Use the extension generator to create a complete starting structure:
 docker compose exec app php artisan make:extension CinemaMovie
 ```
 
+For the full development workflow, capability contracts, and test guidance, see the [Extension Development Guide](../extensions/development.md).
+
 The generator creates the PHP `extension.php` manifest, extension class and provider, API controller and routes, extension migration and upgrade directories, language files, and frontend model, store, view, and navigation item. It also creates starter tests under `tests/Unit`, `tests/Functional`, and `tests/E2E` inside the extension directory. See [Extension Manifest](../../architecture/extension-manifest.md) for the manifest contract.
 
 The generated service provider does not register the extension migration directory with Laravel. Add migrations under `Database/Migrations` and run them with Pixely's extension migration commands below.
