@@ -1,16 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
-
-const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_USER_PASSWORD ?? 'password'
+import { ADMIN_PERSONA } from './fixtures/personas'
+import { LoginPage } from './poms/LoginPage.pom'
 
 test.describe('User Space engagement API', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login', { waitUntil: 'domcontentloaded' })
-        await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-
-        await page.locator('input[autocomplete="username"]').fill(email)
-        await page.locator('input[autocomplete="current-password"]').fill(password)
-        await page.getByRole('button', { name: 'Sign in' }).click()
+        const login = new LoginPage(page)
+        await login.goto()
+        await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)
         await expect(page).toHaveURL(/\/admin|\/account/)
     })
 

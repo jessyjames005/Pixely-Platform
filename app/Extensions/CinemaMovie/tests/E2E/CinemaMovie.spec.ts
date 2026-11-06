@@ -1,21 +1,17 @@
 import { expect, test } from '@playwright/test'
+import { ADMIN_PERSONA } from '../../../../../tests/E2E/fixtures/personas'
+import { LoginPage } from '../../../../../tests/E2E/poms/LoginPage.pom'
+import { CinemaMoviePage } from '../../../../../tests/E2E/poms/CinemaMoviePage.pom'
 
 test('logs in and opens the CinemaMovie administration screen', async ({ page }) => {
-  const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-  const password = process.env.E2E_USER_PASSWORD ?? 'password'
-
-  await page.goto('/login', { waitUntil: 'domcontentloaded' })
-  const csrfResponsePromise = page.waitForResponse('/sanctum/csrf-cookie')
-  await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-  const csrfResponse = await csrfResponsePromise
-  expect(csrfResponse.status()).toBe(204)
+  const login = new LoginPage(page)
+  await login.goto()
+  expect(await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)).toBe(204)
   await expect.poll(async () => (await page.context().cookies()).some((cookie) => cookie.name === 'XSRF-TOKEN')).toBe(true)
-  await page.locator('input[autocomplete="username"]').fill(email)
-  await page.locator('input[autocomplete="current-password"]').fill(password)
-  await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/admin/)
 
-  await page.goto('/admin/cinema-movie', { waitUntil: 'domcontentloaded' })
-
-  await expect(page.getByRole('heading', { name: 'CinemaMovie' })).toBeVisible()
+  const cinemaMovie = new CinemaMoviePage(page)
+  await cinemaMovie.goto()
+  await expect(cinemaMovie.pageHeading).toBeVisible()
+  await expect(cinemaMovie.catalogueHeading).toBeVisible()
 })

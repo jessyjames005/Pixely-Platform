@@ -151,18 +151,6 @@ parameters:
 			path: app/Core/Roles/Http/Controllers/PermissionController.php
 
 		-
-			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:getJson\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Extensions/CinemaMovie/tests/Functional/CinemaMovieApiTest.php
-
-		-
-			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Extensions/CinemaMovie/tests/Functional/CinemaMovieApiTest.php
-
-		-
 			message: '#^Access to an undefined property App\\Extensions\\Gallery\\Models\\Photo\:\:\$filename\.$#'
 			identifier: property.notFound
 			count: 1

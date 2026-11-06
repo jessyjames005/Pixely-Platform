@@ -126,11 +126,19 @@ docker compose exec node npm run lint
 docker compose exec node npm run build:front
 ```
 
-Run end-to-end tests when the E2E profile and its environment are configured:
+Run browser tests in the isolated E2E environment (Chromium and Firefox):
 
 ```powershell
-docker compose --profile e2e run --rm e2e
+Copy-Item .env.e2e.example .env.e2e
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml up -d --build mysql-e2e redis-e2e app-e2e nginx-e2e
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan migrate:fresh --seed --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan db:seed --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan db:seed --class=E2eUserSeeder --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml run --rm playwright
 ```
+
+See the [E2E testing guide](docs/development/e2e-testing.md) before creating the local
+environment. Its database and volume are separate from development data.
 
 Use the project's CI configuration and `package.json` / `composer.json` as the definitive reference for available checks.
 
