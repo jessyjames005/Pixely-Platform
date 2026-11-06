@@ -458,9 +458,8 @@ jobs:
 
   frontend-e2e:
     name: Frontend end-to-end tests
-    # Paused by default. Set the repository variable RUN_E2E to 'true'
-    # (Settings > Secrets and variables > Actions > Variables) to re-enable.
-    if: ${{ vars.RUN_E2E == 'true' }}
+    # E2E failures are reported and uploaded but do not block required CI.
+    continue-on-error: true
     needs: [build-back, build-front, build-fresh-install]
     runs-on: ubuntu-latest
 
@@ -504,8 +503,7 @@ jobs:
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
       E2E_BASE_URL: http://127.0.0.1:8000
-      E2E_USER_EMAIL: test@example.com
-      E2E_USER_PASSWORD: password
+      E2E_USER_EMAIL: admin@pixely.test
 
     steps:
       - name: Checkout repository
@@ -547,7 +545,12 @@ jobs:
       - name: Run migrations and seed test account
         run: |
           php artisan migrate --force
+          php artisan pixely:extension:migrate CinemaMovie
           php artisan db:seed --force
+          echo "E2E_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+
+      - name: Seed E2E personas
+        run: php artisan db:seed --class=E2eUserSeeder --force
 
       - name: Build frontend
         run: npm run build
@@ -565,17 +568,28 @@ jobs:
           cat /tmp/pixely-e2e-server.log
           exit 1
 
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox
 
       - name: Run Playwright E2E tests
-        run: npm run test:e2e
+        run: E2E_USER_PASSWORD="$E2E_PASSWORD" npm run test:e2e
+
+      - name: Upload Playwright reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-reports
+          path: |
+            .playwright/report/
+            .playwright/results/
+            .playwright/junit.xml
+          if-no-files-found: ignore
+          retention-days: 7
 
   production-quality:
     name: Production quality gate
     needs: [php-lint, phpstan, php-code-style, frontend-quality, backend-unit, backend-functional, coverage-gate, frontend-e2e]
-    # frontend-e2e may be skipped (paused): a skipped need must not skip the gate,
-    # but any failed or cancelled need still does.
+    # The E2E job is deliberately non-blocking during browser-suite stabilisation.
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
 

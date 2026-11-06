@@ -8,10 +8,31 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  workers: process.env.CI ? 2 : undefined,
+  reporter: process.env.CI
+    ? [
+        ['github'],
+        ['html', { outputFolder: '.playwright/report', open: 'never' }],
+        ['junit', { outputFile: '.playwright/junit.xml' }],
+      ]
+    : 'list',
+  outputDir: '.playwright/results',
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? process.env.PLAYWRIGHT_BASE_URL ?? 'http://nginx',
+    baseURL: process.env.E2E_BASE_URL ?? process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8082',
     trace: 'retain-on-failure',
-    ...devices['Desktop Chrome'],
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    actionTimeout: 10_000,
+    navigationTimeout: 20_000,
   },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+  ],
 })
