@@ -1674,7 +1674,7 @@ The roadmap should be updated progressively as each sprint is completed.
 ### Proposed follow-on sprints
 
 * [x] U15 — Extension SDK: developer tools and documentation — **Complete**
-* U16 — Sample Cinema: complete reference extension
+* [ ] U16 — Sample Cinema: complete reference extension — **In progress**
 * U17 — Administration and user-experience consolidation
 * U18 — Stable release preparation
 
@@ -1691,3 +1691,24 @@ The roadmap should be updated progressively as each sprint is completed.
 
 * A separate downloadable/development template beyond the `make:extension` generator.
 * Storybook package/configuration, runnable stories, and CI integration; this sprint documents intended usage only.
+
+
+### U16 — Sample Cinema: complete reference extension
+
+**Goal:** deliver CinemaMovie as an end-to-end reference implementation of the Pixely extension SDK, including its catalogue domain, administration workflows, media integration, API and browser-level regression coverage.
+
+#### Completed lots
+
+* [x] U16.1 — Scaffold the CinemaMovie extension on SDK v2, declare its capabilities, permissions, dependency and versioned upgrade path.
+* [x] U16.2 — Implement the movie and genre catalogue domain, bilingual translations, validation, persistence and authenticated JSON:API resources.
+* [x] U16.3 — Implement movie and genre administration workflows, permission-aware actions, movie/genre assignment and Files media relationships.
+
+#### U16.4 — End-to-end coverage and sprint close
+
+* [x] Add isolated Playwright execution infrastructure, reusable page objects and administrator persona setup.
+* [x] Add Chromium and Firefox coverage for authentication, CinemaMovie administration access, movie create/edit/delete and bilingual genre create/delete workflows.
+* [x] Document local E2E setup, safe database isolation, browser execution, CI reporting and the CinemaMovie reference extension.
+* [ ] Run the complete browser suite and the focused backend/frontend regression and quality checks; resolve any failures.
+* [ ] Reconcile final sprint documentation and prepare the pull request description.
+
+U16.4 remains open until the full validation and sprint-close checklist above has been completed. The E2E CI job currently reports failures and uploads diagnostics without blocking the required CI gate while the browser suite is stabilised.

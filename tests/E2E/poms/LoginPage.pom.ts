@@ -24,12 +24,23 @@ export class LoginPage extends BasePage {
   }
 
   async login(email: string, password: string): Promise<number> {
-    const csrfResponse = this.page.waitForResponse('/sanctum/csrf-cookie')
-    await this.page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-    const response = await csrfResponse
     await this.email.fill(email)
     await this.password.fill(password)
+
+    // Observe the real authentication request, not the preceding CSRF-cookie
+    // response (which is normally 204 even when the credentials are invalid).
+    // The application login store obtains the CSRF cookie itself.
+    const loginResponse = this.page.waitForResponse(
+      (response) => {
+        const request = response.request()
+        return new URL(response.url()).pathname.endsWith('/api/v1/auth/login')
+          && request.method() === 'POST'
+      },
+      { timeout: 15_000 },
+    )
+
     await this.submitButton.click()
-    return response.status()
+
+    return (await loginResponse).status()
   }
 }

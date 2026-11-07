@@ -66,6 +66,7 @@ test('home, about and contact are reachable from public navigation', async ({ pa
   await expect(website.pageHeading).toHaveText('Contact')
 
   await website.openHome()
-  await expect(page).toHaveURL(/\/$/);
+  // The public navigation intentionally points to the explicit /home slug.
+  await expect(page).toHaveURL(/\/home$/);
   await expect(website.pageHeading).toHaveText('Welcome to Pixely Platform')
 })

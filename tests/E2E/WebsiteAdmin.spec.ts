@@ -7,7 +7,7 @@ test.describe('Website administration', () => {
   test.beforeEach(async ({ page }) => {
     const login = new LoginPage(page)
     await login.goto()
-    expect(await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)).toBe(204)
+    expect(await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)).toBe(200)
     await expect(page).toHaveURL(/\/admin/)
   })
 

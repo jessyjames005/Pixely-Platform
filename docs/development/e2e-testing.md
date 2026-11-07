@@ -11,7 +11,9 @@ The Playwright configuration discovers specs under `tests/E2E` and extension-loc
 projects: Chromium and Firefox. CI uploads HTML, JUnit, screenshots, videos, and
 traces when available. Use `npm run test:e2e:chromium`,
 `npm run test:e2e:firefox`, or `npm run test:e2e:report` to select a browser or
-inspect the latest report.
+inspect the latest report. For the shortest local feedback loop, run
+`npm run test:e2e:chromium`; run the full Chromium + Firefox suite before merging
+or when validating browser compatibility.
 
 Authenticated tests use the `admin@pixely.test` persona defined by the
 `E2eUserSeeder`. Supply `E2E_PASSWORD` at runtime; the password is not stored in
@@ -62,7 +64,13 @@ docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml run -
 ```
 
 The default runner command installs Node dependencies, builds the frontend, and
-runs Playwright. Open the HTML report with `npm run test:e2e:report` from the
+runs Playwright. Playwright uses an 8-second assertion timeout, an 8-second action
+timeout, a 15-second navigation timeout, and at most one CI retry. These limits
+make broken selectors and authentication failures fail promptly; tests that
+represent a genuinely slower workflow should declare a local, explicit timeout
+instead of raising the timeout for the whole suite. Navigation waits for
+`domcontentloaded`; locator assertions provide the synchronization with the Vue UI.
+ Open the HTML report with `npm run test:e2e:report` from the
 Playwright container or copy `.playwright/report` to a local Node environment.
 
 To stop the stack, run `docker compose --env-file .env.e2e -p pixely-e2e -f

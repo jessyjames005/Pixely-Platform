@@ -4,7 +4,6 @@ import { BasePage } from './BasePage.pom'
 export class WebsiteAdminPage extends BasePage {
   readonly websiteNavigation: Locator
   readonly newPageButton: Locator
-  readonly newPageHeading: Locator
   readonly pageTitle: Locator
   readonly newMenuButton: Locator
   readonly menuName: Locator
@@ -19,7 +18,6 @@ export class WebsiteAdminPage extends BasePage {
     super(page)
     this.websiteNavigation = page.locator('.v-navigation-drawer').getByText('Website', { exact: true })
     this.newPageButton = page.getByRole('button', { name: 'New page' })
-    this.newPageHeading = page.getByRole('heading', { name: 'New page' })
     this.pageTitle = page.getByLabel('Title')
     this.newMenuButton = page.getByRole('button', { name: 'New menu' })
     this.menuName = page.getByLabel('Name')
@@ -46,8 +44,22 @@ export class WebsiteAdminPage extends BasePage {
 
   async createPage(title: string): Promise<void> {
     await this.newPageButton.click()
+    await this.pageTitle.waitFor({ state: 'visible' })
     await this.pageTitle.fill(title)
+
+    // Wait for the write request so backend errors surface immediately instead
+    // of turning into a long timeout on the subsequent list assertion.
+    const saveResponse = this.page.waitForResponse((response) => {
+      const request = response.request()
+      return new URL(response.url()).pathname.endsWith('/api/v1/website/pages')
+        && request.method() === 'POST'
+    }, { timeout: 15_000 })
+
     await this.saveButton.click()
+    const response = await saveResponse
+    if (!response.ok()) {
+      throw new Error(`Creating website page failed (${response.status()}): ${await response.text()}`)
+    }
   }
 
   createdPageTitle(title: string): Locator {
@@ -65,7 +77,20 @@ export class WebsiteAdminPage extends BasePage {
     await this.addMenuItemButton.click()
     await this.menuItemTitle.fill(itemTitle)
     await this.menuItemTarget.fill(target)
+
+    // Fail at the API boundary with its response body rather than waiting for
+    // a menu card that can never appear after a rejected write.
+    const saveResponse = this.page.waitForResponse((response) => {
+      const request = response.request()
+      return new URL(response.url()).pathname.endsWith('/api/v1/website/menus')
+        && request.method() === 'POST'
+    }, { timeout: 15_000 })
+
     await this.saveButton.click()
+    const response = await saveResponse
+    if (!response.ok()) {
+      throw new Error(`Creating website menu failed (${response.status()}): ${await response.text()}`)
+    }
   }
 
   createdMenuName(name: string): Locator {

@@ -19,6 +19,8 @@ test.describe('User Space engagement API', () => {
         return {
             Accept: 'application/json',
             Referer: `${new URL(page.url()).origin}/`,
+            Origin: new URL(page.url()).origin,
+            'X-Requested-With': 'XMLHttpRequest',
             'X-XSRF-TOKEN': xsrf,
         }
     }
@@ -35,13 +37,14 @@ test.describe('User Space engagement API', () => {
                 resource_id: resourceId,
             },
         })
-        expect(create.ok()).toBeTruthy()
+        expect(create.status(), `Favorite creation failed: ${await create.text()}`).toBe(201)
 
         const list = await page.request.get('/api/v1/me/favorites?resource_type=e2e.test', { headers })
-        expect(list.ok()).toBeTruthy()
-        await expect.poll(async () => (await list.json()).data.some((item: { resource_id: string }) => item.resource_id === resourceId)).toBeTruthy()
+        expect(list.status(), `Favorite listing failed: ${await list.text()}`).toBe(200)
+        const favorites = await list.json() as { data: Array<{ resource_id: string }> }
+        expect(favorites.data.some((item) => item.resource_id === resourceId)).toBe(true)
 
         const remove = await page.request.delete(`/api/v1/me/favorites/e2e.test/${resourceId}`, { headers })
-        expect(remove.ok()).toBeTruthy()
+        expect(remove.status(), `Favorite removal failed: ${await remove.text()}`).toBe(200)
     })
 })

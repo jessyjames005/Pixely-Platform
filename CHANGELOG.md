@@ -4,6 +4,13 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
+### Added — U16 Sample Cinema reference extension
+
+- Added CinemaMovie as an SDK v2 reference extension with a bilingual movie and genre catalogue, authenticated JSON:API resources, permission-aware administration, and Files poster/backdrop relationships.
+- Added isolated Playwright E2E infrastructure with Chromium and Firefox projects, reusable page objects, and seeded administrator credentials supplied only at runtime.
+- Added browser journeys for CinemaMovie administration access and movie/genre create, edit, and delete workflows.
+- Documented safe local E2E execution and CI diagnostics. The browser job remains non-blocking while the suite is stabilised.
+
 ### Added — U15 Extension SDK developer tools and documentation
 
 - Hardened `php artisan make:extension` with extension-name validation, safe directory handling, SDK v2 test starters, and migration-runner guidance.
