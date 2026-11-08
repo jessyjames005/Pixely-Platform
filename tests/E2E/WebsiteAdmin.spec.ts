@@ -38,6 +38,6 @@ test.describe('Website administration', () => {
     await website.createMenu(name, code, 'Home', '/')
 
     await expect(website.createdMenuName(name)).toBeVisible()
-    await expect(website.createdMenuItem('Home')).toBeVisible()
+    await expect(website.createdMenuItem(name, 'Home')).toBeVisible()
   })
 })
