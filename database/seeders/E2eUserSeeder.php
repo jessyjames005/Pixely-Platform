@@ -14,16 +14,21 @@ final class E2eUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $password = env('E2E_PASSWORD');
+        $password = config('e2e.password');
 
-        if (! is_string($password) || trim($password) === '') {
+        if (
+            ! is_string($password)
+            || trim($password) === ''
+        ) {
             throw new RuntimeException('E2E_PASSWORD must be set before seeding browser test users.');
         }
 
-        foreach ([
-            'admin@pixely.test' => ['name' => 'E2E Admin', 'role' => 'admin'],
-            'editor@pixely.test' => ['name' => 'E2E Editor', 'role' => 'editor'],
-        ] as $email => $persona) {
+        foreach (
+            [
+                'admin@pixely.test' => ['name' => 'E2E Admin', 'role' => 'admin'],
+                'editor@pixely.test' => ['name' => 'E2E Editor', 'role' => 'editor'],
+            ] as $email => $persona
+        ) {
             $user = User::query()->updateOrCreate(
                 ['email' => $email],
                 [
