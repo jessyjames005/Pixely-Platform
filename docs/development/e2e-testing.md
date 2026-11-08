@@ -20,6 +20,14 @@ Authenticated tests use the `admin@pixely.test` persona defined by the
 source control. Tests creating persistent content must use unique values so the
 two browser projects can run concurrently.
 
+The login page uses Sanctum's first-party, cookie-based session. The exact browser
+host and port must be listed in `SANCTUM_STATEFUL_DOMAINS` (for example,
+`127.0.0.1:8000` in CI). `LoginPage.login()` verifies the session with
+`GET /api/v1/auth/me` after the login response; a successful in-memory SPA redirect
+alone is not treated as proof of authentication. API session, cookie and CSRF
+middleware must be supplied by `statefulApi()` only, not duplicated manually in
+the API middleware group or on individual auth routes.
+
 ## Isolated local environment
 
 The local E2E Compose project is separate from the development Compose project.

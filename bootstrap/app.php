@@ -18,12 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
 
-        $middleware->prependToGroup('api', [
-            'surface:api',
-            \Illuminate\Cookie\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-        ]);
+        // Keep API surface resolution in the API group. Cookie, session and
+        // CSRF middleware are applied conditionally by Sanctum's statefulApi()
+        // middleware for first-party browser requests; adding them here would
+        // start the same session more than once and can overwrite regenerated
+        // session cookies during authentication.
+        $middleware->prependToGroup('api', 'surface:api');
 
         $middleware->alias([
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,

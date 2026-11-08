@@ -478,7 +478,10 @@ async function removeGenre(genre: (typeof store.genres)[number]): Promise<void> 
     </v-dialog>
 
     <v-card class="mt-6">
-      <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-3">
+      <v-card-title
+        data-testid="cinema-movie-genres-heading"
+        class="d-flex align-center justify-space-between flex-wrap ga-3"
+      >
         {{ t('cinema-movie.title.genres', 'Genres') }}
         <v-btn
           v-if="authStore.can('cinema-movie.movies.manage')"

@@ -41,6 +41,30 @@ export class LoginPage extends BasePage {
 
     await this.submitButton.click()
 
-    return (await loginResponse).status()
+    const response = await loginResponse
+    if (!response.ok()) {
+      throw new Error(`Login failed (${response.status()}): ${await response.text()}`)
+    }
+
+    // The SPA can navigate after updating its in-memory auth store even if
+    // the browser session cookie was not persisted. Verify the real session
+    // before allowing downstream E2E tests to continue.
+    const sessionResponse = await this.page.evaluate(async () => {
+      const result = await fetch('/api/v1/auth/me', {
+        credentials: 'include',
+        headers: { Accept: 'application/vnd.api+json' },
+      })
+
+      return { status: result.status, body: await result.text() }
+    })
+
+    if (sessionResponse.status !== 200) {
+      throw new Error(
+        `Login returned ${response.status()}, but the authenticated session check failed `
+        + `(${sessionResponse.status}): ${sessionResponse.body}`,
+      )
+    }
+
+    return response.status()
   }
 }

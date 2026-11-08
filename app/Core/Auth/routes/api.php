@@ -16,25 +16,26 @@ use LaravelJsonApi\Laravel\Routing\Route as JsonApiRoutingRoute;
 JsonApiRoute::server('v1')
     ->middleware(EnsureJsonApiMediaType::class)
     ->resources(function (ResourceRegistrar $server): void {
-        // Public: reachable before a session exists.
-        Route::middleware('web')->group(function (): void {
-            Route::post('/auth/login', [AuthController::class, 'login'])
+        // Public endpoints. Sanctum's statefulApi middleware starts a session
+        // and applies CSRF protection when the request comes from the first-party
+        // SPA (Origin/Referer matches sanctum.stateful).
+        Route::post('/auth/login', [AuthController::class, 'login'])
+            ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+        Route::post('/auth/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+            ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+        Route::middleware('throttle:auth-password-reset')->group(function (): void {
+            Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgot'])
                 ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
 
-            Route::post('/auth/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+            Route::post('/auth/reset-password', [PasswordResetController::class, 'reset'])
                 ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-
-            Route::middleware('throttle:auth-password-reset')->group(function (): void {
-                Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgot'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-
-                Route::post('/auth/reset-password', [PasswordResetController::class, 'reset'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-            });
         });
 
-        // Authenticated.
-        Route::middleware(['web', 'auth:sanctum'])->group(function (): void {
+        // Authenticated endpoints. First-party browser sessions are supplied
+        // by Sanctum's statefulApi middleware before auth:sanctum is evaluated.
+        Route::middleware('auth:sanctum')->group(function (): void {
             Route::post('/auth/logout', [AuthController::class, 'logout'])
                 ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
             Route::get('/auth/me', [AuthController::class, 'me'])
