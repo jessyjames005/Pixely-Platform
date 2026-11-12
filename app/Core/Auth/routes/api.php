@@ -1,3 +1,4 @@
+
 <?php
 
 declare(strict_types=1);
@@ -8,6 +9,9 @@ use App\Core\Auth\Http\Controllers\PasswordResetController;
 use App\Core\Auth\Http\Controllers\TwoFactorChallengeController;
 use App\Core\Auth\Http\Controllers\TwoFactorController;
 use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
 use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
@@ -16,45 +20,102 @@ use LaravelJsonApi\Laravel\Routing\Route as JsonApiRoutingRoute;
 JsonApiRoute::server('v1')
     ->middleware(EnsureJsonApiMediaType::class)
     ->resources(function (ResourceRegistrar $server): void {
-        // Public endpoints. Sanctum's statefulApi middleware starts a session
-        // and applies CSRF protection when the request comes from the first-party
-        // SPA (Origin/Referer matches sanctum.stateful).
+
+        /*
+         * Public authentication endpoints.
+         *
+         * These endpoints explicitly require session support for the
+         * login and two-factor authentication flows.
+         */
+        $loginMiddleware = [
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+        ];
+
         Route::post('/auth/login', [AuthController::class, 'login'])
+            ->middleware($loginMiddleware)
             ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
 
-        Route::post('/auth/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        Route::post('/auth/two-factor-challenge', [
+            TwoFactorChallengeController::class,
+            'store',
+        ])
+            ->middleware($loginMiddleware)
             ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
 
+        /*
+         * Password reset endpoints.
+         *
+         * These routes remain public and use their dedicated rate limiter.
+         */
         Route::middleware('throttle:auth-password-reset')->group(function (): void {
-            Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgot'])
-                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+            Route::post('/auth/forgot-password', [
+                PasswordResetController::class,
+                'forgot',
+            ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
 
-            Route::post('/auth/reset-password', [PasswordResetController::class, 'reset'])
-                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+            Route::post('/auth/reset-password', [
+                PasswordResetController::class,
+                'reset',
+            ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
         });
 
-        // Authenticated endpoints. First-party browser sessions are supplied
-        // by Sanctum's statefulApi middleware before auth:sanctum is evaluated.
-        Route::middleware('auth:sanctum')->group(function (): void {
-            Route::post('/auth/logout', [AuthController::class, 'logout'])
-                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-            Route::get('/auth/me', [AuthController::class, 'me'])
-                ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+        /*
+         * Authenticated endpoints.
+         *
+         * Sanctum authenticates the user. Session support is explicitly
+         * included for endpoints that interact with browser sessions.
+         */
+        Route::middleware([
+            'auth:sanctum',
+            StartSession::class,
+        ])->group(function (): void {
 
+            Route::post('/auth/logout', [
+                AuthController::class,
+                'logout',
+            ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+            Route::get('/auth/me', [
+                AuthController::class,
+                'me',
+            ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+            /*
+             * Sensitive authentication operations.
+             */
             Route::middleware('throttle:auth-sensitive')->group(function (): void {
-                Route::put('/auth/password', [PasswordController::class, 'update'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
 
-                Route::get('/auth/two-factor', [TwoFactorController::class, 'show'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-                Route::post('/auth/two-factor', [TwoFactorController::class, 'store'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-                Route::post('/auth/two-factor/confirm', [TwoFactorController::class, 'confirm'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-                Route::post('/auth/two-factor/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
-                Route::delete('/auth/two-factor', [TwoFactorController::class, 'destroy'])
-                    ->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+                Route::put('/auth/password', [
+                    PasswordController::class,
+                    'update',
+                ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+                Route::get('/auth/two-factor', [
+                    TwoFactorController::class,
+                    'show',
+                ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+                Route::post('/auth/two-factor', [
+                    TwoFactorController::class,
+                    'store',
+                ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+                Route::post('/auth/two-factor/confirm', [
+                    TwoFactorController::class,
+                    'confirm',
+                ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+                Route::post('/auth/two-factor/recovery-codes', [
+                    TwoFactorController::class,
+                    'regenerateRecoveryCodes',
+                ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
+
+                Route::delete('/auth/two-factor', [
+                    TwoFactorController::class,
+                    'destroy',
+                ])->defaults(JsonApiRoutingRoute::RESOURCE_TYPE, 'users');
             });
         });
     });

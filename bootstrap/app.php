@@ -1,10 +1,16 @@
+
 <?php
+
+declare(strict_types=1);
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Session\Middleware\StartSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,34 +22,44 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__ . '/../app/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
+        // Enable Sanctum stateful API authentication for first-party clients.
         $middleware->statefulApi();
 
-        // Keep API surface resolution in the API group. Cookie, session and
-        // CSRF middleware are applied conditionally by Sanctum's statefulApi()
-        // middleware for first-party browser requests; adding them here would
-        // start the same session more than once and can overwrite regenerated
-        // session cookies during authentication.
+        // Keep API surface resolution in the API middleware group.
         $middleware->prependToGroup('api', 'surface:api');
+
+        // Session support for API routes that explicitly require it.
+        // Do not add CSRF middleware here: these remain API endpoints.
+        $middleware->group('api.session', [
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+        ]);
 
         $middleware->alias([
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'surface' => \App\Core\Surface\Http\Middleware\ResolveSurface::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn (Request $request): string => '/login');
+        $middleware->redirectGuestsTo(
+            fn (Request $request): string => '/login',
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn(Request $request) => $request->is('api/*'),
+            fn (Request $request): bool => $request->is('api/*'),
         );
 
         $exceptions->dontReport(
             \LaravelJsonApi\Core\Exceptions\JsonApiException::class,
         );
-        // The JSON:API parser renders validation errors without the `code`
-        // member the Pixely error contract requires. Delegate to it (so the
-        // pointers and structure stay unchanged) and add the missing code.
-        $exceptions->render(function (ValidationException $exception, Request $request) {
+
+        // Preserve JSON:API validation error formatting and add Pixely's
+        // required validation error code.
+        $exceptions->render(function (
+            ValidationException $exception,
+            Request $request,
+        ) {
             $response = \LaravelJsonApi\Exceptions\ExceptionParser::make()
                 ->acceptsMiddleware('jsonapi:v1')
                 ->render($exception, $request);
@@ -54,7 +70,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
             $payload = json_decode((string) $response->getContent(), true);
 
-            if (! is_array($payload) || ! isset($payload['errors']) || ! is_array($payload['errors'])) {
+            if (
+                ! is_array($payload)
+                || ! isset($payload['errors'])
+                || ! is_array($payload['errors'])
+            ) {
                 return $response;
             }
 
@@ -75,11 +95,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->renderable(),
         );
 
+        // Return the Registry-specific problem response for rate limits.
         $exceptions->render(function (
             \Illuminate\Http\Exceptions\ThrottleRequestsException $exception,
             Request $request,
         ) {
-            if (!$request->routeIs('api.registry.*')) {
+            if (! $request->routeIs('api.registry.*')) {
                 return null;
             }
 
@@ -94,21 +115,21 @@ return Application::configure(basePath: dirname(__DIR__))
             ]));
         });
 
-        $exceptions->renderable(function (\Throwable $exception, Request $request) {
+        // Provide the standard Pixely JSON:API error contract for API failures.
+        $exceptions->renderable(function (
+            \Throwable $exception,
+            Request $request,
+        ) {
             if (! $request->is('api/*')) {
                 return null;
             }
 
             $status = match (true) {
                 $exception instanceof ValidationException => 422,
-
                 $exception instanceof \Illuminate\Auth\AuthenticationException => 401,
-
                 $exception instanceof \Illuminate\Auth\Access\AuthorizationException => 403,
-
                 $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface
-                => $exception->getStatusCode(),
-
+                    => $exception->getStatusCode(),
                 default => 500,
             };
 
@@ -142,7 +163,9 @@ return Application::configure(basePath: dirname(__DIR__))
                             'code' => 'VALIDATION_ERROR',
                             'title' => $field,
                             'detail' => $message,
-                            'source' => ['pointer' => '/data/attributes/' . str_replace('.', '/', $field)],
+                            'source' => [
+                                'pointer' => '/data/attributes/' . str_replace('.', '/', $field),
+                            ],
                         ];
                     }
                 }
@@ -150,7 +173,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'jsonapi' => '1.1',
                     'errors' => $errors,
-                ], $status, ['Content-Type' => 'application/vnd.api+json']);
+                ], $status, [
+                    'Content-Type' => 'application/vnd.api+json',
+                ]);
             }
 
             return response()->json([
@@ -163,6 +188,9 @@ return Application::configure(basePath: dirname(__DIR__))
                         'detail' => $title,
                     ],
                 ],
-            ], $status, ['Content-Type' => 'application/vnd.api+json']);
+            ], $status, [
+                'Content-Type' => 'application/vnd.api+json',
+            ]);
         });
-    })->create();
+    })
+    ->create();
