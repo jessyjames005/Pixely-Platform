@@ -1,39 +1,41 @@
 import { expect, test } from '@playwright/test'
+import { AuthRecoveryPage } from './poms/AuthRecoveryPage.pom'
 
 // Password recovery screens. These do not sign in, so they never touch the
 // seeded admin's state and are safe to run in parallel with the other specs.
 test.describe('Authentication recovery', () => {
   test('login screen offers "remember me" and a forgot-password link', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
+    const auth = new AuthRecoveryPage(page)
+    await auth.gotoLogin()
 
-    await expect(page.getByLabel('Remember me')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Forgot your password?' })).toBeVisible()
+    await expect(auth.rememberMe).toBeVisible()
+    await expect(auth.forgotPasswordLink).toBeVisible()
   })
 
   test('forgot-password shows the same confirmation for any address', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
-    await page.getByRole('link', { name: 'Forgot your password?' }).click()
+    const auth = new AuthRecoveryPage(page)
+    await auth.gotoLogin()
+    await auth.openForgotPassword()
     await expect(page).toHaveURL(/\/forgot-password$/)
 
-    await page.locator('input[type="email"]').fill('nobody@example.com')
-    await page.getByRole('button', { name: 'Send reset link' }).click()
+    await auth.requestReset('nobody@example.com')
 
-    await expect(page.getByTestId('reset-link-sent')).toBeVisible()
+    await expect(auth.resetLinkSent).toBeVisible()
   })
 
   test('reset-password rejects a link without a token', async ({ page }) => {
-    await page.goto('/reset-password', { waitUntil: 'domcontentloaded' })
+    const auth = new AuthRecoveryPage(page)
+    await auth.gotoResetPassword()
 
-    await expect(page.getByText('This password reset link is invalid or has expired.')).toBeVisible()
+    await expect(auth.invalidResetMessage).toBeVisible()
   })
 
   test('reset-password with a bogus token is refused by the API', async ({ page }) => {
-    await page.goto('/reset-password?token=bogus&email=nobody%40example.com', { waitUntil: 'domcontentloaded' })
+    const auth = new AuthRecoveryPage(page)
+    await auth.gotoResetPassword('bogus', 'nobody@example.com')
 
-    await page.getByLabel('New password', { exact: true }).fill('a-brand-new-secret')
-    await page.getByLabel('Confirm new password').fill('a-brand-new-secret')
-    await page.getByRole('button', { name: 'Reset password' }).click()
+    await auth.submitNewPassword('a-brand-new-secret')
 
-    await expect(page.getByText('This password reset link is invalid or has expired.')).toBeVisible()
+    await expect(auth.invalidResetMessage).toBeVisible()
   })
 })

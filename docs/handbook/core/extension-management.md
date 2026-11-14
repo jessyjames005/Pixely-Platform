@@ -197,15 +197,24 @@ The generated service provider does not register the extension migration directo
 
 The generator prints the frontend integration steps that are specific to the application build: add the Vite and TypeScript aliases, add the extension route loader to the Core allowlist in `resources/js/router/extensionRouteRegistry.ts`, and verify the generated `resources/js/routes.ts` declaration. The router then synchronizes extension routes with the current user’s server-filtered navigation.
 
-Run the generated Playwright E2E tests with the opt-in Docker runner after starting the application services and seeding the local test account:
+Run the generated Playwright E2E tests with the isolated E2E Docker stack and its dedicated database. Do not point E2E migrations at the development database:
 
-```bash
-docker compose up -d app nginx mysql redis
-docker compose exec app php artisan migrate --seed
-docker compose --profile e2e run --rm e2e
+```powershell
+Copy-Item .env.e2e.example .env.e2e
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml up -d --build mysql-e2e redis-e2e app-e2e nginx-e2e
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan migrate:fresh --seed --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan db:seed --class=E2eUserSeeder --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml run --rm playwright
 ```
 
-The CI workflow runs the same browser suite in its dedicated frontend E2E job.
+Set the local-only secrets and `APP_KEY` in `.env.e2e` first. `migrate:fresh`
+is safe only because this separate stack points at `pixely_e2e`; never use it
+with the development stack.
+
+The CI workflow runs the full browser suite in Chromium and Firefox. Its job is
+non-blocking while the browser tests are being stabilized; reports and traces
+are uploaded even when a test fails. See the [E2E testing guide](../../development/e2e-testing.md)
+for local setup, reports, and safety details.
 
 ## Extension Migrations
 

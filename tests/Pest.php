@@ -19,3 +19,10 @@ use Tests\TestCase;
 
 uses(TestCase::class)
     ->in('Feature', 'Unit/Core/Surface', 'Unit/Core/Websites', 'Unit/Core/Users');
+
+// Authentication feature tests exercise Sanctum's first-party SPA flow.
+// A matching Referer makes EnsureFrontendRequestsAreStateful attach the
+// session and CSRF middleware exactly as it does for browser-origin requests.
+beforeEach(function (): void {
+    $this->withHeader('Referer', 'http://localhost/');
+})->in('Feature/Core/Auth');

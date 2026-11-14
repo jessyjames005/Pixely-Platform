@@ -86,6 +86,7 @@ function togglePasswordVisibility(): void {
   >
     <v-form v-if="step === 'credentials'" @submit.prevent="handleSubmit">
       <v-text-field
+        data-testid="login-email"
         v-model="email"
         :label="$t('core.entities.object.user.email.label', 'Email')"
         type="email"
@@ -93,6 +94,7 @@ function togglePasswordVisibility(): void {
         required
       />
       <v-text-field
+        data-testid="login-password"
         v-model="password"
         :label="$t('core.entities.object.user.password.label', 'Password')"
         :type="showPassword ? 'text' : 'password'"
@@ -114,11 +116,11 @@ function togglePasswordVisibility(): void {
         </router-link>
       </div>
 
-      <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4">
+      <v-alert v-if="errorMessage" data-testid="login-error" type="error" density="compact" class="mb-4">
         {{ errorMessage }}
       </v-alert>
 
-      <v-btn type="submit" color="primary" block :loading="loading">{{ $t('core.auth.action.sign_in', 'Sign in') }}</v-btn>
+      <v-btn data-testid="login-submit" type="submit" color="primary" block :loading="loading">{{ $t('core.auth.action.sign_in', 'Sign in') }}</v-btn>
     </v-form>
 
     <v-form v-else @submit.prevent="handleChallenge">

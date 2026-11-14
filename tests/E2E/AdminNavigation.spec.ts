@@ -1,66 +1,59 @@
 import { expect, test } from '@playwright/test'
-
-const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_USER_PASSWORD ?? 'password'
+import { ADMIN_PERSONA } from './fixtures/personas'
+import { AdminDashboardPage } from './poms/AdminDashboardPage.pom'
+import { LoginPage } from './poms/LoginPage.pom'
 
 // Administration navigation: collapsible/rail sidebar, persisted state, and the
 // grouped "Extensions" submenu. Runs in the CI Playwright job against a seeded
-// admin (E2E_USER_EMAIL/E2E_USER_PASSWORD), same credentials as CinemaMovie.spec.ts.
+// admin persona, same credentials as CinemaMovie.spec.ts.
 test.describe('Administration navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
-    const csrf = page.waitForResponse('/sanctum/csrf-cookie')
-    await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-    expect((await csrf).status()).toBe(204)
-
-    await page.locator('input[autocomplete="username"]').fill(email)
-    await page.locator('input[autocomplete="current-password"]').fill(password)
-    await page.getByRole('button', { name: 'Sign in' }).click()
+    const login = new LoginPage(page)
+    await login.goto()
+    expect(await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)).toBe(200)
     await expect(page).toHaveURL(/\/admin/)
   })
 
   test('persists the collapsed/expanded rail state across clicks', async ({ page }) => {
+    const dashboard = new AdminDashboardPage(page)
     // Default: expanded — the toggle offers to collapse.
-    const collapseToggle = page.getByRole('button', { name: 'Collapse navigation' })
-    await expect(collapseToggle).toBeVisible()
+    await expect(dashboard.collapseNavigationButton).toBeVisible()
 
-    await collapseToggle.click()
-    await expect(page.getByRole('button', { name: 'Expand navigation' })).toBeVisible()
+    await dashboard.collapseNavigation()
+    await expect(dashboard.expandNavigationButton).toBeVisible()
     await expect.poll(async () => page.evaluate(() => localStorage.getItem('pixely.nav.rail'))).toBe('true')
 
-    await page.getByRole('button', { name: 'Expand navigation' }).click()
-    await expect(page.getByRole('button', { name: 'Collapse navigation' })).toBeVisible()
+    await dashboard.expandNavigation()
+    await expect(dashboard.collapseNavigationButton).toBeVisible()
     await expect.poll(async () => page.evaluate(() => localStorage.getItem('pixely.nav.rail'))).toBe('false')
   })
 
   test('extensions submenu reveals its children when opened', async ({ page }) => {
-    const drawer = page.locator('.v-navigation-drawer')
-    const extensionsToggle = drawer.getByText('Extensions', { exact: true })
-    await expect(extensionsToggle).toBeVisible()
+    const dashboard = new AdminDashboardPage(page)
+    await expect(dashboard.extensionsMenu).toBeVisible()
 
     // The group's children are hidden until it is expanded.
-    await expect(drawer.getByText('Manage extensions', { exact: true })).toBeHidden()
+    await expect(dashboard.manageExtensionsLink).toBeHidden()
 
-    await extensionsToggle.click()
-    await expect(drawer.getByText('Manage extensions', { exact: true })).toBeVisible()
-    await expect(drawer.getByRole('link', { name: 'Manage extensions' })).toHaveAttribute('href', '/admin/extensions')
+    await dashboard.openExtensionsMenu()
+    await expect(dashboard.manageExtensionsLink).toBeVisible()
+    await expect(dashboard.manageExtensionsLink).toHaveAttribute('href', '/admin/extensions')
   })
 
   test('lists runtime extension entries as top-level items', async ({ page }) => {
     // Extension navigation comes from GET /api/v1/extensions/navigation (SDK v2)
     // and is appended after the core entries, not nested under "Extensions".
-    const drawer = page.locator('.v-navigation-drawer')
-    const galleryLink = drawer.getByRole('link', { name: 'Gallery' })
-    await expect(galleryLink).toBeVisible()
-    await expect(galleryLink).toHaveAttribute('href', '/admin/gallery')
+    const dashboard = new AdminDashboardPage(page)
+    await expect(dashboard.galleryLink).toBeVisible()
+    await expect(dashboard.galleryLink).toHaveAttribute('href', '/admin/gallery')
   })
 
   test('keyboard can reach and toggle the navigation control', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: 'Collapse navigation' })
-    await toggle.focus()
-    await expect(toggle).toBeFocused()
-    await page.keyboard.press('Space')
-    await expect(page.getByRole('button', { name: 'Expand navigation' })).toBeVisible()
+    const dashboard = new AdminDashboardPage(page)
+    await dashboard.collapseNavigationButton.focus()
+    await expect(dashboard.collapseNavigationButton).toBeFocused()
+    await dashboard.toggleNavigationWithKeyboard()
+    await expect(dashboard.expandNavigationButton).toBeVisible()
     await expect.poll(async () => page.evaluate(() => localStorage.getItem('pixely.nav.rail'))).toBe('true')
   })
 })

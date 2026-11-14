@@ -1,30 +1,30 @@
 import { expect, test } from '@playwright/test'
-
-const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_USER_PASSWORD ?? 'password'
+import { ADMIN_PERSONA } from './fixtures/personas'
+import { LoginPage } from './poms/LoginPage.pom'
+import { UserSpacePage } from './poms/UserSpacePage.pom'
 
 test.describe('User Space', () => {
   test('guest is redirected to login', async ({ page }) => {
-    await page.goto('/account')
+    const userSpace = new UserSpacePage(page)
+    await userSpace.goto()
     await expect(page).toHaveURL(/\/login/)
   })
 
   test('authenticated user can navigate between dashboard, profile and preferences', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
-    await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-    await page.locator('input[autocomplete="username"]').fill(email)
-    await page.locator('input[autocomplete="current-password"]').fill(password)
-    await page.getByRole('button', { name: 'Sign in' }).click()
+    const login = new LoginPage(page)
+    await login.goto()
+    await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)
     await expect(page).toHaveURL(/\/admin/)
 
-    await page.goto('/account')
+    const userSpace = new UserSpacePage(page)
+    await userSpace.goto()
     await expect(page).toHaveURL(/\/account$/)
-    await expect(page.getByText('My Space')).toBeVisible()
+    await expect(userSpace.mainHeading).toBeVisible()
 
-    await page.getByRole('link', { name: /Profile/i }).first().click()
+    await userSpace.openProfile()
     await expect(page).toHaveURL(/\/account\/profile$/)
 
-    await page.getByRole('link', { name: /Preferences/i }).first().click()
+    await userSpace.openPreferences()
     await expect(page).toHaveURL(/\/account\/preferences$/)
   })
 })
