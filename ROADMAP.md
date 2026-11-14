@@ -1674,7 +1674,7 @@ The roadmap should be updated progressively as each sprint is completed.
 ### Proposed follow-on sprints
 
 * [x] U15 — Extension SDK: developer tools and documentation — **Complete**
-* [ ] U16 — Sample Cinema: complete reference extension — **In progress**
+* [x] U16 — Sample Cinema: complete reference extension — **Complete**
 * U17 — Administration and user-experience consolidation
 * U18 — Stable release preparation
 
@@ -1708,7 +1708,7 @@ The roadmap should be updated progressively as each sprint is completed.
 * [x] Add isolated Playwright execution infrastructure, reusable page objects and administrator persona setup.
 * [x] Add Chromium and Firefox coverage for authentication, CinemaMovie administration access, movie create/edit/delete and bilingual genre create/delete workflows.
 * [x] Document local E2E setup, safe database isolation, browser execution, CI reporting and the CinemaMovie reference extension.
-* [ ] Run the complete browser suite and the focused backend/frontend regression and quality checks; resolve any failures.
-* [ ] Reconcile final sprint documentation and prepare the pull request description.
+* [x] Run the complete browser suite and the focused backend/frontend regression and quality checks; resolve any failures.
+* [x] Reconcile final sprint documentation and prepare the pull request description.
 
-U16.4 remains open until the full validation and sprint-close checklist above has been completed. The E2E CI job currently reports failures and uploads diagnostics without blocking the required CI gate while the browser suite is stabilised.
+U16 is complete, with all backend, frontend, regression, security audit, and test gates validated successfully.
