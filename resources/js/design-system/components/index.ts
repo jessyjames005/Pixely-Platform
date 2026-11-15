@@ -10,6 +10,8 @@ export { default as PixelyEmptyState } from './PixelyEmptyState.vue'
 export { default as PixelyPageHeader } from './PixelyPageHeader.vue'
 export { default as PixelyCodeBlock } from './PixelyCodeBlock.vue'
 
+export { default as PixelyCalendar } from './calendar/PixelyCalendar.vue'
+
 export type {
   PixelyCardProps,
 } from './PixelyCard.vue'
