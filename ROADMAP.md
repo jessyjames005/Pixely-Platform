@@ -1675,7 +1675,7 @@ The roadmap should be updated progressively as each sprint is completed.
 
 * [x] U15 — Extension SDK: developer tools and documentation — **Complete**
 * [x] U16 — Sample Cinema: complete reference extension — **Complete**
-* U17 — Administration and user-experience consolidation
+* U17 — Design System, UI/UX Kit & Storybook Integration — **In progress**
 * U18 — Stable release preparation
 
 ### U15 — Extension SDK: developer tools and documentation
@@ -1712,3 +1712,15 @@ The roadmap should be updated progressively as each sprint is completed.
 * [x] Reconcile final sprint documentation and prepare the pull request description.
 
 U16 is complete, with all backend, frontend, regression, security audit, and test gates validated successfully.
+
+
+### U17 — Design System, UI/UX Kit & Storybook Integration
+
+**Goal:** implement the Pixely Design System component kit and Storybook environment for isolated UI/UX development, documentation, and component validation.
+
+#### Lots
+
+* [ ] U17.1 — Storybook Installation & Configuration: install Storybook for Vite/Vue 3 (`@storybook/vue3-vite`), configure addons, build pipeline, and Vuetify 3 theme integration.
+* [ ] U17.2 — UI/UX Design System Component Library: implement design tokens, typography, colors, layout primitives, and shared component wrappers.
+* [ ] U17.3 — Storybook Stories for Core & Extension Components: write interactive stories for core components and extension widgets (e.g. CinemaCalendarAgenda).
+* [ ] U17.4 — Validation, Documentation & Sprint Close: build Storybook, verify component states, document usage guidelines, and prepare sprint delivery.
