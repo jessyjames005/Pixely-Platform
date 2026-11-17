@@ -2,7 +2,7 @@
 
 ## Overview
 
-Pixely Platform is a modular application platform built on Laravel.
+Pixely Platform is a modular website platform built on Laravel. One installation represents one independent website; multi-site / multi-tenant hosting inside one installation is deferred (ADR-0010).
 
 Its architecture is based on a small Core and an extensible system where all business features are implemented as Extensions.
 
@@ -28,9 +28,21 @@ Its architecture is based on a small Core and an extensible system where all bus
 
 - Follow Laravel conventions.
 - Keep the Core as small as possible.
-- Everything is an Extension.
+- Business capabilities are Extensions; shared publishing mechanisms belong to the Website Engine.
 - Extensions communicate through Contracts and Events.
 - Documentation is part of the product.
+
+## Deployment boundary
+
+- One installation = one independent website.
+- No generalised `site_id` / `tenant_id` is introduced in the current architecture.
+- Platform-wide and website-level configuration remain scoped to the installation unless a later ADR explicitly changes that rule.
+- Multi-language content is supported independently from multi-tenant isolation.
+- Multi-site is reconsidered only after a confirmed business need and a dedicated architecture review.
+
+## Website Engine
+
+The Website Engine owns the shared website mechanisms: pages, menus, content blocks, layouts/templates, preview, publication, URLs, redirects and SEO metadata. Extensions contribute domain content through explicit contracts; they must not duplicate the common publishing and navigation mechanisms.
 
 ## Extension Types
 

@@ -54,4 +54,6 @@ These are project guidance values, not a replacement for Vuetify's responsive di
 
 ## Scope and next steps
 
-This first foundation establishes tokens, theme semantics, baseline focus styling, and reduced-motion support. It does not yet claim that all existing pages/components are fully migrated, that Storybook is configured, or that a complete accessibility audit has passed. Subsequent S5 work should migrate existing UI incrementally and add component specifications and visual examples.
+The current U17 implementation adds Storybook for the Vite/Vue 3 application with Vuetify 3 integration, Pixely design tokens, shared UI/UX wrappers, authentication page components and the `PixelyCalendar` component with stories.
+
+U17.4 remains the validation and close-out lot: run a clean production build, review the documented component states and themes, complete the baseline keyboard/contrast/accessibility checks, and document the contributor workflow. Do not claim a complete WCAG audit or that every legacy screen has been migrated until those checks are evidenced.

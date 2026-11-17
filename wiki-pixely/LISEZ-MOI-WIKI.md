@@ -1,6 +1,6 @@
 # Mise en place du wiki GitHub
 
-Le wiki est généré à partir de `docs/` (source de vérité) par `scripts/build-wiki.py`.
+Le wiki est généré à partir de la documentation du dépôt (`README.md`, `VISION.md`, `ROADMAP.md`, `CHANGELOG.md`, `ARCHITECTURE.md` et `docs/`) par `wiki-pixely/scripts/build-wiki.py`. Les sources du dépôt restent la source de vérité.
 
 ## Mise en place (une fois)
 
@@ -9,9 +9,9 @@ Le wiki est généré à partir de `docs/` (source de vérité) par `scripts/bui
 3. En local, depuis le dépôt :
 
 ```bash
-python3 scripts/build-wiki.py build/wiki
+python3 wiki-pixely/scripts/build-wiki.py wiki-pixely/build/wiki
 git clone git@github.com:jessyjames005/Pixely-Platform.wiki.git ../Pixely-Platform.wiki
-rsync -a --delete --exclude .git build/wiki/ ../Pixely-Platform.wiki/
+rsync -a --delete --exclude .git wiki-pixely/build/wiki/ ../Pixely-Platform.wiki/
 cd ../Pixely-Platform.wiki
 git add -A && git commit -m "Initial wiki" && git push
 ```
@@ -21,6 +21,6 @@ git add -A && git commit -m "Initial wiki" && git push
 ## Mise à jour
 
 - Manuelle : relancer les commandes ci-dessus.
-- Automatique : `.github/workflows/wiki-sync.yml` (déclenchement manuel dans l'onglet Actions). Pour publier à chaque push sur `develop` qui modifie la doc, créer la variable de dépôt `WIKI_SYNC` = `true`.
+- Automatique : `.github/workflows/wiki-sync.yml` (déclenchement manuel dans l'onglet Actions). Le workflow nécessite un secret de dépôt `WIKI_TOKEN` disposant du droit d'écriture sur le wiki. Pour publier à chaque push sur `develop` qui modifie la documentation, créer la variable de dépôt `WIKI_SYNC` = `true`.
 
-Ne modifie pas les pages directement sur GitHub : elles seraient écrasées à la prochaine synchronisation. Pour ajouter une page, l'ajouter au dictionnaire `PAGES` de `scripts/build-wiki.py`.
+Ne modifie pas les pages directement sur GitHub : elles seraient écrasées à la prochaine synchronisation. Pour ajouter une page, l'ajouter au dictionnaire `PAGES` de `wiki-pixely/scripts/build-wiki.py`.

@@ -4,6 +4,143 @@
 
 This roadmap defines the planned evolution of Pixely Platform from the initial platform foundation to a stable, extensible platform with a complete administration interface, developer tooling and multiple example extensions.
 
+
+> **Current planning baseline — Planning Global V4.0 (17 November 2026).**  
+> This V4 section is the authoritative execution sequence and supersedes older proposed sprint orders and future-capability checklists wherever they conflict. Historical milestone checklists below are retained for traceability; they are not a second active backlog. Implementation status is based on the supplied repository snapshot (`797ee43`) and must be revalidated against CI before a release is declared.
+
+## Current product and architecture baseline
+
+- **Product:** a modular platform to create, publish and administer a complete website.
+- **Deployment boundary:** one Pixely installation = one independent website. Multi-site / multi-tenant hosting inside one installation is deferred by [ADR-0010](ADR-0010).
+- **Surfaces:** `public`, `user`, `admin` and `api` are surfaces of the same installation, not tenants.
+- **Languages:** multi-language interface and content remain in scope; language is not a site-isolation boundary.
+- **Core:** bootstrap, shared contracts, authentication/authorization, configuration, lifecycle and genuinely cross-domain services.
+- **Website Engine:** shared pages, menus, blocks, templates/layouts, preview, publication, URLs, redirects and SEO.
+- **Extensions:** domain capabilities remain independently owned and integrated through explicit SDK contracts.
+- **Frontend:** Vue 3, TypeScript and Vuetify with Pixely tokens, Material Design 3 principles and Storybook.
+- **OpenAPI:** PHP Attributes are the source of truth; `zircote/swagger-php` generates `docs/api/openapi.yml`; Swagger UI is the official UI. Never maintain the generated YAML manually.
+
+## Verified starting point (repository snapshot)
+
+- U16 — CinemaMovie reference extension: **complete in the roadmap and represented by the delivered code/test infrastructure**.
+- U17.1 — Storybook installation and Vite/Vue/Vuetify integration: **implemented in the supplied branch**.
+- U17.2 — Pixely Design System foundations and shared UI wrappers: **implemented in the supplied branch**.
+- U17.3 — Stories for Core and extension components, including the Cinema calendar component: **implemented in the supplied branch**.
+- U17.4 — clean Storybook production build, state/accessibility review, usage documentation and sprint close: **not yet evidenced as complete**. Keep U17 open until the required checks and documentation are validated.
+- U18: planned; not started in this snapshot.
+
+The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`feat(design-system): add PixelyCalendar component and Storybook stories`). This identifies the source snapshot only; it does not prove a green remote CI run.
+
+## V4 execution sequence
+
+### U17.4 — Design System and Storybook close
+
+**Goal:** validate and document the foundations already implemented without expanding into an unbounded visual redesign.
+
+- [ ] Run Storybook locally from a clean dependency install.
+- [ ] Run the production Storybook build and record the exact command/result.
+- [ ] Review priority stories in light/dark themes and responsive layouts.
+- [ ] Verify relevant component states: default, hover, focus, disabled, loading, empty, error and validation.
+- [ ] Review keyboard navigation, visible focus, accessible names, contrast and reduced-motion behavior.
+- [ ] Document Storybook installation, launch, story creation, conventions and contribution workflow.
+- [ ] Decide whether Storybook build and selected accessibility checks are required CI gates.
+- [ ] Update roadmap/changelog/docs from actual results and close U17 only after evidence is available.
+
+**Exit evidence:** reproducible successful build, priority stories usable, contributor guide complete, accessibility baseline checked, required CI green.
+
+### U18 — Stabilisation and stable-release preparation
+
+- [ ] **Installation:** repeatable clean install; environment, storage, assets, mail, queue and scheduler verified.
+- [ ] **Migrations/upgrades:** Core and extension migrations tested on fresh and existing databases; versioned upgrade and recovery behavior documented.
+- [ ] **Security:** review authentication, 2FA, sessions, Sanctum, RBAC, policies, API, validation, secrets and sensitive operations.
+- [ ] **Extension SDK:** validate manifests, dependencies, lifecycle, routes, permissions, navigation, blocks, settings and compatibility.
+- [ ] **API:** verify generated OpenAPI from PHP Attributes, official Swagger UI, error format and versioning.
+- [ ] **Quality:** reproducible backend, frontend, E2E, lint, static-analysis, build and CI gates.
+- [ ] **Operations:** verify mail, workers, scheduler, cache, logs, health checks, backup and a demonstrated restore.
+- [ ] **Release documentation:** install/update/rollback guide, troubleshooting, release notes and feature/limitation matrix.
+
+**Exit evidence:** no open critical security or data-loss defect; targeted fresh-install and upgrade paths reproducible; CI green; restore tested; known limitations documented.
+
+### S3 — Website Engine (single-site)
+
+- [ ] Audit existing pages, menus and public rendering before adding or duplicating capabilities.
+- [ ] Pages CRUD, unique slugs per installation, draft/published states and publication rules.
+- [ ] Menu hierarchy, ordering, internal/external links and validation.
+- [ ] Typed and safely rendered content blocks.
+- [ ] Reusable layouts/templates with content/presentation separation.
+- [ ] Preview and controlled publication workflow.
+- [ ] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
+- [ ] Render cache and invalidation after publication or mutation.
+- [ ] Explicit language/content distinction and documented locale fallback.
+
+**Exit evidence:** an administrator can create, edit, preview and publish a page; menus, URLs, blocks, SEO and language behavior have automated tests and documentation.
+
+### S4 — Public Extension integration contracts
+
+- [ ] Define how extensions expose public pages, routes, blocks, navigation and SEO metadata.
+- [ ] Integrate CinemaMovie as the pilot without leaking its domain concepts into the Website Engine.
+- [ ] Keep server-side permissions and validation authoritative.
+- [ ] Document rendering, asset loading, error handling and route compatibility.
+- [ ] Provide a minimal example extension publishing content through the Website Engine.
+
+**Exit evidence:** CinemaMovie integrates through documented contracts without direct coupling to Website Engine internals; critical paths have backend/frontend/E2E coverage.
+
+### S5–S11 — Gallery and first public release (R1)
+
+- **S5 — Gallery administration:** audit existing Gallery/Files capabilities; complete album, media and administration CRUD workflows without duplicating existing functionality.
+- **S6 — Media Manager:** shared storage abstraction, metadata, permissions, transformations, asynchronous jobs, quotas and orphan cleanup. Gallery consumes shared media services; it does not own platform-wide storage.
+- **S7 — Gallery public alpha:** public templates, listing/detail pages, navigation and responsive behavior.
+- **S8 — Theme, languages and SEO:** public theme, locale fallback, metadata, accessibility and responsive review.
+- **S9 — Functional stabilisation R1:** public journeys, performance budgets, error handling and regression coverage.
+- **S10 — R1 preproduction/operations:** cache, security, backup and demonstrated restore.
+- **S11 — R1 delivery:** acceptance, documentation, controlled deployment and retrospective.
+
+### S12–S14 — R2 interaction and moderation
+
+- Reviews/ratings, comments, moderation queues and reports.
+- Contact workflows and notifications where required.
+- RGPD data handling, audit trails, retention and export/deletion workflows.
+
+### S15–S18 — R3 photo editing
+
+- Product and technical study before implementation.
+- Editor UX and image operations.
+- Version history, rollback and storage lifecycle.
+- Performance, tests and user/developer documentation.
+
+### After R3 — Additional extensions and shared services
+
+- **Blog:** editorial workflows, authors, categories/tags, scheduling, multilingual content, SEO and moderation.
+- **Form Builder:** typed forms, validation, submissions, anti-spam, notifications and export.
+- **Online Store:** products, variants, pricing, taxes, inventory, cart, orders, delivery and refunds; use specialist payment providers rather than building a payment processor in Core.
+- **Media Converter:** asynchronous conversion, formats, limits, history and retry.
+- Other extensions (including Music) require a separate business, licensing and technical assessment.
+
+Order: CinemaMovie as SDK reference → Gallery as first complete product extension → Blog after editorial workflow validation → Online Store after security, audit and external payment integrations are mature.
+
+### Pre-V1.0 — Release candidate
+
+Freeze the commercial V1.0 scope before candidate preparation. Require installation/upgrade/rollback validation, security review, UX acceptance, compatibility matrix, operational readiness, support process and complete administrator/developer/API documentation. Not every planned extension is a V1.0 requirement.
+
+## Cross-cutting work required throughout the sequence
+
+- Architecture dependency map and tests for Core / Shared / Website Engine / Extensions boundaries; no dependency cycles.
+- Explicit event contracts, error handling, correlation IDs, transaction boundaries and contract deprecation policy.
+- Threat modelling, authorization/IDOR tests, secure upload handling, rate limits, secret handling and RGPD data inventory.
+- UX profiles and end-to-end task flows; information architecture, wireframes and user feedback.
+- Design System foundations, components and workflow patterns; target WCAG 2.2 AA for critical journeys.
+- Backend/frontend/E2E/architecture/accessibility/security checks with deterministic test data and isolated services.
+- Structured logs, health checks, actionable alerts, backup/restore evidence, deployment and rollback procedures.
+
+## Governance and status rules
+
+- `ROADMAP.md` is the source of truth for status and upcoming work; `CHANGELOG.md` records only delivered changes.
+- Each sprint starts with a short audit of code, tests, CI, ADRs and docs to avoid rebuilding existing capabilities.
+- A checked box is not proof by itself. Record test commands/results and remote CI evidence before declaring a lot complete.
+- Two weeks per sprint is an indicative cadence, not a delivery commitment.
+- Multi-site / multi-tenant is not an active sprint item. Do not add speculative tenant columns or Teams-based isolation.
+
+
 ---
 
 ## v0.1.0 - Foundation
@@ -162,7 +299,7 @@ The original Module concept evolved into the Pixely Extension architecture.
 * [x] Permission checks
 * [x] Extension-declared permissions (dynamic, not hardcoded) — sync mechanism is done; the richer Roles UI described below is not, see detailed checklist
 
-#### Extension-declared permissions (reviewed 2026-08)
+#### Extension-declared permissions (reference: Mediboard rights screen, reviewed 2026-08)
 
 Today, permission sync is automatic: each extension optionally implements
 `ExtensionPermissionsInterface::declaredPermissions()`, and
@@ -329,6 +466,7 @@ Storybook provides an isolated environment for developing and documenting Vue.js
 
 ## S4 — Extension SDK v2
 
+
 The next SDK generation standardizes how extensions declare capabilities consumed by Core and Platform surfaces.
 
 ### Capability model
@@ -342,12 +480,15 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * [x] Extension Manager API exposes resolved capabilities
 * [x] Core route registration from extension declarations
 * [x] Core navigation registry from extension declarations
-* [ ] Block registry and renderer contract
-* [ ] Settings schema API and generated admin form
-* [ ] Frontend extension capability loader
+* [x] Block registry with namespaced identifiers, schema/surface validation, and protected API
+* [x] Typed settings schema API endpoint
+* [x] Public block sanitizer: allowlisted block types, bounded text, safe URL schemes, and omission of malformed/unknown blocks
+* [x] Generated admin settings form
+* [x] Frontend extension capability loader (typed block metadata, surface filtering, caching, and navigation loading)
 * [x] Extension generator updated for SDK v2 capabilities
 * [x] SDK v2 surface structure documentation
-* [ ] Frontend dynamic route registry
+* [x] Frontend dynamic route registry
+* [x] Trusted frontend block renderer contract with a local allowlist and surface enforcement
 
 ### Current SDK adoption
 
@@ -357,6 +498,33 @@ The next SDK generation standardizes how extensions declare capabilities consume
 * Tuleap: navigation + routes + permissions
 * CinemaMovie: navigation + routes + permissions
 * Existing lifecycle, dependencies, configuration and migration mechanisms remain compatible
+
+## v0.7.0 - Database-backed Extension Registry (S5)
+
+### Extension Runtime State
+
+* [x] Persist extension enabled/disabled state in the `extension_states` database table
+* [x] Keep extension manifests and PHP code as the source of identity, version and capabilities
+* [x] Import legacy `storage/pixely/extensions.json` records idempotently without overwriting database-managed state
+* [x] Keep fresh-install migrations bootable before the new table exists
+* [ ] Run repository and migration/import command tests
+* [x] Document the migration and rollback workflow
+
+## U1 — Pixely Update Manager Foundation
+
+The Update Manager provides one orchestration boundary for platform dependencies and installable extensions, plugins and themes. The official Pixely Registry is the authoritative release catalogue; Pixely, GitHub and GitLab may host release artifacts.
+
+### Architecture and contracts
+
+* [x] Record the official-registry and artifact-hosting decision (ADR-0009)
+* [x] Document the Update Manager boundaries, lifecycle and security requirements
+* [x] Define registry, artifact-source, verifier and installer contracts
+* [x] Define immutable update query, release, artifact, plan and installation DTOs
+* [x] Define component types, release channels and artifact providers
+* [x] Add DTO invariant unit tests
+* [ ] Implement registry, hosting, verification and installation adapters (U3–U5)
+* [x] Implement Composer/npm dependency adapters (U2)
+* [x] Implement U6.1: read-only Registry-backed extension discovery/plans and update history
 
 ## v0.5.0 - Extension SDK
 
@@ -428,14 +596,14 @@ Today, `update()` replaces an extension's entire directory from a new zip. The t
 
 ### Developer Experience
 
-* [ ] Extension generator — CLI command (`php artisan make:extension <name>`) scaffolding an empty, valid extension: `extension.php` manifest, main class implementing `ExtensionInterface`, `Providers/`, `Http/Controllers/`, `routes/api.php`, `Database/Migrations/`, `resources/js/{store,models,views,tests}` following the established domain-driven frontend structure
+* [x] Extension generator — `php artisan make:extension <name>` scaffolds an SDK v2 extension; validates names, avoids overwriting existing extensions, and creates backend, API, frontend, and test starters
 * [ ] Extension development template
-* [ ] Extension testing helpers
-* [ ] Extension SDK documentation
-* [ ] Extension development guidelines
-* [ ] Extension frontend guidelines
-* [ ] Extension Design System guidelines
-* [ ] Extension Storybook guidelines
+* [x] Extension testing helpers
+* [x] Extension SDK documentation
+* [x] Extension development guidelines
+* [x] Extension frontend guidelines
+* [x] Extension Design System guidelines
+* [x] Extension Storybook guidelines (guidance only; Storybook integration deferred)
 
 ### Extension Quality & Testing
 
@@ -450,9 +618,9 @@ backend, frontend and end-to-end behaviour.
 * [ ] All test suites runnable locally
 * [ ] All test suites runnable in CI/CD
 * [ ] Test commands separated by category
-* [ ] Extension testing helpers
+* [x] Extension testing helpers
 * [ ] Extension test fixtures
-* [ ] Extension testing documentation
+* [x] Extension testing documentation
 
 #### Coverage Quality Gate
 
@@ -603,9 +771,9 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [x] Favourite tabs/sections per administrator
 * [x] Permission-aware UI
 
-#### Extension Manager UI (reviewed 2026-08)
+#### Extension Manager UI (reference: Mediboard modules screen, reviewed 2026-08)
 
-* [x] Two tabs — adapted to "Enabled (N)" / "Disabled (N)": Pixely has no catalog of known-but-absent modules the way external app does; an extension discovered on disk is registered and already installed by definition, so "Installed/Not installed" doesn't map to anything real here
+* [x] Two tabs — adapted to "Enabled (N)" / "Disabled (N)": Pixely has no catalog of known-but-absent modules the way Mediboard does; an extension discovered on disk is registered and already installed by definition, so "Installed/Not installed" doesn't map to anything real here
 * [x] Table columns: name, dependencies, Configurer button, version, Enabled toggle, actions (details/config/update/uninstall)
 * [ ] "Type" column — not built: nothing in `ExtensionManifest` categorizes extensions today, and every row in this table is an extension by definition (Core modules aren't toggleable entries here), so there's no second dimension to show yet
 * [ ] "Visible" toggle — not built: a disabled extension's nav entries already disappear entirely (`AdminNav.vue` hides anything gated on a disabled extension's permissions), so a second, independent visibility flag would need new state with no clear use case driving it yet
@@ -646,7 +814,7 @@ Swagger UI is the primary interactive interface for exploring and testing the ge
 * [ ] Global settings/configuration search (find any setting across platform + extensions)
 * [ ] Translation management interface (view/edit every translation key, platform and extensions, in one place)
 
-#### Translation Management UI (reviewed 2026-08)
+#### Translation Management UI (reference: Mediboard translation screen, reviewed 2026-08)
 
 * [ ] Filter by module (Core, or a specific installed extension), target language, and reference language
 * [ ] Per-category completion percentage (e.g. "70.69% — 5297/7493 terms"), with a visible progress indicator
@@ -1089,7 +1257,7 @@ This milestone gathers operational and developer-facing tools that support runni
 
 ### Database Explorer (dedicated admin-only extension)
 
-A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. Reference: a external app query builder (screenshots reviewed 2026-08).
+A dedicated extension, admin-only, complementing the raw SQL tool with a guided, visual, step-based interface — no SQL knowledge required to inspect or query data safely. Reference: a Mediboard-style query builder (screenshots reviewed 2026-08).
 
 #### Query Builder — step wizard (`v-stepper`, 6 steps)
 
@@ -1332,7 +1500,7 @@ Implements the Translation Management UI already specified under Administration 
 ### Platform
 
 * [ ] Multi-language platform
-* [ ] Multi-site support
+* [ ] Multi-site / multi-tenant hosting (deferred by ADR-0010; reopen only after a confirmed business requirement)
 * [ ] Configuration management
 * [ ] Event system
 * [ ] Job / queue system
@@ -1354,23 +1522,6 @@ Implements the Translation Management UI already specified under Administration 
 * [ ] Replica health and lag monitoring, configurable fallback to the primary when a replica is unavailable or too far behind, and clear logging/metrics for routing decisions
 * [ ] Tests for multiple connections, migration history isolation, read/write routing, replica failure, and stale-read-sensitive operations
 * [ ] Operational documentation covering setup, credentials, replication prerequisites, migration procedures, recovery, and troubleshooting
-
-### S21 — External Database Connections & Read Replication (planned)
-
-**Goal:** allow Pixely to connect safely to additional databases, manage their schema evolution, and reduce production read load by routing eligible reads to database replicas.
-
-* [ ] Define supported database drivers and a typed configuration contract for named connections
-* [ ] Implement secure connection registration, connection testing, health status, and permission-gated administration
-* [ ] Keep credentials in environment/secret configuration; never expose secrets through APIs, UI responses, logs, or exception messages
-* [ ] Implement a per-connection migration ledger so schema versions and applied migrations remain isolated between databases
-* [ ] Add migration planning/preflight checks, locking, failure recovery guidance, and an explicit policy for destructive migrations
-* [ ] Implement primary/write and replica/read connection roles; keep writes and consistency-sensitive reads on the primary
-* [ ] Route only eligible read-only queries to healthy replicas, with configurable lag thresholds and fallback to the primary
-* [ ] Expose replica health and replication lag through authorised diagnostics/monitoring
-* [ ] Add automated tests for connection isolation, migration versioning, routing, replica unavailability, and consistency-sensitive reads
-* [ ] Document deployment configuration, database permissions, replication setup, migration operations, and recovery procedures
-
-> **Safety rule:** read replicas are not independent write targets. Pixely must never route writes to a read replica. Migration execution against external databases must be explicit, permission-gated, and auditable.
 
 ### Frontend Platform
 
@@ -1454,7 +1605,7 @@ Roles UI redesign (card grid matching the Material 3 reference layout, Edit Role
 Roles UI: Accessibilité control (adaptive 2/3-state) + Droits existants summary — shipped; Visibilité deliberately not built as a separate mechanism, see detailed checklist
  │
  ▼
-Extension Manager UI — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
+Extension Manager UI (Enabled/Disabled tabs, adapted from Mediboard's Installed/Not-installed — Pixely has no not-yet-installed catalog) — shipped; Type column, Visible toggle and bulk Update-all deliberately not built, see detailed checklist
  │
  ▼
 Files API (standalone) + Files administration screen — shipped; tracks new uploads made through its own API only, Gallery/avatar uploads keep their separate storage and aren't retroactively migrated into it
@@ -1486,7 +1637,7 @@ The Pixely Platform currently has a functional extension foundation with:
 * Users: self-service profile screen (avatar, bio, timezone)
 * Users: personal preferences (theme, density, email notifications), applied platform-wide via Vuetify's theme/defaults system
 * Roles & permissions administration, including nested/child menu support, a card-based Roles UI (per-role user list with active/inactive status, Edit Role modal grouping permissions by domain with an adaptive Accessibilité control), and a read-only Droits existants matrix
-* Extension Manager UI: Enabled/Disabled tabs, kept the existing dependency chips, config dialog, and uninstall safety toggle
+* Extension Manager UI: Enabled/Disabled tabs (adapted from Mediboard's Installed/Not-installed, which doesn't map to Pixely's model), kept the existing dependency chips, config dialog, and uninstall safety toggle
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Files extension: standalone API (upload/list/delete, its own `files` table) and admin screen (`/admin/files`), on top of the shared upload/validation service Gallery and the profile avatar already used
 * Extension settings: config dialog now generates its form from each extension's declared defaults instead of a raw JSON textarea; `GET /extensions/{id}/config` now merges declared defaults with stored overrides instead of returning only the (possibly empty) overrides
@@ -1524,3 +1675,191 @@ The development process should continue through clearly defined sprints, with ea
 * A Git commit at the end of the sprint
 
 The roadmap should be updated progressively as each sprint is completed.
+
+
+## Platform Foundation Status (2026-10-09)
+
+### Completed foundations
+- [x] **S0 — Multi-Surface Foundation:** `PUBLIC`, `USER`, `ADMIN`, and `API` surface context/resolution, middleware, route metadata, authorization boundaries, and extension surface declarations.
+- [x] **S1 — Website Engine Foundation:** page and menu persistence, CRUD, slugs, publishing workflow, SEO metadata, navigation provider/API, public page rendering, safe content blocks, default content seeder, theme tokens, and public error pages.
+- [x] **S3 — User Space:** authenticated `/account` surface, dashboard/profile/preferences, generic favorites/history, API endpoints, pagination, ownership isolation, validation, timestamps, rate limiting, and automated tests.
+- [x] **Admin navigation foundation** and **extension generator foundation**.
+- [x] **User management foundation** and JSON:API migration foundations (resource objects, error responses, links, content negotiation, response classes, OpenAPI integration, frontend types, and tests).
+- [x] **Swagger UI foundation**; verify full interactive API exploration during release validation.
+
+### Current execution order
+1. S0 — Multi-Surface Foundation — **Complete**
+2. S1 — Website Engine Foundation — **Complete**
+3. S3 — User Space — **Complete**
+4. S4 — Extension SDK v2 — **Current**
+5. S5 — Theme & Design System
+6. S6 — Gallery Full-Surface
+7. S7 — Media & Asset Management
+8. S8 — Search & Discovery
+9. S9 — Notifications
+10. S10 — Jobs & Queue Platform
+11. S11 — Music
+12. S12 — Camping
+13. S13 — Media Converter
+14. S14 — Observability
+15. S15 — Security Hardening
+16. S16 — Performance & Scalability
+17. S17 — Backup & Disaster Recovery
+18. S18 — Developer Experience
+19. S19 — Documentation & Developer Portal
+20. S20 — Pixely Platform v1
+21. S21 — External Database Connections & Read Replication
+
+### S21 — External Database Connections & Read Replication (planned)
+
+**Goal:** allow Pixely to connect safely to additional databases, manage their schema evolution, and reduce production read load by routing eligible reads to database replicas.
+
+* [ ] Define supported database drivers and a typed configuration contract for named connections
+* [ ] Implement secure connection registration, connection testing, health status, and permission-gated administration
+* [ ] Keep credentials in environment/secret configuration; never expose secrets through APIs, UI responses, logs, or exception messages
+* [ ] Implement a per-connection migration ledger so schema versions and applied migrations remain isolated between databases
+* [ ] Add migration planning/preflight checks, locking, failure recovery guidance, and an explicit policy for destructive migrations
+* [ ] Implement primary/write and replica/read connection roles; keep writes and consistency-sensitive reads on the primary
+* [ ] Route only eligible read-only queries to healthy replicas, with configurable lag thresholds and fallback to the primary
+* [ ] Expose replica health and replication lag through authorised diagnostics/monitoring
+* [ ] Add automated tests for connection isolation, migration versioning, routing, replica unavailability, and consistency-sensitive reads
+* [ ] Document deployment configuration, database permissions, replication setup, migration operations, and recovery procedures
+
+> **Safety rule:** read replicas are not independent write targets. Pixely must never route writes to a read replica. Migration execution against external databases must be explicit, permission-gated, and auditable.
+
+### S4 — Extension SDK v2 execution order
+1. Capability model and capability registry
+2. Migrate existing extensions to the SDK v2 structure
+3. Fresh-install extension generator
+4. Automatic route and navigation registration
+5. Block registry and settings schema API (initial implementation complete)
+6. Trusted block renderer contract and generated settings form (both contracts implemented; concrete extension renderers can be added when blocks are introduced)
+7. Frontend capability loader (initial implementation complete)
+8. Frontend dynamic route registry — implemented
+9. Coverage and production-quality gate
+
+> **Quality gate:** PHP statement coverage must reach at least 80% before an extension is considered production-ready. Run PHP and Node validation in the project's Docker environment before merging.
+
+## U2 — Composer and npm Dependency Adapters
+
+* [x] Add process-runner and dependency-updater contracts
+* [x] Add Composer and npm adapters with constrained updates, check, dry-run and audit operations
+* [x] Add unit tests for command construction and failure handling
+* [ ] Integrate Composer/npm operations, lockfile snapshots/recovery, and cross-container orchestration (future U6 scope; deferred)
+
+## U6 — Unified Update Command and History (in progress)
+
+### U6.1 — Read-only extension discovery and history
+
+* [x] Add `pixely:updates` for read-only, Registry-backed extension update discovery and compatible update plans
+* [x] Persist machine-readable reports in the existing extension update history directory and expose them through `pixely:update:reports`
+* [x] Surface Registry failures as failed command outcomes and failed history records
+
+### Deferred U6 scope
+
+* [ ] Integrate Composer/npm dependency operations and lockfile snapshots/recovery
+* [ ] Add cross-container orchestration for PHP and Node operations
+* [ ] Define and implement update execution/application under a separately approved scope; `pixely:updates` cannot apply or install updates
+
+## U12 — Extension Update & Installation System (complete)
+
+**Goal:** allow an administrator to download, verify, preflight, and explicitly install or update an extension release with traceable outcomes and best-effort file rollback reporting.
+
+### Completed lots
+
+* [x] U12.1 — Download an exact extension release into private quarantine
+* [x] U12.2 — Verify artifact size, SHA-256, and Ed25519 signature
+* [x] U12.3 — Preflight package metadata and compatibility without executing package PHP
+* [x] U12.4 — Require explicit approval before installing or replacing a quarantined release
+* [x] U12.5 — Reuse the existing migration and versioned upgrade pipeline
+* [x] U12.6 — Report filesystem rollback failures and database recovery limitations
+* [x] U12.7 — Record U12 operation outcomes and expose protected audit history
+
+### Sprint close
+
+* [x] U12.8 — Run the focused integration/regression suite, review the final documentation, and prepare the sprint pull request description.
+
+### U13 — Advanced extension dependency management (complete)
+
+**Goal:** plan and apply locally available extension updates as a dependency-aware batch while preserving explicit operator control. Dependency packages are never downloaded, installed, or removed automatically.
+
+#### Planned lots
+
+* [x] U13.1 — Resolve the complete set of local update candidates against installed and candidate versions; reject unsatisfied requirements, conflicts, and cycles; return a deterministic dependency-first execution order.
+* [x] U13.2 — Use the global plan for `pixely:update --dry-run` and report the proposed order and blockers.
+* [x] U13.3 — Require explicit confirmation before applying the planned batch; block dependents of failed updates, continue independent candidates, and report partial outcomes.
+
+### Sprint close
+
+* [x] U13.4 — Run the focused regression suite, reconcile the roadmap and changelog, review technical documentation, and prepare the sprint pull request description.
+
+### U14 — Central Registry and extension catalogue (complete)
+
+**Goal:** provide an operator-controlled, signed-manifest Registry with public release resolution and package discovery.
+
+#### Completed lots
+
+* [x] U14.1 — Import trusted local schema-v1 manifests into immutable relational package and release records.
+* [x] U14.2 — Expose public release listing and exact resolution with SemVer filtering, encrypted cursors, Problem Details, and per-IP/per-client rate limits.
+* [x] U14.3 — Add public package search and discovery with type filters, cursor pagination, and latest-release summaries.
+* [x] U14.4 — Run Registry regression and quality checks, reconcile sprint documentation, and prepare the pull request description.
+
+#### Deferred U14 scope
+
+* Publishing and upload workflows, Registry accounts and moderation.
+* Search by categories, ratings, download statistics, or compatibility-filtered runtime versions.
+* Conditional `304` responses, cursor expiration, and bounded SemVer scans for large release histories.
+
+### Proposed follow-on sprints
+
+* [x] U15 — Extension SDK: developer tools and documentation — **Complete**
+* [x] U16 — Sample Cinema: complete reference extension — **Complete**
+* U17 — Design System, UI/UX Kit & Storybook Integration — **In progress**
+* U18 — Stable release preparation
+
+### U15 — Extension SDK: developer tools and documentation
+
+#### Completed lots
+
+* [x] U15.1 — Harden the existing extension generator, reject unsafe names, and use Pixely's extension migration runner rather than Laravel migration auto-discovery.
+* [x] U15.2 — Discover extension backend tests through PHPUnit, add reusable API test helpers, and document local/CI test execution.
+* [x] U15.3 — Document the SDK, extension development workflow, capabilities, lifecycle, dependencies, and migrations.
+* [x] U15.4 — Document extension frontend, Design System, and Storybook guidance.
+
+#### Deferred U15 scope
+
+* A separate downloadable/development template beyond the `make:extension` generator.
+* Storybook package/configuration, runnable stories, and CI integration; this sprint documents intended usage only.
+
+
+### U16 — Sample Cinema: complete reference extension
+
+**Goal:** deliver CinemaMovie as an end-to-end reference implementation of the Pixely extension SDK, including its catalogue domain, administration workflows, media integration, API and browser-level regression coverage.
+
+#### Completed lots
+
+* [x] U16.1 — Scaffold the CinemaMovie extension on SDK v2, declare its capabilities, permissions, dependency and versioned upgrade path.
+* [x] U16.2 — Implement the movie and genre catalogue domain, bilingual translations, validation, persistence and authenticated JSON:API resources.
+* [x] U16.3 — Implement movie and genre administration workflows, permission-aware actions, movie/genre assignment and Files media relationships.
+
+#### U16.4 — End-to-end coverage and sprint close
+
+* [x] Add isolated Playwright execution infrastructure, reusable page objects and administrator persona setup.
+* [x] Add Chromium and Firefox coverage for authentication, CinemaMovie administration access, movie create/edit/delete and bilingual genre create/delete workflows.
+* [x] Document local E2E setup, safe database isolation, browser execution, CI reporting and the CinemaMovie reference extension.
+* [x] Run the complete browser suite and the focused backend/frontend regression and quality checks; resolve any failures.
+* [x] Reconcile final sprint documentation and prepare the pull request description.
+
+U16 is complete, with all backend, frontend, regression, security audit, and test gates validated successfully.
+
+
+### U17 — Design System, UI/UX Kit & Storybook Integration
+
+**Goal:** implement the Pixely Design System component kit and Storybook environment for isolated UI/UX development, documentation, and component validation.
+
+#### Lots
+
+* [x] U17.1 — Storybook Installation & Configuration: install Storybook for Vite/Vue 3 (`@storybook/vue3-vite`), configure addons, build pipeline, and Vuetify 3 theme integration.
+* [x] U17.2 — UI/UX Design System Component Library: implement design tokens, typography, colors, layout primitives, and shared component wrappers.
+* [x] U17.3 — Storybook Stories for Core & Extension Components: write interactive stories for core components and extension widgets (e.g. CinemaCalendarAgenda).
+* [ ] U17.4 — Validation, Documentation & Sprint Close: build Storybook, verify component states, document usage guidelines, and prepare sprint delivery.

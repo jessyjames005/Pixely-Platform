@@ -17,6 +17,7 @@
 - [Extension Manifest](Extension-Manifest)
 - [Extension SDK v2 Capabilities](Extension-SDK-v2-Capabilities)
 - [Extension SDK v2 Surfaces](Extension-SDK-v2-Surfaces)
+- [Website Engine](Website-Engine)
 
 **Handbook**
 
@@ -29,6 +30,7 @@
 
 **API**
 
+- [OpenAPI Generation](OpenAPI-Generation)
 - [API Query Parameters](API-Query-Parameters)
 - [API Examples](API-Examples)
 
@@ -48,6 +50,8 @@
 - [ADR 0006: Extension Dependency Safety](ADR-0006)
 - [ADR 0007: Sanctum SPA Authentication](ADR-0007)
 - [ADR 0008: Vuetify as the Design System Foundation](ADR-0008)
+- [ADR 0009: Update Manager and Official Pixely Registry](ADR-0009)
+- [ADR 0010: One Website per Pixely Installation](ADR-0010)
 - [ADR 0090: Multi-Surface Platform Architecture](ADR-0090)
 
 **Diagrams**

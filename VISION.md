@@ -2,9 +2,9 @@
 
 ## Our Mission
 
-Pixely Platform is an open-source modular platform built to help developers create scalable and maintainable applications.
+Pixely Platform is an open-source modular platform for creating, publishing and administering complete websites through a stable Core, a shared Website Engine and independent Extensions.
 
-Instead of building one large monolithic application, Pixely provides a powerful Core that can be extended through independent modules.
+Instead of building one large monolithic application, Pixely provides a stable Core and Website Engine that can be extended through independent Extensions.
 
 Our mission is to offer a solid foundation where every business feature can evolve independently while sharing common platform services.
 
@@ -43,9 +43,9 @@ The Core never contains business-specific features.
 
 ---
 
-### Modules provide business features
+### Extensions provide business features
 
-Every business capability belongs to an independent module.
+Every business capability belongs to an independent Extension.
 
 Examples include:
 
@@ -56,7 +56,7 @@ Examples include:
 * Statistics
 * Calendar
 
-Modules extend the platform without modifying the Core.
+Extensions extend the platform without modifying the Core.
 
 ---
 
@@ -94,16 +94,24 @@ We aim to build a platform that developers will enjoy using, extending and contr
 
 ---
 
+## Deployment model: one website per installation
+
+One Pixely installation represents one independent website. This keeps the data model, authorization boundaries, configuration, cache, storage and extension contracts understandable and avoids introducing tenant isolation before a real business need exists.
+
+Multi-site / multi-tenant hosting inside one installation is deferred. It may be reconsidered only after a confirmed requirement (for example, an agency managing multiple client sites or a SaaS multi-space offer) and a dedicated ADR covering data isolation, authorization, domains, sessions, cache, migrations and extension compatibility.
+
+This decision does not remove multi-language support or the multi-surface model.
+
 ## Multi-Surface Platform
 
-Pixely Platform is evolving toward a **Multi-Surface Platform**:
+A single installation exposes several **application surfaces**:
 
 - **Website (public)** — public-facing pages, SEO, menus
 - **User Space** — authenticated user dashboard (`/account`)
 - **Administration** — platform management (`/admin`)
 - **API** — JSON:API backend
 
-Each extension declares its supported surfaces in its manifest.
+Each extension may declare its supported surfaces in its manifest.
 The Core provides surface-agnostic contracts; extensions
 implement surface-specific behavior through optional interfaces.
 

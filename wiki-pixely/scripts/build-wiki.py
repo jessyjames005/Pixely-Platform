@@ -14,7 +14,8 @@ from pathlib import Path
 
 REPO_URL = "https://github.com/jessyjames005/Pixely-Platform"
 BRANCH = "develop"
-ROOT = Path(__file__).resolve().parent.parent
+# This script lives under wiki-pixely/scripts; source documentation lives at the repository root.
+ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "build" / "wiki"
 
 # source file -> (wiki page name, sidebar section)
@@ -31,6 +32,8 @@ PAGES = {
     "docs/architecture/extension-manifest.md": ("Extension-Manifest", "Architecture"),
     "docs/architecture/extension-sdk-v2-capabilities.md": ("Extension-SDK-v2-Capabilities", "Architecture"),
     "docs/architecture/extension-sdk-v2-surface-structure.md": ("Extension-SDK-v2-Surfaces", "Architecture"),
+    "docs/architecture/website-engine.md": ("Website-Engine", "Architecture"),
+    "docs/api/openapi-generation.md": ("OpenAPI-Generation", "API"),
     "docs/architecture/diagrams/boot-process.md": ("Diagram-Boot-Process", "Diagrams"),
     "docs/architecture/diagrams/contracts.md": ("Diagram-Contracts", "Diagrams"),
     "docs/architecture/diagrams/data-model.md": ("Diagram-Data-Model", "Diagrams"),

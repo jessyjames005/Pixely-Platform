@@ -2,6 +2,143 @@
 
 This roadmap defines the planned evolution of Pixely Platform from the initial platform foundation to a stable, extensible platform with a complete administration interface, developer tooling and multiple example extensions.
 
+
+> **Current planning baseline — Planning Global V4.0 (17 November 2026).**  
+> This V4 section is the authoritative execution sequence and supersedes older proposed sprint orders and future-capability checklists wherever they conflict. Historical milestone checklists below are retained for traceability; they are not a second active backlog. Implementation status is based on the supplied repository snapshot (`797ee43`) and must be revalidated against CI before a release is declared.
+
+## Current product and architecture baseline
+
+- **Product:** a modular platform to create, publish and administer a complete website.
+- **Deployment boundary:** one Pixely installation = one independent website. Multi-site / multi-tenant hosting inside one installation is deferred by [ADR-0010](docs/architecture/adr/ADR-0010-single-site-per-installation.md).
+- **Surfaces:** `public`, `user`, `admin` and `api` are surfaces of the same installation, not tenants.
+- **Languages:** multi-language interface and content remain in scope; language is not a site-isolation boundary.
+- **Core:** bootstrap, shared contracts, authentication/authorization, configuration, lifecycle and genuinely cross-domain services.
+- **Website Engine:** shared pages, menus, blocks, templates/layouts, preview, publication, URLs, redirects and SEO.
+- **Extensions:** domain capabilities remain independently owned and integrated through explicit SDK contracts.
+- **Frontend:** Vue 3, TypeScript and Vuetify with Pixely tokens, Material Design 3 principles and Storybook.
+- **OpenAPI:** PHP Attributes are the source of truth; `zircote/swagger-php` generates `docs/api/openapi.yml`; Swagger UI is the official UI. Never maintain the generated YAML manually.
+
+## Verified starting point (repository snapshot)
+
+- U16 — CinemaMovie reference extension: **complete in the roadmap and represented by the delivered code/test infrastructure**.
+- U17.1 — Storybook installation and Vite/Vue/Vuetify integration: **implemented in the supplied branch**.
+- U17.2 — Pixely Design System foundations and shared UI wrappers: **implemented in the supplied branch**.
+- U17.3 — Stories for Core and extension components, including the Cinema calendar component: **implemented in the supplied branch**.
+- U17.4 — clean Storybook production build, state/accessibility review, usage documentation and sprint close: **not yet evidenced as complete**. Keep U17 open until the required checks and documentation are validated.
+- U18: planned; not started in this snapshot.
+
+The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`feat(design-system): add PixelyCalendar component and Storybook stories`). This identifies the source snapshot only; it does not prove a green remote CI run.
+
+## V4 execution sequence
+
+### U17.4 — Design System and Storybook close
+
+**Goal:** validate and document the foundations already implemented without expanding into an unbounded visual redesign.
+
+- [ ] Run Storybook locally from a clean dependency install.
+- [ ] Run the production Storybook build and record the exact command/result.
+- [ ] Review priority stories in light/dark themes and responsive layouts.
+- [ ] Verify relevant component states: default, hover, focus, disabled, loading, empty, error and validation.
+- [ ] Review keyboard navigation, visible focus, accessible names, contrast and reduced-motion behavior.
+- [ ] Document Storybook installation, launch, story creation, conventions and contribution workflow.
+- [ ] Decide whether Storybook build and selected accessibility checks are required CI gates.
+- [ ] Update roadmap/changelog/docs from actual results and close U17 only after evidence is available.
+
+**Exit evidence:** reproducible successful build, priority stories usable, contributor guide complete, accessibility baseline checked, required CI green.
+
+### U18 — Stabilisation and stable-release preparation
+
+- [ ] **Installation:** repeatable clean install; environment, storage, assets, mail, queue and scheduler verified.
+- [ ] **Migrations/upgrades:** Core and extension migrations tested on fresh and existing databases; versioned upgrade and recovery behavior documented.
+- [ ] **Security:** review authentication, 2FA, sessions, Sanctum, RBAC, policies, API, validation, secrets and sensitive operations.
+- [ ] **Extension SDK:** validate manifests, dependencies, lifecycle, routes, permissions, navigation, blocks, settings and compatibility.
+- [ ] **API:** verify generated OpenAPI from PHP Attributes, official Swagger UI, error format and versioning.
+- [ ] **Quality:** reproducible backend, frontend, E2E, lint, static-analysis, build and CI gates.
+- [ ] **Operations:** verify mail, workers, scheduler, cache, logs, health checks, backup and a demonstrated restore.
+- [ ] **Release documentation:** install/update/rollback guide, troubleshooting, release notes and feature/limitation matrix.
+
+**Exit evidence:** no open critical security or data-loss defect; targeted fresh-install and upgrade paths reproducible; CI green; restore tested; known limitations documented.
+
+### S3 — Website Engine (single-site)
+
+- [ ] Audit existing pages, menus and public rendering before adding or duplicating capabilities.
+- [ ] Pages CRUD, unique slugs per installation, draft/published states and publication rules.
+- [ ] Menu hierarchy, ordering, internal/external links and validation.
+- [ ] Typed and safely rendered content blocks.
+- [ ] Reusable layouts/templates with content/presentation separation.
+- [ ] Preview and controlled publication workflow.
+- [ ] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
+- [ ] Render cache and invalidation after publication or mutation.
+- [ ] Explicit language/content distinction and documented locale fallback.
+
+**Exit evidence:** an administrator can create, edit, preview and publish a page; menus, URLs, blocks, SEO and language behavior have automated tests and documentation.
+
+### S4 — Public Extension integration contracts
+
+- [ ] Define how extensions expose public pages, routes, blocks, navigation and SEO metadata.
+- [ ] Integrate CinemaMovie as the pilot without leaking its domain concepts into the Website Engine.
+- [ ] Keep server-side permissions and validation authoritative.
+- [ ] Document rendering, asset loading, error handling and route compatibility.
+- [ ] Provide a minimal example extension publishing content through the Website Engine.
+
+**Exit evidence:** CinemaMovie integrates through documented contracts without direct coupling to Website Engine internals; critical paths have backend/frontend/E2E coverage.
+
+### S5–S11 — Gallery and first public release (R1)
+
+- **S5 — Gallery administration:** audit existing Gallery/Files capabilities; complete album, media and administration CRUD workflows without duplicating existing functionality.
+- **S6 — Media Manager:** shared storage abstraction, metadata, permissions, transformations, asynchronous jobs, quotas and orphan cleanup. Gallery consumes shared media services; it does not own platform-wide storage.
+- **S7 — Gallery public alpha:** public templates, listing/detail pages, navigation and responsive behavior.
+- **S8 — Theme, languages and SEO:** public theme, locale fallback, metadata, accessibility and responsive review.
+- **S9 — Functional stabilisation R1:** public journeys, performance budgets, error handling and regression coverage.
+- **S10 — R1 preproduction/operations:** cache, security, backup and demonstrated restore.
+- **S11 — R1 delivery:** acceptance, documentation, controlled deployment and retrospective.
+
+### S12–S14 — R2 interaction and moderation
+
+- Reviews/ratings, comments, moderation queues and reports.
+- Contact workflows and notifications where required.
+- RGPD data handling, audit trails, retention and export/deletion workflows.
+
+### S15–S18 — R3 photo editing
+
+- Product and technical study before implementation.
+- Editor UX and image operations.
+- Version history, rollback and storage lifecycle.
+- Performance, tests and user/developer documentation.
+
+### After R3 — Additional extensions and shared services
+
+- **Blog:** editorial workflows, authors, categories/tags, scheduling, multilingual content, SEO and moderation.
+- **Form Builder:** typed forms, validation, submissions, anti-spam, notifications and export.
+- **Online Store:** products, variants, pricing, taxes, inventory, cart, orders, delivery and refunds; use specialist payment providers rather than building a payment processor in Core.
+- **Media Converter:** asynchronous conversion, formats, limits, history and retry.
+- Other extensions (including Music) require a separate business, licensing and technical assessment.
+
+Order: CinemaMovie as SDK reference → Gallery as first complete product extension → Blog after editorial workflow validation → Online Store after security, audit and external payment integrations are mature.
+
+### Pre-V1.0 — Release candidate
+
+Freeze the commercial V1.0 scope before candidate preparation. Require installation/upgrade/rollback validation, security review, UX acceptance, compatibility matrix, operational readiness, support process and complete administrator/developer/API documentation. Not every planned extension is a V1.0 requirement.
+
+## Cross-cutting work required throughout the sequence
+
+- Architecture dependency map and tests for Core / Shared / Website Engine / Extensions boundaries; no dependency cycles.
+- Explicit event contracts, error handling, correlation IDs, transaction boundaries and contract deprecation policy.
+- Threat modelling, authorization/IDOR tests, secure upload handling, rate limits, secret handling and RGPD data inventory.
+- UX profiles and end-to-end task flows; information architecture, wireframes and user feedback.
+- Design System foundations, components and workflow patterns; target WCAG 2.2 AA for critical journeys.
+- Backend/frontend/E2E/architecture/accessibility/security checks with deterministic test data and isolated services.
+- Structured logs, health checks, actionable alerts, backup/restore evidence, deployment and rollback procedures.
+
+## Governance and status rules
+
+- `ROADMAP.md` is the source of truth for status and upcoming work; `CHANGELOG.md` records only delivered changes.
+- Each sprint starts with a short audit of code, tests, CI, ADRs and docs to avoid rebuilding existing capabilities.
+- A checked box is not proof by itself. Record test commands/results and remote CI evidence before declaring a lot complete.
+- Two weeks per sprint is an indicative cadence, not a delivery commitment.
+- Multi-site / multi-tenant is not an active sprint item. Do not add speculative tenant columns or Teams-based isolation.
+
+
 ---
 
 ## v0.1.0 - Foundation
@@ -1361,7 +1498,7 @@ Implements the Translation Management UI already specified under Administration 
 ### Platform
 
 * [ ] Multi-language platform
-* [ ] Multi-site support
+* [ ] Multi-site / multi-tenant hosting (deferred by ADR-0010; reopen only after a confirmed business requirement)
 * [ ] Configuration management
 * [ ] Event system
 * [ ] Job / queue system
