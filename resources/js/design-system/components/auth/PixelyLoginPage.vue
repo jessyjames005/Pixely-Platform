@@ -42,10 +42,18 @@ const modelPassword = ref(props.password)
             marginInline: 'auto',
           }"
         >
-          <v-icon icon="mdi-letter-m" size="28" color="#5B5BF5" />
+          <v-icon
+            icon="mdi-letter-m"
+            size="28"
+            color="#5B5BF5"
+          />
         </div>
-        <h1 class="text-h5 font-weight-bold mb-2">{{ title }}</h1>
-        <p class="text-body-2 text-medium-emphasis mb-0">{{ subtitle }}</p>
+        <h1 class="text-h5 font-weight-bold mb-2">
+          {{ title }}
+        </h1>
+        <p class="text-body-2 text-medium-emphasis mb-0">
+          {{ subtitle }}
+        </p>
       </div>
 
       <v-text-field
@@ -62,17 +70,20 @@ const modelPassword = ref(props.password)
           class="mr-auto"
           hide-details
         />
-        <a href="#" class="text-body-2 text-decoration-underline text-primary">{{ $t?.('common.action.forgot_password', 'Forgot Password?') }}</a>
+        <a
+          href="#"
+          class="text-body-2 text-decoration-underline text-primary"
+        >{{ $t?.('common.action.forgot_password', 'Forgot Password?') }}</a>
       </div>
       <v-text-field
         v-model="modelPassword"
         :label="$t('auth.password', 'Password')"
         :type="showPassword ? 'text' : 'password'"
         prepend-inner-icon="mdi-lock-outline"
-        append-inner-icon={showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'}
-        @click:append-inner="showPassword = !showPassword"
+        append-inner-icon="showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
         rules="[(v) => !!v || 'Password is required', (v) => v!.length >= 6 || 'Minimum 6 characters']"
         class="mb-8"
+        @click:append-inner="showPassword = !showPassword"
       />
       <div class="d-flex justify-space-between align-center mb-4">
         <v-btn
@@ -89,14 +100,31 @@ const modelPassword = ref(props.password)
         <span class="text-body-2 text-medium-emphasis mr-2">
           {{ $t('auth.new_here', 'New on our platform?') }}
         </span>
-        <a href="#" class="text-primary font-weight-medium text-decoration-underline">
+        <a
+          href="#"
+          class="text-primary font-weight-medium text-decoration-underline"
+        >
           {{ $t('auth.create_account', 'Create an account') }}
         </a>
       </div>
       <div class="d-flex align-center justify-center mt-8 border-t border-opacity-10 border-gray-light pt-6">
-        <v-icon icon="mdi-facebook" size="18" color="#3B5998" class="mr-4" />
-        <v-icon icon="mdi-twitter" size="18" color="#1DA1F2" class="mr-4" />
-        <v-icon icon="mdi-google" size="18" color="#DB4437" />
+        <v-icon
+          icon="mdi-facebook"
+          size="18"
+          color="#3B5998"
+          class="mr-4"
+        />
+        <v-icon
+          icon="mdi-twitter"
+          size="18"
+          color="#1DA1F2"
+          class="mr-4"
+        />
+        <v-icon
+          icon="mdi-google"
+          size="18"
+          color="#DB4437"
+        />
       </div>
     </v-card>
   </div>

@@ -25,28 +25,56 @@ withDefaults(
 </script>
 
 <template>
-  <v-card variant="outlined" :color="variant ?? undefined" rounded="lg">
+  <v-card
+    variant="outlined"
+    :color="variant ?? undefined"
+    rounded="lg"
+  >
     <v-card-text>
       <div class="d-flex align-center ga-1 text-caption text-medium-emphasis text-uppercase font-weight-bold">
         {{ label }}
-        <v-tooltip v-if="tooltip" location="top" max-width="240">
+        <v-tooltip
+          v-if="tooltip"
+          location="top"
+          max-width="240"
+        >
           <template #activator="{ props: tooltipProps }">
-            <v-icon v-bind="tooltipProps" icon="mdi-information-outline" size="14" />
+            <v-icon
+              v-bind="tooltipProps"
+              icon="mdi-information-outline"
+              size="14"
+            />
           </template>
           {{ tooltip }}
         </v-tooltip>
       </div>
 
-      <div class="text-h5 font-weight-bold mt-1">{{ value }}</div>
+      <div class="text-h5 font-weight-bold mt-1">
+        {{ value }}
+      </div>
 
-      <div v-if="sub" class="text-caption text-medium-emphasis mt-1">{{ sub }}</div>
+      <div
+        v-if="sub"
+        class="text-caption text-medium-emphasis mt-1"
+      >
+        {{ sub }}
+      </div>
 
-      <div v-if="sub2" class="d-flex align-center ga-1 text-caption text-warning mt-1">
-        <v-icon icon="mdi-circle-small" size="16" />
+      <div
+        v-if="sub2"
+        class="d-flex align-center ga-1 text-caption text-warning mt-1"
+      >
+        <v-icon
+          icon="mdi-circle-small"
+          size="16"
+        />
         {{ sub2 }}
       </div>
 
-      <div v-if="progress !== undefined" class="mt-3">
+      <div
+        v-if="progress !== undefined"
+        class="mt-3"
+      >
         <v-progress-linear
           :model-value="Math.min(progress, 100)"
           :buffer-value="progressValidation ? Math.min(progress + progressValidation, 100) : undefined"

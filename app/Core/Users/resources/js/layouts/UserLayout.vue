@@ -15,12 +15,22 @@ async function logout(): Promise<void> {
 <template>
   <v-app>
     <v-navigation-drawer permanent>
-      <div class="pa-4 text-h6">Pixely</div>
+      <div class="pa-4 text-h6">
+        Pixely
+      </div>
       <UserSpaceNavigation />
       <template #append>
         <v-list nav>
-          <v-list-item to="/" prepend-icon="mdi-web" title="Public website" />
-          <v-list-item prepend-icon="mdi-logout" title="Log out" @click="logout" />
+          <v-list-item
+            to="/"
+            prepend-icon="mdi-web"
+            title="Public website"
+          />
+          <v-list-item
+            prepend-icon="mdi-logout"
+            title="Log out"
+            @click="logout"
+          />
         </v-list>
       </template>
     </v-navigation-drawer>
@@ -32,7 +42,10 @@ async function logout(): Promise<void> {
     </v-app-bar>
 
     <v-main>
-      <v-container class="py-6" fluid>
+      <v-container
+        class="py-6"
+        fluid
+      >
         <router-view />
       </v-container>
     </v-main>

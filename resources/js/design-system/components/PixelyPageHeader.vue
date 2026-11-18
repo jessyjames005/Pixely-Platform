@@ -30,14 +30,25 @@ const emit = defineEmits<{ action: [] }>()
         <v-icon :icon="icon" />
       </v-avatar>
       <div>
-        <h1 class="text-h5 font-weight-bold mb-1">{{ title }}</h1>
-        <p class="text-body-2 text-medium-emphasis mb-0">{{ subtitle }}</p>
+        <h1 class="text-h5 font-weight-bold mb-1">
+          {{ title }}
+        </h1>
+        <p class="text-body-2 text-medium-emphasis mb-0">
+          {{ subtitle }}
+        </p>
       </div>
     </div>
 
-    <div v-if="showAction" class="d-flex ga-2">
+    <div
+      v-if="showAction"
+      class="d-flex ga-2"
+    >
       <slot name="actions">
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="emit('action')">
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-plus"
+          @click="emit('action')"
+        >
           {{ actionLabel }}
         </v-btn>
       </slot>

@@ -212,10 +212,22 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
 </script>
 
 <template>
-  <v-card class="pixely-calendar" elevation="0" border :style="{ borderRadius: '16px', overflow: 'hidden' }">
+  <v-card
+    class="pixely-calendar"
+    elevation="0"
+    border
+    :style="{ borderRadius: '16px', overflow: 'hidden' }"
+  >
     <div class="d-flex calendar-shell">
       <aside class="calendar-sidebar pa-4">
-        <v-btn color="primary" variant="flat" block prepend-icon="mdi-plus" class="mb-6" @click="openDialog">
+        <v-btn
+          color="primary"
+          variant="flat"
+          block
+          prepend-icon="mdi-plus"
+          class="mb-6"
+          @click="openDialog"
+        >
           Add Event
         </v-btn>
 
@@ -234,7 +246,11 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
             color="primary"
             @update:model-value="toggleCategory(category.id)"
           />
-          <v-chip size="small" variant="flat" :style="{ backgroundColor: `${category.color}1A`, color: category.color }">
+          <v-chip
+            size="small"
+            variant="flat"
+            :style="{ backgroundColor: `${category.color}1A`, color: category.color }"
+          >
             {{ category.label }}
           </v-chip>
         </div>
@@ -243,27 +259,75 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
       <div class="flex-grow-1 calendar-main">
         <div class="calendar-toolbar d-flex align-center justify-space-between px-4 py-3 border-b border-opacity-10">
           <div class="d-flex align-center ga-2">
-            <v-btn icon variant="text" size="small" @click="goPrev">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              @click="goPrev"
+            >
               <v-icon icon="mdi-chevron-left" />
             </v-btn>
-            <v-btn icon variant="text" size="small" @click="goNext">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              @click="goNext"
+            >
               <v-icon icon="mdi-chevron-right" />
             </v-btn>
-            <v-btn variant="tonal" size="small" @click="goToday">Today</v-btn>
+            <v-btn
+              variant="tonal"
+              size="small"
+              @click="goToday"
+            >
+              Today
+            </v-btn>
             <span class="text-subtitle-1 font-weight-bold ms-2">{{ title }}</span>
           </div>
 
-          <v-btn-toggle v-model="view" mandatory density="compact" divided>
-            <v-btn value="month" size="small">Month</v-btn>
-            <v-btn value="week" size="small">Week</v-btn>
-            <v-btn value="day" size="small">Day</v-btn>
-            <v-btn value="agenda" size="small">Agenda</v-btn>
+          <v-btn-toggle
+            v-model="view"
+            mandatory
+            density="compact"
+            divided
+          >
+            <v-btn
+              value="month"
+              size="small"
+            >
+              Month
+            </v-btn>
+            <v-btn
+              value="week"
+              size="small"
+            >
+              Week
+            </v-btn>
+            <v-btn
+              value="day"
+              size="small"
+            >
+              Day
+            </v-btn>
+            <v-btn
+              value="agenda"
+              size="small"
+            >
+              Agenda
+            </v-btn>
           </v-btn-toggle>
         </div>
 
-        <div v-if="view === 'month'" class="calendar-month">
+        <div
+          v-if="view === 'month'"
+          class="calendar-month"
+        >
           <div class="month-headrow d-grid">
-            <div v-for="day in WEEKDAYS" :key="day" class="month-headcell text-caption font-weight-medium text-medium-emphasis">
+            <div
+              v-for="day in WEEKDAYS"
+              :key="day"
+              class="month-headcell text-caption font-weight-medium text-medium-emphasis"
+            >
               {{ day }}
             </div>
           </div>
@@ -297,7 +361,10 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
           </div>
         </div>
 
-        <div v-else-if="view === 'week'" class="calendar-week">
+        <div
+          v-else-if="view === 'week'"
+          class="calendar-week"
+        >
           <div class="week-headrow d-grid">
             <div class="week-hourcol" />
             <div
@@ -306,13 +373,21 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
               class="week-headcell text-center py-2"
               :class="{ 'week-headcell--today': sameDay(day, today) }"
             >
-              <div class="text-caption text-medium-emphasis">{{ WEEKDAYS[day.getDay()] }}</div>
-              <div class="text-subtitle-1 font-weight-bold">{{ day.getDate() }}</div>
+              <div class="text-caption text-medium-emphasis">
+                {{ WEEKDAYS[day.getDay()] }}
+              </div>
+              <div class="text-subtitle-1 font-weight-bold">
+                {{ day.getDate() }}
+              </div>
             </div>
           </div>
           <div class="week-body d-grid">
             <div class="week-hourcol">
-              <div v-for="hour in 24" :key="hour" class="week-hour text-caption text-medium-emphasis">
+              <div
+                v-for="hour in 24"
+                :key="hour"
+                class="week-hour text-caption text-medium-emphasis"
+              >
                 {{ String(hour - 1).padStart(2, '0') }}:00
               </div>
             </div>
@@ -322,7 +397,11 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
               class="week-col"
               :class="{ 'week-col--today': sameDay(day, today) }"
             >
-              <div v-for="hour in 24" :key="hour" class="week-slot border-t border-opacity-10" />
+              <div
+                v-for="hour in 24"
+                :key="hour"
+                class="week-slot border-t border-opacity-10"
+              />
               <div class="week-events">
                 <div
                   v-for="event in eventsForWeekDay(day)"
@@ -330,43 +409,86 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
                   class="week-event px-2 py-1 mb-1 text-caption"
                   :style="eventStyle(event)"
                 >
-                  <div class="font-weight-medium text-truncate">{{ event.title }}</div>
-                  <div class="text-caption">{{ formatTime(event.start) }}</div>
+                  <div class="font-weight-medium text-truncate">
+                    {{ event.title }}
+                  </div>
+                  <div class="text-caption">
+                    {{ formatTime(event.start) }}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div v-else-if="view === 'day'" class="calendar-day pa-4">
-          <div v-if="dayEvents.length === 0" class="text-center py-12 text-medium-emphasis">
+        <div
+          v-else-if="view === 'day'"
+          class="calendar-day pa-4"
+        >
+          <div
+            v-if="dayEvents.length === 0"
+            class="text-center py-12 text-medium-emphasis"
+          >
             No events scheduled for this day.
           </div>
-          <v-list v-else lines="two">
-            <v-list-item v-for="event in dayEvents" :key="event.id" class="mb-2">
+          <v-list
+            v-else
+            lines="two"
+          >
+            <v-list-item
+              v-for="event in dayEvents"
+              :key="event.id"
+              class="mb-2"
+            >
               <template #prepend>
-                <div class="day-event-dot" :style="eventStyle(event)" />
+                <div
+                  class="day-event-dot"
+                  :style="eventStyle(event)"
+                />
               </template>
-              <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
+              <v-list-item-title class="font-weight-medium">
+                {{ event.title }}
+              </v-list-item-title>
               <v-list-item-subtitle class="text-caption">
-                {{ formatTime(event.start) }}<template v-if="event.end"> — {{ formatTime(event.end) }}</template>
+                {{ formatTime(event.start) }}<template v-if="event.end">
+                  — {{ formatTime(event.end) }}
+                </template>
               </v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </div>
 
-        <div v-else class="calendar-agenda pa-4">
-          <div v-if="agendaGroups.length === 0" class="text-center py-12 text-medium-emphasis">
+        <div
+          v-else
+          class="calendar-agenda pa-4"
+        >
+          <div
+            v-if="agendaGroups.length === 0"
+            class="text-center py-12 text-medium-emphasis"
+          >
             No events to display.
           </div>
-          <div v-for="group in agendaGroups" :key="group.date.toISOString()" class="mb-6">
+          <div
+            v-for="group in agendaGroups"
+            :key="group.date.toISOString()"
+            class="mb-6"
+          >
             <div class="text-subtitle-2 font-weight-bold mb-2">
               {{ group.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) }}
             </div>
-            <v-card v-for="event in group.items" :key="event.id" class="mb-2" elevation="0" border>
+            <v-card
+              v-for="event in group.items"
+              :key="event.id"
+              class="mb-2"
+              elevation="0"
+              border
+            >
               <div class="d-flex align-center justify-space-between pa-3">
                 <div class="d-flex align-center ga-3">
-                  <div class="day-event-dot" :style="eventStyle(event)" />
+                  <div
+                    class="day-event-dot"
+                    :style="eventStyle(event)"
+                  />
                   <span class="text-body-2 font-weight-medium">{{ event.title }}</span>
                 </div>
                 <span class="text-caption text-medium-emphasis">{{ formatTime(event.start) }}</span>
@@ -377,10 +499,19 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
       </div>
     </div>
 
-    <v-dialog v-model="dialogOpen" max-width="560" persistent>
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="560"
+      persistent
+    >
       <v-card title="Add Event">
         <v-card-text>
-          <v-text-field v-model="form.title" label="Event title" required class="mb-2" />
+          <v-text-field
+            v-model="form.title"
+            label="Event title"
+            required
+            class="mb-2"
+          />
           <v-select
             v-model="form.category"
             :items="categories.map((c) => ({ title: c.label, value: c.id }))"
@@ -388,16 +519,45 @@ function eventStyle(event: PixelyCalendarEvent): Record<string, string> {
             class="mb-2"
           />
           <div class="d-sm-flex ga-3">
-            <v-text-field v-model="form.startDate" type="date" label="Date" />
-            <v-text-field v-model="form.startTime" type="time" label="Start" :disabled="form.allDay" />
-            <v-text-field v-model="form.endTime" type="time" label="End" :disabled="form.allDay" />
+            <v-text-field
+              v-model="form.startDate"
+              type="date"
+              label="Date"
+            />
+            <v-text-field
+              v-model="form.startTime"
+              type="time"
+              label="Start"
+              :disabled="form.allDay"
+            />
+            <v-text-field
+              v-model="form.endTime"
+              type="time"
+              label="End"
+              :disabled="form.allDay"
+            />
           </div>
-          <v-checkbox v-model="form.allDay" label="All day" hide-details />
+          <v-checkbox
+            v-model="form.allDay"
+            label="All day"
+            hide-details
+          />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dialogOpen = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" @click="dialogOpen = false">Add Event</v-btn>
+          <v-btn
+            variant="text"
+            @click="dialogOpen = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            @click="dialogOpen = false"
+          >
+            Add Event
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

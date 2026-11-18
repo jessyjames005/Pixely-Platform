@@ -50,7 +50,11 @@ const trendIcon = computed(() => {
         variant="flat"
         :style="{ backgroundColor: `${trendColor}1A`, color: trendColor, fontWeight: 600 }"
       >
-        <v-icon :icon="trendIcon" size="12" start />
+        <v-icon
+          :icon="trendIcon"
+          size="12"
+          start
+        />
         {{ trend }}
       </v-chip>
     </div>
@@ -61,11 +65,21 @@ const trendIcon = computed(() => {
         size="44"
         :style="{ backgroundColor: iconBackground }"
       >
-        <v-icon :icon="icon" :color="iconColor" />
+        <v-icon
+          :icon="icon"
+          :color="iconColor"
+        />
       </v-avatar>
       <div>
-        <div class="text-h6 font-weight-bold">{{ value }}</div>
-        <div v-if="hint" class="text-caption text-medium-emphasis">{{ hint }}</div>
+        <div class="text-h6 font-weight-bold">
+          {{ value }}
+        </div>
+        <div
+          v-if="hint"
+          class="text-caption text-medium-emphasis"
+        >
+          {{ hint }}
+        </div>
       </div>
     </div>
   </v-card>

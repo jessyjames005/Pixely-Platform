@@ -267,7 +267,9 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
 <template>
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5">{{ $t('extensions.title.extensions_list', 'Extensions') }}</h1>
+      <h1 class="text-h5">
+        {{ $t('extensions.title.extensions_list', 'Extensions') }}
+      </h1>
       <v-btn
         v-if="authStore.can('system.extensions.install')"
         color="primary"
@@ -295,8 +297,9 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             variant="tonal"
             :loading="loading"
             @click="fetchExtensions"
-            >{{ $t('common.action.refresh', 'Refresh') }}</v-btn
           >
+            {{ $t('common.action.refresh', 'Refresh') }}
+          </v-btn>
           <v-btn
             size="small"
             variant="tonal"
@@ -308,15 +311,29 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         </div>
       </v-card-title>
 
-      <v-tabs v-model="activeTab" class="px-4">
-        <v-tab value="enabled">{{ $t('extensions.msg.enabled_tab', 'Enabled') }} ({{ enabledExtensions.length }})</v-tab>
-        <v-tab value="disabled">{{ $t('extensions.msg.disabled_tab', 'Disabled') }} ({{ disabledExtensions.length }})</v-tab>
+      <v-tabs
+        v-model="activeTab"
+        class="px-4"
+      >
+        <v-tab value="enabled">
+          {{ $t('extensions.msg.enabled_tab', 'Enabled') }} ({{ enabledExtensions.length }})
+        </v-tab>
+        <v-tab value="disabled">
+          {{ $t('extensions.msg.disabled_tab', 'Disabled') }} ({{ disabledExtensions.length }})
+        </v-tab>
       </v-tabs>
       <v-divider />
 
-      <v-alert v-if="error" type="error" density="compact" class="mx-4 mt-4">{{
-        error.message
-      }}</v-alert>
+      <v-alert
+        v-if="error"
+        type="error"
+        density="compact"
+        class="mx-4 mt-4"
+      >
+        {{
+          error.message
+        }}
+      </v-alert>
 
       <v-data-table
         :headers="headers"
@@ -336,13 +353,13 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             :key="dep"
             size="small"
             class="mr-1"
-            >{{ dep }}</v-chip
           >
+            {{ dep }}
+          </v-chip>
           <span
             v-if="item.dependencies.length === 0"
             class="text-medium-emphasis"
-            >—</span
-          >
+          >—</span>
         </template>
 
         <template #item.enabled="{ item }">
@@ -392,7 +409,11 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
     </v-card>
 
     <!-- Install dialog -->
-    <v-dialog v-model="installDialogOpen" max-width="480" persistent>
+    <v-dialog
+      v-model="installDialogOpen"
+      max-width="480"
+      persistent
+    >
       <v-card :title="$t('extensions.title.install_extension', 'Install a new extension')">
         <v-card-text>
           <v-file-input
@@ -406,14 +427,18 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             type="error"
             density="compact"
             class="mt-2"
-            >{{ installError.message }}</v-alert
           >
+            {{ installError.message }}
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="installDialogOpen = false"
-            >{{ $t('common.action.cancel', 'Cancel') }}</v-btn
+          <v-btn
+            variant="text"
+            @click="installDialogOpen = false"
           >
+            {{ $t('common.action.cancel', 'Cancel') }}
+          </v-btn>
           <v-btn
             color="primary"
             :loading="installing"
@@ -427,7 +452,11 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
     </v-dialog>
 
     <!-- Update dialog -->
-    <v-dialog v-model="updateDialogOpen" max-width="480" persistent>
+    <v-dialog
+      v-model="updateDialogOpen"
+      max-width="480"
+      persistent
+    >
       <v-card :title="$t('extensions.title.update_extension', 'Update :name', { name: updateTargetId ?? '' })">
         <v-card-text>
           <v-file-input
@@ -441,12 +470,18 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             type="error"
             density="compact"
             class="mt-2"
-            >{{ updateError.message }}</v-alert
           >
+            {{ updateError.message }}
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="updateDialogOpen = false">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
+          <v-btn
+            variant="text"
+            @click="updateDialogOpen = false"
+          >
+            {{ $t('common.action.cancel', 'Cancel') }}
+          </v-btn>
           <v-btn
             color="primary"
             :loading="updating"
@@ -460,17 +495,30 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
     </v-dialog>
 
     <!-- Config dialog -->
-    <v-dialog v-model="configDialogOpen" max-width="600" persistent>
+    <v-dialog
+      v-model="configDialogOpen"
+      max-width="600"
+      persistent
+    >
       <v-card :title="$t('extensions.title.config_extension', 'Configuration — :name', { name: configTargetId ?? '' })">
         <v-card-text>
-          <p v-if="loadingConfig">{{ $t('common.msg.loading', 'Loading…') }}</p>
+          <p v-if="loadingConfig">
+            {{ $t('common.msg.loading', 'Loading…') }}
+          </p>
 
-          <p v-else-if="!configFields.length" class="text-medium-emphasis">
+          <p
+            v-else-if="!configFields.length"
+            class="text-medium-emphasis"
+          >
             {{ $t('extensions.msg.no_config', 'This extension has no configurable settings.') }}
           </p>
 
           <template v-else>
-            <div v-for="field in configFields" :key="field.key" class="mb-4">
+            <div
+              v-for="field in configFields"
+              :key="field.key"
+              class="mb-4"
+            >
               <v-switch
                 v-if="field.kind === 'boolean'"
                 v-model="formValues[field.key]"
@@ -494,7 +542,6 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
               <v-combobox
                 v-else-if="field.kind === 'string-array'"
                 :model-value="stringArrayValue(field.key)"
-                @update:model-value="(value) => setStringArrayValue(field.key, value)"
                 :label="labelFor(field.key)"
                 multiple
                 chips
@@ -502,6 +549,7 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
                 density="compact"
                 :hint="$t('extensions.msg.press_enter_hint', 'Press enter after each value')"
                 persistent-hint
+                @update:model-value="(value) => setStringArrayValue(field.key, value)"
               />
               <v-textarea
                 v-else
@@ -520,30 +568,51 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
             type="error"
             density="compact"
             class="mt-2"
-            >{{ configError.message }}</v-alert
           >
+            {{ configError.message }}
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="configDialogOpen = false">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
+          <v-btn
+            variant="text"
+            @click="configDialogOpen = false"
+          >
+            {{ $t('common.action.cancel', 'Cancel') }}
+          </v-btn>
           <v-btn
             color="primary"
             :loading="savingConfig"
             @click="handleSaveConfig"
-            >{{ $t('common.action.save', 'Save') }}</v-btn
           >
+            {{ $t('common.action.save', 'Save') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Details dialog -->
-    <v-dialog v-model="detailsDialogOpen" max-width="600">
+    <v-dialog
+      v-model="detailsDialogOpen"
+      max-width="600"
+    >
       <v-card :title="$t('extensions.title.details_extension', 'Details — :id', { id: detailsData?.id ?? '' })">
         <v-card-text>
-          <p v-if="loadingDetails">{{ $t('common.msg.loading', 'Loading…') }}</p>
-          <v-list v-else-if="detailsData" density="compact">
-            <v-list-item :title="$t('extensions.msg.detail_name', 'Name')" :subtitle="detailsData.name" />
-            <v-list-item :title="$t('extensions.msg.detail_version', 'Version')" :subtitle="detailsData.version" />
+          <p v-if="loadingDetails">
+            {{ $t('common.msg.loading', 'Loading…') }}
+          </p>
+          <v-list
+            v-else-if="detailsData"
+            density="compact"
+          >
+            <v-list-item
+              :title="$t('extensions.msg.detail_name', 'Name')"
+              :subtitle="detailsData.name"
+            />
+            <v-list-item
+              :title="$t('extensions.msg.detail_version', 'Version')"
+              :subtitle="detailsData.version"
+            />
             <v-list-item
               :title="$t('extensions.msg.detail_enabled', 'Enabled')"
               :subtitle="detailsData.enabled ? $t('extensions.msg.detail_yes', 'Yes') : $t('extensions.msg.detail_no', 'No')"
@@ -556,20 +625,33 @@ async function openDetailsDialog(extension: ExtensionSummary): Promise<void> {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="detailsDialogOpen = false">{{ $t('common.action.close', 'Close') }}</v-btn>
+          <v-btn
+            variant="text"
+            @click="detailsDialogOpen = false"
+          >
+            {{ $t('common.action.close', 'Close') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Dependency graph dialog -->
-    <v-dialog v-model="graphDialogOpen" max-width="900">
+    <v-dialog
+      v-model="graphDialogOpen"
+      max-width="900"
+    >
       <v-card :title="$t('extensions.title.dependency_graph', 'Extension dependency graph')">
         <v-card-text>
           <ExtensionDependencyGraph :extensions="extensionsStore.extensions" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="graphDialogOpen = false">{{ $t('common.action.close', 'Close') }}</v-btn>
+          <v-btn
+            variant="text"
+            @click="graphDialogOpen = false"
+          >
+            {{ $t('common.action.close', 'Close') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

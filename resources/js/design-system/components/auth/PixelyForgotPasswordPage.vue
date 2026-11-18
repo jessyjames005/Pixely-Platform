@@ -30,9 +30,15 @@ const modelEmail = ref(props.email)
             marginInline: 'auto',
           }"
         >
-          <v-icon icon="mdi-letter-m" size="28" color="#5B5BF5" />
+          <v-icon
+            icon="mdi-letter-m"
+            size="28"
+            color="#5B5BF5"
+          />
         </div>
-        <h1 class="text-h5 font-weight-bold mb-2">Forgot Password</h1>
+        <h1 class="text-h5 font-weight-bold mb-2">
+          Forgot Password
+        </h1>
         <p class="text-body-2 text-medium-emphasis mb-0">
           Enter your email and we'll send you instructions to reset your password.
         </p>
@@ -47,13 +53,21 @@ const modelEmail = ref(props.email)
       />
 
       <div class="d-flex justify-center mb-4">
-        <v-btn color="primary" variant="flat" block @click="resetPassword">
+        <v-btn
+          color="primary"
+          variant="flat"
+          block
+          @click="resetPassword"
+        >
           {{ $t('common.action.send_email', 'Send Email') }}
         </v-btn>
       </div>
 
       <div class="text-center mt-8 border-t border-opacity-10 border-gray-light pt-6">
-        <a href="#" class="text-primary font-weight-medium text-decoration-underline">
+        <a
+          href="#"
+          class="text-primary font-weight-medium text-decoration-underline"
+        >
           {{ $t('auth.back_to_login', 'Back to login') }}
         </a>
       </div>

@@ -153,7 +153,9 @@ async function handleAssignRole(
 <template>
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5">{{ $t('users.title.users_list', 'Users') }}</h1>
+      <h1 class="text-h5">
+        {{ $t('users.title.users_list', 'Users') }}
+      </h1>
       <v-btn
         v-if="authStore.can('users.manage')"
         color="primary"
@@ -177,9 +179,16 @@ async function handleAssignRole(
         </v-btn>
       </v-card-title>
 
-      <v-alert v-if="error" type="error" density="compact" class="mx-4">{{
-        error.message
-      }}</v-alert>
+      <v-alert
+        v-if="error"
+        type="error"
+        density="compact"
+        class="mx-4"
+      >
+        {{
+          error.message
+        }}
+      </v-alert>
 
       <v-data-table
         :headers="headers"
@@ -229,7 +238,10 @@ async function handleAssignRole(
         </template>
       </v-data-table>
 
-      <v-card-actions v-if="usersStore.meta" class="justify-center">
+      <v-card-actions
+        v-if="usersStore.meta"
+        class="justify-center"
+      >
         <v-pagination
           :model-value="usersStore.meta.current_page"
           :length="usersStore.meta.last_page"
@@ -240,7 +252,11 @@ async function handleAssignRole(
     </v-card>
 
     <!-- Create / edit dialog -->
-    <v-dialog v-model="dialogOpen" max-width="480" persistent>
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="480"
+      persistent
+    >
       <v-card :title="isEditing ? $t('users.title.edit_user', 'Edit user') : $t('users.title.create_user', 'Create a user')">
         <v-card-text>
           <v-form @submit.prevent="handleSubmit">
@@ -270,20 +286,27 @@ async function handleAssignRole(
               type="error"
               density="compact"
               class="mt-2"
-              >{{ saveError.message }}</v-alert
             >
+              {{ saveError.message }}
+            </v-alert>
             <v-alert
               v-if="updateError"
               type="error"
               density="compact"
               class="mt-2"
-              >{{ updateError.message }}</v-alert
             >
+              {{ updateError.message }}
+            </v-alert>
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">{{ $t('common.action.cancel', 'Cancel') }}</v-btn>
+          <v-btn
+            variant="text"
+            @click="closeDialog"
+          >
+            {{ $t('common.action.cancel', 'Cancel') }}
+          </v-btn>
           <v-btn
             color="primary"
             :loading="saving || updating"

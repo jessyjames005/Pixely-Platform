@@ -24,12 +24,20 @@ async function handleSubmit(): Promise<void> {
 <template>
   <AuthCard :title="$t('core.auth.title.forgot_password', 'Forgot your password?')">
     <template v-if="sent">
-      <v-alert type="success" density="compact" class="mb-4" data-testid="reset-link-sent">
+      <v-alert
+        type="success"
+        density="compact"
+        class="mb-4"
+        data-testid="reset-link-sent"
+      >
         {{ $t('core.auth.msg.reset_link_sent', 'If an account exists for this address, a password reset link is on its way.') }}
       </v-alert>
     </template>
 
-    <v-form v-else @submit.prevent="handleSubmit">
+    <v-form
+      v-else
+      @submit.prevent="handleSubmit"
+    >
       <p class="mb-4">
         {{ $t('core.auth.msg.forgot_password_intro', 'Enter your email address and we will send you a link to choose a new password.') }}
       </p>
@@ -41,17 +49,30 @@ async function handleSubmit(): Promise<void> {
         required
       />
 
-      <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4">
+      <v-alert
+        v-if="errorMessage"
+        type="error"
+        density="compact"
+        class="mb-4"
+      >
         {{ errorMessage }}
       </v-alert>
 
-      <v-btn type="submit" color="primary" block :loading="loading">
+      <v-btn
+        type="submit"
+        color="primary"
+        block
+        :loading="loading"
+      >
         {{ $t('core.auth.action.send_reset_link', 'Send reset link') }}
       </v-btn>
     </v-form>
 
     <div class="mt-4">
-      <router-link :to="{ name: 'login' }" class="text-body-2">
+      <router-link
+        :to="{ name: 'login' }"
+        class="text-body-2"
+      >
         {{ $t('core.auth.action.back_to_sign_in', 'Back to sign in') }}
       </router-link>
     </div>

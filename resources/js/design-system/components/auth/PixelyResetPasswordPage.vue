@@ -35,9 +35,15 @@ const showConfirmPassword = ref(false)
             marginInline: 'auto',
           }"
         >
-          <v-icon icon="mdi-letter-m" size="28" color="#5B5BF5" />
+          <v-icon
+            icon="mdi-letter-m"
+            size="28"
+            color="#5B5BF5"
+          />
         </div>
-        <h1 class="text-h5 font-weight-bold mb-2">Reset Password</h1>
+        <h1 class="text-h5 font-weight-bold mb-2">
+          Reset Password
+        </h1>
         <p class="text-body-2 text-medium-emphasis mb-0">
           Enter your email and we'll send you instructions to reset your password
         </p>
@@ -47,9 +53,9 @@ const showConfirmPassword = ref(false)
         v-model="modelPassword"
         label="New Password"
         prepend-inner-icon="mdi-lock-outline"
-        append-inner-icon={showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'}
+        append-inner-icon="showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+        :type="showPassword ? 'text' : 'password'"
         @click:append-inner="showPassword = !showPassword"
-        type={showPassword ? 'text' : 'password'}
         rules="[(v) => !!v || 'Password is required', (v) => v!.length >= 6 || 'Minimum 6 characters']"
         class="mb-6"
       />
@@ -57,21 +63,29 @@ const showConfirmPassword = ref(false)
         v-model="modelConfirmPassword"
         label="Confirm Password"
         prepend-inner-icon="mdi-lock-outline"
-        append-inner-icon={showConfirmPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'}
+        append-inner-icon="showConfirmPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+        :type="showConfirmPassword ? 'text' : 'password'"
         @click:append-inner="showConfirmPassword = !showConfirmPassword"
-        type={showConfirmPassword ? 'text' : 'password'}
         rules="[(v) => !!v || 'Please confirm your password', (v) => v === modelPassword || 'Passwords do not match']"
         class="mb-8"
       />
 
       <div class="d-flex justify-center mb-4">
-        <v-btn color="primary" variant="flat" block @click="resetPassword">
+        <v-btn
+          color="primary"
+          variant="flat"
+          block
+          @click="resetPassword"
+        >
           {{ $t('common.action.set_new_password', 'Set New Password') }}
         </v-btn>
       </div>
 
       <div class="text-center mt-8 border-t border-opacity-10 border-gray-light pt-6">
-        <a href="#" class="text-primary font-weight-medium text-decoration-underline">
+        <a
+          href="#"
+          class="text-primary font-weight-medium text-decoration-underline"
+        >
           {{ $t('auth.back_to_login', 'Back to login') }}
         </a>
       </div>

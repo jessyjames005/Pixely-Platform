@@ -19,11 +19,18 @@ const emit = defineEmits<{ action: [] }>()
       <span class="text-caption text-medium-emphasis text-uppercase font-weight-medium">
         {{ title }}
       </span>
-      <v-btn size="small" variant="text" color="primary" @click="emit('action')">
+      <v-btn
+        size="small"
+        variant="text"
+        color="primary"
+        @click="emit('action')"
+      >
         {{ $t?.('common.action.view_all', 'View all') }}
       </v-btn>
     </div>
-    <div class="text-body-2 text-medium-emphasis mb-4">{{ description }}</div>
+    <div class="text-body-2 text-medium-emphasis mb-4">
+      {{ description }}
+    </div>
     <slot />
   </div>
 </template>

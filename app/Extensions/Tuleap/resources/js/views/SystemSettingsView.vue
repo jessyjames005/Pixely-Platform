@@ -69,11 +69,19 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-4">Système</h1>
+    <h1 class="text-h5 font-weight-bold mb-4">
+      Système
+    </h1>
 
-    <v-card variant="outlined" rounded="lg" class="mb-4">
+    <v-card
+      variant="outlined"
+      rounded="lg"
+      class="mb-4"
+    >
       <v-card-item>
-        <template #title><span class="text-subtitle-2">Connexion Tuleap</span></template>
+        <template #title>
+          <span class="text-subtitle-2">Connexion Tuleap</span>
+        </template>
       </v-card-item>
       <v-card-text>
         <v-alert
@@ -86,7 +94,10 @@ onMounted(async () => {
         </v-alert>
 
         <v-row>
-          <v-col cols="12" md="7">
+          <v-col
+            cols="12"
+            md="7"
+          >
             <v-text-field
               v-model="tokenInput"
               label="Jeton d'accès Tuleap"
@@ -98,7 +109,10 @@ onMounted(async () => {
               persistent-hint
             />
           </v-col>
-          <v-col cols="12" md="5">
+          <v-col
+            cols="12"
+            md="5"
+          >
             <v-text-field
               v-model="userIdInput"
               label="ID utilisateur Tuleap (optionnel)"
@@ -111,47 +125,95 @@ onMounted(async () => {
         </v-row>
       </v-card-text>
       <v-card-actions>
-        <v-alert v-if="saveMessage" type="success" variant="text" density="compact" class="py-0">{{ saveMessage }}</v-alert>
+        <v-alert
+          v-if="saveMessage"
+          type="success"
+          variant="text"
+          density="compact"
+          class="py-0"
+        >
+          {{ saveMessage }}
+        </v-alert>
         <v-spacer />
-        <v-btn color="primary" :loading="saving" @click="saveConfig">Enregistrer</v-btn>
+        <v-btn
+          color="primary"
+          :loading="saving"
+          @click="saveConfig"
+        >
+          Enregistrer
+        </v-btn>
       </v-card-actions>
     </v-card>
 
-    <v-card variant="outlined" rounded="lg">
+    <v-card
+      variant="outlined"
+      rounded="lg"
+    >
       <v-card-item>
-        <template #title><span class="text-subtitle-2">Cache</span></template>
+        <template #title>
+          <span class="text-subtitle-2">Cache</span>
+        </template>
         <template #append>
-          <v-btn color="error" variant="tonal" size="small" :loading="clearingAll" @click="clearAll">
+          <v-btn
+            color="error"
+            variant="tonal"
+            size="small"
+            :loading="clearingAll"
+            @click="clearAll"
+          >
             Vider tout le cache
           </v-btn>
         </template>
       </v-card-item>
       <v-card-text>
-        <v-alert v-if="!store.cacheInfo.length" type="info" variant="tonal" density="compact">
+        <v-alert
+          v-if="!store.cacheInfo.length"
+          type="info"
+          variant="tonal"
+          density="compact"
+        >
           Aucune entrée en cache.
         </v-alert>
-        <v-table v-else density="compact">
+        <v-table
+          v-else
+          density="compact"
+        >
           <thead>
             <tr>
               <th>Clé</th>
               <th>Mis en cache le</th>
               <th>Expire le</th>
               <th>État</th>
-              <th></th>
+              <th />
             </tr>
           </thead>
           <tbody>
-            <tr v-for="e in store.cacheInfo" :key="e.key">
-              <td class="font-weight-medium">{{ labelFor(e.key) }}</td>
+            <tr
+              v-for="e in store.cacheInfo"
+              :key="e.key"
+            >
+              <td class="font-weight-medium">
+                {{ labelFor(e.key) }}
+              </td>
               <td>{{ formatDate(e.cached_at) }}</td>
               <td>{{ formatDate(e.expires_at) }}</td>
               <td>
-                <v-chip :color="e.expired ? 'warning' : 'success'" size="x-small" variant="tonal">
+                <v-chip
+                  :color="e.expired ? 'warning' : 'success'"
+                  size="x-small"
+                  variant="tonal"
+                >
                   {{ e.expired ? 'Expiré' : 'Valide' }}
                 </v-chip>
               </td>
               <td>
-                <v-btn size="small" variant="text" @click="clearEntry(e.key)">Supprimer</v-btn>
+                <v-btn
+                  size="small"
+                  variant="text"
+                  @click="clearEntry(e.key)"
+                >
+                  Supprimer
+                </v-btn>
               </td>
             </tr>
           </tbody>

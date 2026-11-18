@@ -39,24 +39,46 @@ watch(page, (value) => {
 
 <template>
   <WebsiteLayout>
-    <section v-if="loading" class="website-shell website-state">Loading…</section>
+    <section
+      v-if="loading"
+      class="website-shell website-state"
+    >
+      Loading…
+    </section>
 
-    <section v-else-if="notFound" class="website-shell website-state">
-      <p class="website-eyebrow">404</p>
+    <section
+      v-else-if="notFound"
+      class="website-shell website-state"
+    >
+      <p class="website-eyebrow">
+        404
+      </p>
       <h1>Page not found</h1>
       <p>The page you requested does not exist or is not published.</p>
     </section>
 
-    <article v-else-if="page" class="website-shell website-page">
+    <article
+      v-else-if="page"
+      class="website-shell website-page"
+    >
       <header class="website-page__header">
-        <p class="website-eyebrow">Pixely Platform</p>
+        <p class="website-eyebrow">
+          Pixely Platform
+        </p>
         <h1>{{ page.title }}</h1>
       </header>
 
       <section class="website-page__content">
-        <template v-for="(block, index) in page.blocks" :key="index">
-          <h2 v-if="block.type === 'heading'">{{ block.text }}</h2>
-          <p v-else-if="block.type === 'paragraph'">{{ block.text }}</p>
+        <template
+          v-for="(block, index) in page.blocks"
+          :key="index"
+        >
+          <h2 v-if="block.type === 'heading'">
+            {{ block.text }}
+          </h2>
+          <p v-else-if="block.type === 'paragraph'">
+            {{ block.text }}
+          </p>
           <a
             v-else-if="block.type === 'cta' && typeof block.href === 'string'"
             class="website-button"

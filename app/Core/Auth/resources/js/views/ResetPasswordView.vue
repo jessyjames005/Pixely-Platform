@@ -43,19 +43,42 @@ async function handleSubmit(): Promise<void> {
 
 <template>
   <AuthCard :title="$t('core.auth.title.reset_password', 'Choose a new password')">
-    <v-alert v-if="!linkIsUsable" type="error" density="compact" class="mb-4">
+    <v-alert
+      v-if="!linkIsUsable"
+      type="error"
+      density="compact"
+      class="mb-4"
+    >
       {{ $t('core.auth.msg.invalid_reset_token', 'This password reset link is invalid or has expired.') }}
     </v-alert>
 
     <template v-else-if="done">
-      <v-alert type="success" density="compact" class="mb-4" data-testid="password-reset-done">
+      <v-alert
+        type="success"
+        density="compact"
+        class="mb-4"
+        data-testid="password-reset-done"
+      >
         {{ $t('core.auth.msg.password_reset_done', 'Your password has been changed. You can now sign in.') }}
       </v-alert>
-      <v-btn color="primary" block :to="{ name: 'login' }">{{ $t('core.auth.action.sign_in', 'Sign in') }}</v-btn>
+      <v-btn
+        color="primary"
+        block
+        :to="{ name: 'login' }"
+      >
+        {{ $t('core.auth.action.sign_in', 'Sign in') }}
+      </v-btn>
     </template>
 
-    <v-form v-else @submit.prevent="handleSubmit">
-      <v-text-field :model-value="email" :label="$t('core.entities.object.user.email.label', 'Email')" readonly />
+    <v-form
+      v-else
+      @submit.prevent="handleSubmit"
+    >
+      <v-text-field
+        :model-value="email"
+        :label="$t('core.entities.object.user.email.label', 'Email')"
+        readonly
+      />
       <v-text-field
         v-model="password"
         :label="$t('core.auth.object.password.new.label', 'New password')"
@@ -74,11 +97,21 @@ async function handleSubmit(): Promise<void> {
         required
       />
 
-      <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4">
+      <v-alert
+        v-if="errorMessage"
+        type="error"
+        density="compact"
+        class="mb-4"
+      >
         {{ errorMessage }}
       </v-alert>
 
-      <v-btn type="submit" color="primary" block :loading="loading">
+      <v-btn
+        type="submit"
+        color="primary"
+        block
+        :loading="loading"
+      >
         {{ $t('core.auth.action.reset_password', 'Reset password') }}
       </v-btn>
     </v-form>

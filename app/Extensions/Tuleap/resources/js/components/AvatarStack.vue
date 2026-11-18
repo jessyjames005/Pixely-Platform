@@ -26,7 +26,10 @@ const overflowCount = () => Math.max((props.assignees?.length ?? 0) - 3, 0)
 </script>
 
 <template>
-  <div v-if="assignees?.length" class="d-flex flex-row-reverse align-center">
+  <div
+    v-if="assignees?.length"
+    class="d-flex flex-row-reverse align-center"
+  >
     <v-avatar
       v-for="(a, i) in visible()"
       :key="i"
@@ -36,7 +39,10 @@ const overflowCount = () => Math.max((props.assignees?.length ?? 0) - 3, 0)
       class="ml-n2"
       style="border: 2px solid rgb(var(--v-theme-surface))"
     >
-      <span class="text-caption font-weight-bold" style="color: white; font-size: 9px">{{ initials(a.name) }}</span>
+      <span
+        class="text-caption font-weight-bold"
+        style="color: white; font-size: 9px"
+      >{{ initials(a.name) }}</span>
     </v-avatar>
     <v-avatar
       v-if="overflowCount() > 0"
@@ -46,7 +52,10 @@ const overflowCount = () => Math.max((props.assignees?.length ?? 0) - 3, 0)
       class="ml-n2"
       style="border: 2px solid rgb(var(--v-theme-surface))"
     >
-      <span class="text-caption font-weight-bold" style="font-size: 9px">+{{ overflowCount() }}</span>
+      <span
+        class="text-caption font-weight-bold"
+        style="font-size: 9px"
+      >+{{ overflowCount() }}</span>
     </v-avatar>
   </div>
 </template>

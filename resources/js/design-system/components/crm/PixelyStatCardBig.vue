@@ -50,14 +50,22 @@ const trendIcon = computed(() => {
         size="44"
         :style="{ backgroundColor: iconBackground }"
       >
-        <v-icon :icon="icon" :color="iconColor" />
+        <v-icon
+          :icon="icon"
+          :color="iconColor"
+        />
       </v-avatar>
       <div class="d-flex flex-column">
         <span class="text-caption text-medium-emphasis text-uppercase font-weight-medium">
           {{ label }}
         </span>
-        <div class="text-h5 font-weight-bold mt-1">{{ value }}</div>
-        <div v-if="subtitle" class="text-body-2 text-medium-emphasis mt-1">
+        <div class="text-h5 font-weight-bold mt-1">
+          {{ value }}
+        </div>
+        <div
+          v-if="subtitle"
+          class="text-body-2 text-medium-emphasis mt-1"
+        >
           {{ subtitle }}
         </div>
       </div>
@@ -69,7 +77,11 @@ const trendIcon = computed(() => {
       variant="flat"
       :style="{ backgroundColor: `${trendColor}1A`, color: trendColor, fontWeight: 600 }"
     >
-      <v-icon :icon="trendIcon" size="14" start />
+      <v-icon
+        :icon="trendIcon"
+        size="14"
+        start
+      />
       {{ trend }}
     </v-chip>
   </v-card>

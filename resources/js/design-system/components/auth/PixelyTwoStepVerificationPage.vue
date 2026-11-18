@@ -43,13 +43,21 @@ const code = computed(() => digits.value.join(''))
             marginInline: 'auto',
           }"
         >
-          <v-icon icon="mdi-letter-m" size="28" color="#5B5BF5" />
+          <v-icon
+            icon="mdi-letter-m"
+            size="28"
+            color="#5B5BF5"
+          />
         </div>
-        <h1 class="text-h5 font-weight-bold mb-2">Two Step Verification</h1>
+        <h1 class="text-h5 font-weight-bold mb-2">
+          Two Step Verification
+        </h1>
         <p class="text-body-2 text-medium-emphasis mb-2">
           {{ $t('auth.two_step_description', 'We sent a verification code to your mobile. Enter the code from the mobile in the field below.') }}
         </p>
-        <div class="text-h6 font-weight-bold">{{ props.email }}</div>
+        <div class="text-h6 font-weight-bold">
+          {{ props.email }}
+        </div>
       </div>
 
       <div class="d-flex justify-center ga-4 mb-8">
@@ -63,10 +71,10 @@ const code = computed(() => digits.value.join(''))
           hide-details
           variant="outlined"
           :rules="[(v) => v === '' || /^\d$/.test(v) || 'Digit only']"
-          @input="setDigit($event, index)"
-          @keydown.backspace.native="clearDigit(index)"
-          @focus="focusInput(index)"
           :class="{ 'border-primary': activeIndex === index }"
+          @input="setDigit($event, index)"
+          @keydown.backspace="clearDigit(index)"
+          @focus="focusInput(index)"
         />
       </div>
 
@@ -77,7 +85,12 @@ const code = computed(() => digits.value.join(''))
       </div>
 
       <div class="d-flex justify-center mb-8">
-        <v-btn color="primary" variant="flat" block :disabled="code.value.length !== 6">
+        <v-btn
+          color="primary"
+          variant="flat"
+          block
+          :disabled="code.value.length !== 6"
+        >
           {{ $t('common.action.verify_my_account', 'Verify My Account') }}
         </v-btn>
       </div>
@@ -86,7 +99,10 @@ const code = computed(() => digits.value.join(''))
         <span class="text-caption text-medium-emphasis mr-2">
           {{ $t('auth.didnt_get_code', "Didn't get the code?") }}
         </span>
-        <a href="#" class="text-primary font-weight-medium text-decoration-underline">
+        <a
+          href="#"
+          class="text-primary font-weight-medium text-decoration-underline"
+        >
           {{ $t('common.action.resend', 'Resend') }}
         </a>
       </div>

@@ -136,19 +136,50 @@ function saveEvent(): void {
 <template>
   <v-card class="elevation-2">
     <!-- Outlook / Google Calendar Toolbar Header -->
-    <v-toolbar flat class="px-4 border-bottom">
+    <v-toolbar
+      flat
+      class="px-4 border-bottom"
+    >
       <v-toolbar-title class="text-h6 font-weight-bold d-flex align-center ga-2">
-        <v-icon icon="mdi-calendar-multiselect" color="primary" />
+        <v-icon
+          icon="mdi-calendar-multiselect"
+          color="primary"
+        />
         {{ t('cinema-movie.calendar.title', 'Cinema Event & Screening Agenda') }}
       </v-toolbar-title>
       <v-spacer />
 
       <!-- View Switcher -->
-      <v-btn-toggle v-model="currentView" mandatory density="compact" class="me-3">
-        <v-btn value="month" size="small">{{ t('cinema-movie.calendar.month', 'Month') }}</v-btn>
-        <v-btn value="week" size="small">{{ t('cinema-movie.calendar.week', 'Week') }}</v-btn>
-        <v-btn value="day" size="small">{{ t('cinema-movie.calendar.day', 'Day') }}</v-btn>
-        <v-btn value="agenda" size="small">{{ t('cinema-movie.calendar.agenda', 'Agenda') }}</v-btn>
+      <v-btn-toggle
+        v-model="currentView"
+        mandatory
+        density="compact"
+        class="me-3"
+      >
+        <v-btn
+          value="month"
+          size="small"
+        >
+          {{ t('cinema-movie.calendar.month', 'Month') }}
+        </v-btn>
+        <v-btn
+          value="week"
+          size="small"
+        >
+          {{ t('cinema-movie.calendar.week', 'Week') }}
+        </v-btn>
+        <v-btn
+          value="day"
+          size="small"
+        >
+          {{ t('cinema-movie.calendar.day', 'Day') }}
+        </v-btn>
+        <v-btn
+          value="agenda"
+          size="small"
+        >
+          {{ t('cinema-movie.calendar.agenda', 'Agenda') }}
+        </v-btn>
       </v-btn-toggle>
 
       <!-- Event Type Filter -->
@@ -161,7 +192,11 @@ function saveEvent(): void {
         class="me-3"
       />
 
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateDialog">
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-plus"
+        @click="openCreateDialog"
+      >
         {{ t('cinema-movie.calendar.new_event', 'New Event') }}
       </v-btn>
     </v-toolbar>
@@ -186,38 +221,67 @@ function saveEvent(): void {
       </div>
 
       <!-- Agenda List (Outlook / Google Agenda Style) -->
-      <v-list lines="three" border rounded>
+      <v-list
+        lines="three"
+        border
+        rounded
+      >
         <v-list-item
           v-for="event in filteredEvents"
           :key="event.id"
           class="py-3 border-bottom"
         >
           <template #prepend>
-            <v-avatar :color="event.color" class="text-white font-weight-bold me-3" size="48">
+            <v-avatar
+              :color="event.color"
+              class="text-white font-weight-bold me-3"
+              size="48"
+            >
               <v-icon icon="mdi-calendar-clock" />
             </v-avatar>
           </template>
 
           <v-list-item-title class="font-weight-bold text-subtitle-1 mb-1">
             {{ event.title }}
-            <v-chip size="x-small" :color="event.color" class="ms-2" variant="flat">
+            <v-chip
+              size="x-small"
+              :color="event.color"
+              class="ms-2"
+              variant="flat"
+            >
               {{ event.eventType.replaceAll('_', ' ').toUpperCase() }}
             </v-chip>
           </v-list-item-title>
 
           <v-list-item-subtitle class="text-body-2">
             <div class="d-flex align-center ga-3 text-medium-emphasis mb-1">
-              <span><v-icon icon="mdi-clock-outline" size="small" /> {{ event.startAt }} → {{ event.endAt }}</span>
-              <span><v-icon icon="mdi-map-marker-outline" size="small" /> {{ event.location }}</span>
-              <span v-if="event.participants"><v-icon icon="mdi-account-group-outline" size="small" /> {{ event.participants }}</span>
+              <span><v-icon
+                icon="mdi-clock-outline"
+                size="small"
+              /> {{ event.startAt }} → {{ event.endAt }}</span>
+              <span><v-icon
+                icon="mdi-map-marker-outline"
+                size="small"
+              /> {{ event.location }}</span>
+              <span v-if="event.participants"><v-icon
+                icon="mdi-account-group-outline"
+                size="small"
+              /> {{ event.participants }}</span>
             </div>
-            <div v-if="event.notes" class="text-truncate text-body-2 text--primary">
+            <div
+              v-if="event.notes"
+              class="text-truncate text-body-2 text--primary"
+            >
               {{ event.notes }}
             </div>
           </v-list-item-subtitle>
 
           <template #append>
-            <v-chip size="small" color="success" variant="outlined">
+            <v-chip
+              size="small"
+              color="success"
+              variant="outlined"
+            >
               {{ event.status }}
             </v-chip>
           </template>
@@ -226,7 +290,11 @@ function saveEvent(): void {
     </v-card-text>
 
     <!-- Create Event Dialog -->
-    <v-dialog v-model="dialogOpen" max-width="640" persistent>
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="640"
+      persistent
+    >
       <v-card :title="t('cinema-movie.calendar.add_event_title', 'Schedule Cinema Event / Session')">
         <v-card-text>
           <v-form @submit.prevent="saveEvent">
@@ -274,10 +342,16 @@ function saveEvent(): void {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dialogOpen = false">
+          <v-btn
+            variant="text"
+            @click="dialogOpen = false"
+          >
             {{ t('common.action.cancel', 'Cancel') }}
           </v-btn>
-          <v-btn color="primary" @click="saveEvent">
+          <v-btn
+            color="primary"
+            @click="saveEvent"
+          >
             {{ t('common.action.save', 'Schedule Event') }}
           </v-btn>
         </v-card-actions>

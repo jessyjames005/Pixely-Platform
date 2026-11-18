@@ -28,9 +28,15 @@ withDefaults(
             marginInline: 'auto',
           }"
         >
-          <v-icon icon="mdi-letter-m" size="28" color="#5B5BF5" />
+          <v-icon
+            icon="mdi-letter-m"
+            size="28"
+            color="#5B5BF5"
+          />
         </div>
-        <h1 class="text-h5 font-weight-bold mb-2">Verify your email</h1>
+        <h1 class="text-h5 font-weight-bold mb-2">
+          Verify your email
+        </h1>
         <p class="text-body-2 text-medium-emphasis mb-0">
           Account activation link sent to your email address:
         </p>
@@ -44,7 +50,11 @@ withDefaults(
       </div>
 
       <div class="d-flex justify-center mb-8">
-        <v-btn color="primary" variant="flat" block>
+        <v-btn
+          color="primary"
+          variant="flat"
+          block
+        >
           {{ $t('common.action.skip_for_now', 'Skip For Now') }}
         </v-btn>
       </div>
@@ -53,7 +63,10 @@ withDefaults(
         <span class="text-caption text-medium-emphasis mr-2">
           {{ $t('auth.didnt_get_mail', "Didn't get the mail?") }}
         </span>
-        <a href="#" class="text-primary font-weight-medium text-decoration-underline">
+        <a
+          href="#"
+          class="text-primary font-weight-medium text-decoration-underline"
+        >
           {{ $t('common.action.resend', 'Resend') }}
         </a>
       </div>

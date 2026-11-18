@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 withDefaults(
   defineProps<{
-    label: string
-    value: string | number
+    label?: string
+    value?: string | number
     subtitle?: string
     icon?: string
     iconColor?: string
@@ -16,6 +16,8 @@ withDefaults(
   {
     label: 'Metric',
     value: '0',
+    subtitle: '',
+    trend: '',
     icon: 'mdi-chart-line',
     iconColor: '#5B5BF5',
     iconBackground: '#EDEDFE',
@@ -23,43 +25,6 @@ withDefaults(
     pointColor: '#4CAF50',
   },
 )
-</script>
-
-<template>
-  <v-card
-    class="d-flex flex-column align-start pa-4"
-    :style="{ borderRadius: '16px', padding: '16px', backgroundColor: '#FFFFFF' }"
-    elevation="0"
-    border
-  >
-    <div class="d-flex align-center justify-space-between mb-2">
-      <span class="text-caption text-medium-emphasis">{{ label }}</span>
-      <v-chip
-        v-if="trend"
-        size="x-small"
-        variant="flat"
-        :style="{ backgroundColor: `${'#4CAF50'}1A`, color: '#4CAF50', fontWeight: 600 }"
-      >
-        {{ trend }}
-      </v-chip>
-    </div>
-
-    <div class="text-h5 font-weight-bold mb-2">{{ value }}</div>
-
-    <div v-if="subtitle" class="text-body-2 text-medium-emphasis mb-2">
-      {{ subtitle }}
-    </div>
-
-    <canvas
-      ref="canvasRef"
-      class="w-full h-16"
-      :style="{ borderRadius: '8px' }"
-    />
-  </v-card>
-</template>
-
-<script setup lang="ts">
-import { onMounted, ref } from 'vue'
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
@@ -99,3 +64,41 @@ onMounted(() => {
   })
 })
 </script>
+
+<template>
+  <v-card
+    class="d-flex flex-column align-start pa-4"
+    :style="{ borderRadius: '16px', padding: '16px', backgroundColor: '#FFFFFF' }"
+    elevation="0"
+    border
+  >
+    <div class="d-flex align-center justify-space-between mb-2">
+      <span class="text-caption text-medium-emphasis">{{ label }}</span>
+      <v-chip
+        v-if="trend"
+        size="x-small"
+        variant="flat"
+        :style="{ backgroundColor: `${'#4CAF50'}1A`, color: '#4CAF50', fontWeight: 600 }"
+      >
+        {{ trend }}
+      </v-chip>
+    </div>
+
+    <div class="text-h5 font-weight-bold mb-2">
+      {{ value }}
+    </div>
+
+    <div
+      v-if="subtitle"
+      class="text-body-2 text-medium-emphasis mb-2"
+    >
+      {{ subtitle }}
+    </div>
+
+    <canvas
+      ref="canvasRef"
+      class="w-full h-16"
+      :style="{ borderRadius: '8px' }"
+    />
+  </v-card>
+</template>
