@@ -66,3 +66,7 @@ directly (the RTK "Token Killer" wrapper).
 Agent configuration files (this file, `.gemini/rules/`, `.chatgpt/`, …) are
 written in **English**. Project documentation (`docs/`, `README.md`, `roadmap`)
 is also English; code comments follow each file's existing language.
+
+## UI/UX Pro Max Skills
+
+The project includes the **UI/UX Pro Max** skill suite (`ui-styling`, `design`, `design-system`, `brand`, `banner-design`, `slides`), stored in `.kilo/skills/` and `.claude/skills/`. All AI assistants (Claude, Gemini, Copilot, Kilo, Cline, ChatGPT) should leverage these modular skills when building, styling, or designing frontend views, UI components, design tokens, and branding.
