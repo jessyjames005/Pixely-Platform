@@ -54,6 +54,21 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 - [ ] **Migrations/upgrades:** Core and extension migrations tested on fresh and existing databases; versioned upgrade and recovery behavior documented.
 - [ ] **Security:** review authentication, 2FA, sessions, Sanctum, RBAC, policies, API, validation, secrets and sensitive operations.
 - [ ] **Extension SDK:** validate manifests, dependencies, lifecycle, routes, permissions, navigation, blocks, settings and compatibility.
+- [ ] **Extension Creation & Installation Validation Checklist:**
+  - **Extension Creation (`php artisan make:extension <name>`):**
+    - [ ] Validate extension name, slug, and namespace according to platform conventions.
+    - [ ] Generate valid SDK v2 manifest (`extension.json` / `composer.json` metadata).
+    - [ ] Scaffold backend structure (Service Provider, Controllers, Routes, Migrations).
+    - [ ] Scaffold API routes and OpenAPI attributes.
+    - [ ] Scaffold frontend structure (Vue components, views, navigation links).
+    - [ ] Scaffold automated tests (unit and feature test stubs).
+  - **Extension Installation & Lifecycle:**
+    - [ ] Manifest and dependency compatibility check against core platform version.
+    - [ ] Database migration execution (fresh installation and existing database upgrade).
+    - [ ] Automatic permission synchronization (`pixely:sync-permissions`).
+    - [ ] State persistence and registration in `extension_states` table.
+    - [ ] Enable/disable lifecycle verification without breaking core functionality or existing roles.
+    - [ ] Versioned upgrade step execution and rollback verification.
 - [ ] **API:** verify generated OpenAPI from PHP Attributes, official Swagger UI, error format and versioning.
 - [ ] **Quality:** reproducible backend, frontend, E2E, lint, static-analysis, build and CI gates.
 - [ ] **Operations:** verify mail, workers, scheduler, cache, logs, health checks, backup and a demonstrated restore.
