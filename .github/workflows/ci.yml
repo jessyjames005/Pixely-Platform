@@ -100,7 +100,7 @@ jobs:
           cache: npm
 
       - name: Install Node dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build frontend
         run: npm run build:front
@@ -155,7 +155,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Install Node dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Prepare Laravel environment
         run: |
@@ -257,7 +257,7 @@ jobs:
           cache: npm
 
       - name: Install Node dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run ESLint
         run: npm run lint
@@ -526,7 +526,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Install Node dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Prepare Laravel environment
         run: |
@@ -625,7 +625,7 @@ jobs:
           APP_DEBUG: 'false'
 
       - name: Install Node dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build production frontend
         run: npm run build:front
