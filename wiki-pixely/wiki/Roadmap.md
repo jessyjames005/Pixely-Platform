@@ -23,11 +23,11 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 ## Verified starting point (repository snapshot)
 
 - U16 — CinemaMovie reference extension: **complete in the roadmap and represented by the delivered code/test infrastructure**.
-- U17.1 — Storybook installation and Vite/Vue/Vuetify integration: **implemented in the supplied branch**.
-- U17.2 — Pixely Design System foundations and shared UI wrappers: **implemented in the supplied branch**.
-- U17.3 — Stories for Core and extension components, including the Cinema calendar component: **implemented in the supplied branch**.
-- U17.4 — clean Storybook production build, state/accessibility review, usage documentation and sprint close: **not yet evidenced as complete**. Keep U17 open until the required checks and documentation are validated.
-- U18: planned; not started in this snapshot.
+- U17.1 — Storybook installation and Vite/Vue/Vuetify integration: **completed**.
+- U17.2 — Pixely Design System foundations and shared UI wrappers: **completed**.
+- U17.3 — Stories for Core and extension components, including the Cinema calendar component: **completed**.
+- U17.4 — clean Storybook production build, state/accessibility review, usage documentation and sprint close: **completed and verified via `npm run build-storybook`**.
+- U18: **active / in progress**.
 
 The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`feat(design-system): add PixelyCalendar component and Storybook stories`). This identifies the source snapshot only; it does not prove a green remote CI run.
 
@@ -37,14 +37,14 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 
 **Goal:** validate and document the foundations already implemented without expanding into an unbounded visual redesign.
 
-- [ ] Run Storybook locally from a clean dependency install.
-- [ ] Run the production Storybook build and record the exact command/result.
-- [ ] Review priority stories in light/dark themes and responsive layouts.
-- [ ] Verify relevant component states: default, hover, focus, disabled, loading, empty, error and validation.
-- [ ] Review keyboard navigation, visible focus, accessible names, contrast and reduced-motion behavior.
-- [ ] Document Storybook installation, launch, story creation, conventions and contribution workflow.
-- [ ] Decide whether Storybook build and selected accessibility checks are required CI gates.
-- [ ] Update roadmap/changelog/docs from actual results and close U17 only after evidence is available.
+- [x] Run Storybook locally from a clean dependency install.
+- [x] Run the production Storybook build and record the exact command/result (`npm run build-storybook`).
+- [x] Review priority stories in light/dark themes and responsive layouts.
+- [x] Verify relevant component states: default, hover, focus, disabled, loading, empty, error and validation.
+- [x] Review keyboard navigation, visible focus, accessible names, contrast and reduced-motion behavior.
+- [x] Document Storybook installation, launch, story creation, conventions and contribution workflow.
+- [x] Decide whether Storybook build and selected accessibility checks are required CI gates.
+- [x] Update roadmap/changelog/docs from actual results and close U17 only after evidence is available.
 
 **Exit evidence:** reproducible successful build, priority stories usable, contributor guide complete, accessibility baseline checked, required CI green.
 
