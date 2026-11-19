@@ -67,6 +67,20 @@ Agent configuration files (this file, `.gemini/rules/`, `.chatgpt/`, …) are
 written in **English**. Project documentation (`docs/`, `README.md`, `roadmap`)
 is also English; code comments follow each file's existing language.
 
-## UI/UX Pro Max Skills
+## Community Skills (`ai-skills/`)
 
-The project includes the **UI/UX Pro Max** skill suite (`ui-styling`, `design`, `design-system`, `brand`, `banner-design`, `slides`), stored in `.kilo/skills/` and `.claude/skills/`. All AI assistants (Claude, Gemini, Copilot, Kilo, Cline, ChatGPT) should leverage these modular skills when building, styling, or designing frontend views, UI components, design tokens, and branding.
+Third-party skills live in a single shared location, `ai-skills/community/`.
+`.claude/skills/`, `.gemini/skills/` and `.kilo/skills/` only contain
+**symlinks** into it — nothing is duplicated, and every AI tool reads the
+exact same files. See `ai-skills/README.md` for the full mechanism and
+`ai-skills/community/README.md` for the catalog with status per skill.
+
+- **UI/UX Pro Max** (`ui-styling`, `design`, `design-system`, `brand`, `banner-design`, `slides`) — leverage for frontend views, UI components, design tokens, and branding.
+- **Debugging & review** (`debugging` + its sub-skills, `code-review`) — follow these for root-cause-first debugging and before marking any lot complete.
+- **DevOps & testing** (`devops`, `web-testing`) — Docker/CI/GitOps patterns and Playwright/Vitest/k6 testing patterns, complementing `.claude/skills/PP_testing`.
+- **Gemini** (`ai-multimodal`) — Google Gemini API for audio/video/image/PDF processing; relevant to the Media Converter, Blog, Shop and Camping extensions.
+- **Docs & diagrams** (`docs-seeker`, `mermaidjs-v11`) — up-to-date framework docs and Mermaid diagrams for architecture/roadmap docs.
+- **Meta** (`skill-creator`) — use when authoring new `PP_*` project skills.
+
+All AI assistants (Claude, Gemini, Copilot, Kilo, Cline, ChatGPT) should
+leverage these modular skills where relevant to the task at hand.
