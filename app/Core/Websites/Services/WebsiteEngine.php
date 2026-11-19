@@ -24,7 +24,7 @@ use App\Core\Websites\Persistence\Models\MenuItemRecord;
  */
 final class WebsiteEngine implements WebsiteEngineInterface
 {
-    private const PAGE_STATUSES = ['draft', 'published', 'archived'];
+    private const PAGE_STATUSES = ['draft', 'scheduled', 'published', 'archived'];
 
     public function createPage(array $data): PageModel
     {
@@ -40,6 +40,8 @@ final class WebsiteEngine implements WebsiteEngineInterface
             'template' => (string) ($data['template'] ?? 'default'),
             'seo' => $data['seo'] ?? [],
             'blocks' => $data['blocks'] ?? [],
+            'published_at' => $data['published_at'] ?? null,
+            'publish_at' => $data['publish_at'] ?? null,
         ]);
 
         return $this->toPage($record);
@@ -58,7 +60,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
         }
 
         $record->fill(array_intersect_key($data, array_flip([
-            'slug', 'title', 'status', 'template', 'seo', 'blocks',
+            'slug', 'title', 'status', 'template', 'seo', 'blocks', 'published_at', 'publish_at',
         ])));
         $record->save();
 
@@ -81,7 +83,14 @@ final class WebsiteEngine implements WebsiteEngineInterface
     {
         $record = PageRecord::query()
             ->where('slug', trim($slug, '/'))
-            ->where('status', 'published')
+            ->where(function (Builder $query): void {
+                $query->where('status', 'published')
+                    ->orWhere(function (Builder $q): void {
+                        $q->where('status', 'scheduled')
+                            ->whereNotNull('publish_at')
+                            ->where('publish_at', '<=', now());
+                    });
+            })
             ->first();
 
         return $record ? $this->toPage($record) : null;
@@ -244,6 +253,8 @@ final class WebsiteEngine implements WebsiteEngineInterface
             title: (string) $record->title,
             status: (string) $record->status,
             template: (string) $record->template,
+            publishedAt: $record->published_at,
+            publishAt: $record->publish_at,
             seo: $record->seo ?? [],
             blocks: $record->blocks ?? [],
         );

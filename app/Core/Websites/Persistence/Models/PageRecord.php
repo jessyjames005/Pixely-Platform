@@ -17,6 +17,6 @@ final class PageRecord extends Model
 
     protected function casts(): array
     {
-        return ['seo' => 'array', 'blocks' => 'array'];
+        return ['seo' => 'array', 'blocks' => 'array', 'published_at' => 'datetime', 'publish_at' => 'datetime'];
     }
 }

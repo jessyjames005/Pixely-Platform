@@ -15,6 +15,8 @@ final readonly class PageModel implements \JsonSerializable
         public string $title,
         public string $status,
         public string $template,
+        public ?\DateTimeInterface $publishedAt = null,
+        public ?\DateTimeInterface $publishAt = null,
         public array $seo = [],
         public array $blocks = [],
     ) {
