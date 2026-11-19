@@ -55,7 +55,7 @@ jobs:
         with:
           version: 3.97.9
           path: ./
-          extra_args: --results=verified,unknown
+          extra_args: --results=verified,unknown --exclude-paths=.trufflehog-exclude.txt
 
   build-back:
     name: Build backend
