@@ -4,12 +4,13 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
-### Added — U17 Design System and Storybook foundation
+### Added — U18 Stabilisation and stable-release preparation (lots U18.1–U18.4)
 
-- Added Storybook for the Vite/Vue 3 frontend with Vuetify 3 integration and a dedicated component documentation workflow.
-- Added Pixely Design System tokens and shared UI/UX component wrappers for consistent platform-owned interfaces.
-- Added Material-style authentication page components for login, email verification, password recovery/reset and two-step verification.
-- Added the `PixelyCalendar` component and Storybook stories, including the CinemaMovie calendar/agenda use case.
+- Verified repeatable clean install: environment (`php artisan about`), storage symlink, database-backed cache/queue/session, mail via Mailpit, and `php artisan migrate:status` showing all core and extension migrations ran.
+- Verified extension permission synchronization (`pixely:sync-permissions`) across `files`, `cinema-movie`, `gallery`, `translations`, `tuleap`.
+- Verified security and API surfaces: authentication, RBAC surface access control, strict JSON:API error envelopes, and OpenAPI specification generation/validation (`php artisan scramble:export`).
+- Verified extension SDK v2: `make:extension` scaffolding, manifest/dependency validation, lifecycle enable/disable, migration runner, and extension state persistence across 182 backend/console unit+feature tests.
+- Verified production frontend build (`npm run build`) and Storybook production build (`npm run build-storybook`); swagger UI documentation page accessible.
 
 ### Documentation and architecture
 
@@ -17,7 +18,14 @@ All notable changes to Pixely Platform are documented in this file.
 - Aligned the product vision, architecture overview, roadmap and generated GitHub wiki with Planning Global V4.0 (17 November 2026).
 - Replaced the older active sprint sequence with the V4 execution plan: U17.4 close, U18 stabilisation, Website Engine, public extension contracts, Gallery/R1, R2, R3 and later extensions.
 
-> U17.1–U17.3 are represented by the supplied source snapshot. U17.4 remains open until a clean Storybook build, documentation, accessibility review and the relevant CI evidence have been verified. This changelog does not claim those checks have passed.
+> Known U18 limitations not covered in this release: release documentation (install/update/rollback guide, troubleshooting, release notes, feature/limitation matrix), demonstrated backup/restore, frontend E2E/Playwright execution, and lint/static-analysis CI gates.
+
+### Added — U17 Design System and Storybook foundation
+
+- Added Storybook for the Vite/Vue 3 frontend with Vuetify 3 integration and a dedicated component documentation workflow.
+- Added Pixely Design System tokens and shared UI/UX component wrappers for consistent platform-owned interfaces.
+- Added Material-style authentication page components for login, email verification, password recovery/reset and two-step verification.
+- Added the `PixelyCalendar` component and Storybook stories, including the CinemaMovie calendar/agenda use case.
 
 
 ## [U17] - 2026-11-19
