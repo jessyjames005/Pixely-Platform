@@ -1,1 +1,4 @@
 ^ai-skills/community/devops/references/docker-compose\.md$
+ai-skills/community/devops/references/docker-compose\.md
+\.git/
+node_modules/
