@@ -20,7 +20,14 @@ All notable changes to Pixely Platform are documented in this file.
 > U17.1–U17.3 are represented by the supplied source snapshot. U17.4 remains open until a clean Storybook build, documentation, accessibility review and the relevant CI evidence have been verified. This changelog does not claim those checks have passed.
 
 
-### Added — U16 Sample Cinema reference extension
+## [U17] - 2026-11-19
+### Design System, UI/UX Kit & Storybook Integration
+- Initialized Storybook with Vite, Vue 3, and Vuetify 3 theme integration (U17.1).
+- Implemented comprehensive Pixely Design System component library, tokens, and layout primitives (U17.2).
+- Added interactive Storybook stories for core components and extension widgets like `CinemaCalendarAgenda` (U17.3).
+- Performed production Storybook build verification, accessibility/state checks, and sprint close (U17.4).
+
+## [U16]
 
 - Added CinemaMovie as an SDK v2 reference extension with a bilingual movie and genre catalogue, authenticated JSON:API resources, permission-aware administration, and Files poster/backdrop relationships.
 - Added isolated Playwright E2E infrastructure with Chromium and Firefox projects, reusable page objects, and seeded administrator credentials supplied only at runtime.
