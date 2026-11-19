@@ -51,7 +51,9 @@ directly (the RTK "Token Killer" wrapper).
 - Searches: `rtk rg "<pattern>"` | `rtk find "<pattern>"`
 - Do **not** prefix `php -l`, `composer install`, `npm ci`, `npm run build` with `rtk`.
 
-## Commits
+## Code style
+
+- IMPORTANT: ALWAYS ADD COMMENTS in PHP, JS, Vue, unit tests, functional tests, and fixtures. Explain intent, contracts, and non-obvious logic. Never remove existing comments without explicit authorization.
 
 - Never commit or push without explicit user authorization. Each commit/push requires separate, explicit authorization.
 - Conventional Commits, scope = domain: `fix(ci): …`, `feat(i18n): …` (matches recent `git log`).

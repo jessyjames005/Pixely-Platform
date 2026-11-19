@@ -7,6 +7,12 @@ namespace App\Core\Websites\Console;
 use App\Core\Websites\Persistence\Models\PageRecord;
 use Illuminate\Console\Command;
 
+/**
+ * Publishes website pages whose scheduled publication time has elapsed.
+ *
+ * Intended to be run by the scheduler to transition scheduled pages
+ * to the published state.
+ */
 final class PublishScheduledPagesCommand extends Command
 {
     protected $signature = 'website:publish-scheduled';

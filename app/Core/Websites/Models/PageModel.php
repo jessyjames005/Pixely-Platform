@@ -6,6 +6,9 @@ namespace App\Core\Websites\Models;
 
 /**
  * Immutable website page DTO exposed by the Website Engine.
+ *
+ * Carries publication timestamps so callers can distinguish
+ * draft, scheduled and published states.
  */
 final readonly class PageModel implements \JsonSerializable
 {
