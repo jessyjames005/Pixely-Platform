@@ -273,8 +273,8 @@ final class WebsiteEngine implements WebsiteEngineInterface
             title: (string) $record->title,
             status: (string) $record->status,
             template: (string) $record->template,
-            publishedAt: $record->published_at instanceof \DateTimeInterface ? $record->published_at : null,
-            publishAt: $record->publish_at instanceof \DateTimeInterface ? $record->publish_at : null,
+            publishedAt: $record->published_at,
+            publishAt: $record->publish_at,
             seo: $record->seo ?? [],
             blocks: $record->blocks ?? [],
         );
