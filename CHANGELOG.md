@@ -4,6 +4,29 @@ All notable changes to Pixely Platform are documented in this file.
 
 ## Unreleased
 
+### Added — U17 Design System and Storybook foundation
+
+- Added Storybook for the Vite/Vue 3 frontend with Vuetify 3 integration and a dedicated component documentation workflow.
+- Added Pixely Design System tokens and shared UI/UX component wrappers for consistent platform-owned interfaces.
+- Added Material-style authentication page components for login, email verification, password recovery/reset and two-step verification.
+- Added the `PixelyCalendar` component and Storybook stories, including the CinemaMovie calendar/agenda use case.
+
+### Documentation and architecture
+
+- Recorded the deployment boundary: one Pixely installation manages one independent website; multi-site / multi-tenant hosting is deferred (ADR-0010).
+- Aligned the product vision, architecture overview, roadmap and generated GitHub wiki with Planning Global V4.0 (17 November 2026).
+- Replaced the older active sprint sequence with the V4 execution plan: U17.4 close, U18 stabilisation, Website Engine, public extension contracts, Gallery/R1, R2, R3 and later extensions.
+
+> U17.1–U17.3 are represented by the supplied source snapshot. U17.4 remains open until a clean Storybook build, documentation, accessibility review and the relevant CI evidence have been verified. This changelog does not claim those checks have passed.
+
+
+### Added — U16 Sample Cinema reference extension
+
+- Added CinemaMovie as an SDK v2 reference extension with a bilingual movie and genre catalogue, authenticated JSON:API resources, permission-aware administration, and Files poster/backdrop relationships.
+- Added isolated Playwright E2E infrastructure with Chromium and Firefox projects, reusable page objects, and seeded administrator credentials supplied only at runtime.
+- Added browser journeys for CinemaMovie administration access and movie/genre create, edit, and delete workflows.
+- Documented safe local E2E execution and CI diagnostics. The browser job remains non-blocking while the suite is stabilised.
+
 ### Added — U15 Extension SDK developer tools and documentation
 
 - Hardened `php artisan make:extension` with extension-name validation, safe directory handling, SDK v2 test starters, and migration-runner guidance.

@@ -18,7 +18,7 @@ it('provides strict JSON:API request headers', function (): void {
 });
 
 it('creates and explicitly authenticates a user with the requested extension permission', function (): void {
-    $permissionName = 'cinema-movie.items.view';
+    $permissionName = 'cinema-movie.movies.view';
 
     $user = ExtensionApiTestHelper::createUserWithPermission(
         new CinemaMovieExtension(),

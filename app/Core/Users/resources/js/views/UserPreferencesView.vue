@@ -35,7 +35,9 @@ async function save(): Promise<void> {
 
 <template>
   <section>
-    <h1 class="text-h4 mb-6">{{ t('core.user_space.preferences.title', 'Preferences') }}</h1>
+    <h1 class="text-h4 mb-6">
+      {{ t('core.user_space.preferences.title', 'Preferences') }}
+    </h1>
 
     <v-card max-width="760">
       <v-card-text>
@@ -75,11 +77,20 @@ async function save(): Promise<void> {
           color="primary"
         />
 
-        <v-alert v-if="saved" type="success" density="compact" class="mb-4">
+        <v-alert
+          v-if="saved"
+          type="success"
+          density="compact"
+          class="mb-4"
+        >
           {{ t('core.user_space.preferences.saved', 'Preferences saved.') }}
         </v-alert>
 
-        <v-btn color="primary" :loading="saving" @click="save">
+        <v-btn
+          color="primary"
+          :loading="saving"
+          @click="save"
+        >
           {{ t('core.user_space.action.save', 'Save changes') }}
         </v-btn>
       </v-card-text>

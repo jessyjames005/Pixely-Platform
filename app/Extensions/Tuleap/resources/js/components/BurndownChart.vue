@@ -91,12 +91,23 @@ function formatDay(dateStr: string): string {
 </script>
 
 <template>
-  <div v-if="!actual.length" class="d-flex align-center justify-center text-medium-emphasis text-caption" style="min-height: 260px">
+  <div
+    v-if="!actual.length"
+    class="d-flex align-center justify-center text-medium-emphasis text-caption"
+    style="min-height: 260px"
+  >
     {{ burndown === null ? 'Aucune donnée de burndown disponible pour ce sprint.' : 'Aucune donnée disponible' }}
   </div>
 
-  <div v-else class="d-flex flex-column ga-2">
-    <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" style="width: 100%; height: auto; display: block">
+  <div
+    v-else
+    class="d-flex flex-column ga-2"
+  >
+    <svg
+      :viewBox="`0 0 ${W} ${H}`"
+      preserveAspectRatio="none"
+      style="width: 100%; height: auto; display: block"
+    >
       <line
         v-for="y in yGridLines"
         :key="y.val"
@@ -129,11 +140,32 @@ function formatDay(dateStr: string): string {
         fill="rgb(var(--v-theme-on-surface-variant))"
       >{{ formatDay(date) }}</text>
 
-      <polygon :points="idealFill" fill="rgb(var(--v-theme-info))" fill-opacity="0.06" />
-      <polyline :points="idealLine" fill="none" stroke="rgb(var(--v-theme-info))" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="6 4" />
+      <polygon
+        :points="idealFill"
+        fill="rgb(var(--v-theme-info))"
+        fill-opacity="0.06"
+      />
+      <polyline
+        :points="idealLine"
+        fill="none"
+        stroke="rgb(var(--v-theme-info))"
+        stroke-opacity="0.5"
+        stroke-width="1.5"
+        stroke-dasharray="6 4"
+      />
 
-      <polygon :points="actualFill" fill="rgb(var(--v-theme-success))" fill-opacity="0.12" />
-      <polyline :points="actualLine" fill="none" stroke="rgb(var(--v-theme-success))" stroke-width="2.5" stroke-linejoin="round" />
+      <polygon
+        :points="actualFill"
+        fill="rgb(var(--v-theme-success))"
+        fill-opacity="0.12"
+      />
+      <polyline
+        :points="actualLine"
+        fill="none"
+        stroke="rgb(var(--v-theme-success))"
+        stroke-width="2.5"
+        stroke-linejoin="round"
+      />
 
       <rect
         v-for="(pt, i) in actual"
@@ -179,8 +211,16 @@ function formatDay(dateStr: string): string {
     </svg>
 
     <div class="d-flex align-center ga-4 text-caption text-medium-emphasis pl-1">
-      <span><v-icon icon="mdi-minus" color="success" size="16" /> Réel</span>
-      <span><v-icon icon="mdi-dots-horizontal" color="info" size="16" /> Idéal</span>
+      <span><v-icon
+        icon="mdi-minus"
+        color="success"
+        size="16"
+      /> Réel</span>
+      <span><v-icon
+        icon="mdi-dots-horizontal"
+        color="info"
+        size="16"
+      /> Idéal</span>
       <span class="ml-auto">Début : {{ burndown?.totalPoints }} pts</span>
     </div>
   </div>

@@ -2,7 +2,15 @@
 
 This directory configures **Google Gemini** as an AI coding agent for the
 Pixely Platform. Gemini reads every `.md` file under `.gemini/rules/` as
-project-level instructions.
+project-level instructions, and discovers Agent Skills (full `SKILL.md`
+workflows) under `.gemini/skills/`.
+
+`.gemini/skills/` contains symlinks into `ai-skills/community/`, the single
+shared copy of every third-party skill used on this project (design/UI/UX
+pack, debugging, code-review, devops, web-testing, ai-multimodal,
+docs-seeker, mermaidjs-v11, skill-creator). See `ai-skills/README.md` at the
+repo root for how that's synced and kept in one place across Claude Code,
+Gemini and Kilo.
 
 The project maintains **one unified ruleset for every AI tool**
 (Claude Code, Gemini, ChatGPT, GitHub Copilot, Cline). Rather than duplicate
@@ -35,7 +43,7 @@ the rules here, this file points to the single source of truth.
 |------|----------------|-------|
 | Kilo | `AGENTS.md` (loaded via `kilo.json` → `instructions`) | this session's agent loader |
 | Claude Code | `CLAUDE.md` | mirrors `AGENTS.md` |
-| Gemini | `.gemini/rules/` (this directory) | reads these as project instructions |
+| Gemini | `.gemini/rules/` (this directory) + `.gemini/skills/` | rules = project instructions; skills = symlinks into `ai-skills/community/` |
 | ChatGPT | `.chatgpt/instructions.md` | → points to `AGENTS.md` |
 | GitHub Copilot | `.github/copilot/copilot-instructions.md` | → points to `AGENTS.md` |
 | Cline | `.clinerules` | → points to `AGENTS.md` |

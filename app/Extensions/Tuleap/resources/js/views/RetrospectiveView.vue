@@ -132,18 +132,36 @@ async function saveEdit(action: RetroAction): Promise<void> {
     <ProjectSprintSelector />
 
     <div class="mb-4">
-      <h1 class="text-h5 font-weight-bold">Rétrospective</h1>
-      <p v-if="store.selectedMilestone" class="text-body-2 text-medium-emphasis mt-1">{{ store.selectedMilestone.label }}</p>
+      <h1 class="text-h5 font-weight-bold">
+        Rétrospective
+      </h1>
+      <p
+        v-if="store.selectedMilestone"
+        class="text-body-2 text-medium-emphasis mt-1"
+      >
+        {{ store.selectedMilestone.label }}
+      </p>
     </div>
 
-    <v-alert v-if="!store.selectedMilestoneId" type="info" variant="tonal">
+    <v-alert
+      v-if="!store.selectedMilestoneId"
+      type="info"
+      variant="tonal"
+    >
       Sélectionne un sprint ci-dessus.
     </v-alert>
 
     <template v-else>
-      <v-card v-if="prevActions.length" variant="outlined" rounded="lg" class="mb-4">
+      <v-card
+        v-if="prevActions.length"
+        variant="outlined"
+        rounded="lg"
+        class="mb-4"
+      >
         <v-card-item>
-          <template #title><span class="text-subtitle-2">🎯 Plan d'action — {{ prevSprintLabel }}</span></template>
+          <template #title>
+            <span class="text-subtitle-2">🎯 Plan d'action — {{ prevSprintLabel }}</span>
+          </template>
           <template #append>
             <span class="text-caption"><strong class="text-success">{{ prevDoneCount }}</strong> / {{ prevActions.length }} respectées</span>
           </template>
@@ -156,10 +174,25 @@ async function saveEdit(action: RetroAction): Promise<void> {
             :style="{ borderLeft: `3px solid rgb(var(--v-theme-${action.status === 'done' ? 'success' : action.status === 'missed' ? 'error' : 'warning'}))`, background: 'rgb(var(--v-theme-surface-variant))' }"
           >
             <div class="d-flex ga-1">
-              <v-btn :variant="action.status === 'done' ? 'flat' : 'text'" color="success" size="x-small" icon="mdi-check" @click="setPrevStatus(action, 'done')" />
-              <v-btn :variant="action.status === 'missed' ? 'flat' : 'text'" color="error" size="x-small" icon="mdi-close" @click="setPrevStatus(action, 'missed')" />
+              <v-btn
+                :variant="action.status === 'done' ? 'flat' : 'text'"
+                color="success"
+                size="x-small"
+                icon="mdi-check"
+                @click="setPrevStatus(action, 'done')"
+              />
+              <v-btn
+                :variant="action.status === 'missed' ? 'flat' : 'text'"
+                color="error"
+                size="x-small"
+                icon="mdi-close"
+                @click="setPrevStatus(action, 'missed')"
+              />
             </div>
-            <span class="text-body-2" :class="{ 'text-decoration-line-through text-medium-emphasis': action.status === 'done', 'text-error': action.status === 'missed' }">
+            <span
+              class="text-body-2"
+              :class="{ 'text-decoration-line-through text-medium-emphasis': action.status === 'done', 'text-error': action.status === 'missed' }"
+            >
               {{ action.text }}
             </span>
           </div>
@@ -167,14 +200,31 @@ async function saveEdit(action: RetroAction): Promise<void> {
       </v-card>
 
       <v-row>
-        <v-col v-for="col in columns" :key="col.key" cols="12" sm="6" md="4" lg="2">
-          <v-card variant="outlined" rounded="lg" :style="{ borderTop: `3px solid rgb(var(--v-theme-${col.color}))` }" style="min-height: 320px; display: flex; flex-direction: column">
+        <v-col
+          v-for="col in columns"
+          :key="col.key"
+          cols="12"
+          sm="6"
+          md="4"
+          lg="2"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+            :style="{ borderTop: `3px solid rgb(var(--v-theme-${col.color}))` }"
+            style="min-height: 320px; display: flex; flex-direction: column"
+          >
             <v-card-item>
               <template #title>
                 <span class="text-body-2 font-weight-bold">{{ col.icon }} {{ col.label }}</span>
               </template>
               <template #append>
-                <v-chip size="x-small" variant="tonal">{{ actionsByCategory(col.key).length }}</v-chip>
+                <v-chip
+                  size="x-small"
+                  variant="tonal"
+                >
+                  {{ actionsByCategory(col.key).length }}
+                </v-chip>
               </template>
             </v-card-item>
 
@@ -186,7 +236,12 @@ async function saveEdit(action: RetroAction): Promise<void> {
                 :color="col.key === 'plan_action' ? (action.status === 'done' ? 'success' : action.status === 'missed' ? 'error' : undefined) : undefined"
                 class="mb-2 pa-2"
               >
-                <div v-if="editingId !== action.id" class="text-body-2" style="white-space: pre-wrap; cursor: text" @dblclick="startEdit(action)">
+                <div
+                  v-if="editingId !== action.id"
+                  class="text-body-2"
+                  style="white-space: pre-wrap; cursor: text"
+                  @dblclick="startEdit(action)"
+                >
                   {{ action.text }}
                 </div>
                 <v-textarea
@@ -203,13 +258,38 @@ async function saveEdit(action: RetroAction): Promise<void> {
                   @keydown.esc="cancelEdit"
                 />
                 <div class="d-flex align-center justify-space-between mt-1">
-                  <div v-if="col.key === 'plan_action'" class="d-flex ga-1">
-                    <v-btn :variant="action.status === 'pending' ? 'flat' : 'text'" size="x-small" icon="mdi-clock-outline" @click="setStatus(action, 'pending')" />
-                    <v-btn :variant="action.status === 'done' ? 'flat' : 'text'" color="success" size="x-small" icon="mdi-check" @click="setStatus(action, 'done')" />
-                    <v-btn :variant="action.status === 'missed' ? 'flat' : 'text'" color="error" size="x-small" icon="mdi-close" @click="setStatus(action, 'missed')" />
+                  <div
+                    v-if="col.key === 'plan_action'"
+                    class="d-flex ga-1"
+                  >
+                    <v-btn
+                      :variant="action.status === 'pending' ? 'flat' : 'text'"
+                      size="x-small"
+                      icon="mdi-clock-outline"
+                      @click="setStatus(action, 'pending')"
+                    />
+                    <v-btn
+                      :variant="action.status === 'done' ? 'flat' : 'text'"
+                      color="success"
+                      size="x-small"
+                      icon="mdi-check"
+                      @click="setStatus(action, 'done')"
+                    />
+                    <v-btn
+                      :variant="action.status === 'missed' ? 'flat' : 'text'"
+                      color="error"
+                      size="x-small"
+                      icon="mdi-close"
+                      @click="setStatus(action, 'missed')"
+                    />
                   </div>
                   <v-spacer />
-                  <v-btn size="x-small" variant="text" icon="mdi-close" @click="deleteAction(action)" />
+                  <v-btn
+                    size="x-small"
+                    variant="text"
+                    icon="mdi-close"
+                    @click="deleteAction(action)"
+                  />
                 </div>
               </v-card>
             </v-card-text>
@@ -225,7 +305,14 @@ async function saveEdit(action: RetroAction): Promise<void> {
                 class="mb-2"
                 @keydown.enter.exact.prevent="addAction(col.key)"
               />
-              <v-btn variant="tonal" size="small" block @click="addAction(col.key)">+ Ajouter</v-btn>
+              <v-btn
+                variant="tonal"
+                size="small"
+                block
+                @click="addAction(col.key)"
+              >
+                + Ajouter
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-col>

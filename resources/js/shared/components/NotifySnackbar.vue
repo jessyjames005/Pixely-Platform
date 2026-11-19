@@ -7,7 +7,12 @@ const { state } = useNotify()
 </script>
 
 <template>
-  <v-snackbar v-model="state.visible" :color="state.color" location="bottom right" timeout="4000">
+  <v-snackbar
+    v-model="state.visible"
+    :color="state.color"
+    location="bottom right"
+    timeout="4000"
+  >
     {{ state.message }}
   </v-snackbar>
 </template>

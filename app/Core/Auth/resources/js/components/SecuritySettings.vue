@@ -160,13 +160,20 @@ onMounted(() => {
   <div>
     <v-card class="mb-4">
       <v-card-item>
-        <template #title><span class="text-subtitle-1">{{ $t('core.auth.title.change_password', 'Password') }}</span></template>
-        <template #subtitle>{{ $t('core.auth.msg.change_password_subtitle', 'Choose a long, unique password.') }}</template>
+        <template #title>
+          <span class="text-subtitle-1">{{ $t('core.auth.title.change_password', 'Password') }}</span>
+        </template>
+        <template #subtitle>
+          {{ $t('core.auth.msg.change_password_subtitle', 'Choose a long, unique password.') }}
+        </template>
       </v-card-item>
       <v-card-text>
         <v-form @submit.prevent="handleChangePassword">
           <v-row>
-            <v-col cols="12" md="4">
+            <v-col
+              cols="12"
+              md="4"
+            >
               <v-text-field
                 v-model="currentPassword"
                 :label="$t('core.auth.object.password.current.label', 'Current password')"
@@ -176,7 +183,10 @@ onMounted(() => {
                 required
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col
+              cols="12"
+              md="4"
+            >
               <v-text-field
                 v-model="newPassword"
                 :label="$t('core.auth.object.password.new.label', 'New password')"
@@ -187,7 +197,10 @@ onMounted(() => {
                 required
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col
+              cols="12"
+              md="4"
+            >
               <v-text-field
                 v-model="newPasswordConfirmation"
                 :label="$t('core.auth.object.password.confirmation.label', 'Confirm new password')"
@@ -199,11 +212,20 @@ onMounted(() => {
             </v-col>
           </v-row>
 
-          <v-alert v-if="passwordError" type="error" density="compact" class="mb-4">
+          <v-alert
+            v-if="passwordError"
+            type="error"
+            density="compact"
+            class="mb-4"
+          >
             {{ authErrorMessage(passwordError) }}
           </v-alert>
 
-          <v-btn type="submit" color="primary" :loading="changingPassword">
+          <v-btn
+            type="submit"
+            color="primary"
+            :loading="changingPassword"
+          >
             {{ $t('core.auth.action.change_password', 'Change password') }}
           </v-btn>
         </v-form>
@@ -212,10 +234,19 @@ onMounted(() => {
 
     <v-card :loading="fetchingStatus">
       <v-card-item>
-        <template #title><span class="text-subtitle-1">{{ $t('core.auth.title.two_factor', 'Two-factor authentication') }}</span></template>
-        <template #subtitle>{{ $t('core.auth.msg.two_factor_subtitle', 'Require a code from an authenticator app when you sign in.') }}</template>
+        <template #title>
+          <span class="text-subtitle-1">{{ $t('core.auth.title.two_factor', 'Two-factor authentication') }}</span>
+        </template>
+        <template #subtitle>
+          {{ $t('core.auth.msg.two_factor_subtitle', 'Require a code from an authenticator app when you sign in.') }}
+        </template>
         <template #append>
-          <v-chip v-if="status" :color="status.enabled ? 'success' : undefined" size="small" data-testid="two-factor-status">
+          <v-chip
+            v-if="status"
+            :color="status.enabled ? 'success' : undefined"
+            size="small"
+            data-testid="two-factor-status"
+          >
             {{ status.enabled ? $t('core.auth.msg.enabled', 'Enabled') : $t('core.auth.msg.disabled', 'Disabled') }}
           </v-chip>
         </template>
@@ -223,17 +254,34 @@ onMounted(() => {
 
       <v-card-text>
         <!-- Recovery codes: shown once, after enabling or regenerating -->
-        <v-alert v-if="recoveryCodes.length" type="warning" class="mb-4" data-testid="recovery-codes">
+        <v-alert
+          v-if="recoveryCodes.length"
+          type="warning"
+          class="mb-4"
+          data-testid="recovery-codes"
+        >
           <p class="mb-2">
             {{ $t('core.auth.msg.recovery_codes_warning', 'Save these recovery codes somewhere safe. Each one can be used once if you lose access to your authenticator app. They will not be shown again.') }}
           </p>
           <div class="d-flex flex-wrap ga-4 mb-3">
-            <code v-for="recoveryCode in recoveryCodes" :key="recoveryCode">{{ recoveryCode }}</code>
+            <code
+              v-for="recoveryCode in recoveryCodes"
+              :key="recoveryCode"
+            >{{ recoveryCode }}</code>
           </div>
-          <v-btn size="small" variant="outlined" class="mr-2" @click="copyRecoveryCodes">
+          <v-btn
+            size="small"
+            variant="outlined"
+            class="mr-2"
+            @click="copyRecoveryCodes"
+          >
             {{ $t('core.auth.action.copy_codes', 'Copy codes') }}
           </v-btn>
-          <v-btn size="small" variant="text" @click="recoveryCodes = []">
+          <v-btn
+            size="small"
+            variant="text"
+            @click="recoveryCodes = []"
+          >
             {{ $t('core.auth.action.saved_codes', "I've saved them") }}
           </v-btn>
         </v-alert>
@@ -243,10 +291,18 @@ onMounted(() => {
           <p class="mb-4">
             {{ $t('core.auth.msg.recovery_codes_remaining', 'Recovery codes remaining: :count', { count: status.recoveryCodesRemaining }) }}
           </p>
-          <v-btn variant="outlined" class="mr-2" @click="openDialog('regenerate')">
+          <v-btn
+            variant="outlined"
+            class="mr-2"
+            @click="openDialog('regenerate')"
+          >
             {{ $t('core.auth.action.regenerate_recovery_codes', 'Regenerate recovery codes') }}
           </v-btn>
-          <v-btn color="error" variant="outlined" @click="openDialog('disable')">
+          <v-btn
+            color="error"
+            variant="outlined"
+            @click="openDialog('disable')"
+          >
             {{ $t('core.auth.action.disable_two_factor', 'Disable two-factor') }}
           </v-btn>
         </template>
@@ -257,10 +313,17 @@ onMounted(() => {
             {{ $t('core.auth.msg.setup_instructions', 'Scan the QR code with your authenticator app, then enter the 6-digit code it shows.') }}
           </p>
           <div class="mb-4">
-            <QrCode :value="enrolment.otpauthUri" :label="$t('core.auth.msg.qr_code_label', 'QR code to add this account to your authenticator app')" />
+            <QrCode
+              :value="enrolment.otpauthUri"
+              :label="$t('core.auth.msg.qr_code_label', 'QR code to add this account to your authenticator app')"
+            />
           </div>
-          <p class="mb-1 text-medium-emphasis">{{ $t('core.auth.msg.setup_key_hint', "Can't scan it? Enter this setup key manually:") }}</p>
-          <p class="mb-2"><code data-testid="two-factor-secret">{{ enrolment.secret }}</code></p>
+          <p class="mb-1 text-medium-emphasis">
+            {{ $t('core.auth.msg.setup_key_hint', "Can't scan it? Enter this setup key manually:") }}
+          </p>
+          <p class="mb-2">
+            <code data-testid="two-factor-secret">{{ enrolment.secret }}</code>
+          </p>
           <p class="mb-4">
             <a :href="enrolment.otpauthUri">{{ $t('core.auth.action.open_authenticator', 'Open in authenticator app') }}</a>
           </p>
@@ -275,19 +338,37 @@ onMounted(() => {
               required
             />
 
-            <v-alert v-if="confirmError" type="error" density="compact" class="mb-4">
+            <v-alert
+              v-if="confirmError"
+              type="error"
+              density="compact"
+              class="mb-4"
+            >
               {{ authErrorMessage(confirmError) }}
             </v-alert>
 
-            <v-btn type="submit" color="primary" class="mr-2" :loading="confirming">
+            <v-btn
+              type="submit"
+              color="primary"
+              class="mr-2"
+              :loading="confirming"
+            >
               {{ $t('core.auth.action.confirm', 'Confirm') }}
             </v-btn>
-            <v-btn variant="text" @click="cancelEnrolment">{{ $t('core.auth.action.cancel', 'Cancel') }}</v-btn>
+            <v-btn
+              variant="text"
+              @click="cancelEnrolment"
+            >
+              {{ $t('core.auth.action.cancel', 'Cancel') }}
+            </v-btn>
           </v-form>
         </template>
 
         <!-- Disabled -->
-        <v-form v-else @submit.prevent="handleEnable">
+        <v-form
+          v-else
+          @submit.prevent="handleEnable"
+        >
           <p class="mb-4">
             {{ $t('core.auth.msg.two_factor_enable_intro', 'Confirm your password to start setting up two-factor authentication.') }}
           </p>
@@ -300,18 +381,30 @@ onMounted(() => {
             required
           />
 
-          <v-alert v-if="startError" type="error" density="compact" class="mb-4">
+          <v-alert
+            v-if="startError"
+            type="error"
+            density="compact"
+            class="mb-4"
+          >
             {{ authErrorMessage(startError) }}
           </v-alert>
 
-          <v-btn type="submit" color="primary" :loading="starting">
+          <v-btn
+            type="submit"
+            color="primary"
+            :loading="starting"
+          >
             {{ $t('core.auth.action.enable_two_factor', 'Enable two-factor') }}
           </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
 
-    <v-dialog v-model="dialogOpen" max-width="420">
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="420"
+    >
       <v-card
         :title="sensitiveAction === 'disable'
           ? $t('core.auth.title.disable_two_factor', 'Disable two-factor authentication')
@@ -332,13 +425,22 @@ onMounted(() => {
               autofocus
               required
             />
-            <v-alert v-if="sensitiveError" type="error" density="compact">
+            <v-alert
+              v-if="sensitiveError"
+              type="error"
+              density="compact"
+            >
               {{ authErrorMessage(sensitiveError) }}
             </v-alert>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn variant="text" @click="closeDialog">{{ $t('core.auth.action.cancel', 'Cancel') }}</v-btn>
+            <v-btn
+              variant="text"
+              @click="closeDialog"
+            >
+              {{ $t('core.auth.action.cancel', 'Cancel') }}
+            </v-btn>
             <v-btn
               type="submit"
               :color="sensitiveAction === 'disable' ? 'error' : 'primary'"

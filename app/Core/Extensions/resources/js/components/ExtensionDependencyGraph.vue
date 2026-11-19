@@ -118,10 +118,24 @@ const svgHeight = computed(() => {
 
 <template>
   <div class="dependency-graph-wrapper">
-    <svg :width="svgWidth" :height="svgHeight" :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
+    <svg
+      :width="svgWidth"
+      :height="svgHeight"
+      :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
+    >
       <defs>
-        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-          <path d="M0,0 L8,4 L0,8 Z" fill="#9e9e9e" />
+        <marker
+          id="arrow"
+          markerWidth="8"
+          markerHeight="8"
+          refX="7"
+          refY="4"
+          orient="auto"
+        >
+          <path
+            d="M0,0 L8,4 L0,8 Z"
+            fill="#9e9e9e"
+          />
         </marker>
       </defs>
 
@@ -139,7 +153,10 @@ const svgHeight = computed(() => {
       />
 
       <!-- Nodes -->
-      <g v-for="node in positionedNodes" :key="node.id">
+      <g
+        v-for="node in positionedNodes"
+        :key="node.id"
+      >
         <rect
           :x="node.x"
           :y="node.y"

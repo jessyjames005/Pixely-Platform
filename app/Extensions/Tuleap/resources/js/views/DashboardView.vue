@@ -105,10 +105,18 @@ function refresh(): void {
 
     <div class="d-flex align-start justify-space-between mb-4">
       <div>
-        <h1 class="text-h5 font-weight-bold">Tableau de bord</h1>
-        <p v-if="store.selectedMilestone" class="text-body-2 text-medium-emphasis mt-1">
+        <h1 class="text-h5 font-weight-bold">
+          Tableau de bord
+        </h1>
+        <p
+          v-if="store.selectedMilestone"
+          class="text-body-2 text-medium-emphasis mt-1"
+        >
           {{ store.selectedMilestone.label }}
-          <span v-if="store.selectedMilestone.start_date" class="text-medium-emphasis">
+          <span
+            v-if="store.selectedMilestone.start_date"
+            class="text-medium-emphasis"
+          >
             · {{ formatDate(store.selectedMilestone.start_date) }} – {{ formatDate(store.selectedMilestone.end_date) }}
           </span>
         </p>
@@ -123,19 +131,34 @@ function refresh(): void {
       </v-btn>
     </div>
 
-    <v-alert v-if="!store.selectedMilestoneId" type="info" variant="tonal">
+    <v-alert
+      v-if="!store.selectedMilestoneId"
+      type="info"
+      variant="tonal"
+    >
       Sélectionne un projet et un sprint ci-dessus.
     </v-alert>
 
     <template v-else>
-      <div v-if="store.loading.stats" class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center">
-        <v-progress-circular indeterminate size="20" width="2" />
+      <div
+        v-if="store.loading.stats"
+        class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center"
+      >
+        <v-progress-circular
+          indeterminate
+          size="20"
+          width="2"
+        />
         Chargement des données…
       </div>
 
       <template v-else-if="store.stats">
         <v-row class="mb-2">
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <StatCard
               label="Points pris"
               :value="store.stats.total"
@@ -143,7 +166,11 @@ function refresh(): void {
               :sub2="addedDuringSprint.count > 0 ? `+${addedDuringSprint.points} pts / +${addedDuringSprint.count} tâche(s) ajoutée(s)` : undefined"
             />
           </v-col>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <StatCard
               label="Points done"
               :value="store.stats.done"
@@ -154,14 +181,22 @@ function refresh(): void {
               variant="success"
             />
           </v-col>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <StatCard
               label="Points restants"
               :value="store.stats.total - store.stats.done"
               :sub="daysLeft !== null ? `${daysLeft} jour(s) restant(s)` : ''"
             />
           </v-col>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <StatCard
               label="Vélocité sprint"
               :value="velocityStr"
@@ -171,12 +206,22 @@ function refresh(): void {
           </v-col>
         </v-row>
 
-        <v-card variant="outlined" rounded="lg" class="mb-4">
+        <v-card
+          variant="outlined"
+          rounded="lg"
+          class="mb-4"
+        >
           <v-card-item>
             <template #title>
               <div class="d-flex align-center ga-2">
                 <span class="text-subtitle-2">Alertes</span>
-                <v-chip v-if="alertCount > 0" size="x-small" color="warning">{{ alertCount }}</v-chip>
+                <v-chip
+                  v-if="alertCount > 0"
+                  size="x-small"
+                  color="warning"
+                >
+                  {{ alertCount }}
+                </v-chip>
               </div>
             </template>
           </v-card-item>
@@ -186,8 +231,15 @@ function refresh(): void {
         </v-card>
 
         <v-row>
-          <v-col cols="12" md="8">
-            <v-card variant="outlined" rounded="lg" style="min-height: 420px">
+          <v-col
+            cols="12"
+            md="8"
+          >
+            <v-card
+              variant="outlined"
+              rounded="lg"
+              style="min-height: 420px"
+            >
               <v-card-item>
                 <template #title>
                   <span class="text-subtitle-2">Burndown</span>
@@ -204,31 +256,63 @@ function refresh(): void {
                 </template>
               </v-card-item>
               <v-card-text>
-                <v-alert v-if="burndownError" type="error" variant="tonal" density="compact">{{ burndownError }}</v-alert>
-                <BurndownChart v-else :burndown="store.burndown" />
+                <v-alert
+                  v-if="burndownError"
+                  type="error"
+                  variant="tonal"
+                  density="compact"
+                >
+                  {{ burndownError }}
+                </v-alert>
+                <BurndownChart
+                  v-else
+                  :burndown="store.burndown"
+                />
               </v-card-text>
             </v-card>
           </v-col>
 
-          <v-col cols="12" md="4">
-            <v-card variant="outlined" rounded="lg">
+          <v-col
+            cols="12"
+            md="4"
+          >
+            <v-card
+              variant="outlined"
+              rounded="lg"
+            >
               <v-card-item>
                 <template #title>
                   <span class="text-subtitle-2">Par personne</span>
                 </template>
                 <template #append>
-                  <v-btn size="small" variant="text" @click="showByPerson = !showByPerson">
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    @click="showByPerson = !showByPerson"
+                  >
                     {{ showByPerson ? 'Masquer' : 'Afficher' }}
                   </v-btn>
                 </template>
               </v-card-item>
               <v-card-text v-if="showByPerson">
-                <div v-for="(data, name) in store.stats.byPerson" :key="name" class="d-flex align-center ga-3 mb-3">
-                  <v-avatar size="32" color="surface-variant">
+                <div
+                  v-for="(data, name) in store.stats.byPerson"
+                  :key="name"
+                  class="d-flex align-center ga-3 mb-3"
+                >
+                  <v-avatar
+                    size="32"
+                    color="surface-variant"
+                  >
                     <span class="text-caption font-weight-bold">{{ initials(String(name)) }}</span>
                   </v-avatar>
-                  <div class="flex-grow-1" style="min-width: 0">
-                    <div class="text-body-2 text-truncate">{{ name }}</div>
+                  <div
+                    class="flex-grow-1"
+                    style="min-width: 0"
+                  >
+                    <div class="text-body-2 text-truncate">
+                      {{ name }}
+                    </div>
                     <v-progress-linear
                       :model-value="data.total > 0 ? (data.done / data.total) * 100 : 0"
                       color="success"

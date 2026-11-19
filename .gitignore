@@ -36,3 +36,8 @@ test-results/tests-E2E-AdminNavigation--01722-ls-its-children-when-opened/error-
 test-results/.last-run.json
 .kilo/plans/1791303496412-platform-surfaces-foundation-sprint.md
 /build/
+# Playwright E2E output and isolated local test credentials
+.playwright/
+playwright-report/
+test-results/
+.env.e2e

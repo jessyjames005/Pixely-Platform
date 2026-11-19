@@ -1,30 +1,29 @@
 import { expect, test } from '@playwright/test'
-
-const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_USER_PASSWORD ?? 'password'
+import { ADMIN_PERSONA } from './fixtures/personas'
+import { LoginPage } from './poms/LoginPage.pom'
+import { UserSpacePage } from './poms/UserSpacePage.pom'
 
 test.describe('User Space engagement', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
-    await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-    await page.locator('input[autocomplete="username"]').fill(email)
-    await page.locator('input[autocomplete="current-password"]').fill(password)
-    await page.getByRole('button', { name: 'Sign in' }).click()
+    const login = new LoginPage(page)
+    await login.goto()
+    await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)
     await expect(page).toHaveURL(/\/admin|\/account/)
-    await page.goto('/account/favorites')
+    await new UserSpacePage(page).gotoFavorites()
   })
 
   test('navigates between favorites and history', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Favorites' })).toBeVisible()
-    await page.getByRole('link', { name: 'History' }).click()
+    const userSpace = new UserSpacePage(page)
+    await expect(userSpace.favoritesHeading).toBeVisible()
+    await userSpace.openHistory()
     await expect(page).toHaveURL(/\/account\/history/)
-    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible()
+    await expect(userSpace.historyHeading).toBeVisible()
   })
 
   test('keeps user-space engagement behind authentication', async ({ browser }) => {
     const context = await browser.newContext()
     const guest = await context.newPage()
-    await guest.goto('/account/favorites')
+    await new UserSpacePage(guest).gotoFavorites()
     await expect(guest).toHaveURL(/\/login/)
     await context.close()
   })

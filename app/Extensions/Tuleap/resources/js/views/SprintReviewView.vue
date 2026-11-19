@@ -119,51 +119,127 @@ function pctOf(done: number, pts: number): number {
 
     <div class="d-flex align-start justify-space-between mb-4">
       <div>
-        <h1 class="text-h5 font-weight-bold">Sprint Review</h1>
-        <p v-if="store.selectedMilestone" class="text-body-2 text-medium-emphasis mt-1">{{ store.selectedMilestone.label }}</p>
+        <h1 class="text-h5 font-weight-bold">
+          Sprint Review
+        </h1>
+        <p
+          v-if="store.selectedMilestone"
+          class="text-body-2 text-medium-emphasis mt-1"
+        >
+          {{ store.selectedMilestone.label }}
+        </p>
       </div>
-      <v-btn variant="outlined" prepend-icon="mdi-refresh" :loading="store.loading.stats" @click="store.refreshStats()">
+      <v-btn
+        variant="outlined"
+        prepend-icon="mdi-refresh"
+        :loading="store.loading.stats"
+        @click="store.refreshStats()"
+      >
         Actualiser
       </v-btn>
     </div>
 
-    <v-alert v-if="!store.selectedMilestoneId" type="info" variant="tonal">
+    <v-alert
+      v-if="!store.selectedMilestoneId"
+      type="info"
+      variant="tonal"
+    >
       Sélectionne un sprint ci-dessus.
     </v-alert>
 
     <template v-else-if="store.stats && store.sprintConfig">
-      <v-card variant="outlined" rounded="lg" class="mb-4">
+      <v-card
+        variant="outlined"
+        rounded="lg"
+        class="mb-4"
+      >
         <v-card-text>
           <v-row>
-            <v-col cols="12" md="8">
-              <div class="text-caption text-medium-emphasis text-uppercase">Objectif du sprint</div>
-              <div class="text-body-1 mt-1">{{ store.sprintConfig.objective || '—' }}</div>
+            <v-col
+              cols="12"
+              md="8"
+            >
+              <div class="text-caption text-medium-emphasis text-uppercase">
+                Objectif du sprint
+              </div>
+              <div class="text-body-1 mt-1">
+                {{ store.sprintConfig.objective || '—' }}
+              </div>
             </v-col>
-            <v-col cols="12" md="4">
-              <div class="text-caption text-medium-emphasis text-uppercase">Indice de confiance</div>
-              <v-rating :model-value="store.sprintConfig.confidence_index ?? 0" half-increments readonly color="warning" size="20" class="mt-1" />
-              <div class="text-caption text-medium-emphasis">{{ confidenceLabel }}</div>
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-caption text-medium-emphasis text-uppercase">
+                Indice de confiance
+              </div>
+              <v-rating
+                :model-value="store.sprintConfig.confidence_index ?? 0"
+                half-increments
+                readonly
+                color="warning"
+                size="20"
+                class="mt-1"
+              />
+              <div class="text-caption text-medium-emphasis">
+                {{ confidenceLabel }}
+              </div>
             </v-col>
           </v-row>
         </v-card-text>
       </v-card>
 
       <v-row class="mb-2">
-        <v-col cols="12" sm="6" md="4" lg="2">
-          <v-card variant="outlined" rounded="lg">
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="2"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+          >
             <v-card-text>
-              <div class="text-caption text-medium-emphasis text-uppercase">Dossiers terminés</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ doneCount }} / {{ totalCount }}</div>
-              <v-progress-linear :model-value="doneCountPct" color="success" height="4" rounded class="mt-2" />
+              <div class="text-caption text-medium-emphasis text-uppercase">
+                Dossiers terminés
+              </div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ doneCount }} / {{ totalCount }}
+              </div>
+              <v-progress-linear
+                :model-value="doneCountPct"
+                color="success"
+                height="4"
+                rounded
+                class="mt-2"
+              />
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6" md="4" lg="3">
-          <v-card variant="outlined" rounded="lg">
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+          >
             <v-card-text>
-              <div class="text-caption text-medium-emphasis text-uppercase">Points done / pris</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ store.stats.done }} / {{ store.stats.total }}</div>
-              <div v-if="store.stats.devDone" class="text-caption text-warning">{{ store.stats.devDone }} pts en validation</div>
+              <div class="text-caption text-medium-emphasis text-uppercase">
+                Points done / pris
+              </div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ store.stats.done }} / {{ store.stats.total }}
+              </div>
+              <div
+                v-if="store.stats.devDone"
+                class="text-caption text-warning"
+              >
+                {{ store.stats.devDone }} pts en validation
+              </div>
               <v-progress-linear
                 :model-value="donePct"
                 :buffer-value="store.stats.total ? Math.min(donePct + Math.round((store.stats.devDone / store.stats.total) * 100), 100) : undefined"
@@ -176,87 +252,209 @@ function pctOf(done: number, pts: number): number {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6" md="4" lg="2">
-          <v-card variant="outlined" rounded="lg">
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="2"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+          >
             <v-card-text>
-              <div class="text-caption text-medium-emphasis text-uppercase">Prédictibilité</div>
-              <div class="text-h6 font-weight-bold mt-1" :class="`text-${predictabilityColor}`">{{ predictability }}%</div>
-              <div class="text-caption text-medium-emphasis">pts done / pts pris</div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="6" md="4" lg="3">
-          <v-card variant="outlined" rounded="lg">
-            <v-card-text>
-              <div class="text-caption text-medium-emphasis text-uppercase">Respect engagement</div>
-              <div class="text-h6 font-weight-bold mt-1" :class="`text-${commitmentColor}`">{{ commitmentRespect }}%</div>
+              <div class="text-caption text-medium-emphasis text-uppercase">
+                Prédictibilité
+              </div>
+              <div
+                class="text-h6 font-weight-bold mt-1"
+                :class="`text-${predictabilityColor}`"
+              >
+                {{ predictability }}%
+              </div>
               <div class="text-caption text-medium-emphasis">
-                tâches début de sprint
-                <v-chip v-if="addedDuringSprintCount > 0" size="x-small" color="warning" variant="tonal">+{{ addedDuringSprintCount }} ajoutées</v-chip>
+                pts done / pts pris
               </div>
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6" md="4" lg="2">
-          <v-card variant="outlined" rounded="lg">
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+          >
+            <v-card-text>
+              <div class="text-caption text-medium-emphasis text-uppercase">
+                Respect engagement
+              </div>
+              <div
+                class="text-h6 font-weight-bold mt-1"
+                :class="`text-${commitmentColor}`"
+              >
+                {{ commitmentRespect }}%
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                tâches début de sprint
+                <v-chip
+                  v-if="addedDuringSprintCount > 0"
+                  size="x-small"
+                  color="warning"
+                  variant="tonal"
+                >
+                  +{{ addedDuringSprintCount }} ajoutées
+                </v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="2"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+          >
             <v-card-text>
               <div class="d-flex align-center ga-1 text-caption text-medium-emphasis text-uppercase">
                 Capacité
-                <v-tooltip location="top" max-width="220">
-                  <template #activator="{ props: tp }"><v-icon v-bind="tp" icon="mdi-information-outline" size="14" /></template>
+                <v-tooltip
+                  location="top"
+                  max-width="220"
+                >
+                  <template #activator="{ props: tp }">
+                    <v-icon
+                      v-bind="tp"
+                      icon="mdi-information-outline"
+                      size="14"
+                    />
+                  </template>
                   Points terminés ÷ CAF total équipe (somme des jours travaillés de tous les membres).
                 </v-tooltip>
               </div>
-              <div class="text-h6 font-weight-bold mt-1">{{ dailyCapacity }}</div>
-              <div class="text-caption text-medium-emphasis">pts/j (done / CAF équipe)</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ dailyCapacity }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                pts/j (done / CAF équipe)
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
 
       <v-row class="mb-2">
-        <v-col cols="12" md="7">
-          <v-card variant="outlined" rounded="lg" style="min-height: 380px">
+        <v-col
+          cols="12"
+          md="7"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+            style="min-height: 380px"
+          >
             <v-card-item>
-              <template #title><span class="text-subtitle-2">Burndown</span></template>
+              <template #title>
+                <span class="text-subtitle-2">Burndown</span>
+              </template>
               <template #append>
-                <v-btn size="small" variant="text" :loading="store.loading.burndown" @click="loadBurndown">
+                <v-btn
+                  size="small"
+                  variant="text"
+                  :loading="store.loading.burndown"
+                  @click="loadBurndown"
+                >
                   {{ store.burndown ? 'Actualiser' : 'Charger' }}
                 </v-btn>
               </template>
             </v-card-item>
             <v-card-text>
-              <v-alert v-if="burndownError" type="error" variant="tonal" density="compact">{{ burndownError }}</v-alert>
-              <BurndownChart v-else :burndown="store.burndown" />
+              <v-alert
+                v-if="burndownError"
+                type="error"
+                variant="tonal"
+                density="compact"
+              >
+                {{ burndownError }}
+              </v-alert>
+              <BurndownChart
+                v-else
+                :burndown="store.burndown"
+              />
             </v-card-text>
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="5">
-          <v-card variant="outlined" rounded="lg">
+        <v-col
+          cols="12"
+          md="5"
+        >
+          <v-card
+            variant="outlined"
+            rounded="lg"
+          >
             <v-card-item>
-              <template #title><span class="text-subtitle-2">Points par type de tâche</span></template>
+              <template #title>
+                <span class="text-subtitle-2">Points par type de tâche</span>
+              </template>
             </v-card-item>
             <v-card-text>
-              <div v-for="t in typeData" :key="t.key" class="mb-4">
+              <div
+                v-for="t in typeData"
+                :key="t.key"
+                class="mb-4"
+              >
                 <div class="d-flex align-center ga-2 mb-1">
-                  <v-chip :color="typeColor[t.key]" size="small" variant="tonal" style="width: 90px">{{ t.label }}</v-chip>
+                  <v-chip
+                    :color="typeColor[t.key]"
+                    size="small"
+                    variant="tonal"
+                    style="width: 90px"
+                  >
+                    {{ t.label }}
+                  </v-chip>
                   <span class="text-body-2">{{ t.done }} <span class="text-medium-emphasis">/ {{ t.pts }} pts</span></span>
                 </div>
-                <v-progress-linear :model-value="pctOf(t.done, t.pts)" :color="typeColor[t.key]" height="8" rounded />
+                <v-progress-linear
+                  :model-value="pctOf(t.done, t.pts)"
+                  :color="typeColor[t.key]"
+                  height="8"
+                  rounded
+                />
               </div>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
 
-      <v-card variant="outlined" rounded="lg">
+      <v-card
+        variant="outlined"
+        rounded="lg"
+      >
         <v-card-item>
-          <template #title><span class="text-subtitle-2">Commentaire</span></template>
+          <template #title>
+            <span class="text-subtitle-2">Commentaire</span>
+          </template>
           <template #append>
             <div class="d-flex align-center ga-3">
-              <span v-if="commentSaved" class="text-caption text-success">Enregistré ✓</span>
-              <v-btn size="small" variant="text" @click="showComment = !showComment">{{ showComment ? 'Masquer' : 'Afficher' }}</v-btn>
+              <span
+                v-if="commentSaved"
+                class="text-caption text-success"
+              >Enregistré ✓</span>
+              <v-btn
+                size="small"
+                variant="text"
+                @click="showComment = !showComment"
+              >
+                {{ showComment ? 'Masquer' : 'Afficher' }}
+              </v-btn>
             </div>
           </template>
         </v-card-item>
@@ -273,8 +471,15 @@ function pctOf(done: number, pts: number): number {
       </v-card>
     </template>
 
-    <div v-else class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center">
-      <v-progress-circular indeterminate size="20" width="2" />
+    <div
+      v-else
+      class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center"
+    >
+      <v-progress-circular
+        indeterminate
+        size="20"
+        width="2"
+      />
       Chargement…
     </div>
   </div>

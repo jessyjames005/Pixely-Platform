@@ -541,6 +541,8 @@ Do not add comments that merely repeat obvious code.
 
 Keep commits focused and understandable.
 
+Work is planned as named sprints containing numbered, independently reviewable lots. Follow [`SPRINT_WORKFLOW.md`](https://github.com/jessyjames005/Pixely-Platform/blob/develop/docs/development/SPRINT_WORKFLOW.md) for lot gates, commit approval, documentation updates, and the sprint pull request checklist.
+
 ### Rules
 
 - One logical change per commit where practical.
@@ -550,6 +552,9 @@ Keep commits focused and understandable.
 - Check `git diff` before committing.
 - Keep documentation changes synchronized with architectural changes.
 - Do not rewrite history unnecessarily on shared branches.
+- Propose a separate Conventional Commit message when each lot is complete; do not commit until the user explicitly approves that commit.
+- Do not begin the next lot until the current lot's scope and validation result have been summarized and the user has confirmed continuation.
+- At sprint close, provide a complete pull request description using `.github/PULL_REQUEST_TEMPLATE.md`.
 
 Before considering a sprint complete:
 

@@ -88,8 +88,12 @@ const totalLabel = computed(() => t('files.msg.total_files', ':count file(s)', {
   <div>
     <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-3">
       <div>
-        <h1 class="text-h5 font-weight-bold">{{ $t('files.title.files_list', 'Files') }}</h1>
-        <p class="text-body-2 text-medium-emphasis mt-1">{{ totalLabel }}</p>
+        <h1 class="text-h5 font-weight-bold">
+          {{ $t('files.title.files_list', 'Files') }}
+        </h1>
+        <p class="text-body-2 text-medium-emphasis mt-1">
+          {{ totalLabel }}
+        </p>
       </div>
 
       <div class="d-flex align-center ga-2">
@@ -102,34 +106,93 @@ const totalLabel = computed(() => t('files.msg.total_files', ':count file(s)', {
           style="max-width: 260px"
           :disabled="uploading"
         />
-        <v-btn color="primary" :loading="uploading" :disabled="!getSelectedFile()" @click="handleUpload">
+        <v-btn
+          color="primary"
+          :loading="uploading"
+          :disabled="!getSelectedFile()"
+          @click="handleUpload"
+        >
           {{ $t('files.action.upload', 'Upload') }}
         </v-btn>
       </div>
     </div>
 
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error.message }}</v-alert>
-    <v-alert v-if="uploadError" type="error" density="compact" class="mb-4">{{ uploadError.message }}</v-alert>
+    <v-alert
+      v-if="error"
+      type="error"
+      density="compact"
+      class="mb-4"
+    >
+      {{ error.message }}
+    </v-alert>
+    <v-alert
+      v-if="uploadError"
+      type="error"
+      density="compact"
+      class="mb-4"
+    >
+      {{ uploadError.message }}
+    </v-alert>
 
-    <div v-if="loading" class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center">
-      <v-progress-circular indeterminate size="20" width="2" />
+    <div
+      v-if="loading"
+      class="d-flex align-center ga-2 text-medium-emphasis py-8 justify-center"
+    >
+      <v-progress-circular
+        indeterminate
+        size="20"
+        width="2"
+      />
       {{ $t('files.msg.loading_files', 'Loading files…') }}
     </div>
 
-    <v-alert v-else-if="!filesStore.files.length" type="info" variant="tonal">
+    <v-alert
+      v-else-if="!filesStore.files.length"
+      type="info"
+      variant="tonal"
+    >
       {{ $t('files.msg.no_files_yet', 'No files yet — upload one above.') }}
     </v-alert>
 
     <v-row v-else>
-      <v-col v-for="file in filesStore.files" :key="file.id" cols="6" sm="4" md="3" lg="2">
-        <v-card variant="outlined" rounded="lg">
-          <v-img v-if="isImage(file)" :src="file.thumbnail_url ?? file.url" :alt="file.original_name" height="120" cover />
-          <div v-else class="d-flex align-center justify-center" style="height: 120px">
-            <v-icon :icon="iconFor(file)" size="48" color="medium-emphasis" />
+      <v-col
+        v-for="file in filesStore.files"
+        :key="file.id"
+        cols="6"
+        sm="4"
+        md="3"
+        lg="2"
+      >
+        <v-card
+          variant="outlined"
+          rounded="lg"
+        >
+          <v-img
+            v-if="isImage(file)"
+            :src="file.thumbnail_url ?? file.url"
+            :alt="file.original_name"
+            height="120"
+            cover
+          />
+          <div
+            v-else
+            class="d-flex align-center justify-center"
+            style="height: 120px"
+          >
+            <v-icon
+              :icon="iconFor(file)"
+              size="48"
+              color="medium-emphasis"
+            />
           </div>
 
           <v-card-text class="pa-2">
-            <div class="text-caption text-truncate" :title="file.original_name">{{ file.original_name }}</div>
+            <div
+              class="text-caption text-truncate"
+              :title="file.original_name"
+            >
+              {{ file.original_name }}
+            </div>
             <div class="text-caption text-medium-emphasis d-flex justify-space-between">
               <span>{{ formatSize(file.size) }}</span>
               <span>{{ formatDate(file.created_at) }}</span>
@@ -137,15 +200,32 @@ const totalLabel = computed(() => t('files.msg.total_files', ':count file(s)', {
           </v-card-text>
 
           <v-card-actions class="pa-1 pt-0">
-            <v-btn :href="file.url" target="_blank" size="x-small" variant="text" icon="mdi-open-in-new" :title="$t('files.action.open', 'Open')" />
+            <v-btn
+              :href="file.url"
+              target="_blank"
+              size="x-small"
+              variant="text"
+              icon="mdi-open-in-new"
+              :title="$t('files.action.open', 'Open')"
+            />
             <v-spacer />
-            <v-btn size="x-small" variant="text" color="error" icon="mdi-delete-outline" :title="$t('common.action.delete', 'Delete')" @click="handleDelete(file)" />
+            <v-btn
+              size="x-small"
+              variant="text"
+              color="error"
+              icon="mdi-delete-outline"
+              :title="$t('common.action.delete', 'Delete')"
+              @click="handleDelete(file)"
+            />
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
 
-    <div v-if="(filesStore.meta?.last_page ?? 1) > 1" class="d-flex justify-center mt-6">
+    <div
+      v-if="(filesStore.meta?.last_page ?? 1) > 1"
+      class="d-flex justify-center mt-6"
+    >
       <v-pagination
         :model-value="filesStore.meta?.current_page ?? currentPage"
         :length="filesStore.meta?.last_page ?? 1"

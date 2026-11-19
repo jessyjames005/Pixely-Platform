@@ -1,54 +1,43 @@
 import { expect, test } from '@playwright/test'
-
-const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_USER_PASSWORD ?? 'password'
+import { ADMIN_PERSONA } from './fixtures/personas'
+import { LoginPage } from './poms/LoginPage.pom'
+import { WebsiteAdminPage } from './poms/WebsiteAdminPage.pom'
 
 test.describe('Website administration', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
-    const csrf = page.waitForResponse('/sanctum/csrf-cookie')
-    await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-    expect((await csrf).status()).toBe(204)
-
-    await page.locator('input[autocomplete="username"]').fill(email)
-    await page.locator('input[autocomplete="current-password"]').fill(password)
-    await page.getByRole('button', { name: 'Sign in' }).click()
+    const login = new LoginPage(page)
+    await login.goto()
+    expect(await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)).toBe(200)
     await expect(page).toHaveURL(/\/admin/)
   })
 
   test('opens the Website Pages screen from administration navigation', async ({ page }) => {
-    await page.locator('.v-navigation-drawer').getByText('Website', { exact: true }).click()
-    await page.getByRole('link', { name: 'Pages' }).click()
+    const website = new WebsiteAdminPage(page)
+    await website.openPagesFromNavigation()
     await expect(page).toHaveURL(/\/admin\/website\/pages$/)
-    await expect(page.getByRole('heading', { name: 'Website pages' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'New page' })).toBeVisible()
+    await expect(website.pagesHeading).toBeVisible()
+    await expect(website.newPageButton).toBeVisible()
   })
 
   test('creates a website page from the admin UI', async ({ page }) => {
-    await page.goto('/admin/website/pages')
-    await page.getByRole('button', { name: 'New page' }).click()
-    await expect(page.getByRole('heading', { name: 'New page' })).toBeVisible()
+    const title = `Playwright About ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const website = new WebsiteAdminPage(page)
+    await website.gotoPages()
+    await website.createPage(title)
 
-    await page.getByLabel('Title').fill('Playwright About')
-    await page.getByRole('button', { name: 'Save' }).click()
-
-    await expect(page.getByText('Playwright About')).toBeVisible()
-    await expect(page.getByText('playwright-about')).toBeVisible()
+    await expect(website.createdPageTitle(title)).toBeVisible()
+    await expect(website.createdPageSlug(title.toLowerCase().replaceAll(' ', '-'))).toBeVisible()
   })
 
   test('creates a website menu from the admin UI', async ({ page }) => {
-    await page.goto('/admin/website/menus')
-    await page.getByRole('button', { name: 'New menu' }).click()
-    await expect(page.getByRole('heading', { name: 'New menu' })).toBeVisible()
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const name = `Playwright Main ${uniqueSuffix}`
+    const code = `playwright-main-${uniqueSuffix}`
+    const website = new WebsiteAdminPage(page)
+    await website.gotoMenus()
+    await website.createMenu(name, code, 'Home', '/')
 
-    await page.getByLabel('Name').fill('Playwright Main')
-    await page.getByLabel('Code').fill('playwright-main')
-    await page.getByRole('button', { name: 'Add item' }).click()
-    await page.getByLabel('Title').last().fill('Home')
-    await page.getByLabel('Target URL').last().fill('/')
-    await page.getByRole('button', { name: 'Save' }).click()
-
-    await expect(page.getByText('Playwright Main')).toBeVisible()
-    await expect(page.getByText('Home')).toBeVisible()
+    await expect(website.createdMenuName(name)).toBeVisible()
+    await expect(website.createdMenuItem(name, 'Home')).toBeVisible()
   })
 })

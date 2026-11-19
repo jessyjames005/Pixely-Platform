@@ -12,7 +12,7 @@
         "intervention/image": "^4.2",
         "laravel-json-api/laravel": "^5.3",
         "laravel-json-api/non-eloquent": "^4.3",
-        "laravel/framework": "^13.8",
+        "laravel/framework": "^13.40",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "predis/predis": "^3.6",

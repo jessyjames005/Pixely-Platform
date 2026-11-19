@@ -32,7 +32,14 @@ const qr = computed(() => {
     :aria-label="label"
     data-testid="qr-code"
   >
-    <rect :width="qr.dimension" :height="qr.dimension" fill="#fff" />
-    <path :d="qr.path" fill="#000" />
+    <rect
+      :width="qr.dimension"
+      :height="qr.dimension"
+      fill="#fff"
+    />
+    <path
+      :d="qr.path"
+      fill="#000"
+    />
   </svg>
 </template>

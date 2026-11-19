@@ -61,23 +61,6 @@ services:
     networks:
       - pixely
 
-  # One-shot Playwright runner (opt in with --profile e2e).
-  e2e:
-    image: mcr.microsoft.com/playwright:v1.63.0-noble
-    working_dir: /var/www
-    command: ["bash", "-lc", "npm ci && npm run build && npm run test:e2e"]
-    profiles:
-      - e2e
-    depends_on:
-      - nginx
-      - mysql
-      - redis
-    volumes:
-      - ./:/var/www
-      - e2e_node_modules:/var/www/node_modules
-    networks:
-      - pixely
-
   # MySQL database.
   mysql:
     image: mysql:8.0
@@ -109,6 +92,5 @@ networks:
   pixely:
 
 volumes:
-  e2e_node_modules:
   mysql_data:
   node_modules:

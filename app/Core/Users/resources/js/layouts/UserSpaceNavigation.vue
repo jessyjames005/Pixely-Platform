@@ -17,7 +17,10 @@ function isActive(to: string): boolean {
 </script>
 
 <template>
-  <v-list nav density="comfortable">
+  <v-list
+    nav
+    density="comfortable"
+  >
     <v-list-item
       v-for="item in items"
       :key="item.to"

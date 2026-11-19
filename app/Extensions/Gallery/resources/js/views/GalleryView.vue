@@ -107,7 +107,9 @@ function displayTitle(photo: Photo): string {
 <template>
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5">Gallery</h1>
+      <h1 class="text-h5">
+        Gallery
+      </h1>
       <v-btn
         v-if="authStore.can('gallery.photos.manage')"
         color="primary"
@@ -131,9 +133,16 @@ function displayTitle(photo: Photo): string {
         </v-btn>
       </v-card-title>
 
-      <v-alert v-if="error" type="error" density="compact" class="mx-4">{{
-        error.message
-      }}</v-alert>
+      <v-alert
+        v-if="error"
+        type="error"
+        density="compact"
+        class="mx-4"
+      >
+        {{
+          error.message
+        }}
+      </v-alert>
 
       <v-data-table
         :headers="headers"
@@ -149,7 +158,9 @@ function displayTitle(photo: Photo): string {
           </p>
         </template>
 
-        <template #item.title="{ item }">{{ displayTitle(item) }}</template>
+        <template #item.title="{ item }">
+          {{ displayTitle(item) }}
+        </template>
 
         <template #item.actions="{ item }">
           <v-btn
@@ -164,7 +175,10 @@ function displayTitle(photo: Photo): string {
         </template>
       </v-data-table>
 
-      <v-card-actions v-if="galleryStore.meta" class="justify-center">
+      <v-card-actions
+        v-if="galleryStore.meta"
+        class="justify-center"
+      >
         <v-pagination
           :model-value="galleryStore.meta.current_page"
           :length="galleryStore.meta.last_page"
@@ -175,11 +189,18 @@ function displayTitle(photo: Photo): string {
     </v-card>
 
     <!-- Upload dialog -->
-    <v-dialog v-model="dialogOpen" max-width="480" persistent>
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="480"
+      persistent
+    >
       <v-card title="Upload a photo">
         <v-card-text>
           <v-form @submit.prevent="handleUpload">
-            <v-text-field v-model="uploadTitle" label="Title (optional)" />
+            <v-text-field
+              v-model="uploadTitle"
+              label="Title (optional)"
+            />
             <v-file-input
               v-model="uploadFile"
               label="Image"
@@ -199,7 +220,12 @@ function displayTitle(photo: Photo): string {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
+          <v-btn
+            variant="text"
+            @click="closeDialog"
+          >
+            Cancel
+          </v-btn>
           <v-btn
             color="primary"
             :loading="uploading"

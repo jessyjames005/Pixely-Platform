@@ -1,16 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
-
-const email = process.env.E2E_USER_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_USER_PASSWORD ?? 'password'
+import { ADMIN_PERSONA } from './fixtures/personas'
+import { LoginPage } from './poms/LoginPage.pom'
 
 test.describe('User Space engagement API', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login', { waitUntil: 'domcontentloaded' })
-        await page.evaluate(async () => fetch('/sanctum/csrf-cookie', { credentials: 'include' }))
-
-        await page.locator('input[autocomplete="username"]').fill(email)
-        await page.locator('input[autocomplete="current-password"]').fill(password)
-        await page.getByRole('button', { name: 'Sign in' }).click()
+        const login = new LoginPage(page)
+        await login.goto()
+        await login.login(ADMIN_PERSONA.email, ADMIN_PERSONA.password)
         await expect(page).toHaveURL(/\/admin|\/account/)
     })
 
@@ -23,6 +19,8 @@ test.describe('User Space engagement API', () => {
         return {
             Accept: 'application/json',
             Referer: `${new URL(page.url()).origin}/`,
+            Origin: new URL(page.url()).origin,
+            'X-Requested-With': 'XMLHttpRequest',
             'X-XSRF-TOKEN': xsrf,
         }
     }
@@ -39,13 +37,14 @@ test.describe('User Space engagement API', () => {
                 resource_id: resourceId,
             },
         })
-        expect(create.ok()).toBeTruthy()
+        expect(create.status(), `Favorite creation failed: ${await create.text()}`).toBe(201)
 
         const list = await page.request.get('/api/v1/me/favorites?resource_type=e2e.test', { headers })
-        expect(list.ok()).toBeTruthy()
-        await expect.poll(async () => (await list.json()).data.some((item: { resource_id: string }) => item.resource_id === resourceId)).toBeTruthy()
+        expect(list.status(), `Favorite listing failed: ${await list.text()}`).toBe(200)
+        const favorites = await list.json() as { data: Array<{ resource_id: string }> }
+        expect(favorites.data.some((item) => item.resource_id === resourceId)).toBe(true)
 
         const remove = await page.request.delete(`/api/v1/me/favorites/e2e.test/${resourceId}`, { headers })
-        expect(remove.ok()).toBeTruthy()
+        expect(remove.status(), `Favorite removal failed: ${await remove.text()}`).toBe(200)
     })
 })

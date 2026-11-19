@@ -155,16 +155,39 @@ const densityTooltip = computed(() =>
 
 <template>
   <div>
-    <h1 class="text-h5 mb-4">{{ $t('core.profile.title.profile', 'Mon profil') }}</h1>
+    <h1 class="text-h5 mb-4">
+      {{ $t('core.profile.title.profile', 'Mon profil') }}
+    </h1>
 
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error.message }}</v-alert>
+    <v-alert
+      v-if="error"
+      type="error"
+      density="compact"
+      class="mb-4"
+    >
+      {{ error.message }}
+    </v-alert>
 
-    <v-card v-if="!loading" class="mb-4">
+    <v-card
+      v-if="!loading"
+      class="mb-4"
+    >
       <v-card-text>
         <div class="d-flex align-center ga-6 flex-wrap mb-8">
-          <v-avatar size="96" color="grey-lighten-2">
-            <v-img v-if="avatarPreviewUrl" :src="avatarPreviewUrl" alt="Avatar" />
-            <v-icon v-else icon="mdi-account" size="48" />
+          <v-avatar
+            size="96"
+            color="grey-lighten-2"
+          >
+            <v-img
+              v-if="avatarPreviewUrl"
+              :src="avatarPreviewUrl"
+              alt="Avatar"
+            />
+            <v-icon
+              v-else
+              icon="mdi-account"
+              size="48"
+            />
           </v-avatar>
 
           <div class="d-flex flex-column ga-2">
@@ -198,19 +221,43 @@ const densityTooltip = computed(() =>
               </v-btn>
             </div>
             <span class="text-caption text-medium-emphasis">{{ $t('core.profile.msg.allowed_types_hint', "Types d'image autorisés, selon les réglages de l'extension Files.") }}</span>
-            <v-alert v-if="uploadError" type="error" density="compact">{{ uploadError.message }}</v-alert>
+            <v-alert
+              v-if="uploadError"
+              type="error"
+              density="compact"
+            >
+              {{ uploadError.message }}
+            </v-alert>
           </div>
         </div>
 
         <v-form @submit.prevent="handleSave">
           <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field v-model="formName" :label="$t('core.entities.object.user.name.label', 'Nom')" density="comfortable" />
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                v-model="formName"
+                :label="$t('core.entities.object.user.name.label', 'Nom')"
+                density="comfortable"
+              />
             </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field :model-value="profileStore.profile?.email" :label="$t('core.entities.object.user.email.label', 'E-mail')" density="comfortable" readonly />
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                :model-value="profileStore.profile?.email"
+                :label="$t('core.entities.object.user.email.label', 'E-mail')"
+                density="comfortable"
+                readonly
+              />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <v-select
                 v-model="formTimezone"
                 :items="commonTimezones"
@@ -219,26 +266,51 @@ const densityTooltip = computed(() =>
               />
             </v-col>
             <v-col cols="12">
-              <v-textarea v-model="formBio" :label="$t('core.entities.object.user.bio.label', 'Biographie')" density="comfortable" rows="3" />
+              <v-textarea
+                v-model="formBio"
+                :label="$t('core.entities.object.user.bio.label', 'Biographie')"
+                density="comfortable"
+                rows="3"
+              />
             </v-col>
           </v-row>
 
-          <v-alert v-if="saveError" type="error" density="compact" class="mb-4">{{ saveError.message }}</v-alert>
+          <v-alert
+            v-if="saveError"
+            type="error"
+            density="compact"
+            class="mb-4"
+          >
+            {{ saveError.message }}
+          </v-alert>
 
-          <v-btn type="submit" color="primary" :loading="saving">{{ $t('core.profile.action.save_changes', 'Enregistrer les modifications') }}</v-btn>
+          <v-btn
+            type="submit"
+            color="primary"
+            :loading="saving"
+          >
+            {{ $t('core.profile.action.save_changes', 'Enregistrer les modifications') }}
+          </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
 
     <v-card v-if="!loadingPreferences">
       <v-card-item>
-        <template #title><span class="text-subtitle-1">{{ $t('core.profile.title.preferences', 'Préférences') }}</span></template>
-        <template #subtitle>{{ $t('core.profile.msg.preferences_subtitle', "Ces réglages sont personnels et n'affectent que votre propre session.") }}</template>
+        <template #title>
+          <span class="text-subtitle-1">{{ $t('core.profile.title.preferences', 'Préférences') }}</span>
+        </template>
+        <template #subtitle>
+          {{ $t('core.profile.msg.preferences_subtitle', "Ces réglages sont personnels et n'affectent que votre propre session.") }}
+        </template>
       </v-card-item>
       <v-card-text>
         <v-form @submit.prevent="handleSavePreferences">
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <v-select
                 v-model="preferences.locale"
                 :items="localeOptions"
@@ -247,7 +319,10 @@ const densityTooltip = computed(() =>
                 density="comfortable"
               />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <v-select
                 v-model="preferences.theme"
                 :items="themeOptions"
@@ -256,7 +331,10 @@ const densityTooltip = computed(() =>
                 density="comfortable"
               />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <v-select
                 v-model="preferences.density"
                 :items="densityOptions"
@@ -277,9 +355,22 @@ const densityTooltip = computed(() =>
             </v-col>
           </v-row>
 
-          <v-alert v-if="preferencesError" type="error" density="compact" class="mb-4">{{ preferencesError.message }}</v-alert>
+          <v-alert
+            v-if="preferencesError"
+            type="error"
+            density="compact"
+            class="mb-4"
+          >
+            {{ preferencesError.message }}
+          </v-alert>
 
-          <v-btn type="submit" color="primary" :loading="savingPreferences">{{ $t('core.profile.action.save_preferences', 'Enregistrer les préférences') }}</v-btn>
+          <v-btn
+            type="submit"
+            color="primary"
+            :loading="savingPreferences"
+          >
+            {{ $t('core.profile.action.save_preferences', 'Enregistrer les préférences') }}
+          </v-btn>
         </v-form>
       </v-card-text>
     </v-card>

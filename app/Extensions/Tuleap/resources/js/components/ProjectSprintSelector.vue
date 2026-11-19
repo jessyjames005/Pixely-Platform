@@ -66,7 +66,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-sheet border rounded="lg" class="pa-3 mb-4 d-flex flex-wrap align-center ga-3">
+  <v-sheet
+    border
+    rounded="lg"
+    class="pa-3 mb-4 d-flex flex-wrap align-center ga-3"
+  >
     <v-autocomplete
       :model-value="store.selectedProjectId"
       :items="store.projects"
@@ -81,9 +85,18 @@ onUnmounted(() => {
       @update:model-value="onProjectChange"
     >
       <template #item="{ props: itemProps, item }">
-        <v-list-item v-bind="itemProps" :title="undefined">
+        <v-list-item
+          v-bind="itemProps"
+          :title="undefined"
+        >
           <template #prepend>
-            <v-icon v-if="item.is_member_of" icon="mdi-star" size="14" color="warning" class="mr-1" />
+            <v-icon
+              v-if="item.is_member_of"
+              icon="mdi-star"
+              size="14"
+              color="warning"
+              class="mr-1"
+            />
           </template>
           {{ item.label ?? item.shortname }}
         </v-list-item>
@@ -106,7 +119,12 @@ onUnmounted(() => {
 
     <v-spacer />
 
-    <v-chip :color="statusMeta.color" :prepend-icon="statusMeta.icon" size="small" variant="tonal">
+    <v-chip
+      :color="statusMeta.color"
+      :prepend-icon="statusMeta.icon"
+      size="small"
+      variant="tonal"
+    >
       {{ statusMeta.text }}
     </v-chip>
     <v-btn
@@ -119,7 +137,15 @@ onUnmounted(() => {
     />
   </v-sheet>
 
-  <v-alert v-if="store.error" type="error" variant="tonal" density="compact" class="mb-4" closable @click:close="store.error = null">
+  <v-alert
+    v-if="store.error"
+    type="error"
+    variant="tonal"
+    density="compact"
+    class="mb-4"
+    closable
+    @click:close="store.error = null"
+  >
     {{ store.error }}
   </v-alert>
 </template>

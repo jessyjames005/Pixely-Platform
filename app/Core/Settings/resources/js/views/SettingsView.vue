@@ -70,7 +70,9 @@ async function handleSaveUserSettings(): Promise<void> {
 
 <template>
   <div>
-    <h1 class="text-h5 mb-4">{{ $t('core.settings.title.settings', 'Settings') }}</h1>
+    <h1 class="text-h5 mb-4">
+      {{ $t('core.settings.title.settings', 'Settings') }}
+    </h1>
 
     <v-card
       v-if="authStore.can('settings.platform.view')"
@@ -125,8 +127,9 @@ async function handleSaveUserSettings(): Promise<void> {
           type="error"
           density="compact"
           class="mt-4"
-          >{{ platformError.message }}</v-alert
         >
+          {{ platformError.message }}
+        </v-alert>
       </v-card-text>
     </v-card>
 
@@ -161,9 +164,13 @@ async function handleSaveUserSettings(): Promise<void> {
             </template>
           </v-select>
 
-          <v-btn type="submit" color="primary" :loading="savingUserSettings"
-            >{{ $t('core.profile.action.save_preferences', 'Save preferences') }}</v-btn
+          <v-btn
+            type="submit"
+            color="primary"
+            :loading="savingUserSettings"
           >
+            {{ $t('core.profile.action.save_preferences', 'Save preferences') }}
+          </v-btn>
         </v-form>
 
         <v-alert
@@ -171,8 +178,9 @@ async function handleSaveUserSettings(): Promise<void> {
           type="error"
           density="compact"
           class="mt-4"
-          >{{ userSettingsError.message }}</v-alert
         >
+          {{ userSettingsError.message }}
+        </v-alert>
       </v-card-text>
     </v-card>
   </div>

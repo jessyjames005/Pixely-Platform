@@ -1,0 +1,48 @@
+name: Wiki sync
+
+# Publish the generated GitHub wiki from the repository documentation.
+# Manual by default; set repository variable WIKI_SYNC=true for push-triggered sync.
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+    paths:
+      - 'docs/**'
+      - 'VISION.md'
+      - 'ARCHITECTURE.md'
+      - 'ROADMAP.md'
+      - 'CHANGELOG.md'
+      - 'wiki-pixely/scripts/build-wiki.py'
+
+permissions:
+  contents: write
+
+jobs:
+  wiki:
+    name: Publish wiki
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.WIKI_SYNC == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build wiki pages
+        run: python3 wiki-pixely/scripts/build-wiki.py wiki-pixely/build/wiki
+
+      - name: Publish to the wiki repository
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
+        run: |
+          test -n "$WIKI_TOKEN" || { echo "WIKI_TOKEN secret is required"; exit 1; }
+          git clone "https://x-access-token:${WIKI_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki-repo
+          rsync -a --delete --exclude .git wiki-pixely/build/wiki/ wiki-repo/
+          cd wiki-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki already up to date."
+          else
+            git commit -m "Sync wiki from docs (${GITHUB_SHA::7})"
+            git push
+          fi

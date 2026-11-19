@@ -23,7 +23,7 @@ final class StoreMenuRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255'],
             'items' => ['sometimes', 'array'],
-            'items.*.id' => ['sometimes', 'string', 'max:255'],
+            'items.*.id' => ['sometimes', 'nullable', 'string', 'max:255'],
             'items.*.type' => ['required', 'in:page,extension,external'],
             'items.*.title' => ['required', 'string', 'max:255'],
             'items.*.targetUrl' => ['sometimes', 'nullable', 'string', 'max:2048'],

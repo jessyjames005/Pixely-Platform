@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test'
+import { PublicWebsitePage } from './poms/PublicWebsitePage.pom'
 
 test.describe('Public website', () => {
   test('home route loads the public website surface', async ({ page }) => {
-    await page.goto('/')
-    await expect(page.locator('.website-header')).toBeVisible()
-    await expect(page.locator('.website-brand')).toHaveText('Pixely')
+    const website = new PublicWebsitePage(page)
+    await website.gotoHome()
+    await expect(website.brand).toHaveText('Pixely')
   })
 
   test('published page is rendered with public navigation', async ({ page }) => {
@@ -36,32 +37,36 @@ test.describe('Public website', () => {
       })
     })
 
-    await page.goto('/about')
-    await expect(page.locator('.website-brand')).toHaveText('Pixely')
-    await expect(page.locator('h1')).toHaveText('About Pixely')
-    await expect(page.getByRole('link', { name: 'About' })).toBeVisible()
+    const website = new PublicWebsitePage(page)
+    await website.gotoAbout()
+    await expect(website.brand).toHaveText('Pixely')
+    await expect(website.pageHeading).toHaveText('About Pixely')
+    await expect(website.aboutLink).toBeVisible()
     await expect(page).toHaveTitle('About Pixely')
   })
 
   test('unknown public route displays the 404 state', async ({ page }) => {
-    await page.goto('/this-page-does-not-exist')
-    await expect(page.getByText('Page not found')).toBeVisible()
+    const website = new PublicWebsitePage(page)
+    await website.gotoUnknownPage()
+    await expect(website.notFoundMessage).toBeVisible()
   })
 })
 
 
 test('home, about and contact are reachable from public navigation', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
-  await page.getByRole('link', { name: 'About' }).click();
+  const website = new PublicWebsitePage(page)
+  await website.gotoHome()
+  await expect(website.aboutLink).toBeVisible()
+  await website.openAbout()
   await expect(page).toHaveURL(/\/about$/);
-  await expect(page.getByRole('heading', { name: 'About Pixely' })).toBeVisible();
+  await expect(website.pageHeading).toHaveText('About Pixely')
 
-  await page.getByRole('link', { name: 'Contact', exact: true }).click();
+  await website.openContact()
   await expect(page).toHaveURL(/\/contact$/);
-  await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
+  await expect(website.pageHeading).toHaveText('Contact')
 
-  await page.getByRole('link', { name: 'Home' }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('heading', { name: 'Welcome to Pixely Platform' })).toBeVisible();
-});
+  await website.openHome()
+  // The public navigation intentionally points to the explicit /home slug.
+  await expect(page).toHaveURL(/\/home$/);
+  await expect(website.pageHeading).toHaveText('Welcome to Pixely Platform')
+})

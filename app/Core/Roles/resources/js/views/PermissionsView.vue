@@ -161,13 +161,19 @@ async function handleDelete(permission: Permission): Promise<void> {
   <div>
     <div class="d-flex align-center justify-space-between mb-4">
       <div>
-        <h1 class="text-h5 mb-1">{{ $t('core.roles.permission_ui.title.permissions_list', 'Permissions') }}</h1>
+        <h1 class="text-h5 mb-1">
+          {{ $t('core.roles.permission_ui.title.permissions_list', 'Permissions') }}
+        </h1>
         <p class="text-medium-emphasis mb-0">
           {{ $t('core.roles.permission_ui.msg.permissions_description', 'Seeded permissions available for role assignment.') }}
         </p>
       </div>
       <div class="d-flex align-center gap-3">
-        <v-chip color="primary" variant="tonal" size="small">
+        <v-chip
+          color="primary"
+          variant="tonal"
+          size="small"
+        >
           {{ $t('core.roles.permission_ui.msg.permission_count', ':count permission(s)', { count: permissionCount }) }}
         </v-chip>
         <v-btn
@@ -252,7 +258,11 @@ async function handleDelete(permission: Permission): Promise<void> {
     </v-card>
 
     <!-- Add / edit permission dialog -->
-    <v-dialog v-model="dialogOpen" max-width="520" persistent>
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="520"
+      persistent
+    >
       <v-card :title="isEditing ? $t('core.roles.permission_ui.title.edit_permission', 'Edit Permission') : $t('core.roles.permission_ui.title.add_permission', 'Add Permission')">
         <v-card-text>
           <v-alert
@@ -261,8 +271,10 @@ async function handleDelete(permission: Permission): Promise<void> {
             class="mb-4"
             density="compact"
           >
-            <v-icon class="me-2">mdi-alert-circle</v-icon>
-            <strong>{{ $t('core.roles.permission_ui.msg.warning_title', 'Warning!') }}</strong><br />
+            <v-icon class="me-2">
+              mdi-alert-circle
+            </v-icon>
+            <strong>{{ $t('core.roles.permission_ui.msg.warning_title', 'Warning!') }}</strong><br>
             {{ $t('core.roles.permission_ui.msg.warning_text', 'By adding the permission name, you might break the system permissions functionality.') }}
           </v-alert>
 
@@ -300,7 +312,12 @@ async function handleDelete(permission: Permission): Promise<void> {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">{{ $t('core.common.action.cancel', 'Cancel') }}</v-btn>
+          <v-btn
+            variant="text"
+            @click="closeDialog"
+          >
+            {{ $t('core.common.action.cancel', 'Cancel') }}
+          </v-btn>
           <v-btn
             color="primary"
             :loading="saving || updating"

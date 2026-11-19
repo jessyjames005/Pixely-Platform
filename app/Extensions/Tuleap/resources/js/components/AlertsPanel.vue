@@ -44,33 +44,76 @@ function trackerColor(type: string): string {
 </script>
 
 <template>
-  <div v-if="!hasAlerts" class="d-flex flex-column align-center text-medium-emphasis py-6">
-    <v-icon icon="mdi-check-circle-outline" color="success" size="32" class="mb-2" />
+  <div
+    v-if="!hasAlerts"
+    class="d-flex flex-column align-center text-medium-emphasis py-6"
+  >
+    <v-icon
+      icon="mdi-check-circle-outline"
+      color="success"
+      size="32"
+      class="mb-2"
+    />
     Aucune alerte
   </div>
 
   <div v-else>
-    <div v-for="group in groups" :key="group.key" class="mb-3">
-      <v-alert :color="group.color" variant="tonal" density="compact" class="mb-0" rounded="t-lg">
+    <div
+      v-for="group in groups"
+      :key="group.key"
+      class="mb-3"
+    >
+      <v-alert
+        :color="group.color"
+        variant="tonal"
+        density="compact"
+        class="mb-0"
+        rounded="t-lg"
+      >
         <template #prepend>
-          <v-icon :icon="group.icon" size="18" />
+          <v-icon
+            :icon="group.icon"
+            size="18"
+          />
         </template>
         <div class="d-flex align-center">
           <span class="text-caption font-weight-bold">{{ group.title }}</span>
-          <v-chip size="x-small" class="ml-auto" variant="flat">{{ group.items.length }}</v-chip>
+          <v-chip
+            size="x-small"
+            class="ml-auto"
+            variant="flat"
+          >
+            {{ group.items.length }}
+          </v-chip>
         </div>
       </v-alert>
 
-      <v-list density="compact" class="border-s border-e border-b rounded-b-lg py-0">
-        <v-list-item v-for="item in group.items" :key="item.id">
+      <v-list
+        density="compact"
+        class="border-s border-e border-b rounded-b-lg py-0"
+      >
+        <v-list-item
+          v-for="item in group.items"
+          :key="item.id"
+        >
           <template #prepend>
-            <v-chip :color="trackerColor(item.trackerType)" size="x-small" variant="tonal" class="mr-2">
+            <v-chip
+              :color="trackerColor(item.trackerType)"
+              size="x-small"
+              variant="tonal"
+              class="mr-2"
+            >
               {{ trackerLabel(item.trackerType) }}
             </v-chip>
           </template>
-          <v-list-item-title class="text-body-2 text-truncate">{{ item.title }}</v-list-item-title>
+          <v-list-item-title class="text-body-2 text-truncate">
+            {{ item.title }}
+          </v-list-item-title>
           <template #append>
-            <span v-if="group.showDays && item.daysSince" class="text-caption text-warning mr-2">{{ item.daysSince }}j</span>
+            <span
+              v-if="group.showDays && item.daysSince"
+              class="text-caption text-warning mr-2"
+            >{{ item.daysSince }}j</span>
             <AvatarStack :assignees="item.assignees" />
           </template>
         </v-list-item>

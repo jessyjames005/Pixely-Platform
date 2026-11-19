@@ -2,7 +2,9 @@
 
 > **Build once. Extend forever.**
 
-Pixely Platform is an extensible web platform built with **Laravel, PHP, Vue 3 and TypeScript**. It provides a shared Core and an extension system so that features can be developed, enabled and maintained independently instead of being tightly coupled to the application.
+Pixely Platform is a modular platform for creating, publishing and administering a complete website with **Laravel, PHP, Vue 3 and TypeScript**. A stable shared Core, the Website Engine and independently managed Extensions provide reusable capabilities without moving business-specific logic into the Core.
+
+**Deployment model:** one Pixely installation operates one independent website. Multi-site / multi-tenant hosting inside one installation is deliberately deferred; multi-language content and the public, user, administration and API surfaces remain in scope.
 
 The project is under active development. The roadmap is the source of truth for implementation status; planned capabilities should not be assumed to be production-ready.
 
@@ -10,7 +12,7 @@ The project is under active development. The roadmap is the source of truth for 
 
 Pixely is intended to provide a reusable foundation for applications that need a combination of:
 
-- A public website for pages and navigation.
+- A public website for pages, navigation, publication and SEO (one website per installation).
 - A secure user area for authenticated users.
 - An administration interface for users, roles, permissions, settings and extensions.
 - A versioned API for the platform and its extensions.
@@ -65,6 +67,10 @@ This is an architectural capability, not a promise that every external product i
 | CI | GitHub Actions |
 
 The exact supported versions are defined by `composer.json`, `package.json` and the lock files.
+
+## Current architecture decision
+
+The deployment boundary is an installation, not a tenant: do not introduce a generalised `site_id` / `tenant_id`, tenant-scoped data model, or Spatie Teams integration as part of the current roadmap. Revisit multi-site only after a confirmed business requirement and a dedicated architecture review. See [ADR-0010](docs/architecture/adr/ADR-0010-single-site-per-installation.md) and the [architecture overview](ARCHITECTURE.md).
 
 ## Getting started
 
@@ -126,11 +132,19 @@ docker compose exec node npm run lint
 docker compose exec node npm run build:front
 ```
 
-Run end-to-end tests when the E2E profile and its environment are configured:
+Run browser tests in the isolated E2E environment (Chromium and Firefox):
 
 ```powershell
-docker compose --profile e2e run --rm e2e
+Copy-Item .env.e2e.example .env.e2e
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml up -d --build mysql-e2e redis-e2e app-e2e nginx-e2e
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan migrate:fresh --seed --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan db:seed --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml exec app-e2e php artisan db:seed --class=E2eUserSeeder --force
+docker compose --env-file .env.e2e -p pixely-e2e -f docker-compose.e2e.yml run --rm playwright
 ```
+
+See the [E2E testing guide](docs/development/e2e-testing.md) before creating the local
+environment. Its database and volume are separate from development data.
 
 Use the project's CI configuration and `package.json` / `composer.json` as the definitive reference for available checks.
 
@@ -140,9 +154,9 @@ Use the project's CI configuration and `package.json` / `composer.json` as the d
 - [`ROADMAP.md`](ROADMAP.md) — implementation status and planned work.
 - [`CHANGELOG.md`](CHANGELOG.md) — notable changes.
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — high-level architecture.
-- [`docs/architecture/`](docs/architecture/) — architecture documentation and decisions.
+- [`docs/architecture/`](docs/architecture/) — architecture documentation and decisions, including the [Website Engine boundary](docs/architecture/website-engine.md) and [ADR-0010](docs/architecture/adr/ADR-0010-single-site-per-installation.md).
 - [`docs/handbook/`](docs/handbook/) — practical guides.
-- [`docs/api/`](docs/api/) — API documentation and generated specifications.
+- [`docs/api/`](docs/api/) — API documentation, generated specifications and the [OpenAPI generation rules](docs/api/openapi-generation.md).
 - [`docs/development/`](docs/development/) — development conventions and project rules.
 
 Significant architectural decisions should be documented in Architecture Decision Records (ADRs).

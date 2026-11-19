@@ -160,9 +160,9 @@ so the authentication side effect remains visible in the test. It does not enabl
 the extension or reset database state. Use database isolation such as
 `RefreshDatabase` when the test changes persistent data.
 
-Playwright tests live under `tests/E2E` and are not part of PHPUnit. Use the
-opt-in E2E Docker runner and setup documented in
-[Extension Management](../core/extension-management.md#creating-an-extension).
+Playwright tests live under `tests/E2E` and in extension-local `tests/E2E`
+directories. They are not part of PHPUnit. Run them with the isolated Docker
+environment documented in the [E2E testing guide](../../development/e2e-testing.md).
 
 ## Further references
 

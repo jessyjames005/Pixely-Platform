@@ -68,7 +68,9 @@ async function handleSave(): Promise<void> {
 
 <template>
   <div>
-    <h1 class="text-h5 mb-4">Translations</h1>
+    <h1 class="text-h5 mb-4">
+      Translations
+    </h1>
 
     <v-card class="mb-4">
       <v-card-text>
@@ -103,12 +105,26 @@ async function handleSave(): Promise<void> {
       </v-card-text>
     </v-card>
 
-    <v-row v-if="selectedModule" no-gutters>
+    <v-row
+      v-if="selectedModule"
+      no-gutters
+    >
       <!-- Vertical category panel -->
-      <v-col cols="3" lg="2">
+      <v-col
+        cols="3"
+        lg="2"
+      >
         <v-card class="category-panel">
-          <v-list density="compact" nav>
-            <p v-if="loadingGroups" class="px-4 py-2 text-caption text-medium-emphasis">Loading…</p>
+          <v-list
+            density="compact"
+            nav
+          >
+            <p
+              v-if="loadingGroups"
+              class="px-4 py-2 text-caption text-medium-emphasis"
+            >
+              Loading…
+            </p>
             <v-list-item
               v-for="group in translationsStore.groups"
               :key="group.id"
@@ -121,7 +137,11 @@ async function handleSave(): Promise<void> {
       </v-col>
 
       <!-- Entries panel -->
-      <v-col cols="9" lg="10" class="pl-4">
+      <v-col
+        cols="9"
+        lg="10"
+        class="pl-4"
+      >
         <v-card v-if="translationsStore.current">
           <v-card-text>
             <div class="d-flex align-center justify-space-between mb-2">
@@ -132,11 +152,21 @@ async function handleSave(): Promise<void> {
               </span>
             </div>
 
-            <v-progress-linear :model-value="translationsStore.current.completion" height="6" rounded class="mb-6" />
+            <v-progress-linear
+              :model-value="translationsStore.current.completion"
+              height="6"
+              rounded
+              class="mb-6"
+            />
 
-            <p v-if="loadingGroup">Loading entries…</p>
+            <p v-if="loadingGroup">
+              Loading entries…
+            </p>
 
-            <div v-else class="translation-grid">
+            <div
+              v-else
+              class="translation-grid"
+            >
               <div class="translation-grid__header">
                 <span />
                 <span>Key</span>
@@ -150,7 +180,12 @@ async function handleSave(): Promise<void> {
                 class="translation-grid__row"
                 :class="{ 'translation-grid__row--suspect': entry.suspect }"
               >
-                <v-icon v-if="entry.suspect" color="warning" icon="mdi-alert" size="small" />
+                <v-icon
+                  v-if="entry.suspect"
+                  color="warning"
+                  icon="mdi-alert"
+                  size="small"
+                />
                 <span v-else />
                 <span class="text-body-2 font-weight-medium">{{ entry.key }}</span>
                 <span class="text-body-2 text-medium-emphasis">{{ entry.reference }}</span>
@@ -164,18 +199,40 @@ async function handleSave(): Promise<void> {
               </div>
             </div>
 
-            <v-alert v-if="groupError" type="error" density="compact" class="mt-4">{{ groupError.message }}</v-alert>
-            <v-alert v-if="saveError" type="error" density="compact" class="mt-4">{{ saveError.message }}</v-alert>
+            <v-alert
+              v-if="groupError"
+              type="error"
+              density="compact"
+              class="mt-4"
+            >
+              {{ groupError.message }}
+            </v-alert>
+            <v-alert
+              v-if="saveError"
+              type="error"
+              density="compact"
+              class="mt-4"
+            >
+              {{ saveError.message }}
+            </v-alert>
           </v-card-text>
 
           <v-card-actions v-if="authStore.can('translations.strings.manage')">
             <v-spacer />
-            <v-btn color="primary" :loading="saving" @click="handleSave">Save</v-btn>
+            <v-btn
+              color="primary"
+              :loading="saving"
+              @click="handleSave"
+            >
+              Save
+            </v-btn>
           </v-card-actions>
         </v-card>
 
         <v-card v-else-if="!loadingGroups">
-          <v-card-text class="text-medium-emphasis">Select a category on the left.</v-card-text>
+          <v-card-text class="text-medium-emphasis">
+            Select a category on the left.
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
