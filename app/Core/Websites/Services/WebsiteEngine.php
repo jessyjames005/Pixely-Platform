@@ -12,6 +12,7 @@ use App\Core\Websites\Persistence\Models\MenuRecord;
 use App\Core\Websites\Persistence\Models\PageRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use App\Core\Websites\Persistence\Models\MenuItemRecord;
@@ -44,6 +45,9 @@ final class WebsiteEngine implements WebsiteEngineInterface
             'publish_at' => $data['publish_at'] ?? null,
         ]);
 
+        Cache::forget('website:page:' . $slug);
+        Cache::forget('website:nav:main');
+
         return $this->toPage($record);
     }
 
@@ -64,12 +68,19 @@ final class WebsiteEngine implements WebsiteEngineInterface
         ])));
         $record->save();
 
+        Cache::forget('website:page:' . $record->slug);
+        Cache::forget('website:page:' . ($data['slug'] ?? $record->slug));
+        Cache::forget('website:nav:main');
+
         return $this->toPage($record->refresh());
     }
 
     public function deletePage(string $id): void
     {
-        PageRecord::query()->findOrFail($id)->delete();
+        $record = PageRecord::query()->findOrFail($id);
+        Cache::forget('website:page:' . $record->slug);
+        Cache::forget('website:nav:main');
+        $record->delete();
     }
 
     public function getPage(string $slug): ?PageModel
@@ -134,6 +145,9 @@ final class WebsiteEngine implements WebsiteEngineInterface
             return $record->load('items');
         });
 
+        Cache::forget('website:nav:' . $code);
+        Cache::forget('website:nav:main');
+
         return $this->toMenu($menu);
     }
 
@@ -148,6 +162,9 @@ final class WebsiteEngine implements WebsiteEngineInterface
                 $this->replaceMenuItems($record, $data['items']);
             }
 
+            Cache::forget('website:nav:' . $record->code);
+            Cache::forget('website:nav:main');
+
             return $record->load('items');
         });
 
@@ -156,7 +173,10 @@ final class WebsiteEngine implements WebsiteEngineInterface
 
     public function deleteMenu(string $id): void
     {
-        MenuRecord::query()->findOrFail($id)->delete();
+        $record = MenuRecord::query()->findOrFail($id);
+        Cache::forget('website:nav:' . $record->code);
+        Cache::forget('website:nav:main');
+        $record->delete();
     }
 
     public function getMenu(string $code): ?Menu

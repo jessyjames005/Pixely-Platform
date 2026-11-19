@@ -7,30 +7,30 @@ namespace App\Core\Websites\Services;
 use App\Core\Websites\Contracts\WebsiteNavigationProviderInterface;
 use App\Core\Websites\Models\MenuItem;
 use App\Core\Websites\Persistence\Models\PageRecord;
+use Illuminate\Support\Facades\Cache;
 
-/**
- * Resolves persisted menus for the public website surface.
- *
- * Draft and inactive content is never exposed by this provider.
- */
 final class WebsiteNavigationProvider implements WebsiteNavigationProviderInterface
 {
+    private const NAV_TTL = 300;
+
     public function __construct(private WebsiteEngine $websiteEngine)
     {
     }
 
     public function navigation(string $code): array
     {
-        $menu = $this->websiteEngine->getMenu($code);
+        return Cache::remember('website:nav:' . $code, self::NAV_TTL, function () use ($code): array {
+            $menu = $this->websiteEngine->getMenu($code);
 
-        if ($menu === null) {
-            return [];
-        }
+            if ($menu === null) {
+                return [];
+            }
 
-        return array_values(array_filter(array_map(
-            fn (MenuItem $item): ?array => $this->resolveItem($item),
-            $menu->items,
-        )));
+            return array_values(array_filter(array_map(
+                fn (MenuItem $item): ?array => $this->resolveItem($item),
+                $menu->items,
+            )));
+        });
     }
 
     /**
