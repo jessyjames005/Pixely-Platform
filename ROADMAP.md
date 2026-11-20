@@ -76,15 +76,15 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 
 ### S3 — Website Engine (single-site)
 
-- [ ] Audit existing pages, menus and public rendering before adding or duplicating capabilities.
-- [ ] Pages CRUD, unique slugs per installation, draft/published states and publication rules.
-- [ ] Menu hierarchy, ordering, internal/external links and validation.
-- [ ] Typed and safely rendered content blocks.
+- [x] Audit existing pages, menus and public rendering before adding or duplicating capabilities.
+- [x] Pages CRUD, unique slugs per installation, draft/published/scheduled states and publication rules.
+- [x] Menu hierarchy (parent_id), ordering, internal/external links and validation.
+- [x] Typed and safely rendered content blocks (heading, paragraph, cta, image).
 - [ ] Reusable layouts/templates with content/presentation separation.
-- [ ] Preview and controlled publication workflow.
-- [ ] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
-- [ ] Render cache and invalidation after publication or mutation.
-- [ ] Explicit language/content distinction and documented locale fallback.
+- [x] Preview via authenticated API and controlled publication workflow.
+- [x] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
+- [x] Render cache and invalidation after publication or mutation.
+- [x] Explicit language/content distinction and documented locale fallback.
 
 **Exit evidence:** an administrator can create, edit, preview and publish a page; menus, URLs, blocks, SEO and language behavior have automated tests and documentation.
 

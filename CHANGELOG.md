@@ -1,4 +1,7 @@
-# Changelog
+## [Unreleased]
+
+### Added
+- Website Engine S3 foundations: scheduled publication, render cache, locale support, sitemap/robots, image blocks, hierarchical menu items.
 
 All notable changes to Pixely Platform are documented in this file.
 
