@@ -13,7 +13,7 @@ namespace App\Core\Websites\Services;
  */
 final class PublicBlockSanitizer
 {
-    private const ALLOWED_TYPES = ['heading', 'paragraph', 'cta'];
+    private const ALLOWED_TYPES = ['heading', 'paragraph', 'cta', 'image'];
     private const MAX_TEXT_LENGTH = 10000;
 
     /**
@@ -30,15 +30,22 @@ final class PublicBlockSanitizer
             }
 
             $type = $block['type'] ?? null;
-            $text = $block['text'] ?? null;
 
-            if (! is_string($type) || ! in_array($type, self::ALLOWED_TYPES, true) || ! is_string($text)) {
+            if (! is_string($type) || ! in_array($type, self::ALLOWED_TYPES, true)) {
                 continue;
             }
 
-            $text = trim(mb_substr($text, 0, self::MAX_TEXT_LENGTH));
-            if ($text === '') {
-                continue;
+            if ($type !== 'image') {
+                $text = $block['text'] ?? null;
+                if (! is_string($text)) {
+                    continue;
+                }
+                $text = trim(mb_substr($text, 0, self::MAX_TEXT_LENGTH));
+                if ($text === '') {
+                    continue;
+                }
+            } else {
+                $text = '';
             }
 
             if ($type === 'cta') {
@@ -51,12 +58,27 @@ final class PublicBlockSanitizer
                 continue;
             }
 
+            if ($type === 'image') {
+                $src = $this->safeHref($block['src'] ?? null);
+                if ($src === null) {
+                    continue;
+                }
+
+                $alt = is_string($block['alt'] ?? null) ? trim(mb_substr((string) $block['alt'], 0, self::MAX_TEXT_LENGTH)) : '';
+
+                $result[] = ['type' => $type, 'text' => $alt, 'src' => $src];
+                continue;
+            }
+
             $result[] = ['type' => $type, 'text' => $text];
         }
 
         return $result;
     }
 
+    /**
+     * Validate and normalize a candidate href value.
+     */
     private function safeHref(mixed $href): ?string
     {
         if (! is_string($href)) {
