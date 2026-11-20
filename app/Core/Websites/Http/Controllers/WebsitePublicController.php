@@ -8,15 +8,12 @@ use App\Core\Websites\Contracts\WebsiteEngineInterface;
 use App\Core\Websites\Services\PublicBlockSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
 
-/**
- * Exposes published website content to the public surface.
- *
- * Draft and archived pages are filtered by the Website Engine so the
- * public surface never becomes an alternative administration endpoint.
- */
 final class WebsitePublicController extends Controller
 {
+    private const PAGE_TTL = 300;
+
     public function __construct(
         private readonly WebsiteEngineInterface $websiteEngine,
         private readonly PublicBlockSanitizer $blockSanitizer,
@@ -25,15 +22,25 @@ final class WebsitePublicController extends Controller
 
     public function page(string $slug): JsonResponse
     {
-        $page = $this->websiteEngine->getPublishedPage($slug);
+        $cacheKey = 'website:page:' . trim($slug, '/');
 
-        if ($page === null) {
+        $data = Cache::remember($cacheKey, self::PAGE_TTL, function () use ($slug): ?array {
+            $page = $this->websiteEngine->getPublishedPage($slug);
+
+            if ($page === null) {
+                return null;
+            }
+
+            return [
+                ...$page->jsonSerialize(),
+                'blocks' => $this->blockSanitizer->sanitize($page->blocks),
+            ];
+        });
+
+        if ($data === null) {
             return response()->json(['message' => 'Page not found'], 404);
         }
 
-        return response()->json(['data' => [
-            ...$page->jsonSerialize(),
-            'blocks' => $this->blockSanitizer->sanitize($page->blocks),
-        ]]);
+        return response()->json(['data' => $data]);
     }
 }

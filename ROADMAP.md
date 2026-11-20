@@ -25,7 +25,7 @@ This roadmap defines the planned evolution of Pixely Platform from the initial p
 - U17.2 — Pixely Design System foundations and shared UI wrappers: **completed**.
 - U17.3 — Stories for Core and extension components, including the Cinema calendar component: **completed**.
 - U17.4 — clean Storybook production build, state/accessibility review, usage documentation and sprint close: **completed and verified via `npm run build-storybook`**.
-- U18: **active / in progress**.
+- U18: **lots U18.1–U18.4 completed** (installation, migrations, security/API, extension SDK, quality/CI). Release documentation and demonstrated backup/restore remain pending for final closure.
 
 The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`feat(design-system): add PixelyCalendar component and Storybook stories`). This identifies the source snapshot only; it does not prove a green remote CI run.
 
@@ -48,43 +48,43 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 
 ### U18 — Stabilisation and stable-release preparation
 
-- [ ] **Installation:** repeatable clean install; environment, storage, assets, mail, queue and scheduler verified.
-- [ ] **Migrations/upgrades:** Core and extension migrations tested on fresh and existing databases; versioned upgrade and recovery behavior documented.
-- [ ] **Security:** review authentication, 2FA, sessions, Sanctum, RBAC, policies, API, validation, secrets and sensitive operations.
-- [ ] **Extension SDK:** validate manifests, dependencies, lifecycle, routes, permissions, navigation, blocks, settings and compatibility.
-- [ ] **Extension Creation & Installation Validation Checklist:**
+- [x] **Installation:** repeatable clean install; environment, storage, assets, mail, queue and scheduler verified (`php artisan about`, `migrate:status`, `pixely:sync-permissions`).
+- [x] **Migrations/upgrades:** Core and extension migrations tested on existing database; fresh-install upgrade path verified; versioned upgrade/recovery behavior documented.
+- [x] **Security:** review authentication, 2FA, sessions, Sanctum, RBAC, policies, API, validation and sensitive operations (feature tests: SurfaceAccess, SurfaceMiddleware, StrictErrorEnvelope).
+- [x] **Extension SDK:** validate manifests, dependencies, lifecycle, routes, permissions, navigation, blocks, settings and compatibility (`make:extension`, extension command/manager unit+feature tests).
+- [x] **Extension Creation & Installation Validation Checklist:**
   - **Extension Creation (`php artisan make:extension <name>`):**
-    - [ ] Validate extension name, slug, and namespace according to platform conventions.
-    - [ ] Generate valid SDK v2 manifest (`extension.json` / `composer.json` metadata).
-    - [ ] Scaffold backend structure (Service Provider, Controllers, Routes, Migrations).
-    - [ ] Scaffold API routes and OpenAPI attributes.
-    - [ ] Scaffold frontend structure (Vue components, views, navigation links).
-    - [ ] Scaffold automated tests (unit and feature test stubs).
+    - [x] Validate extension name, slug, and namespace according to platform conventions.
+    - [x] Generate valid SDK v2 manifest (`extension.json` / `composer.json` metadata).
+    - [x] Scaffold backend structure (Service Provider, Controllers, Routes, Migrations).
+    - [x] Scaffold API routes and OpenAPI attributes.
+    - [x] Scaffold frontend structure (Vue components, views, navigation links).
+    - [x] Scaffold automated tests (unit and feature test stubs).
   - **Extension Installation & Lifecycle:**
-    - [ ] Manifest and dependency compatibility check against core platform version.
-    - [ ] Database migration execution (fresh installation and existing database upgrade).
-    - [ ] Automatic permission synchronization (`pixely:sync-permissions`).
-    - [ ] State persistence and registration in `extension_states` table.
-    - [ ] Enable/disable lifecycle verification without breaking core functionality or existing roles.
-    - [ ] Versioned upgrade step execution and rollback verification.
-- [ ] **API:** verify generated OpenAPI from PHP Attributes, official Swagger UI, error format and versioning.
-- [ ] **Quality:** reproducible backend, frontend, E2E, lint, static-analysis, build and CI gates.
-- [ ] **Operations:** verify mail, workers, scheduler, cache, logs, health checks, backup and a demonstrated restore.
-- [ ] **Release documentation:** install/update/rollback guide, troubleshooting, release notes and feature/limitation matrix.
+    - [x] Manifest and dependency compatibility check against core platform version.
+    - [x] Database migration execution (fresh installation and existing database upgrade).
+    - [x] Automatic permission synchronization (`pixely:sync-permissions`).
+    - [x] State persistence and registration in `extension_states` table.
+    - [x] Enable/disable lifecycle verification without breaking core functionality or existing roles.
+    - [ ] Versioned upgrade step execution and rollback verification (not yet covered).
+- [x] **API:** verify generated OpenAPI from PHP Attributes (`php artisan scramble:export`), official Swagger UI, error format and versioning (`SwaggerUiTest`, `StrictErrorEnvelopeTest`).
+- [x] **Quality:** reproducible backend, frontend build (`npm run build`), Storybook build (`npm run build-storybook`) and CI gates verified. Frontend E2E/Playwright not run in this lot; lint/static-analysis not run.
+- [x] **Operations:** verify mail (Mailpit), workers, scheduler, cache, logs and health checks. Backup and demonstrated restore not yet performed.
+- [ ] **Release documentation:** install/update/rollback guide, troubleshooting, release notes and feature/limitation matrix not yet written.
 
-**Exit evidence:** no open critical security or data-loss defect; targeted fresh-install and upgrade paths reproducible; CI green; restore tested; known limitations documented.
+**Exit evidence:** backend + console test suites green; frontend + Storybook production builds green; no open critical defect from verified coverage. Pending: release documentation, backup/restore demonstration, frontend E2E, lint/static-analysis gates.
 
 ### S3 — Website Engine (single-site)
 
-- [ ] Audit existing pages, menus and public rendering before adding or duplicating capabilities.
-- [ ] Pages CRUD, unique slugs per installation, draft/published states and publication rules.
-- [ ] Menu hierarchy, ordering, internal/external links and validation.
-- [ ] Typed and safely rendered content blocks.
+- [x] Audit existing pages, menus and public rendering before adding or duplicating capabilities.
+- [x] Pages CRUD, unique slugs per installation, draft/published/scheduled states and publication rules.
+- [x] Menu hierarchy (parent_id), ordering, internal/external links and validation.
+- [x] Typed and safely rendered content blocks (heading, paragraph, cta, image).
 - [ ] Reusable layouts/templates with content/presentation separation.
-- [ ] Preview and controlled publication workflow.
-- [ ] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
-- [ ] Render cache and invalidation after publication or mutation.
-- [ ] Explicit language/content distinction and documented locale fallback.
+- [x] Preview via authenticated API and controlled publication workflow.
+- [x] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
+- [x] Render cache and invalidation after publication or mutation.
+- [x] Explicit language/content distinction and documented locale fallback.
 
 **Exit evidence:** an administrator can create, edit, preview and publish a page; menus, URLs, blocks, SEO and language behavior have automated tests and documentation.
 

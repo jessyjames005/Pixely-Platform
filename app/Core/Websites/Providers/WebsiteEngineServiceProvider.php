@@ -8,11 +8,9 @@ use App\Core\Websites\Contracts\WebsiteEngineInterface;
 use App\Core\Websites\Services\WebsiteEngine;
 use App\Core\Websites\Services\WebsiteNavigationProvider;
 use App\Core\Websites\Contracts\WebsiteNavigationProviderInterface;
+use App\Core\Websites\Console\PublishScheduledPagesCommand;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers the Website Engine service and its API routes.
- */
 final class WebsiteEngineServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -27,5 +25,9 @@ final class WebsiteEngineServiceProvider extends ServiceProvider
             ->middleware('api')
             ->prefix('api/v1')
             ->group(__DIR__ . '/../routes/api.php');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([PublishScheduledPagesCommand::class]);
+        }
     }
 }
