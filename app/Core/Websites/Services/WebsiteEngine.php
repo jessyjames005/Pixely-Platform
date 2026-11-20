@@ -36,6 +36,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
         $record = PageRecord::query()->create([
             'id' => $data['id'] ?? 'page_' . Str::uuid(),
             'slug' => $slug,
+            'locale' => $data['locale'] ?? null,
             'title' => $title,
             'status' => $status,
             'template' => (string) ($data['template'] ?? 'default'),
@@ -64,7 +65,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
         }
 
         $record->fill(array_intersect_key($data, array_flip([
-            'slug', 'title', 'status', 'template', 'seo', 'blocks', 'published_at', 'publish_at',
+            'slug', 'locale', 'title', 'status', 'template', 'seo', 'blocks', 'published_at', 'publish_at',
         ])));
         $record->save();
 
@@ -138,6 +139,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
                 'id' => $data['id'] ?? 'menu_' . Str::uuid(),
                 'name' => $name,
                 'code' => $code,
+                'locale' => $data['locale'] ?? null,
             ]);
 
             $this->replaceMenuItems($record, $data['items'] ?? []);
@@ -155,7 +157,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
     {
         $menu = DB::transaction(function () use ($id, $data): MenuRecord {
             $record = MenuRecord::query()->findOrFail($id);
-            $record->fill(array_intersect_key($data, array_flip(['name', 'code'])));
+            $record->fill(array_intersect_key($data, array_flip(['name', 'code', 'locale'])));
             $record->save();
 
             if (array_key_exists('items', $data)) {
@@ -270,6 +272,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
         return new PageModel(
             id: (string) $record->id,
             slug: (string) $record->slug,
+            locale: $record->locale,
             title: (string) $record->title,
             status: (string) $record->status,
             template: (string) $record->template,
@@ -286,6 +289,7 @@ final class WebsiteEngine implements WebsiteEngineInterface
             id: (string) $record->id,
             name: (string) $record->name,
             code: (string) $record->code,
+            locale: $record->locale,
             items: $record->items->map(fn (MenuItemRecord $item): MenuItem => new MenuItem(
                 id: (string) $item->id,
                 type: (string) $item->type,

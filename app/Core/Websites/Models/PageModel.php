@@ -15,6 +15,7 @@ final readonly class PageModel implements \JsonSerializable
     public function __construct(
         public string $id,
         public string $slug,
+        public ?string $locale = null,
         public string $title,
         public string $status,
         public string $template,
