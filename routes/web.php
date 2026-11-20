@@ -8,10 +8,13 @@ declare(strict_types=1);
 
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
+use App\Core\Websites\Http\Controllers\PublicPageController;
 use App\Core\Websites\Http\Controllers\WebsiteSitemapController;
 
 Route::middleware('surface:public')->get('/sitemap.xml', [WebsiteSitemapController::class, 'sitemap']);
 Route::middleware('surface:public')->get('/robots.txt', [WebsiteSitemapController::class, 'robots']);
+
+Route::middleware('surface:public')->get('/', function () {
     return view('app');
 })->name('public.home');
 
