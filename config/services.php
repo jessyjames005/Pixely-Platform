@@ -44,4 +44,8 @@ return [
         'url' => env('TULEAP_URL'),
     ],
 
+    'tmdb' => [
+        'key' => env('TMDB_API_KEY'),
+    ],
+
 ];
