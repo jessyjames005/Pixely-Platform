@@ -80,7 +80,7 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 - [x] Pages CRUD, unique slugs per installation, draft/published/scheduled states and publication rules.
 - [x] Menu hierarchy (parent_id), ordering, internal/external links and validation.
 - [x] Typed and safely rendered content blocks (heading, paragraph, cta, image).
-- [ ] Reusable layouts/templates with content/presentation separation.
+- [x] Reusable layouts/templates with content/presentation separation.
 - [x] Preview via authenticated API and controlled publication workflow.
 - [x] URLs, redirects, 404/500 behavior, XML sitemap, robots.txt and SEO metadata.
 - [x] Render cache and invalidation after publication or mutation.
