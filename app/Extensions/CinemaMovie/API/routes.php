@@ -1,14 +1,20 @@
 <?php
 
-/** CinemaMovie JSON:API resources. */
+/** CinemaMovie API and public routes. */
 
 declare(strict_types=1);
 
 use App\Extensions\CinemaMovie\Http\Controllers\Api\CinemaMovieController;
+use App\Extensions\CinemaMovie\Http\Controllers\PublicMovieController;
+use Illuminate\Support\Facades\Route;
 use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
 use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
-JsonApiRoute::server('v1')->middleware('surface:api', 'auth:sanctum')->resources(
+Route::prefix('public')->group(function (): void {
+    Route::get('/movies/{slug}', [PublicMovieController::class, 'show']);
+});
+
+JsonApiRoute::server('v1')->middleware('auth:sanctum')->resources(
     function (ResourceRegistrar $server): void {
         $server->resource('cinema-movies', CinemaMovieController::class)->middleware([
             'index' => 'permission:cinema-movie.movies.view',
