@@ -12,6 +12,7 @@ use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
 Route::prefix('public')->group(function (): void {
     Route::get('/movies/{slug}', [PublicMovieController::class, 'show']);
+    Route::get('/trending-movies', [PublicMovieController::class, 'trending']);
 });
 
 JsonApiRoute::server('v1')->middleware('auth:sanctum')->resources(

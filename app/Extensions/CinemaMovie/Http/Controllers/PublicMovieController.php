@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Extensions\CinemaMovie\Http\Controllers;
 
 use App\Extensions\CinemaMovie\Services\CinemaMoviePublicPageProvider;
+use App\Extensions\CinemaMovie\Services\TmdbImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 
 /**
- * Controller exposing public movie pages for the Website Engine integration.
+ * Controller exposing public movie pages and TMDB trends for the Website Engine integration.
  */
 final class PublicMovieController extends Controller
 {
@@ -38,5 +39,18 @@ final class PublicMovieController extends Controller
         return response()->json([
             'data' => $page,
         ]);
+    }
+
+    /**
+     * Get trending movies from TMDB for the TMDB-style landing page.
+     *
+     * @param TmdbImportService $tmdbService TMDB import service instance.
+     * @return JsonResponse
+     */
+    public function trending(TmdbImportService $tmdbService): JsonResponse
+    {
+        $data = $tmdbService->getTrendingMovies();
+
+        return response()->json($data);
     }
 }

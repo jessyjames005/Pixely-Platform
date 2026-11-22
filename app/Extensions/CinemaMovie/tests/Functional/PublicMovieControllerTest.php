@@ -8,6 +8,7 @@ use App\Core\Extensions\Database\ExtensionMigrationRunner;
 use App\Extensions\CinemaMovie\Models\Movie;
 use App\Extensions\CinemaMovie\Models\MovieTranslation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -58,5 +59,26 @@ final class PublicMovieControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('data.slug', 'movies/avatar')
             ->assertJsonPath('data.title', 'Avatar');
+    }
+
+    /**
+     * Test that trending movies endpoint returns TMDB trending movies.
+     */
+    public function test_it_returns_trending_movies(): void
+    {
+        config(['services.tmdb.key' => 'mock-api-key']);
+
+        Http::fake([
+            'api.themoviedb.org/3/trending/movie/day*' => Http::response([
+                'results' => [
+                    ['id' => 101, 'title' => 'Avengers', 'poster_path' => '/poster.jpg'],
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->getJson('/api/v1/public/trending-movies');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.title', 'Avengers');
     }
 }
