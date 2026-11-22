@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Service responsible for interacting with the TMDB API to search and retrieve movie details and trends.
+ * Service responsible for interacting with the TMDB API to search,
+ * retrieve movie details, trending items, and account details.
  */
 final class TmdbImportService
 {
@@ -117,5 +118,39 @@ final class TmdbImportService
         $data = $response->json();
 
         return $data ?? ['results' => []];
+    }
+
+    /**
+     * Fetch account details from TMDB using session ID or API key.
+     * Reference: https://developer.themoviedb.org/reference/account-details
+     *
+     * @param string|null $sessionId Optional TMDB user session ID.
+     * @return array<string, mixed> Account details or error array.
+     */
+    public function getAccountDetails(?string $sessionId = null): array
+    {
+        /** @var string|null $apiKey */
+        $apiKey = config('services.tmdb.key');
+
+        if (empty($apiKey)) {
+            return ['error' => 'TMDB API key not configured.'];
+        }
+
+        $params = ['api_key' => $apiKey];
+        if (!empty($sessionId)) {
+            $params['session_id'] = $sessionId;
+        }
+
+        $response = Http::get("{$this->baseUrl}/account", $params);
+
+        if ($response->failed()) {
+            Log::error('TMDB API account details failed', ['status' => $response->status()]);
+            return ['error' => 'Failed to fetch account details from TMDB.'];
+        }
+
+        /** @var array<string, mixed>|null $data */
+        $data = $response->json();
+
+        return $data ?? [];
     }
 }

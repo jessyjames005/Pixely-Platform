@@ -1,10 +1,11 @@
 <script setup lang="ts">
 /**
  * TMDB Navbar component replicating the dark blue TMDB header with navigation links,
- * language selector, user profile, and search tools.
+ * language selector, user profile, and search tools with multi-language support.
  */
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { translate as t } from '@shared/plugins/i18n'
 
 const searchQuery = ref('')
 </script>
@@ -17,11 +18,11 @@ const searchQuery = ref('')
           <span class="tmdb-logo-text">TMDB</span>
         </RouterLink>
         <nav class="tmdb-navbar__links">
-          <RouterLink to="/" class="tmdb-nav-link">Films</RouterLink>
-          <RouterLink to="/" class="tmdb-nav-link">Émissions télévisées</RouterLink>
-          <RouterLink to="/" class="tmdb-nav-link">Artistes</RouterLink>
-          <RouterLink to="/" class="tmdb-nav-link">Awards</RouterLink>
-          <RouterLink to="/" class="tmdb-nav-link">Plus</RouterLink>
+          <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.films', 'Films') }}</RouterLink>
+          <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.tv_shows', 'TV Shows') }}</RouterLink>
+          <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.people', 'People') }}</RouterLink>
+          <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.awards', 'Awards') }}</RouterLink>
+          <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.more', 'More') }}</RouterLink>
         </nav>
       </div>
 

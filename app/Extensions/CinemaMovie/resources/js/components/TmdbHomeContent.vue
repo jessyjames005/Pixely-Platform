@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
- * TMDB Home Content component featuring the search hero banner,
- * trailers section with tabs, and popular movies carousel.
+ * TMDB Home Content component featuring search hero banner with i18n translations,
+ * tabs, and popular movies carousel.
  */
 import { ref, onMounted } from 'vue'
+import { translate as t } from '@shared/plugins/i18n'
 import TmdbMovieCard from './TmdbMovieCard.vue'
 
 interface MovieItem {
@@ -34,15 +35,15 @@ onMounted(async () => {
     <!-- Hero Search Banner -->
     <section class="tmdb-hero">
       <div class="tmdb-hero__content">
-        <h1 class="tmdb-hero__title">Bienvenue.</h1>
-        <p class="tmdb-hero__subtitle">Millions de films, de séries télévisées et d'artistes à découvrir. Explorez dès maintenant.</p>
+        <h1 class="tmdb-hero__title">{{ t('cinema-movie.public.welcome', 'Welcome.') }}</h1>
+        <p class="tmdb-hero__subtitle">{{ t('cinema-movie.public.welcome_subtitle', 'Millions of movies, TV shows and people to discover. Explore now.') }}</p>
         <div class="tmdb-search-box">
           <input
             type="text"
-            placeholder="Rechercher un film, une émission télévisée, un artiste..."
+            :placeholder="t('cinema-movie.public.search_placeholder', 'Search for a movie, TV show, person...')"
             class="tmdb-search-input"
           />
-          <button class="tmdb-search-btn">Rechercher</button>
+          <button class="tmdb-search-btn">{{ t('cinema-movie.public.search', 'Rechercher') }}</button>
         </div>
       </div>
     </section>
@@ -50,31 +51,31 @@ onMounted(async () => {
     <!-- Populaires Section -->
     <section class="tmdb-section">
       <div class="tmdb-section__header">
-        <h2 class="tmdb-section__title">Populaires</h2>
+        <h2 class="tmdb-section__title">{{ t('cinema-movie.public.popular', 'Populaires') }}</h2>
         <div class="tmdb-tabs">
           <button
             :class="['tmdb-tab', { active: activeTab === 'streaming' }]"
             @click="activeTab = 'streaming'"
           >
-            En streaming
+            {{ t('cinema-movie.public.streaming', 'En streaming') }}
           </button>
           <button
             :class="['tmdb-tab', { active: activeTab === 'tv' }]"
             @click="activeTab = 'tv'"
           >
-            À la télévision
+            {{ t('cinema-movie.public.tv', 'À la télévision') }}
           </button>
           <button
             :class="['tmdb-tab', { active: activeTab === 'rent' }]"
             @click="activeTab = 'rent'"
           >
-            À louer
+            {{ t('cinema-movie.public.rent', 'À louer') }}
           </button>
           <button
             :class="['tmdb-tab', { active: activeTab === 'cinema' }]"
             @click="activeTab = 'cinema'"
           >
-            Au cinéma
+            {{ t('cinema-movie.public.cinema', 'Au cinéma') }}
           </button>
         </div>
       </div>

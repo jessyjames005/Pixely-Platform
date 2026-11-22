@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
  * TMDB Movie Card component with poster, circular score badge, title, release date,
- * and context menu (Add to list, Favorites, Watchlist, Rating).
+ * and context menu with i18n support.
  */
 import { ref } from 'vue'
+import { translate as t } from '@shared/plugins/i18n'
 
 defineProps<{
   id: string
@@ -37,10 +38,10 @@ const menuOpen = ref(false)
 
       <!-- Context menu popup -->
       <div v-if="menuOpen" class="tmdb-context-menu">
-        <div class="tmdb-menu-item"><v-icon icon="mdi-format-list-bulleted" size="small" /> Ajouter à la liste</div>
-        <div class="tmdb-menu-item"><v-icon icon="mdi-heart" size="small" /> Favoris</div>
-        <div class="tmdb-menu-item"><v-icon icon="mdi-bookmark" size="small" /> Watchlist</div>
-        <div class="tmdb-menu-item"><v-icon icon="mdi-star" size="small" /> Votre note</div>
+        <div class="tmdb-menu-item"><v-icon icon="mdi-format-list-bulleted" size="small" /> {{ t('cinema-movie.public.add_to_list', 'Add to list') }}</div>
+        <div class="tmdb-menu-item"><v-icon icon="mdi-heart" size="small" /> {{ t('cinema-movie.public.favorites', 'Favorites') }}</div>
+        <div class="tmdb-menu-item"><v-icon icon="mdi-bookmark" size="small" /> {{ t('cinema-movie.public.watchlist', 'Watchlist') }}</div>
+        <div class="tmdb-menu-item"><v-icon icon="mdi-star" size="small" /> {{ t('cinema-movie.public.your_rating', 'Your rating') }}</div>
       </div>
 
       <!-- Circular rating score badge -->
