@@ -92,6 +92,7 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 
 - [x] Define how extensions expose public pages, routes, blocks, navigation and SEO metadata.
 - [x] Integrate CinemaMovie as the pilot without leaking its domain concepts into the Website Engine.
+- [x] Implement complete TMDB v3 API route coverage and proxy endpoints for real data fetching in CinemaMovie.
 - [ ] Keep server-side permissions and validation authoritative.
 - [ ] Document rendering, asset loading, error handling and route compatibility.
 - [ ] Provide a minimal example extension publishing content through the Website Engine.

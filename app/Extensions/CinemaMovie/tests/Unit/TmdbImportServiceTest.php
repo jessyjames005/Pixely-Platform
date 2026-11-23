@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
- * Unit test suite for TmdbImportService.
+ * Unit test suite for TmdbImportService covering TMDB v3 API integration.
  */
 final class TmdbImportServiceTest extends TestCase
 {
@@ -42,5 +42,41 @@ final class TmdbImportServiceTest extends TestCase
 
         $this->assertArrayHasKey('results', $result);
         $this->assertSame('Test Movie', $result['results'][0]['title']);
+    }
+
+    /**
+     * Test that movie details are successfully fetched from TMDB.
+     */
+    public function test_it_fetches_movie_details_successfully(): void
+    {
+        config(['services.tmdb.key' => 'mock-api-key']);
+
+        Http::fake([
+            'api.themoviedb.org/3/movie/550*' => Http::response(['id' => 550, 'title' => 'Fight Club'], 200),
+        ]);
+
+        $service = new TmdbImportService();
+        $result = $service->getMovieDetails(550);
+
+        $this->assertSame(550, $result['id']);
+        $this->assertSame('Fight Club', $result['title']);
+    }
+
+    /**
+     * Test that account details are successfully fetched from TMDB.
+     */
+    public function test_it_fetches_account_details_successfully(): void
+    {
+        config(['services.tmdb.key' => 'mock-api-key']);
+
+        Http::fake([
+            'api.themoviedb.org/3/account*' => Http::response(['id' => 123, 'username' => 'testuser'], 200),
+        ]);
+
+        $service = new TmdbImportService();
+        $result = $service->getAccount('123');
+
+        $this->assertSame(123, $result['id']);
+        $this->assertSame('testuser', $result['username']);
     }
 }

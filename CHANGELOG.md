@@ -1,6 +1,8 @@
 ## [Unreleased]
 
 ### Added
+- Complete TMDB v3 API route coverage across all 28 categories in `TmdbImportService` (account, auth, certifications, changes, collections, companies, configuration, credits, discover, find, genres, guest sessions, keywords, lists, movie lists, movies, networks, people lists, people, reviews, search, trending, TV series lists, TV series, seasons, episodes, episode groups, and watch providers).
+- Public TMDB API proxy endpoints in `PublicMovieController` and registered them in CinemaMovie API routes for real data fetching.
 - Website Engine S3 foundations: scheduled publication, render cache, locale support, sitemap/robots, image blocks, hierarchical menu items.
 
 All notable changes to Pixely Platform are documented in this file.

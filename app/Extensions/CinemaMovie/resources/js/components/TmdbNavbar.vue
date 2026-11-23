@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { translate as t } from '@shared/plugins/i18n'
 
+const emit = defineEmits(['open-wizard'])
 const searchQuery = ref('')
 </script>
 
@@ -20,14 +21,14 @@ const searchQuery = ref('')
         <nav class="tmdb-navbar__links">
           <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.films', 'Films') }}</RouterLink>
           <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.tv_shows', 'TV Shows') }}</RouterLink>
-          <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.people', 'People') }}</RouterLink>
+          <RouterLink to="/people" class="tmdb-nav-link">{{ t('cinema-movie.public.people', 'Artistes') }}</RouterLink>
           <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.awards', 'Awards') }}</RouterLink>
           <RouterLink to="/" class="tmdb-nav-link">{{ t('cinema-movie.public.more', 'More') }}</RouterLink>
         </nav>
       </div>
 
       <div class="tmdb-navbar__right">
-        <button class="tmdb-icon-btn" aria-label="Add">
+        <button class="tmdb-icon-btn" aria-label="Add Movie" @click="$emit('open-wizard')" title="Ajouter un film">
           <v-icon icon="mdi-plus" />
         </button>
         <span class="tmdb-lang-badge">FR</span>
