@@ -13,7 +13,6 @@ interface MovieItem {
   release_date?: string
   poster_path?: string
   vote_average?: number
-  slug?: string
 }
 
 const trendingMovies = ref<MovieItem[]>([])
@@ -81,30 +80,22 @@ onMounted(async () => {
       </div>
 
       <div class="pixely-movies-cards-scroll">
+        <p v-if="!trendingMovies.length" class="pixely-movies-empty">
+          {{ t('cinema-movie.public.no_results', 'Aucun résultat pour le moment.') }}
+        </p>
         <TmdbMovieCard
-          v-for="movie in (trendingMovies.length ? trendingMovies : sampleMovies)"
+          v-for="movie in trendingMovies"
           :key="movie.id"
           :id="String(movie.id)"
           :title="movie.title"
           :release-date="movie.release_date"
-          :poster-url="movie.poster_path ? `https://image.pixely-movies.org/t/p/w500${movie.poster_path}` : 'https://picsum.photos/300/450'"
-          :vote-average="movie.vote_average ?? 8.5"
-          :slug="movie.slug ?? 'inception'"
+          :poster-url="movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://picsum.photos/300/450'"
+          :vote-average="movie.vote_average ?? null"
         />
       </div>
     </section>
   </div>
 </template>
-
-<script lang="ts">
-const sampleMovies = [
-  { id: 1, title: 'Inception', release_date: '16 juil. 2010', poster_path: null, vote_average: 8.8, slug: 'inception' },
-  { id: 2, title: 'Interstellar', release_date: '07 nov. 2014', poster_path: null, vote_average: 8.7, slug: 'interstellar' },
-  { id: 3, title: 'Avatar: La voie de l\'eau', release_date: '14 déc. 2022', poster_path: null, vote_average: 7.6, slug: 'avatar' },
-  { id: 4, title: 'The Batman', release_date: '02 mar. 2022', poster_path: null, vote_average: 7.8, slug: 'batman' },
-  { id: 5, title: 'Dune: Deuxième Partie', release_date: '28 fév. 2024', poster_path: null, vote_average: 8.3, slug: 'dune' },
-]
-</script>
 
 <style scoped>
 .pixely-movies-home {
@@ -200,5 +191,9 @@ const sampleMovies = [
   overflow-x: auto;
   padding-bottom: 20px;
   scrollbar-width: thin;
+}
+.pixely-movies-empty {
+  color: rgba(0,0,0,0.6);
+  font-size: 1rem;
 }
 </style>

@@ -19,6 +19,17 @@ Route::middleware('surface:public')->get('/', function () {
 })->name('public.home');
 
 /**
+ * Pixely Movies public single-page application.
+ *
+ * Serves the Vue application for the CinemaMovie public experience
+ * (home, movie detail, people) under /pixely-movies so direct loads
+ * and deep links resolve without depending on a published page record.
+ */
+Route::middleware('surface:public')->get('/pixely-movies/{any?}', function () {
+    return view('app');
+})->where('any', '.*')->name('pixely-movies.application');
+
+/**
  * Swagger UI documentation.
  *
  * The Swagger UI interface consumes the generated OpenAPI specification.

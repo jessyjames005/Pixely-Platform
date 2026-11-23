@@ -15,15 +15,15 @@ const searchQuery = ref('')
   <header class="pixely-movies-navbar">
     <div class="pixely-movies-navbar__inner">
       <div class="pixely-movies-navbar__left">
-        <RouterLink to="/" class="pixely-movies-navbar__logo">
+        <RouterLink to="/pixely-movies" class="pixely-movies-navbar__logo">
           <span class="pixely-movies-logo-text">Pixely Movies</span>
         </RouterLink>
         <nav class="pixely-movies-navbar__links">
-          <RouterLink to="/" class="pixely-movies-nav-link">{{ t('cinema-movie.public.films', 'Films') }}</RouterLink>
-          <RouterLink to="/" class="pixely-movies-nav-link">{{ t('cinema-movie.public.tv_shows', 'TV Shows') }}</RouterLink>
-          <RouterLink to="/people" class="pixely-movies-nav-link">{{ t('cinema-movie.public.people', 'Artistes') }}</RouterLink>
-          <RouterLink to="/" class="pixely-movies-nav-link">{{ t('cinema-movie.public.awards', 'Awards') }}</RouterLink>
-          <RouterLink to="/" class="pixely-movies-nav-link">{{ t('cinema-movie.public.more', 'More') }}</RouterLink>
+          <RouterLink to="/pixely-movies" class="pixely-movies-nav-link">{{ t('cinema-movie.public.films', 'Films') }}</RouterLink>
+          <RouterLink to="/pixely-movies" class="pixely-movies-nav-link">{{ t('cinema-movie.public.tv_shows', 'TV Shows') }}</RouterLink>
+          <RouterLink to="/pixely-movies/people" class="pixely-movies-nav-link">{{ t('cinema-movie.public.people', 'Artistes') }}</RouterLink>
+          <RouterLink to="/pixely-movies" class="pixely-movies-nav-link">{{ t('cinema-movie.public.awards', 'Awards') }}</RouterLink>
+          <RouterLink to="/pixely-movies" class="pixely-movies-nav-link">{{ t('cinema-movie.public.more', 'More') }}</RouterLink>
         </nav>
       </div>
 

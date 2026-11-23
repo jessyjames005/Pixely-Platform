@@ -1,42 +1,40 @@
 <script setup lang="ts">
 /**
- * Pixely Movies People/Artists View component displaying popular actors and performers grid
- * with photos, names, and known-for movie credits.
+ * Pixely Movies People/Artists View component displaying popular actors and performers
+ * fetched live from TMDB with photos, names, and known-for movie credits.
  */
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const popularPeople = ref([
-  {
-    id: 1,
-    name: 'Robert Pattinson',
-    knownFor: 'The Batman, Twilight, chapitre 1 : Fascination et The Lighthouse',
-    profilePath: 'https://picsum.photos/300/450?random=1',
-  },
-  {
-    id: 2,
-    name: 'Robert Davi',
-    knownFor: 'Permis de tuer, Les Goonies et Predator 2',
-    profilePath: 'https://picsum.photos/300/450?random=2',
-  },
-  {
-    id: 3,
-    name: 'Scarlet Rose Stallone',
-    knownFor: 'Hunting Season, Sly : Stallone par Stallone et Gunslingers',
-    profilePath: 'https://picsum.photos/300/450?random=3',
-  },
-  {
-    id: 4,
-    name: 'Johnny Flynn',
-    knownFor: 'Emma., Une vie et The Outfit',
-    profilePath: 'https://picsum.photos/300/450?random=4',
-  },
-  {
-    id: 5,
-    name: 'Mckenna Grace',
-    knownFor: 'S.O.S. Fantômes : L’Héritage, Annabelle : La Maison du mal et Mary',
-    profilePath: 'https://picsum.photos/300/450?random=5',
-  },
-])
+interface TmdbPerson {
+  id: number
+  name: string
+  profile_path?: string | null
+  known_for?: Array<{ id: number; title?: string; name?: string }>
+}
+
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500'
+const popularPeople = ref<TmdbPerson[]>([])
+const loading = ref(true)
+
+function knownForLabel(person: TmdbPerson): string {
+  return (person.known_for ?? [])
+    .slice(0, 3)
+    .map((item) => item.title ?? item.name ?? '')
+    .filter((title) => title !== '')
+    .join(', ')
+}
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/v1/public/tmdb/popular-people')
+    const data = await res.json() as { results?: TmdbPerson[] }
+    popularPeople.value = data.results ?? []
+  } catch {
+    popularPeople.value = []
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
@@ -44,17 +42,26 @@ const popularPeople = ref([
     <div class="pixely-movies-container">
       <h1 class="pixely-movies-page-title">Artistes populaires</h1>
 
-      <div class="people-grid">
+      <p v-if="loading">Chargement…</p>
+      <p v-else-if="!popularPeople.length" class="pixely-movies-empty">Aucun artiste disponible pour le moment.</p>
+
+      <div v-else class="people-grid">
         <div v-for="person in popularPeople" :key="person.id" class="person-card">
-          <router-link to="/person/mckenna-grace" class="person-image-link">
-            <img :src="person.profilePath" :alt="person.name" class="person-img" />
+          <router-link :to="`/pixely-movies/person/${person.id}`" class="person-image-link">
+            <img
+              v-if="person.profile_path"
+              :src="`${TMDB_IMAGE_BASE}${person.profile_path}`"
+              :alt="person.name"
+              class="person-img"
+            />
+            <div v-else class="person-img person-img-placeholder">{{ person.name }}</div>
           </router-link>
           <div class="person-info">
-            <router-link to="/person/mckenna-grace" class="person-name">
+            <router-link :to="`/pixely-movies/person/${person.id}`" class="person-name">
               {{ person.name }}
             </router-link>
-            <div class="person-known-for" :title="person.knownFor">
-              {{ person.knownFor }}
+            <div class="person-known-for" :title="knownForLabel(person)">
+              {{ knownForLabel(person) }}
             </div>
           </div>
         </div>
@@ -103,6 +110,18 @@ const popularPeople = ref([
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.person-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  font-weight: 700;
+  color: #032541;
+}
+.pixely-movies-empty {
+  color: rgba(0,0,0,0.6);
 }
 .person-info {
   padding: 14px;

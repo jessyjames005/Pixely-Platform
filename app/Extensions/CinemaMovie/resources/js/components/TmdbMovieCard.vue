@@ -12,7 +12,6 @@ defineProps<{
   releaseDate?: string | null
   posterUrl?: string | null
   voteAverage?: number | null
-  slug: string
 }>()
 
 const menuOpen = ref(false)
@@ -21,7 +20,7 @@ const menuOpen = ref(false)
 <template>
   <div class="pixely-movies-movie-card">
     <div class="pixely-movies-card-media">
-      <router-link :to="`/movies/${slug}`">
+      <router-link :to="`/pixely-movies/movie/${id}`">
         <img
           :src="posterUrl || 'https://picsum.photos/300/450'"
           :alt="title"
@@ -51,7 +50,7 @@ const menuOpen = ref(false)
     </div>
 
     <div class="pixely-movies-card-content">
-      <router-link :to="`/movies/${slug}`" class="pixely-movies-movie-title">
+      <router-link :to="`/pixely-movies/movie/${id}`" class="pixely-movies-movie-title">
         {{ title }}
       </router-link>
       <div class="pixely-movies-movie-date">{{ releaseDate || 'Upcoming' }}</div>

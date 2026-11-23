@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * Public Page View component rendering website pages or TMDB cinema views
- * (home page, people listing, person detail, movie detail, and movie add wizard).
+ * Public Page View component rendering website pages or Pixely Movies cinema views
+ * (home, movie detail by TMDB id, people listing, person detail, and movie add wizard).
  */
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -21,11 +21,36 @@ const slug = computed(() => {
   return typeof value === 'string' && value !== '' ? value : 'home'
 })
 
+// Normalised path used to detect Pixely Movies routes (with or without the
+// /pixely-movies prefix, and the legacy home "/").
+const cinemaPath = computed(() => {
+  const value = slug.value
+  if (value === 'home') return 'pixely-movies'
+  if (value === 'pixely-movies' || value.startsWith('pixely-movies/')) return value
+  return value
+})
+
+const isCinemaHome = computed(() => cinemaPath.value === 'pixely-movies')
+const isCinemaPeople = computed(() => cinemaPath.value === 'pixely-movies/people')
+const isCinemaPerson = computed(() => cinemaPath.value.startsWith('pixely-movies/person/'))
+const isCinemaMovie = computed(() => cinemaPath.value.startsWith('pixely-movies/movie/'))
+
+// Extract the TMDB movie id from a /pixely-movies/movie/{id} path.
+const tmdbMovieId = computed(() => {
+  if (!isCinemaMovie.value) return ''
+  return cinemaPath.value.replace('pixely-movies/movie/', '').split('/')[0] ?? ''
+})
+
+const isCinemaRoute = computed(() =>
+  isCinemaHome.value || isCinemaPeople.value || isCinemaPerson.value || isCinemaMovie.value,
+)
+
 const wizardOpen = ref(false)
 const { page, loading, notFound, load } = useWebsitePublicPage()
 
 async function refresh(): Promise<void> {
-  if (slug.value === 'home' || slug.value === 'people' || slug.value.startsWith('person/')) {
+  // Pixely Movies views fetch their own data (TMDB) and do not need a website page.
+  if (isCinemaRoute.value) {
     return
   }
   await load(slug.value)
@@ -53,7 +78,7 @@ watch(page, (value) => {
 
 <template>
   <div class="public-page-wrapper">
-    <!-- TMDB Header with Wizard trigger -->
+    <!-- Pixely Movies Header with Wizard trigger -->
     <TmdbNavbar @open-wizard="wizardOpen = true" />
 
     <!-- Movie Addition 5-Step Wizard Modal -->
@@ -63,41 +88,36 @@ watch(page, (value) => {
       @saved="refresh"
     />
 
-    <section
-      v-if="loading && slug !== 'home' && slug !== 'people' && !slug.startsWith('person/')"
-      class="website-shell website-state"
-    >
+    <!-- Pixely Movies Home View -->
+    <template v-if="isCinemaHome">
+      <TmdbHomeContent />
+    </template>
+
+    <!-- Pixely Movies People / Artists Listing View -->
+    <template v-else-if="isCinemaPeople">
+      <TmdbPeopleView />
+    </template>
+
+    <!-- Pixely Movies Person Detail Profile View -->
+    <template v-else-if="isCinemaPerson">
+      <TmdbPersonDetailView />
+    </template>
+
+    <!-- Pixely Movies Movie Detail View (real TMDB data) -->
+    <template v-else-if="isCinemaMovie">
+      <TmdbMovieDetailContent :tmdb-id="tmdbMovieId" />
+    </template>
+
+    <!-- Loading / 404 for regular website pages -->
+    <section v-else-if="loading" class="website-shell website-state">
       Loading…
     </section>
 
-    <section
-      v-else-if="notFound && slug !== 'home' && slug !== 'people' && !slug.startsWith('person/') && !slug.startsWith('movies/')"
-      class="website-shell website-state"
-    >
+    <section v-else-if="notFound" class="website-shell website-state">
       <p class="website-eyebrow">404</p>
       <h1>Page not found</h1>
       <p>The page you requested does not exist or is not published.</p>
     </section>
-
-    <!-- TMDB Home View -->
-    <template v-else-if="slug === 'home' || page?.slug === 'home'">
-      <TmdbHomeContent />
-    </template>
-
-    <!-- TMDB People / Artists Listing View -->
-    <template v-else-if="slug === 'people'">
-      <TmdbPeopleView />
-    </template>
-
-    <!-- TMDB Person Detail Profile View -->
-    <template v-else-if="slug.startsWith('person/')">
-      <TmdbPersonDetailView />
-    </template>
-
-    <!-- TMDB Movie Detail View -->
-    <template v-else-if="page?.template === 'movie-detail' || slug.startsWith('movies/')">
-      <TmdbMovieDetailContent :page="page || { title: 'Movie', slug }" />
-    </template>
 
     <!-- Default Website Page View -->
     <WebsiteLayout v-else>
