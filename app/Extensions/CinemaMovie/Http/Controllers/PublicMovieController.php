@@ -65,7 +65,7 @@ final class PublicMovieController extends Controller
      */
     public function popularMovies(Request $request, TmdbImportService $tmdbService): JsonResponse
     {
-        $page = (int) $request->input('page', 1);
+        $page = $this->resolvePage($request);
         $data = $tmdbService->getPopularMovies($page);
 
         return response()->json($data);
@@ -80,7 +80,7 @@ final class PublicMovieController extends Controller
      */
     public function topRatedMovies(Request $request, TmdbImportService $tmdbService): JsonResponse
     {
-        $page = (int) $request->input('page', 1);
+        $page = $this->resolvePage($request);
         $data = $tmdbService->getTopRatedMovies($page);
 
         return response()->json($data);
@@ -95,7 +95,7 @@ final class PublicMovieController extends Controller
      */
     public function upcomingMovies(Request $request, TmdbImportService $tmdbService): JsonResponse
     {
-        $page = (int) $request->input('page', 1);
+        $page = $this->resolvePage($request);
         $data = $tmdbService->getUpcomingMovies($page);
 
         return response()->json($data);
@@ -110,7 +110,7 @@ final class PublicMovieController extends Controller
      */
     public function nowPlayingMovies(Request $request, TmdbImportService $tmdbService): JsonResponse
     {
-        $page = (int) $request->input('page', 1);
+        $page = $this->resolvePage($request);
         $data = $tmdbService->getNowPlayingMovies($page);
 
         return response()->json($data);
@@ -125,7 +125,7 @@ final class PublicMovieController extends Controller
      */
     public function popularPeople(Request $request, TmdbImportService $tmdbService): JsonResponse
     {
-        $page = (int) $request->input('page', 1);
+        $page = $this->resolvePage($request);
         $data = $tmdbService->getPopularPeople($page);
 
         return response()->json($data);
@@ -196,10 +196,32 @@ final class PublicMovieController extends Controller
      */
     public function search(Request $request, TmdbImportService $tmdbService): JsonResponse
     {
-        $query = (string) $request->input('query', '');
-        $page = (int) $request->input('page', 1);
-        $data = $tmdbService->searchMovies($query, $page);
+        // Validate server-side: the search query is authoritative and must not be empty.
+        $validated = $request->validate([
+            'query' => ['required', 'string', 'min:1', 'max:200'],
+        ]);
+
+        $page = $this->resolvePage($request);
+        $data = $tmdbService->searchMovies($validated['query'], $page);
 
         return response()->json($data);
+    }
+
+    /**
+     * Validate and resolve the requested TMDB page number.
+     *
+     * TMDB paginates results from page 1 to 500; anything outside that range
+     * is rejected server-side so invalid input never reaches the upstream API.
+     *
+     * @param Request $request HTTP request.
+     * @return int Validated page number (1–500).
+     */
+    private function resolvePage(Request $request): int
+    {
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1', 'max:500'],
+        ]);
+
+        return (int) ($validated['page'] ?? 1);
     }
 }

@@ -81,4 +81,60 @@ final class PublicMovieControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('results.0.title', 'Avengers');
     }
+
+    /**
+     * Test that a non-numeric movie identifier is rejected at the route level (404).
+     */
+    public function test_it_returns_404_for_non_numeric_movie_id(): void
+    {
+        $response = $this->getJson('/api/v1/public/tmdb/movie/not-a-number');
+
+        $response->assertStatus(404);
+    }
+
+    /**
+     * Test that a page number above the TMDB maximum is rejected server-side (422).
+     */
+    public function test_it_rejects_page_above_maximum(): void
+    {
+        config(['services.tmdb.key' => 'mock-api-key']);
+
+        Http::fake();
+
+        $response = $this->getJson('/api/v1/public/tmdb/popular-movies?page=501');
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.0.code', 'VALIDATION_ERROR')
+            ->assertJsonPath('errors.0.source.pointer', '/data/attributes/page');
+
+        Http::assertNothingSent();
+    }
+
+    /**
+     * Test that an empty search query is rejected server-side (422).
+     */
+    public function test_it_requires_a_search_query(): void
+    {
+        config(['services.tmdb.key' => 'mock-api-key']);
+
+        Http::fake();
+
+        $response = $this->getJson('/api/v1/public/tmdb/search?query=');
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.0.code', 'VALIDATION_ERROR')
+            ->assertJsonPath('errors.0.source.pointer', '/data/attributes/query');
+
+        Http::assertNothingSent();
+    }
+
+    /**
+     * Test that the public TMDB surface is read-only (POST is not allowed).
+     */
+    public function test_public_tmdb_surface_is_read_only(): void
+    {
+        $response = $this->postJson('/api/v1/public/tmdb/popular-movies');
+
+        $response->assertStatus(405);
+    }
 }
