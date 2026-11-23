@@ -95,7 +95,7 @@ The snapshot's latest commit is `797ee4382217ac0d5a426933dcc73a398373e85a` (`fea
 - [x] Implement complete TMDB v3 API route coverage and proxy endpoints for real data fetching in CinemaMovie.
 - [x] Keep server-side permissions and validation authoritative.
 - [x] Document rendering, asset loading, error handling and route compatibility.
-- [ ] Provide a minimal example extension publishing content through the Website Engine.
+- [x] Provide a minimal example extension publishing content through the Website Engine.
 
 **Exit evidence:** CinemaMovie integrates through documented contracts without direct coupling to Website Engine internals; critical paths have backend/frontend/E2E coverage.
 
