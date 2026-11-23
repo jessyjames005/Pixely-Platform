@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TMDB Movie Detail Content component matching the TMDB movie detail view
+ * Pixely Movies Movie Detail Content component matching the Pixely Movies movie detail view
  * with dark purple header, backdrop, poster with streaming badge, rating score, and metadata sidebar.
  */
 defineProps<{
@@ -14,19 +14,19 @@ defineProps<{
 </script>
 
 <template>
-  <div class="tmdb-detail-view">
+  <div class="pixely-movies-detail-view">
     <!-- Hero Header Banner with Backdrop -->
-    <div class="tmdb-backdrop-hero">
-      <div class="tmdb-backdrop-overlay">
-        <div class="tmdb-detail-inner">
+    <div class="pixely-movies-backdrop-hero">
+      <div class="pixely-movies-backdrop-overlay">
+        <div class="pixely-movies-detail-inner">
           <!-- Movie Poster -->
-          <div class="tmdb-poster-container">
+          <div class="pixely-movies-poster-container">
             <img
               src="https://picsum.photos/400/600"
               alt="Poster"
-              class="tmdb-detail-poster"
+              class="pixely-movies-detail-poster"
             />
-            <div class="tmdb-streaming-badge">
+            <div class="pixely-movies-streaming-badge">
               <span class="netflix-dot">N</span>
               <div>
                 <div class="streaming-label">Disponible en streaming</div>
@@ -36,41 +36,41 @@ defineProps<{
           </div>
 
           <!-- Movie Info -->
-          <div class="tmdb-info-container">
-            <h1 class="tmdb-detail-title">
-              {{ page.title }} <span class="tmdb-year">(2026)</span>
+          <div class="pixely-movies-info-container">
+            <h1 class="pixely-movies-detail-title">
+              {{ page.title }} <span class="pixely-movies-year">(2026)</span>
             </h1>
 
-            <div class="tmdb-cert-row">
-              <span class="tmdb-cert">TP</span>
-              <span class="tmdb-date">20/11/2026 (FR)</span>
-              <span class="tmdb-genres">• Animation, Familial, Comédie, Aventure</span>
-              <span class="tmdb-runtime">• 1h 47m</span>
+            <div class="pixely-movies-cert-row">
+              <span class="pixely-movies-cert">TP</span>
+              <span class="pixely-movies-date">20/11/2026 (FR)</span>
+              <span class="pixely-movies-genres">• Animation, Familial, Comédie, Aventure</span>
+              <span class="pixely-movies-runtime">• 1h 47m</span>
             </div>
 
-            <div class="tmdb-actions-row">
-              <div class="tmdb-score-circle">
+            <div class="pixely-movies-actions-row">
+              <div class="pixely-movies-score-circle">
                 <span class="score-num">67%</span>
                 <span class="score-label">Score d'évaluation</span>
               </div>
-              <button class="tmdb-vibes-btn">
+              <button class="pixely-movies-vibes-btn">
                 <v-icon icon="mdi-help-circle" /> Quelle est votre ambiance ?
               </button>
-              <div class="tmdb-action-icons">
+              <div class="pixely-movies-action-icons">
                 <button class="action-icon-btn" aria-label="List"><v-icon icon="mdi-format-list-bulleted" /></button>
                 <button class="action-icon-btn" aria-label="Favorite"><v-icon icon="mdi-heart" /></button>
                 <button class="action-icon-btn" aria-label="Watchlist"><v-icon icon="mdi-bookmark" /></button>
               </div>
-              <button class="tmdb-trailer-btn">
+              <button class="pixely-movies-trailer-btn">
                 <v-icon icon="mdi-play" /> Bande-annonce
               </button>
             </div>
 
-            <div class="tmdb-tagline">
+            <div class="pixely-movies-tagline">
               At midnight, we ride.
             </div>
 
-            <div class="tmdb-overview-section">
+            <div class="pixely-movies-overview-section">
               <h3>Synopsis</h3>
               <p>
                 {{ page.seo?.description || 'Dans cette comédie d\'action décalée, des héros inattendus bouleversent le conte tel que nous le connaissons.' }}
@@ -78,7 +78,7 @@ defineProps<{
             </div>
 
             <!-- Cast Crew -->
-            <div class="tmdb-crew-grid">
+            <div class="pixely-movies-crew-grid">
               <div>
                 <strong>Alyce Tzue</strong>
                 <div class="crew-role">Director</div>
@@ -100,19 +100,19 @@ defineProps<{
 </template>
 
 <style scoped>
-.tmdb-detail-view {
+.pixely-movies-detail-view {
   background-color: #120d1c;
   color: #ffffff;
   min-height: 100vh;
 }
-.tmdb-backdrop-hero {
+.pixely-movies-backdrop-hero {
   background: linear-gradient(to right, rgba(18, 13, 28, 0.95) 150px, rgba(18, 13, 28, 0.85) 100%), url('https://picsum.photos/1920/800') center/cover no-repeat;
   padding: 40px 0;
 }
-.tmdb-backdrop-overlay {
+.pixely-movies-backdrop-overlay {
   width: 100%;
 }
-.tmdb-detail-inner {
+.pixely-movies-detail-inner {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 40px;
@@ -120,7 +120,7 @@ defineProps<{
   gap: 40px;
   align-items: flex-start;
 }
-.tmdb-poster-container {
+.pixely-movies-poster-container {
   width: 300px;
   flex-shrink: 0;
   border-radius: 12px;
@@ -128,13 +128,13 @@ defineProps<{
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   background: #1a1a1a;
 }
-.tmdb-detail-poster {
+.pixely-movies-detail-poster {
   width: 100%;
   height: 450px;
   object-fit: cover;
   display: block;
 }
-.tmdb-streaming-badge {
+.pixely-movies-streaming-badge {
   background-color: #032541;
   padding: 10px 14px;
   display: flex;
@@ -161,19 +161,19 @@ defineProps<{
   font-weight: 700;
   color: #ffffff;
 }
-.tmdb-info-container {
+.pixely-movies-info-container {
   flex-grow: 1;
 }
-.tmdb-detail-title {
+.pixely-movies-detail-title {
   font-size: 2.2rem;
   font-weight: 800;
   margin-bottom: 8px;
 }
-.tmdb-year {
+.pixely-movies-year {
   font-weight: 400;
   color: rgba(255,255,255,0.7);
 }
-.tmdb-cert-row {
+.pixely-movies-cert-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -181,19 +181,19 @@ defineProps<{
   font-size: 0.95rem;
   color: rgba(255,255,255,0.9);
 }
-.tmdb-cert {
+.pixely-movies-cert {
   border: 1px solid rgba(255,255,255,0.6);
   padding: 1px 6px;
   border-radius: 3px;
   font-size: 0.8rem;
 }
-.tmdb-actions-row {
+.pixely-movies-actions-row {
   display: flex;
   align-items: center;
   gap: 20px;
   margin-bottom: 24px;
 }
-.tmdb-score-circle {
+.pixely-movies-score-circle {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -215,7 +215,7 @@ defineProps<{
   max-width: 80px;
   line-height: 1.1;
 }
-.tmdb-vibes-btn {
+.pixely-movies-vibes-btn {
   background: #032541;
   color: #ffffff;
   border: none;
@@ -224,7 +224,7 @@ defineProps<{
   font-weight: 600;
   cursor: pointer;
 }
-.tmdb-action-icons {
+.pixely-movies-action-icons {
   display: flex;
   gap: 10px;
 }
@@ -240,7 +240,7 @@ defineProps<{
   justify-content: center;
   cursor: pointer;
 }
-.tmdb-trailer-btn {
+.pixely-movies-trailer-btn {
   background: transparent;
   color: #ffffff;
   border: none;
@@ -250,22 +250,22 @@ defineProps<{
   gap: 8px;
   cursor: pointer;
 }
-.tmdb-tagline {
+.pixely-movies-tagline {
   font-style: italic;
   color: rgba(255,255,255,0.7);
   margin-bottom: 16px;
   font-size: 1.1rem;
 }
-.tmdb-overview-section h3 {
+.pixely-movies-overview-section h3 {
   font-size: 1.2rem;
   margin-bottom: 8px;
 }
-.tmdb-overview-section p {
+.pixely-movies-overview-section p {
   line-height: 1.6;
   color: rgba(255,255,255,0.9);
   margin-bottom: 24px;
 }
-.tmdb-crew-grid {
+.pixely-movies-crew-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;

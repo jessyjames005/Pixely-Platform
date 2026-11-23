@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TMDB Movie Card component with poster, circular score badge, title, release date,
+ * Pixely Movies Movie Card component with poster, circular score badge, title, release date,
  * and context menu with i18n support.
  */
 import { ref } from 'vue'
@@ -19,17 +19,17 @@ const menuOpen = ref(false)
 </script>
 
 <template>
-  <div class="tmdb-movie-card">
-    <div class="tmdb-card-media">
+  <div class="pixely-movies-movie-card">
+    <div class="pixely-movies-card-media">
       <router-link :to="`/movies/${slug}`">
         <img
           :src="posterUrl || 'https://picsum.photos/300/450'"
           :alt="title"
-          class="tmdb-poster"
+          class="pixely-movies-poster"
         />
       </router-link>
       <button
-        class="tmdb-options-btn"
+        class="pixely-movies-options-btn"
         aria-label="Options"
         @click.stop="menuOpen = !menuOpen"
       >
@@ -37,37 +37,37 @@ const menuOpen = ref(false)
       </button>
 
       <!-- Context menu popup -->
-      <div v-if="menuOpen" class="tmdb-context-menu">
-        <div class="tmdb-menu-item"><v-icon icon="mdi-format-list-bulleted" size="small" /> {{ t('cinema-movie.public.add_to_list', 'Add to list') }}</div>
-        <div class="tmdb-menu-item"><v-icon icon="mdi-heart" size="small" /> {{ t('cinema-movie.public.favorites', 'Favorites') }}</div>
-        <div class="tmdb-menu-item"><v-icon icon="mdi-bookmark" size="small" /> {{ t('cinema-movie.public.watchlist', 'Watchlist') }}</div>
-        <div class="tmdb-menu-item"><v-icon icon="mdi-star" size="small" /> {{ t('cinema-movie.public.your_rating', 'Your rating') }}</div>
+      <div v-if="menuOpen" class="pixely-movies-context-menu">
+        <div class="pixely-movies-menu-item"><v-icon icon="mdi-format-list-bulleted" size="small" /> {{ t('cinema-movie.public.add_to_list', 'Add to list') }}</div>
+        <div class="pixely-movies-menu-item"><v-icon icon="mdi-heart" size="small" /> {{ t('cinema-movie.public.favorites', 'Favorites') }}</div>
+        <div class="pixely-movies-menu-item"><v-icon icon="mdi-bookmark" size="small" /> {{ t('cinema-movie.public.watchlist', 'Watchlist') }}</div>
+        <div class="pixely-movies-menu-item"><v-icon icon="mdi-star" size="small" /> {{ t('cinema-movie.public.your_rating', 'Your rating') }}</div>
       </div>
 
       <!-- Circular rating score badge -->
-      <div class="tmdb-score-badge">
+      <div class="pixely-movies-score-badge">
         <span>{{ voteAverage ? Math.round(voteAverage * 10) : 'NR' }}%</span>
       </div>
     </div>
 
-    <div class="tmdb-card-content">
-      <router-link :to="`/movies/${slug}`" class="tmdb-movie-title">
+    <div class="pixely-movies-card-content">
+      <router-link :to="`/movies/${slug}`" class="pixely-movies-movie-title">
         {{ title }}
       </router-link>
-      <div class="tmdb-movie-date">{{ releaseDate || 'Upcoming' }}</div>
+      <div class="pixely-movies-movie-date">{{ releaseDate || 'Upcoming' }}</div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.tmdb-movie-card {
+.pixely-movies-movie-card {
   width: 180px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   position: relative;
 }
-.tmdb-card-media {
+.pixely-movies-card-media {
   position: relative;
   width: 100%;
   height: 270px;
@@ -76,12 +76,12 @@ const menuOpen = ref(false)
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   background-color: #dbdbdb;
 }
-.tmdb-poster {
+.pixely-movies-poster {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.tmdb-options-btn {
+.pixely-movies-options-btn {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -96,10 +96,10 @@ const menuOpen = ref(false)
   cursor: pointer;
   z-index: 2;
 }
-.tmdb-options-btn:hover {
+.pixely-movies-options-btn:hover {
   background: rgba(255, 255, 255, 1);
 }
-.tmdb-context-menu {
+.pixely-movies-context-menu {
   position: absolute;
   top: 40px;
   right: 8px;
@@ -111,7 +111,7 @@ const menuOpen = ref(false)
   width: 160px;
   padding: 6px 0;
 }
-.tmdb-menu-item {
+.pixely-movies-menu-item {
   padding: 8px 14px;
   font-size: 0.85rem;
   display: flex;
@@ -119,11 +119,11 @@ const menuOpen = ref(false)
   gap: 8px;
   cursor: pointer;
 }
-.tmdb-menu-item:hover {
+.pixely-movies-menu-item:hover {
   background-color: #f3f4f6;
   color: #01b4e4;
 }
-.tmdb-score-badge {
+.pixely-movies-score-badge {
   position: absolute;
   bottom: -16px;
   left: 12px;
@@ -140,11 +140,11 @@ const menuOpen = ref(false)
   font-size: 0.75rem;
   z-index: 3;
 }
-.tmdb-card-content {
+.pixely-movies-card-content {
   padding-top: 24px;
   padding-left: 4px;
 }
-.tmdb-movie-title {
+.pixely-movies-movie-title {
   font-weight: 700;
   font-size: 0.95rem;
   color: #000000;
@@ -154,10 +154,10 @@ const menuOpen = ref(false)
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tmdb-movie-title:hover {
+.pixely-movies-movie-title:hover {
   color: #01b4e4;
 }
-.tmdb-movie-date {
+.pixely-movies-movie-date {
   font-size: 0.85rem;
   color: rgba(0,0,0,0.6);
 }

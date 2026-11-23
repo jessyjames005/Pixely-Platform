@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TMDB 5-step Movie Addition Wizard component replicating the TMDB submit movie workflow
+ * Pixely Movies 5-step Movie Addition Wizard component replicating the Pixely Movies submit movie workflow
  * (Getting Started -> Movie Details -> Verification -> Additional Details -> Review & Save).
  */
 import { ref, reactive } from 'vue'
@@ -82,16 +82,16 @@ async function saveMovie(): void {
 </script>
 
 <template>
-  <div class="tmdb-wizard-overlay">
-    <div class="tmdb-wizard-modal">
-      <div class="tmdb-wizard-header">
+  <div class="pixely-movies-wizard-overlay">
+    <div class="pixely-movies-wizard-modal">
+      <div class="pixely-movies-wizard-header">
         <h2>Ajouter un film</h2>
-        <button class="tmdb-close-btn" @click="$emit('close')">&times;</button>
+        <button class="pixely-movies-close-btn" @click="$emit('close')">&times;</button>
       </div>
 
-      <div class="tmdb-wizard-body">
+      <div class="pixely-movies-wizard-body">
         <!-- Steps Sidebar -->
-        <div class="tmdb-wizard-sidebar">
+        <div class="pixely-movies-wizard-sidebar">
           <div
             v-for="(stepName, index) in steps"
             :key="index"
@@ -106,17 +106,17 @@ async function saveMovie(): void {
         </div>
 
         <!-- Wizard Step Content -->
-        <div class="tmdb-wizard-content">
+        <div class="pixely-movies-wizard-content">
           <!-- Step 1: Getting Started -->
           <div v-if="currentStep === 1">
             <h3>Getting Started</h3>
             <p class="wizard-desc">
-              Adding a new film on TMDB is simple and easy. If you have any questions about how our editing system works, make sure to read through our contribution bible or stop by the forums.
+              Adding a new film on Pixely Movies is simple and easy. If you have any questions about how our editing system works, make sure to read through our contribution bible or stop by the forums.
             </p>
             <p class="wizard-desc">
               This form will guide you through the creation process. To get started, click next.
             </p>
-            <div class="tmdb-notice-box">
+            <div class="pixely-movies-notice-box">
               <strong><v-icon icon="mdi-information" /> Please note</strong>
               <ul>
                 <li>You are currently adding a movie in <strong>fr-FR (Français, French - France)</strong>.</li>
@@ -131,22 +131,22 @@ async function saveMovie(): void {
             <h3>Movie Details</h3>
             <div class="form-group">
               <label>Titre d'origine</label>
-              <input v-model="form.originalTitle" type="text" class="tmdb-input" placeholder="ex: Inception" />
+              <input v-model="form.originalTitle" type="text" class="pixely-movies-input" placeholder="ex: Inception" />
             </div>
             <div class="form-group">
               <label>Synopsis (Français)</label>
-              <textarea v-model="form.frenchOverview" rows="4" class="tmdb-input" placeholder="Résumé du film..." />
+              <textarea v-model="form.frenchOverview" rows="4" class="pixely-movies-input" placeholder="Résumé du film..." />
             </div>
             <div class="form-group">
               <label>IMDB ID (tt0137523)</label>
-              <input v-model="form.imdbId" type="text" class="tmdb-input" placeholder="tt..." />
+              <input v-model="form.imdbId" type="text" class="pixely-movies-input" placeholder="tt..." />
             </div>
           </div>
 
           <!-- Step 3: Verification -->
           <div v-else-if="currentStep === 3">
             <h3>Verification</h3>
-            <div class="tmdb-alert-warning">
+            <div class="pixely-movies-alert-warning">
               Vérification des doublons : aucun doublon exact trouvé dans le catalogue pour « {{ form.originalTitle || 'Nouveau film' }} ». Vous pouvez continuer.
             </div>
           </div>
@@ -157,14 +157,14 @@ async function saveMovie(): void {
             <div class="form-row">
               <div class="form-group">
                 <label>Adult Status?</label>
-                <select v-model="form.adult" class="tmdb-input">
+                <select v-model="form.adult" class="pixely-movies-input">
                   <option value="None">None</option>
                   <option value="Adult">Adult</option>
                 </select>
               </div>
               <div class="form-group">
                 <label>Vidéo ?</label>
-                <select v-model="form.video" class="tmdb-input">
+                <select v-model="form.video" class="pixely-movies-input">
                   <option value="Non">Non</option>
                   <option value="Oui">Oui</option>
                 </select>
@@ -172,26 +172,26 @@ async function saveMovie(): void {
             </div>
             <div class="form-group">
               <label>Slogan (Français)</label>
-              <input v-model="form.frenchTagline" type="text" class="tmdb-input" placeholder="Accroche du film..." />
+              <input v-model="form.frenchTagline" type="text" class="pixely-movies-input" placeholder="Accroche du film..." />
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Durée (en minutes)</label>
-                <input v-model.number="form.runtimeMinutes" type="number" class="tmdb-input" placeholder="120" />
+                <input v-model.number="form.runtimeMinutes" type="number" class="pixely-movies-input" placeholder="120" />
               </div>
               <div class="form-group">
                 <label>Budget (in U.S. dollars)</label>
-                <input v-model.number="form.budget" type="number" class="tmdb-input" placeholder="50000000" />
+                <input v-model.number="form.budget" type="number" class="pixely-movies-input" placeholder="50000000" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Recette (in U.S. dollars)</label>
-                <input v-model.number="form.revenue" type="number" class="tmdb-input" placeholder="150000000" />
+                <input v-model.number="form.revenue" type="number" class="pixely-movies-input" placeholder="150000000" />
               </div>
               <div class="form-group">
                 <label>Page d'accueil du site officiel</label>
-                <input v-model="form.homepage" type="text" class="tmdb-input" placeholder="https://www.example.com" />
+                <input v-model="form.homepage" type="text" class="pixely-movies-input" placeholder="https://www.example.com" />
               </div>
             </div>
           </div>
@@ -215,24 +215,24 @@ async function saveMovie(): void {
         </div>
       </div>
 
-      <div class="tmdb-wizard-footer">
+      <div class="pixely-movies-wizard-footer">
         <button
           v-if="currentStep > 1"
-          class="tmdb-btn-secondary"
+          class="pixely-movies-btn-secondary"
           @click="prevStep"
         >
           Précédent
         </button>
         <button
           v-if="currentStep < 5"
-          class="tmdb-btn-primary"
+          class="pixely-movies-btn-primary"
           @click="nextStep"
         >
           Suivant
         </button>
         <button
           v-else
-          class="tmdb-btn-primary"
+          class="pixely-movies-btn-primary"
           :disabled="loading"
           @click="saveMovie"
         >
@@ -244,7 +244,7 @@ async function saveMovie(): void {
 </template>
 
 <style scoped>
-.tmdb-wizard-overlay {
+.pixely-movies-wizard-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -256,7 +256,7 @@ async function saveMovie(): void {
   align-items: center;
   justify-content: center;
 }
-.tmdb-wizard-modal {
+.pixely-movies-wizard-modal {
   background: #ffffff;
   width: 900px;
   max-width: 95vw;
@@ -266,7 +266,7 @@ async function saveMovie(): void {
   display: flex;
   flex-direction: column;
 }
-.tmdb-wizard-header {
+.pixely-movies-wizard-header {
   background: #032541;
   color: #ffffff;
   padding: 20px 30px;
@@ -274,18 +274,18 @@ async function saveMovie(): void {
   justify-content: space-between;
   align-items: center;
 }
-.tmdb-close-btn {
+.pixely-movies-close-btn {
   background: none;
   border: none;
   color: #ffffff;
   font-size: 1.8rem;
   cursor: pointer;
 }
-.tmdb-wizard-body {
+.pixely-movies-wizard-body {
   display: flex;
   min-height: 420px;
 }
-.tmdb-wizard-sidebar {
+.pixely-movies-wizard-sidebar {
   width: 260px;
   background: #f8fafc;
   border-right: 1px solid #e2e8f0;
@@ -327,13 +327,13 @@ async function saveMovie(): void {
   background: #22c55e;
   color: #ffffff;
 }
-.tmdb-wizard-content {
+.pixely-movies-wizard-content {
   flex-grow: 1;
   padding: 30px;
   overflow-y: auto;
   color: #0f172a;
 }
-.tmdb-wizard-content h3 {
+.pixely-movies-wizard-content h3 {
   font-size: 1.4rem;
   font-weight: 700;
   margin-bottom: 16px;
@@ -343,20 +343,20 @@ async function saveMovie(): void {
   line-height: 1.5;
   color: #334155;
 }
-.tmdb-notice-box {
+.pixely-movies-notice-box {
   background: #032541;
   color: #ffffff;
   padding: 16px;
   border-radius: 8px;
   margin-top: 20px;
 }
-.tmdb-notice-box strong {
+.pixely-movies-notice-box strong {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
 }
-.tmdb-notice-box ul {
+.pixely-movies-notice-box ul {
   padding-left: 20px;
   font-size: 0.9rem;
 }
@@ -376,7 +376,7 @@ async function saveMovie(): void {
 .form-row .form-group {
   flex: 1;
 }
-.tmdb-input {
+.pixely-movies-input {
   width: 100%;
   padding: 10px 14px;
   border: 1px solid #cbd5e1;
@@ -386,10 +386,10 @@ async function saveMovie(): void {
   background: #ffffff;
   color: #0f172a;
 }
-.tmdb-input:focus {
+.pixely-movies-input:focus {
   border-color: #01b4e4;
 }
-.tmdb-alert-warning {
+.pixely-movies-alert-warning {
   background: #fef3c7;
   color: #92400e;
   padding: 16px;
@@ -405,7 +405,7 @@ async function saveMovie(): void {
   border-bottom: 1px solid #e2e8f0;
   font-size: 0.95rem;
 }
-.tmdb-wizard-footer {
+.pixely-movies-wizard-footer {
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
   padding: 16px 30px;
@@ -413,7 +413,7 @@ async function saveMovie(): void {
   justify-content: flex-end;
   gap: 12px;
 }
-.tmdb-btn-secondary {
+.pixely-movies-btn-secondary {
   background: #e2e8f0;
   color: #334155;
   border: none;
@@ -422,7 +422,7 @@ async function saveMovie(): void {
   font-weight: 600;
   cursor: pointer;
 }
-.tmdb-btn-primary {
+.pixely-movies-btn-primary {
   background: #01b4e4;
   color: #ffffff;
   border: none;
@@ -431,7 +431,7 @@ async function saveMovie(): void {
   font-weight: 600;
   cursor: pointer;
 }
-.tmdb-btn-primary:hover {
+.pixely-movies-btn-primary:hover {
   background: #0092be;
 }
 </style>

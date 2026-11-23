@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TMDB Person Detail View component showing actor biography, profile photo,
+ * Pixely Movies Person Detail View component showing actor biography, profile photo,
  * and "Célèbre pour" (known for) filmography carousel.
  */
 import { ref } from 'vue'
@@ -17,10 +17,10 @@ const knownForMovies = [
 </script>
 
 <template>
-  <div class="tmdb-person-detail">
+  <div class="pixely-movies-person-detail">
     <!-- Sub-navigation bar -->
-    <div class="tmdb-person-subnav">
-      <div class="tmdb-container subnav-inner">
+    <div class="pixely-movies-person-subnav">
+      <div class="pixely-movies-container subnav-inner">
         <div class="subnav-item active">Vue d'ensemble <v-icon icon="mdi-menu-down" size="small" /></div>
         <div class="subnav-item">Médias <v-icon icon="mdi-menu-down" size="small" /></div>
         <div class="subnav-item">Domaine des fans <v-icon icon="mdi-menu-down" size="small" /></div>
@@ -29,7 +29,7 @@ const knownForMovies = [
     </div>
 
     <!-- Main Profile Content -->
-    <div class="tmdb-container profile-main-content">
+    <div class="pixely-movies-container profile-main-content">
       <div class="profile-left-col">
         <div class="profile-avatar-card">
           <img src="https://picsum.photos/400/600?random=5" alt="Mckenna Grace" class="profile-avatar-img" />
@@ -72,17 +72,17 @@ const knownForMovies = [
 </template>
 
 <style scoped>
-.tmdb-person-detail {
+.pixely-movies-person-detail {
   background-color: #ffffff;
   color: #000000;
   min-height: 100vh;
 }
-.tmdb-container {
+.pixely-movies-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 40px;
 }
-.tmdb-person-subnav {
+.pixely-movies-person-subnav {
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   padding: 12px 0;

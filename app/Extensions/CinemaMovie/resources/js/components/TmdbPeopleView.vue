@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TMDB People/Artists View component displaying popular actors and performers grid
+ * Pixely Movies People/Artists View component displaying popular actors and performers grid
  * with photos, names, and known-for movie credits.
  */
 import { ref } from 'vue'
@@ -40,9 +40,9 @@ const popularPeople = ref([
 </script>
 
 <template>
-  <div class="tmdb-people-view">
-    <div class="tmdb-container">
-      <h1 class="tmdb-page-title">Artistes populaires</h1>
+  <div class="pixely-movies-people-view">
+    <div class="pixely-movies-container">
+      <h1 class="pixely-movies-page-title">Artistes populaires</h1>
 
       <div class="people-grid">
         <div v-for="person in popularPeople" :key="person.id" class="person-card">
@@ -64,18 +64,18 @@ const popularPeople = ref([
 </template>
 
 <style scoped>
-.tmdb-people-view {
+.pixely-movies-people-view {
   background-color: #ffffff;
   min-height: 100vh;
   padding: 40px 0;
   color: #000000;
 }
-.tmdb-container {
+.pixely-movies-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 40px;
 }
-.tmdb-page-title {
+.pixely-movies-page-title {
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 30px;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TMDB Home Content component featuring search hero banner with i18n translations,
+ * Pixely Movies Home Content component featuring search hero banner with i18n translations,
  * tabs, and popular movies carousel.
  */
 import { ref, onMounted } from 'vue'
@@ -31,48 +31,48 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="tmdb-home">
+  <div class="pixely-movies-home">
     <!-- Hero Search Banner -->
-    <section class="tmdb-hero">
-      <div class="tmdb-hero__content">
-        <h1 class="tmdb-hero__title">{{ t('cinema-movie.public.welcome', 'Welcome.') }}</h1>
-        <p class="tmdb-hero__subtitle">{{ t('cinema-movie.public.welcome_subtitle', 'Millions of movies, TV shows and people to discover. Explore now.') }}</p>
-        <div class="tmdb-search-box">
+    <section class="pixely-movies-hero">
+      <div class="pixely-movies-hero__content">
+        <h1 class="pixely-movies-hero__title">{{ t('cinema-movie.public.welcome', 'Welcome.') }}</h1>
+        <p class="pixely-movies-hero__subtitle">{{ t('cinema-movie.public.welcome_subtitle', 'Millions of movies, TV shows and people to discover. Explore now.') }}</p>
+        <div class="pixely-movies-search-box">
           <input
             type="text"
             :placeholder="t('cinema-movie.public.search_placeholder', 'Search for a movie, TV show, person...')"
-            class="tmdb-search-input"
+            class="pixely-movies-search-input"
           />
-          <button class="tmdb-search-btn">{{ t('cinema-movie.public.search', 'Rechercher') }}</button>
+          <button class="pixely-movies-search-btn">{{ t('cinema-movie.public.search', 'Rechercher') }}</button>
         </div>
       </div>
     </section>
 
     <!-- Populaires Section -->
-    <section class="tmdb-section">
-      <div class="tmdb-section__header">
-        <h2 class="tmdb-section__title">{{ t('cinema-movie.public.popular', 'Populaires') }}</h2>
-        <div class="tmdb-tabs">
+    <section class="pixely-movies-section">
+      <div class="pixely-movies-section__header">
+        <h2 class="pixely-movies-section__title">{{ t('cinema-movie.public.popular', 'Populaires') }}</h2>
+        <div class="pixely-movies-tabs">
           <button
-            :class="['tmdb-tab', { active: activeTab === 'streaming' }]"
+            :class="['pixely-movies-tab', { active: activeTab === 'streaming' }]"
             @click="activeTab = 'streaming'"
           >
             {{ t('cinema-movie.public.streaming', 'En streaming') }}
           </button>
           <button
-            :class="['tmdb-tab', { active: activeTab === 'tv' }]"
+            :class="['pixely-movies-tab', { active: activeTab === 'tv' }]"
             @click="activeTab = 'tv'"
           >
             {{ t('cinema-movie.public.tv', 'À la télévision') }}
           </button>
           <button
-            :class="['tmdb-tab', { active: activeTab === 'rent' }]"
+            :class="['pixely-movies-tab', { active: activeTab === 'rent' }]"
             @click="activeTab = 'rent'"
           >
             {{ t('cinema-movie.public.rent', 'À louer') }}
           </button>
           <button
-            :class="['tmdb-tab', { active: activeTab === 'cinema' }]"
+            :class="['pixely-movies-tab', { active: activeTab === 'cinema' }]"
             @click="activeTab = 'cinema'"
           >
             {{ t('cinema-movie.public.cinema', 'Au cinéma') }}
@@ -80,14 +80,14 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="tmdb-cards-scroll">
+      <div class="pixely-movies-cards-scroll">
         <TmdbMovieCard
           v-for="movie in (trendingMovies.length ? trendingMovies : sampleMovies)"
           :key="movie.id"
           :id="String(movie.id)"
           :title="movie.title"
           :release-date="movie.release_date"
-          :poster-url="movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://picsum.photos/300/450'"
+          :poster-url="movie.poster_path ? `https://image.pixely-movies.org/t/p/w500${movie.poster_path}` : 'https://picsum.photos/300/450'"
           :vote-average="movie.vote_average ?? 8.5"
           :slug="movie.slug ?? 'inception'"
         />
@@ -107,32 +107,32 @@ const sampleMovies = [
 </script>
 
 <style scoped>
-.tmdb-home {
+.pixely-movies-home {
   background-color: #ffffff;
   min-height: 100vh;
 }
-.tmdb-hero {
+.pixely-movies-hero {
   background: linear-gradient(to right, rgba(3, 37, 65, 0.8) 0%, rgba(3, 37, 65, 0.6) 100%), url('https://picsum.photos/1920/600') center/cover no-repeat;
   color: #ffffff;
   padding: 80px 40px;
   margin-bottom: 30px;
 }
-.tmdb-hero__content {
+.pixely-movies-hero__content {
   max-width: 1400px;
   margin: 0 auto;
 }
-.tmdb-hero__title {
+.pixely-movies-hero__title {
   font-size: 3rem;
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 8px;
 }
-.tmdb-hero__subtitle {
+.pixely-movies-hero__subtitle {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 36px;
 }
-.tmdb-search-box {
+.pixely-movies-search-box {
   position: relative;
   display: flex;
   background: #ffffff;
@@ -140,7 +140,7 @@ const sampleMovies = [
   overflow: hidden;
   max-width: 1400px;
 }
-.tmdb-search-input {
+.pixely-movies-search-input {
   flex-grow: 1;
   border: none;
   padding: 16px 24px;
@@ -148,7 +148,7 @@ const sampleMovies = [
   outline: none;
   color: #333333;
 }
-.tmdb-search-btn {
+.pixely-movies-search-btn {
   background: linear-gradient(to right, #1ed5a9 0%, #01b4e4 100%);
   color: #ffffff;
   border: none;
@@ -157,29 +157,29 @@ const sampleMovies = [
   font-size: 1.1rem;
   cursor: pointer;
 }
-.tmdb-section {
+.pixely-movies-section {
   max-width: 1400px;
   margin: 0 auto 40px auto;
   padding: 0 40px;
 }
-.tmdb-section__header {
+.pixely-movies-section__header {
   display: flex;
   align-items: center;
   gap: 24px;
   margin-bottom: 20px;
 }
-.tmdb-section__title {
+.pixely-movies-section__title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #000000;
 }
-.tmdb-tabs {
+.pixely-movies-tabs {
   display: flex;
   border: 1px solid #032541;
   border-radius: 30px;
   overflow: hidden;
 }
-.tmdb-tab {
+.pixely-movies-tab {
   background: transparent;
   border: none;
   padding: 6px 20px;
@@ -189,12 +189,12 @@ const sampleMovies = [
   color: #032541;
   transition: all 0.2s;
 }
-.tmdb-tab.active {
+.pixely-movies-tab.active {
   background: #032541;
   color: #ffffff;
   border-radius: 30px;
 }
-.tmdb-cards-scroll {
+.pixely-movies-cards-scroll {
   display: flex;
   gap: 20px;
   overflow-x: auto;
