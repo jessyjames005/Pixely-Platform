@@ -19,6 +19,9 @@ services:
       MAIL_PORT: "1025"
     volumes:
       - ./:/var/www
+      # Docker socket so `pixely:verify-front` can delegate npm checks to the
+      # Node container via `docker exec` from inside the PHP container.
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - pixely
 
