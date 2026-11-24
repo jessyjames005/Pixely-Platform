@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Core\Extensions\Database\ExtensionMigrationRunner;
 use App\Extensions\Music\MusicExtension;
 use App\Extensions\Music\Providers\MusicServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,7 +19,9 @@ beforeEach(function (): void {
 });
 
 it('requires authentication to list Music items', function (): void {
-    $this->getJson('/api/v1/music', ExtensionApiTestHelper::jsonApiHeaders())
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $testCase->getJson('/api/v1/music', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertUnauthorized();
 });
 
@@ -32,6 +33,6 @@ it('allows users with the music view permission to list items', function (): voi
         'music.items.view',
     ));
 
-    $this->getJson('/api/v1/music', ExtensionApiTestHelper::jsonApiHeaders())
+    $testCase->getJson('/api/v1/music', ExtensionApiTestHelper::jsonApiHeaders())
         ->assertOk();
 });

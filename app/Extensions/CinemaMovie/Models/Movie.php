@@ -14,11 +14,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
+ * @property int $id
  * @property string $slug
  * @property string|null $original_title
  * @property string|null $original_language
  * @property int|null $poster_file_id
  * @property int|null $backdrop_file_id
+ * @property string $publication_status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, MovieTranslation> $translations
  */
 final class Movie extends Model
 {
@@ -86,6 +90,9 @@ final class Movie extends Model
         });
     }
 
+    /**
+     * @return HasMany<MovieTranslation, $this>
+     */
     public function translations(): HasMany
     {
         return $this->hasMany(MovieTranslation::class);

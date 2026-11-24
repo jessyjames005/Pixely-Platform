@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Extensions\Music\Http\Controllers\Api\MusicController;
-use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
-use Illuminate\Support\Facades\Route;
-
 /**
  * Music extension API routes.
  *
@@ -13,6 +7,13 @@ use Illuminate\Support\Facades\Route;
  * Honours the strict JSON:API contract (Accept / Content-Type
  * application/vnd.api+json) via EnsureJsonApiMediaType.
  */
+
+declare(strict_types=1);
+
+use App\Extensions\Music\Http\Controllers\Api\MusicController;
+use App\JsonApi\V1\Middleware\EnsureJsonApiMediaType;
+use Illuminate\Support\Facades\Route;
+
 Route::middleware([
     EnsureJsonApiMediaType::class,
     'auth:sanctum',

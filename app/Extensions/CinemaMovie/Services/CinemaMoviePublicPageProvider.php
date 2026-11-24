@@ -6,6 +6,7 @@ namespace App\Extensions\CinemaMovie\Services;
 
 use App\Core\Websites\Models\PageModel;
 use App\Extensions\CinemaMovie\Models\Movie;
+use App\Extensions\CinemaMovie\Models\MovieTranslation;
 
 /**
  * Provider that exposes CinemaMovie catalog items as public website pages
@@ -39,8 +40,15 @@ final class CinemaMoviePublicPageProvider
         $translation = $movie->translations->where('locale', $locale)->first()
             ?? $movie->translations->first();
 
-        $title = $translation?->title ?? $movie->original_title ?? 'Movie';
-        $overview = $translation?->overview ?? '';
+        // Narrow the type explicitly so the localized fields are read safely
+        // even when a movie has no translation row at all.
+        $title = $movie->original_title ?? 'Movie';
+        $overview = '';
+
+        if ($translation instanceof MovieTranslation) {
+            $title = $translation->title ?: $title;
+            $overview = $translation->overview ?? '';
+        }
 
         return new PageModel(
             id: 'cinema_' . $movie->id,

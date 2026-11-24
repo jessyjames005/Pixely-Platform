@@ -19,9 +19,9 @@ final class ExamplePageProvider
      *
      * @param string $slug Page slug.
      * @param string $locale Content locale.
-     * @return PageModel|null The published page DTO.
+     * @return PageModel The published page DTO.
      */
-    public function getPage(string $slug = 'example-page', string $locale = 'en'): ?PageModel
+    public function getPage(string $slug = 'example-page', string $locale = 'en'): PageModel
     {
         return new PageModel(
             id: 'example-page',
@@ -37,7 +37,10 @@ final class ExamplePageProvider
             ],
             blocks: [
                 ['type' => 'heading', 'content' => 'Example Page'],
-                ['type' => 'paragraph', 'content' => 'This content is published by the ExamplePage extension through the Website Engine PageModel contract.'],
+                [
+                    'type' => 'paragraph',
+                    'content' => 'This content is published by the ExamplePage extension through the Website Engine PageModel contract.',
+                ],
             ],
         );
     }

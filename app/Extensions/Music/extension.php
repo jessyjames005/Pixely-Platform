@@ -1,10 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Music extension manifest.
  */
+
+declare(strict_types=1);
+
 return [
     'id' => 'music',
     'name' => 'Music',
