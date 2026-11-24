@@ -14,7 +14,7 @@ Complete these steps for one lot before moving on:
 1. Confirm the lot's acceptance criteria and dependencies.
 2. Inspect relevant code, tests, and documentation; summarize existing behavior and the intended change.
 3. Implement only the agreed lot scope, including focused automated tests and directly related documentation.
-4. Run the smallest relevant tests and checks; fix regressions caused by the lot.
+4. Run the complete CI validation suite (PHPStan static analysis, backend unit and functional tests, frontend ESLint and tests, and backend/frontend builds) to ensure 100% success without errors or warnings.
 5. Review the diff and report changed files, behavior, validation results, limitations, and any remaining risk.
 6. Propose exactly one Conventional Commit message for the lot, for example:
 

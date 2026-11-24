@@ -60,6 +60,7 @@ directly (the RTK "Token Killer" wrapper).
 - No AI attribution in commits (no `Co-Authored-By`, no AI mentions).
 - Work is organized as **sprints** (for example `U12`) containing numbered **lots** (for example `U12.1`, `U12.2`).
 - Finish and validate one lot at a time. At each lot boundary, summarize the result and validation, propose one Conventional Commit message for that lot, and wait for explicit user approval before committing or starting the next lot.
+- **Mandatory CI Verification before lot delivery:** Before presenting a lot as ready to be committed, run the complete CI validation suite (PHPStan static analysis, backend unit/functional tests, frontend ESLint/tests, and backend/frontend builds) and ensure 100% success without errors or warnings.
 - At sprint close, update the roadmap and changelog, then prepare a complete pull request description with context, scope, technical changes, validation, deployment notes, and user-facing release notes.
 - Follow `docs/development/SPRINT_WORKFLOW.md` and use `.claude/skills/PP_sprint_delivery/SKILL.md` for the detailed process and templates.
 
