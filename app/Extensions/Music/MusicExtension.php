@@ -20,7 +20,11 @@ use App\Extensions\Music\Providers\MusicServiceProvider;
  * once its lang/ files are ready to be browsable in the Translations
  * extension screen.
  */
-final class MusicExtension implements ExtensionInterface, ExtensionNavigationInterface, ExtensionRoutesInterface, ExtensionPermissionsInterface
+final class MusicExtension implements
+    ExtensionInterface,
+    ExtensionNavigationInterface,
+    ExtensionRoutesInterface,
+    ExtensionPermissionsInterface
 {
     public function manifest(): ExtensionManifest
     {
