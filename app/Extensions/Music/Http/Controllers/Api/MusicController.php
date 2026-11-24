@@ -1,27 +1,24 @@
 <?php
 
+/**
+ * Handles Music administration API requests.
+ *
+ * JSON:API CRUD for the catalogue (tracks, albums, artists, genres) is provided
+ * by the base JsonApiController; the matching schemas live in
+ * App\JsonApi\V1\Music and the resources are registered in API/routes.php with
+ * per-action permission middleware. The rights gate is enforced at the model
+ * layer (defence-in-depth) so track writes can never persist a public + unknown
+ * track, regardless of the entry point.
+ */
+
 declare(strict_types=1);
 
 namespace App\Extensions\Music\Http\Controllers\Api;
 
 use Dedoc\Scramble\Attributes\Group;
-use LaravelJsonApi\Core\Responses\DataResponse;
+use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
 
-/**
- * Handles Music API requests.
- *
- * Returns strict JSON:API documents via LaravelJsonApi. Add methods
- * (index, store, show, update, destroy) following the same pattern as
- * App\Extensions\Gallery\Http\Controllers\Api\GalleryController,
- * and register the matching resource on the 'v1' JSON:API server.
- */
 #[Group('Music', weight: 10)]
-final class MusicController
+final class MusicController extends JsonApiController
 {
-    public function index(): DataResponse
-    {
-        return DataResponse::make([])
-            ->withServer('v1')
-            ->withMeta(['total' => 0]);
-    }
 }

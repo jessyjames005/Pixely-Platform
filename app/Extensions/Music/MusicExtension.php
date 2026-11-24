@@ -50,7 +50,7 @@ final class MusicExtension implements
             'label' => 'Music',
             'to' => '/admin/music',
             'icon' => 'mdi-puzzle-outline',
-            'permission' => 'music.items.view',
+            'permission' => 'music.tracks.view',
             'surface' => 'admin',
             'order' => 100,
             'extensionId' => 'music',
@@ -70,14 +70,27 @@ final class MusicExtension implements
      * <domain>.<object>.<view|manage|delete>. Synced automatically
      * on install/update/enable — see ExtensionPermissionSynchronizer.
      *
+     * Each catalogue resource (tracks, albums, artists, genres) exposes the
+     * three standard actions so the administration screen can gate read,
+     * write and delete independently.
+     *
      * @return array<int, string>
      */
     public function declaredPermissions(): array
     {
         return [
-            'music.items.view',
-            'music.items.manage',
-            'music.items.delete',
+            'music.tracks.view',
+            'music.tracks.manage',
+            'music.tracks.delete',
+            'music.albums.view',
+            'music.albums.manage',
+            'music.albums.delete',
+            'music.artists.view',
+            'music.artists.manage',
+            'music.artists.delete',
+            'music.genres.view',
+            'music.genres.manage',
+            'music.genres.delete',
         ];
     }
 

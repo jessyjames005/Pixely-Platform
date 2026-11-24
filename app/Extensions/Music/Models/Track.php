@@ -15,7 +15,9 @@
  * allows both to coexist, so no migration is needed when S13 ships.
  *
  * Rights and visibility are governed in the service layer: a track whose
- * `rights_status` is `unknown` can never be made `public`.
+ * `rights_status` is `unknown` can never be made `public`. As defence-in-depth
+ * the model also enforces this on save, so no write path (ingestion service,
+ * JSON:API admin API, or direct) can ever persist a public + unknown track.
  */
 
 declare(strict_types=1);
@@ -104,6 +106,21 @@ final class Track extends Model
             'sample_rate' => 'integer',
             'channels' => 'integer',
         ];
+    }
+
+    /**
+     * Defence-in-depth rights gate: a track with unknown rights can never be
+     * stored as public, regardless of the write path (service, admin API or
+     * direct). The ingestion service enforces the same rule; this guarantees it
+     * holds even if a future caller bypasses the service.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Track $track): void {
+            if ($track->rights_status === 'unknown' && $track->visibility === 'public') {
+                $track->visibility = 'private';
+            }
+        });
     }
 
     /**

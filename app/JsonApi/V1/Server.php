@@ -27,6 +27,10 @@ use App\JsonApi\V1\CinemaMovie\GenreSchema;
 use App\JsonApi\V1\CinemaMovie\GenreTranslationSchema;
 use App\JsonApi\V1\CinemaMovie\MovieSchema;
 use App\JsonApi\V1\CinemaMovie\MovieTranslationSchema;
+use App\JsonApi\V1\Music\AlbumSchema;
+use App\JsonApi\V1\Music\ArtistSchema;
+use App\JsonApi\V1\Music\GenreSchema as MusicGenreSchema;
+use App\JsonApi\V1\Music\TrackSchema;
 use App\JsonApi\V1\Tuleap\TuleapBurndownCacheSchema;
 use App\JsonApi\V1\Tuleap\TuleapCacheInfoSchema;
 use App\JsonApi\V1\Tuleap\TuleapCafHistorySchema;
@@ -76,6 +80,10 @@ final class Server extends BaseServer
             GenreSchema::class,
             MovieTranslationSchema::class,
             GenreTranslationSchema::class,
+            TrackSchema::class,
+            AlbumSchema::class,
+            ArtistSchema::class,
+            MusicGenreSchema::class,
             TuleapProjectSchema::class,
             TuleapProjectMemberSchema::class,
             TuleapMilestoneSchema::class,
