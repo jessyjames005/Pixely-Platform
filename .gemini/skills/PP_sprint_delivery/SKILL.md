@@ -1,6 +1,6 @@
----
+﻿---
 name: PP_sprint_delivery
-description: Run Pixely Platform work as validated numbered sprint lots; use for sprint planning, lot implementation handoffs, commit-message proposals, roadmap/changelog updates, and final pull request descriptions.
+description: "Run Pixely Platform work as validated numbered sprint lots; use for sprint planning, lot implementation handoffs, commit-message proposals, roadmap/changelog updates, and final pull request descriptions."
 ---
 
 # Pixely Sprint Delivery

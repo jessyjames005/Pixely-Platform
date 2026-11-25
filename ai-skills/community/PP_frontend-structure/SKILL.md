@@ -1,6 +1,6 @@
----
+﻿---
 name: PP_frontend-structure
-description: Create or modify Vue 3 frontend components, stores, and following Pixely Platform frontend architecture
+description: "Create or modify Vue 3 frontend components, stores, and following Pixely Platform frontend architecture"
 ---
 
 # PP_frontend-structure
@@ -8,7 +8,7 @@ description: Create or modify Vue 3 frontend components, stores, and following P
 Create or modify Vue 3 frontend components, stores, and assets following Pixely Platform frontend architecture.
 
 ## Domain Structure
-Each domain (Core module or extension) follows this structure:
+Each domain (Core or extension) follows this structure:
 ```
 app/Extensions/<Domain>/resources/js/
 ├── components/    # Domain-specific components
@@ -76,8 +76,8 @@ app/Extensions/<Domain>/resources/js/
 - SCSS files in `styles/` directory
 - Import via `@use '@/styles/theme';` or relative path
 - No `<style>` blocks in `.vue` single file components
-- Use Vuetify's theme tokens where applicable
-- Design System builds on top of Material Design 3 and Vuetify
+- Use the project's design tokens where applicable
+- Design System builds on the project's design tokens
 
 ## API Communication
 - Use composable `useApi()` for HTTP requests

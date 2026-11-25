@@ -1,6 +1,6 @@
----
+﻿---
 name: PP_translation
-description: Manage translations and localization for Pixely Platform using Laravel translation files
+description: "Manage translations and localization for Pixely Platform using Laravel translation files"
 ---
 
 # PP_translation
@@ -27,7 +27,7 @@ All translation keys must use a fixed prefix pattern, regardless of which group/
 
 ## Storage Format
 ```text
-<module path>/lang/<locale>/<group>.php
+<extension path>/lang/<locale>/<group>.php
 ```
 Returns a (possibly nested) associative array — the standard Laravel PHP translation file format.
 
@@ -37,12 +37,12 @@ Returns a (possibly nested) associative array — the standard Laravel PHP trans
 - Extension translations path: `$extension->translationsPath()`
 
 ## Repository Methods
-- `discoverModules()` — returns array of module id => lang directory path
-- `availableLocales(string $modulePath)` — returns locale codes available for a module
-- `availableGroups(string $modulePath, string $locale)` — returns group names available for a locale
-- `readGroup(string $modulePath, string $locale, string $group)` — reads a translation group
-- `writeGroup(string $modulePath, string $locale, string $group, array $translations)` — writes a translation group
-- `compare(string $modulePath, string $referenceLocale, string $targetLocale, string $group)` — compares locales and returns completion percentage
+- `discoverExtensions()` — returns array of extension id => lang directory path
+- `availableLocales(string $extensionPath)` — returns locale codes available for an extension
+- `availableGroups(string $extensionPath, string $locale)` — returns group names available for a locale
+- `readGroup(string $extensionPath, string $locale, string $group)` — reads a translation group
+- `writeGroup(string $extensionPath, string $locale, string $group, array $translations)` — writes a translation group
+- `compare(string $extensionPath, string $referenceLocale, string $targetLocale, string $group)` — compares locales and returns completion percentage
 
 ## Verification
 - Run `php artisan test` after translation changes
@@ -66,7 +66,7 @@ Returns a (possibly nested) associative array — the standard Laravel PHP trans
   `preference.theme_hint` (not `preference.theme.hint`).
 - Frontend consumption: `useI18nStore` (Pinia) loads
   `GET /api/v1/locales/{locale}` (public, Core) into a nested
-  `{module: {group: {...}}}` catalog; `$t('core.roles.title.roles_list', 'fallback')`
+  `{extension: {group: {...}}}` catalog; `$t('core.roles.title.roles_list', 'fallback')`
   works in any template with no import, `t(...)` (imported from
   `resources/js/shared/plugins/i18n.ts`) in `<script setup>`. A third
   argument does `:name`-style placeholder substitution, e.g.
