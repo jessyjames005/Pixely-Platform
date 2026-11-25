@@ -1404,13 +1404,16 @@ Pixely Platform is designed to support multiple independent extensions.
 
 ## Music Extension
 
-* [ ] Track/album/artist library
-* [ ] Audio playback
-* [ ] Playlists
-* [ ] Search
-* [ ] Music API
-* [ ] Music administration
-* [ ] Music frontend player
+* [x] Track/album/artist/genre data model and rights gate
+* [x] Catalog ingestion service
+* [x] Admin API & management
+* [ ] **Public Experience (`/pixely-music`):**
+  - Public track, album, artist library and music video streaming / playback.
+  - Read-only public proxy API (`/api/v1/public/music/...`) with rate limiting and strict rights enforcement (unknown rights never exposed).
+* [ ] **Authenticated User Space & Advanced Actions (requires login: full registration form or OAuth 2.0):**
+  - Personal playlists creation and management.
+  - Favorites / liked tracks.
+  - Video & music conversion and download to MP3 / MP4 (integrated with Media Converter extension).
 
 ## Media Conversion Extension
 

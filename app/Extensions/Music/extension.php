@@ -11,6 +11,7 @@ return [
     'name' => 'Music',
     'version' => '1.0.0',
     'minimum_kernel_version' => '1.0.0',
-    'surfaces' => ['admin', 'api'],
+    'surfaces' => ['admin', 'api', 'public'],
+    'requires' => ['files'],
     'class' => App\Extensions\Music\MusicExtension::class,
 ];

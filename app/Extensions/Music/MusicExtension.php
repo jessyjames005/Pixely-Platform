@@ -35,8 +35,8 @@ final class MusicExtension implements
             minimum_kernel_version: '1.0.0',
             class: self::class,
             path: 'app/Extensions/Music',
-            dependencies: [],
-            surfaces: ['admin', 'api'],
+            dependencies: ['files'],
+            surfaces: ['admin', 'api', 'public'],
         );
     }
 

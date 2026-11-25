@@ -3,21 +3,34 @@
 /**
  * Music extension API routes.
  *
- * Registered centrally by the Pixely Extension SDK v2 route registrar.
- * Honours the strict JSON:API contract (Accept / Content-Type
- * application/vnd.api+json) via the `jsonapi:v1` middleware applied by the
- * JSON:API server, and gates every action with a per-resource permission.
- *
- * The rights gate (unknown rights can never be public) is enforced at the model
- * layer, so the write endpoints below cannot be used to publish unvetted tracks.
+ * Exposes public read-only catalog proxy routes under /api/v1/public/music/...
+ * and JSON:API administration routes under /api/v1/... (auth:sanctum + permissions).
  */
 
 declare(strict_types=1);
 
 use App\Extensions\Music\Http\Controllers\Api\MusicController;
+use App\Extensions\Music\Http\Controllers\PublicMusicController;
+use Illuminate\Support\Facades\Route;
 use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
 use LaravelJsonApi\Laravel\Routing\ResourceRegistrar;
 
+/**
+ * Public read-only endpoints with throttling and ID constraints.
+ */
+Route::prefix('public/music')->middleware('throttle:120,1')->group(function (): void {
+    Route::get('/tracks', [PublicMusicController::class, 'tracks']);
+    Route::get('/tracks/{id}', [PublicMusicController::class, 'trackDetails'])->whereNumber('id');
+    Route::get('/albums', [PublicMusicController::class, 'albums']);
+    Route::get('/albums/{id}', [PublicMusicController::class, 'albumDetails'])->whereNumber('id');
+    Route::get('/artists', [PublicMusicController::class, 'artists']);
+    Route::get('/artists/{id}', [PublicMusicController::class, 'artistDetails'])->whereNumber('id');
+    Route::get('/genres', [PublicMusicController::class, 'genres']);
+});
+
+/**
+ * JSON:API administration routes.
+ */
 JsonApiRoute::server('v1')->middleware('auth:sanctum')->resources(
     function (ResourceRegistrar $server): void {
         $server->resource('music-tracks', MusicController::class)->middleware([
