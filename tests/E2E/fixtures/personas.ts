@@ -8,3 +8,8 @@ export const ADMIN_PERSONA = {
   email: process.env.E2E_USER_EMAIL ?? 'admin@pixely.test',
   password,
 } as const
+
+export const READER_PERSONA = {
+  email: process.env.E2E_USER_EMAIL ?? 'reader@pixely.test',
+  password,
+} as const
