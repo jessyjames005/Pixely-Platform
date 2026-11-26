@@ -40,6 +40,23 @@ After every branch switch, sequentially:
 1. `composer install` (docker-php-1)
 2. `npm run build` (docker-node-1, after composer finishes)
 
+## E2E — Docker required
+
+E2E tests must run on the dedicated `pixely-e2e` compose stack. Never create
+additional E2E containers under a different project/compose context: use the
+existing `pixely-e2e-*` services (`pixely-e2e-nginx-e2e-1`, `pixely-e2e-app-e2e-1`,
+`pixely-e2e-mysql-e2e-1`, `pixely-e2e-redis-e2e-1`, `playwright`).
+
+```bash
+# E2E base URL (nginx-e2e)
+E2E_BASE_URL=http://127.0.0.1:8082
+
+# Run Playwright against the running pixely-e2e stack
+E2E_USER_EMAIL=admin@pixely.test E2E_USER_PASSWORD=... npx playwright test
+```
+
+Always reuse the `pixely-e2e` containers for E2E; do not spawn extra containers.
+
 ## RTK IA — Command prefixes
 
 To reduce token consumption, prefix Git, test, and search commands with `rtk`,
