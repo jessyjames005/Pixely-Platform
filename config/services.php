@@ -48,4 +48,8 @@ return [
         'key' => env('TMDB_API_KEY'),
     ],
 
+    'youtube' => [
+        'key' => env('YOUTUBE_API_KEY'),
+    ],
+
 ];
