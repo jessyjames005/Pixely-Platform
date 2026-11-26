@@ -30,7 +30,7 @@ final class MusicPublicPageProvider
         }
 
         $title = $track->title;
-        $artistName = $track->artist?->name ?? 'Unknown Artist';
+        $artistName = $track->artist ? $track->artist->name : 'Unknown Artist';
 
         return new PageModel(
             id: 'music_track_' . $track->id,

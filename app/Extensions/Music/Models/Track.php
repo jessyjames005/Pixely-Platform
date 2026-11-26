@@ -53,7 +53,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string $status
  * @property string|null $error_code
  * @property int|null $owner_id
- * @property-read Artist $artist
+ * @property \Carbon\CarbonInterface|null $created_at
+ * @property \Carbon\CarbonInterface|null $updated_at
+ * @property-read Artist|null $artist
  * @property-read Album|null $album
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Genre> $genres
  */

@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 use App\Core\Extensions\Database\ExtensionMigrationRunner;
+use App\Core\Users\Models\UserFavorite;
 use App\Extensions\Music\Models\Album;
 use App\Extensions\Music\Models\Artist;
 use App\Extensions\Music\Models\Genre;
@@ -230,4 +231,48 @@ it('lists genres for a track through the include parameter', function (): void {
         ->assertOk()
         ->assertJsonPath('data.relationships.genres.data.0.type', 'music-genres')
         ->assertJsonPath('data.relationships.genres.data.0.id', (string) $genre->id);
+});
+
+it('lets an authenticated user favorite and unfavorite a music track', function (): void {
+    /** @var TestCase $testCase */
+    $testCase = $this;
+    $user = User::factory()->create();
+    $testCase->actingAs($user);
+
+    $artist = Artist::create(['name' => 'Favorite Artist']);
+    $track = Track::create([
+        'title' => 'Favorite Track',
+        'artist_id' => $artist->id,
+        'source_type' => 'youtube',
+        'youtube_video_id' => 'fav123',
+        'rights_status' => 'owned',
+        'visibility' => 'public',
+        'status' => 'ready',
+    ]);
+
+    $favoriteResponse = $testCase->postJson('/api/v1/me/favorites', [
+        'resource_type' => 'music.track',
+        'resource_id' => (string) $track->id,
+        'metadata' => ['title' => 'Favorite Track'],
+    ]);
+
+    $favoriteResponse->assertCreated();
+
+    expect(UserFavorite::query()
+        ->where('user_id', $user->getKey())
+        ->where('resource_type', 'music.track')
+        ->where('resource_id', (string) $track->id)
+        ->exists())->toBeTrue();
+
+    $unfavoriteResponse = $testCase->deleteJson(
+        '/api/v1/me/favorites/music.track/' . $track->id,
+    );
+
+    $unfavoriteResponse->assertOk()->assertJson(['removed' => true]);
+
+    expect(UserFavorite::query()
+        ->where('user_id', $user->getKey())
+        ->where('resource_type', 'music.track')
+        ->where('resource_id', (string) $track->id)
+        ->exists())->toBeFalse();
 });

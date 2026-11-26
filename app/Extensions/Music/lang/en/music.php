@@ -26,5 +26,7 @@ return [
         ],
         'top_tracks' => 'Popular tracks',
         'top_albums' => 'Top albums',
+        'favorite' => 'Add to favorites',
+        'unfavorite' => 'Remove from favorites',
     ],
 ];

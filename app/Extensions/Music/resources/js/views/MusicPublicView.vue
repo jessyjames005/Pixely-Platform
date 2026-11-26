@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { translate as t } from '@shared/plugins/i18n'
+import { useAuthStore } from '@core/auth/store/auth.store'
+import { useEngagementStore } from '@core/users/store/engagement.store'
 
 interface TrackItem {
   id: number
@@ -19,6 +22,10 @@ interface CategoryCard {
   color: string
 }
 
+const router = useRouter()
+const authStore = useAuthStore()
+const engagementStore = useEngagementStore()
+
 const tracks = ref<TrackItem[]>([])
 const loading = ref(true)
 const error = ref<Error | null>(null)
@@ -30,29 +37,64 @@ const duration = ref(0)
 const volume = ref(70)
 
 const categories: CategoryCard[] = [
-  { title: t('music.public.category.le_drop', 'Le Drop'), subtitle: t('music.public.category.le_drop_sub', 'Les meilleurs titres dance/electro du moment.'), color: '#8b5cf6' },
-  { title: t('music.public.category.rap_podium', 'Rap Podium'), subtitle: t('music.public.category.rap_podium_sub', 'Retrouvez les plus gros sons du rap français actuel.'), color: '#dc2626' },
-  { title: t('music.public.category.hits_10', 'Hits 10'), subtitle: t('music.public.category.hits_10_sub', 'Les titres phares Francophone qui ont marqué la décennie.'), color: '#ec4899' },
-  { title: t('music.public.category.tempo_latino', 'Tempo latino'), subtitle: t('music.public.category.tempo_latino_sub', 'Les star latinos mettent le feu pour un moment caliente.'), color: '#f59e0b' },
-  { title: t('music.public.category.hotlist_pop', 'Hotlist Pop'), subtitle: t('music.public.category.hotlist_pop_sub', 'Retrouvez ici tous les hits pop du moment.'), color: '#06b6d4' },
+  { title: t('music.public.category.le_drop', 'Le Drop'), subtitle: t('music.public.category.le_drop_sub', 'The best dance/electro tracks of the moment.'), color: '#8b5cf6' },
+  { title: t('music.public.category.rap_podium', 'Rap Podium'), subtitle: t('music.public.category.rap_podium_sub', 'The biggest French rap hits right now.'), color: '#dc2626' },
+  { title: t('music.public.category.hits_10', 'Hits 10'), subtitle: t('music.public.category.hits_10_sub', 'The francophone hits that marked the decade.'), color: '#ec4899' },
+  { title: t('music.public.category.tempo_latino', 'Tempo latino'), subtitle: t('music.public.category.tempo_latino_sub', 'Latino stars bringing the heat for a caliente moment.'), color: '#f59e0b' },
+  { title: t('music.public.category.hotlist_pop', 'Hotlist Pop'), subtitle: t('music.public.category.hotlist_pop_sub', 'All the pop hits of the moment here.'), color: '#06b6d4' },
 ]
+
+const favoritedTrackIds = computed(() => new Set(
+  engagementStore.favorites
+    .filter((f) => f.resource_type === 'music.track')
+    .map((f) => f.resource_id),
+))
 
 async function fetchTracks(): Promise<void> {
   loading.value = true
   try {
-    const res = await fetch('/api/v1/public/music/tracks')
-    if (res.ok) {
-      const data = await res.json()
-      const items = (data.data ?? data) as TrackItem[]
-      tracks.value = items
-      if (!currentTrack.value && items.length) {
-        selectTrack(items[0])
-      }
-    }
-  } catch (err: any) {
-    error.value = err
+    await Promise.all([loadTracks(), loadFavorites()])
   } finally {
     loading.value = false
+  }
+}
+
+async function loadTracks(): Promise<void> {
+  const res = await fetch('/api/v1/public/music/tracks')
+  if (res.ok) {
+    const data = await res.json()
+    const items = (data.data ?? data) as TrackItem[]
+    tracks.value = items
+    if (!currentTrack.value && items.length) {
+      selectTrack(items[0])
+    }
+  } else {
+    throw new Error('Failed to load tracks')
+  }
+}
+
+async function loadFavorites(): Promise<void> {
+  await engagementStore.loadFavorites('music.track')
+}
+
+function isFavorited(track: TrackItem): boolean {
+  return favoritedTrackIds.value.has(String(track.id))
+}
+
+async function toggleFavorite(track: TrackItem): Promise<void> {
+  if (!authStore.user) {
+    await router.push({ name: 'login' })
+    return
+  }
+  if (isFavorited(track)) {
+    await engagementStore.removeFavorite('music.track', String(track.id))
+  } else {
+    await engagementStore.addFavorite('music.track', String(track.id), {
+      title: track.title,
+      artist: track.artist?.name ?? null,
+      album: track.album?.title ?? null,
+      source_type: track.source_type,
+    })
   }
 }
 
@@ -94,13 +136,13 @@ onMounted(fetchTracks)
             <input
               class="flex-1 bg-transparent border-none outline-none text-sm text-[#f8fafc] placeholder-[#64748b] w-full"
               type="search"
-              :placeholder="t('music.public.search_placeholder', 'Rechercher un artiste, un titre, un album…')"
+              :placeholder="t('music.public.search_placeholder', 'Search an artist, a track, an album…')"
             />
           </div>
         </div>
 
         <div class="flex items-center gap-4">
-          <v-btn variant="text" size="small" color="#f8fafc" class="text-sm font-medium uppercase tracking-wider opacity-70 hover:opacity-100">
+          <v-btn variant="text" size="small" color="#f8fafc" class="text-sm font-medium uppercase tracking-wider opacity-70 hover:opacity-100" @click="router.push({ name: 'login' })">
             {{ t('common.action.login', 'Connexion') }}
           </v-btn>
           <v-btn color="#1db954" size="small" class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full shadow-lg shadow-[#1db954]/30">
@@ -118,7 +160,7 @@ onMounted(fetchTracks)
       <aside class="w-80 flex-shrink-0 border-r border-[#1e293b] bg-[#0b1120] flex flex-col overflow-hidden">
         <div class="p-5">
           <h2 class="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-4">
-            {{ t('music.public.now_playing', 'En lecture') }}
+            {{ t('music.public.now_playing', 'Now playing') }}
           </h2>
 
           <div
@@ -135,12 +177,21 @@ onMounted(fetchTracks)
               <div v-else class="w-full h-full flex items-center justify-center text-2xl">🎵</div>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium text-[#f8fafc] truncate">{{ currentTrack?.title ?? t('music.public.no_track', 'Aucun titre') }}</div>
-              <div class="text-xs text-[#94a3b8] truncate">{{ currentTrack?.artist?.name ?? t('music.public.unknown_artist', 'Artiste inconnu') }}</div>
+              <div class="text-sm font-medium text-[#f8fafc] truncate">{{ currentTrack?.title ?? t('music.public.no_track', 'No track') }}</div>
+              <div class="text-xs text-[#94a3b8] truncate">{{ currentTrack?.artist?.name ?? t('music.public.unknown_artist', 'Unknown artist') }}</div>
             </div>
             <div class="flex items-center gap-1">
-              <v-btn variant="text" icon size="small" color="#f8fafc" class="p-1 text-xs group-hover:text-[#1db954]">
-                <v-icon size="16">mdi-heart</v-icon>
+              <v-btn
+                variant="text"
+                icon
+                size="small"
+                :color="isFavorited(currentTrack!) ? '#ef4444' : '#f8fafc'"
+                class="p-1 text-xs transition"
+                :disabled="!currentTrack"
+                @click.stop="toggleFavorite(currentTrack!)"
+                :aria-label="isFavorited(currentTrack!) ? t('music.public.unfavorite', 'Remove from favorites') : t('music.public.favorite', 'Add to favorites')"
+              >
+                <v-icon size="16" :color="isFavorited(currentTrack!) ? '#ef4444' : '#94a3b8'">mdi-heart</v-icon>
               </v-btn>
               <v-btn variant="text" icon size="small" color="#f8fafc" class="p-1 text-xs">
                 <v-icon size="16">mdi-dots-vertical</v-icon>
@@ -149,8 +200,8 @@ onMounted(fetchTracks)
           </div>
 
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-medium text-[#94a3b8]">{{ t('music.public.queue', 'File d\'attente') }}</span>
-            <span class="text-xs text-[#64748b]">{{ tracks.length }} {{ t('music.public.tracks', 'titres') }}</span>
+            <span class="text-xs font-medium text-[#94a3b8]">{{ t('music.public.queue', 'Queue') }}</span>
+            <span class="text-xs text-[#64748b]">{{ tracks.length }} {{ t('music.public.tracks', 'tracks') }}</span>
           </div>
 
           <div class="max-h-[40vh] overflow-y-auto pr-1">
@@ -169,10 +220,20 @@ onMounted(fetchTracks)
               </div>
               <div class="flex-1 min-w-0">
                 <div class="text-sm text-[#f8fafc] truncate">{{ track.title }}</div>
-                <div class="text-xs text-[#94a3b8] truncate">{{ track.artist?.name ?? t('music.public.unknown_artist', 'Artiste inconnu') }}</div>
+                <div class="text-xs text-[#94a3b8] truncate">{{ track.artist?.name ?? t('music.public.unknown_artist', 'Unknown artist') }}</div>
               </div>
               <div class="text-xs text-[#64748b]">{{ formatTime(track.duration_ms ? track.duration_ms / 1000 : 0) }}</div>
-              <v-icon size="16" color="#64748b" class="opacity-0 group-hover:opacity-100 transition">mdi-play-circle</v-icon>
+              <v-btn
+                variant="text"
+                icon
+                size="small"
+                :color="isFavorited(track) ? '#ef4444' : '#64748b'"
+                class="p-1 text-xs opacity-0 group-hover:opacity-100 transition"
+                @click.stop="toggleFavorite(track)"
+                :aria-label="isFavorited(track) ? t('music.public.unfavorite', 'Remove from favorites') : t('music.public.favorite', 'Add to favorites')"
+              >
+                <v-icon size="16" :color="isFavorited(track) ? '#ef4444' : '#64748b'">mdi-heart</v-icon>
+              </v-btn>
             </div>
           </div>
         </div>
@@ -196,7 +257,7 @@ onMounted(fetchTracks)
                 <div class="mt-2 flex items-center gap-2">
                   <v-icon size="18" color="#94a3b8" class="opacity-0 group-hover:opacity-100 transition">mdi-play-circle</v-icon>
                   <span class="text-xs font-bold text-[#f8fafc] opacity-0 group-hover:opacity-100 transition">
-                    {{ t('common.action.play', 'Lire') }}
+                    {{ t('common.action.play', 'Play') }}
                   </span>
                 </div>
               </div>
@@ -208,9 +269,9 @@ onMounted(fetchTracks)
         <!-- Top tracks -->
         <section class="px-6 pb-8">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-bold text-[#f8fafc]">{{ t('music.public.top_tracks', 'Titres populaires') }}</h3>
+            <h3 class="text-lg font-bold text-[#f8fafc]">{{ t('music.public.top_tracks', 'Popular tracks') }}</h3>
             <v-btn variant="text" size="small" color="#94a3b8" class="text-xs font-medium uppercase tracking-wider">
-              {{ t('common.action.view_all', 'Voir tout') }}
+              {{ t('common.action.view_all', 'View all') }}
             </v-btn>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -238,7 +299,7 @@ onMounted(fetchTracks)
                 </div>
               </div>
               <div class="text-sm font-medium text-[#f8fafc] truncate">{{ track.title }}</div>
-              <div class="text-xs text-[#94a3b8] truncate">{{ track.artist?.name ?? t('music.public.unknown_artist', 'Artiste inconnu') }}</div>
+              <div class="text-xs text-[#94a3b8] truncate">{{ track.artist?.name ?? t('music.public.unknown_artist', 'Unknown artist') }}</div>
             </div>
           </div>
         </section>
@@ -246,9 +307,9 @@ onMounted(fetchTracks)
         <!-- Top albums -->
         <section class="px-6 pb-24">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-bold text-[#f8fafc]">{{ t('music.public.top_albums', 'Meilleurs albums') }}</h3>
+            <h3 class="text-lg font-bold text-[#f8fafc]">{{ t('music.public.top_albums', 'Top albums') }}</h3>
             <v-btn variant="text" size="small" color="#94a3b8" class="text-xs font-medium uppercase tracking-wider">
-              {{ t('common.action.view_all', 'Voir tout') }}
+              {{ t('common.action.view_all', 'View all') }}
             </v-btn>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
@@ -288,8 +349,8 @@ onMounted(fetchTracks)
       </div>
 
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-medium text-[#f8fafc] truncate" :title="currentTrack?.title ?? ''">{{ currentTrack?.title ?? t('music.public.no_track', 'Aucun titre') }}</div>
-        <div class="text-xs text-[#94a3b8] truncate">{{ currentTrack?.artist?.name ?? t('music.public.unknown_artist', 'Artiste inconnu') }}</div>
+        <div class="text-sm font-medium text-[#f8fafc] truncate" :title="currentTrack?.title ?? ''">{{ currentTrack?.title ?? t('music.public.no_track', 'No track') }}</div>
+        <div class="text-xs text-[#94a3b8] truncate">{{ currentTrack?.artist?.name ?? t('music.public.unknown_artist', 'Unknown artist') }}</div>
         <div class="flex items-center gap-2 mt-1">
           <div class="w-32 h-1 bg-[#334155] rounded-full cursor-pointer relative group">
             <div class="absolute left-0 top-0 bottom-0 bg-[#1db954] rounded-full" :style="{ width: currentTime / Math.max(duration, 1) * 100 + '%' }"></div>
@@ -311,8 +372,16 @@ onMounted(fetchTracks)
         <v-btn variant="text" icon size="small" color="#f8fafc" class="text-xs p-1">
           <v-icon size="18">mdi-skip-next</v-icon>
         </v-btn>
-        <v-btn variant="text" icon size="small" color="#f8fafc" class="text-xs p-1">
-          <v-icon size="18">mdi-heart</v-icon>
+        <v-btn
+          variant="text"
+          icon
+          size="small"
+          :color="isFavorited(currentTrack!) ? '#ef4444' : '#f8fafc'"
+          class="text-xs p-1 transition"
+          @click.stop="toggleFavorite(currentTrack!)"
+          :aria-label="isFavorited(currentTrack!) ? t('music.public.unfavorite', 'Remove from favorites') : t('music.public.favorite', 'Add to favorites')"
+        >
+          <v-icon size="18" :color="isFavorited(currentTrack!) ? '#ef4444' : '#94a3b8'">mdi-heart</v-icon>
         </v-btn>
         <div class="w-24 h-1 bg-[#334155] rounded-full flex items-center cursor-pointer">
           <div class="h-full bg-[#64748b] rounded-full" style="width: 70%"></div>

@@ -26,5 +26,7 @@ return [
         ],
         'top_tracks' => 'Titres populaires',
         'top_albums' => 'Meilleurs albums',
+        'favorite' => 'Ajouter aux favoris',
+        'unfavorite' => 'Retirer des favoris',
     ],
 ];
