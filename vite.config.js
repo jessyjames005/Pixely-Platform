@@ -57,6 +57,9 @@ export default defineConfig(async () => {
         "@extensions/cinema-movie": fileURLToPath(
           new URL("./app/Extensions/CinemaMovie/resources/js", import.meta.url),
         ),
+        "@extensions/music": fileURLToPath(
+          new URL("./app/Extensions/Music/resources/js", import.meta.url),
+        ),
       },
     },
     server: {

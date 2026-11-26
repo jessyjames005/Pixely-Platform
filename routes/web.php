@@ -30,6 +30,16 @@ Route::middleware('surface:public')->get('/pixely-movies/{any?}', function () {
 })->where('any', '.*')->name('pixely-movies.application');
 
 /**
+ * Pixely Music public single-page application.
+ *
+ * Serves the Vue application for the Music public experience
+ * under /pixely-music so direct loads and deep links resolve.
+ */
+Route::middleware('surface:public')->get('/pixely-music/{any?}', function () {
+    return view('app');
+})->where('any', '.*')->name('pixely-music.application');
+
+/**
  * Swagger UI documentation.
  *
  * The Swagger UI interface consumes the generated OpenAPI specification.

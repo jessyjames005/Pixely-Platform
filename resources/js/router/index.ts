@@ -113,6 +113,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false, surface: 'public' as const },
   },
   {
+    path: "/pixely-music",
+    name: "pixely-music.home",
+    component: () => import('@extensions/music/views/MusicPublicView.vue'),
+    meta: { requiresAuth: false, surface: 'public' as const },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'public.page',
     component: PublicPageView,
