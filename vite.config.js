@@ -71,6 +71,8 @@ export default defineConfig(async () => {
       // assets on :5173. Allow the app origin to load cross-origin dev assets.
       cors: {
         origin: [
+          "http://localhost",
+          "http://127.0.0.1",
           "http://localhost:8080",
           "http://127.0.0.1:8080",
           "http://localhost:5173",
