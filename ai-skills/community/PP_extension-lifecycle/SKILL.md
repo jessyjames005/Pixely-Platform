@@ -1,6 +1,6 @@
----
+﻿---
 name: PP_extension-lifecycle
-description: Create, modify, or manage Pixely Platform extensions following the Core + Extensions architecture
+description: "Create, modify, or manage Pixely Platform extensions following the Core + Extensions architecture"
 ---
 
 # PP_extension-lifecycle
@@ -8,7 +8,7 @@ description: Create, modify, or manage Pixely Platform extensions following the 
 Creates or modifies extensions in the Pixely Platform modular architecture.
 
 ## When to use
-- Creating a new extension module
+- Creating a new extension
 - Adding routes, models, migrations, or services to an extension
 - Enabling/disabling extensions
 - Managing extension lifecycle
@@ -31,7 +31,7 @@ app/
         │   └── migrations/
         ├── Resources/
         │   └── lang/
-        ├── manifest.json
+        ├── extension.php
         └── ...
 ```
 
@@ -48,7 +48,7 @@ app/
 Discover → Register → Install → Enable → Boot → Run → Disable → Uninstall
 
 ## Manifest
-Every extension must have a `manifest.json` at its root with:
+Every extension must have an `extension.php` manifest at its root with:
 - `id` — unique identifier
 - `name` — display name
 - `version` — semantic version

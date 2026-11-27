@@ -103,7 +103,19 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "public.home",
+    redirect: { name: "pixely-movies.home" },
+    meta: { requiresAuth: false, surface: 'public' as const },
+  },
+  {
+    path: "/pixely-movies",
+    name: "pixely-movies.home",
     component: PublicPageView,
+    meta: { requiresAuth: false, surface: 'public' as const },
+  },
+  {
+    path: "/pixely-music",
+    name: "pixely-music.home",
+    component: () => import('@extensions/music/views/MusicPublicView.vue'),
     meta: { requiresAuth: false, surface: 'public' as const },
   },
   {

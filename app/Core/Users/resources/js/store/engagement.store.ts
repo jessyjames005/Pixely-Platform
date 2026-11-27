@@ -59,6 +59,20 @@ export const useEngagementStore = defineStore('user-engagement', () => {
         )
     }
 
+    async function addFavorite(
+        resourceType: string,
+        resourceId: string,
+        metadata?: Record<string, unknown>,
+    ): Promise<void> {
+        error.value = null
+        await apiClient.post<void>('/me/favorites', {
+            resource_type: resourceType,
+            resource_id: resourceId,
+            ...(metadata ? { metadata } : {}),
+        })
+        await loadFavorites(resourceType)
+    }
+
     async function loadHistory(resourceType?: string, page = 1): Promise<void> {
         loading.value = true
         error.value = null
@@ -85,6 +99,7 @@ export const useEngagementStore = defineStore('user-engagement', () => {
         historyPages,
         loadFavorites,
         removeFavorite,
+        addFavorite,
         loadHistory,
     }
 })

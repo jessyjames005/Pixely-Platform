@@ -40,6 +40,23 @@ After every branch switch, sequentially:
 1. `composer install` (docker-php-1)
 2. `npm run build` (docker-node-1, after composer finishes)
 
+## E2E — Docker required
+
+E2E tests must run on the dedicated `pixely-e2e` compose stack. Never create
+additional E2E containers under a different project/compose context: use the
+existing `pixely-e2e-*` services (`pixely-e2e-nginx-e2e-1`, `pixely-e2e-app-e2e-1`,
+`pixely-e2e-mysql-e2e-1`, `pixely-e2e-redis-e2e-1`, `playwright`).
+
+```bash
+# E2E base URL (nginx-e2e)
+E2E_BASE_URL=http://127.0.0.1:8082
+
+# Run Playwright against the running pixely-e2e stack
+E2E_USER_EMAIL=admin@pixely.test E2E_USER_PASSWORD=... npx playwright test
+```
+
+Always reuse the `pixely-e2e` containers for E2E; do not spawn extra containers.
+
 ## RTK IA — Command prefixes
 
 To reduce token consumption, prefix Git, test, and search commands with `rtk`,
@@ -60,6 +77,7 @@ directly (the RTK "Token Killer" wrapper).
 - No AI attribution in commits (no `Co-Authored-By`, no AI mentions).
 - Work is organized as **sprints** (for example `U12`) containing numbered **lots** (for example `U12.1`, `U12.2`).
 - Finish and validate one lot at a time. At each lot boundary, summarize the result and validation, propose one Conventional Commit message for that lot, and wait for explicit user approval before committing or starting the next lot.
+- **Mandatory CI Verification before lot delivery:** Before presenting a lot as ready to be committed, run the complete CI validation suite including PHP Code Style checks (`composer cs:check`), PHPStan static analysis (`composer phpstan`), backend unit/functional tests, frontend ESLint/tests/typecheck, and backend/frontend builds, ensuring 100% success without errors or warnings.
 - At sprint close, update the roadmap and changelog, then prepare a complete pull request description with context, scope, technical changes, validation, deployment notes, and user-facing release notes.
 - Follow `docs/development/SPRINT_WORKFLOW.md` and use `.claude/skills/PP_sprint_delivery/SKILL.md` for the detailed process and templates.
 

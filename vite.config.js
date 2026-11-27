@@ -57,12 +57,28 @@ export default defineConfig(async () => {
         "@extensions/cinema-movie": fileURLToPath(
           new URL("./app/Extensions/CinemaMovie/resources/js", import.meta.url),
         ),
+        "@extensions/music": fileURLToPath(
+          new URL("./app/Extensions/Music/resources/js", import.meta.url),
+        ),
       },
     },
     server: {
       host: "0.0.0.0",
       port: 5173,
       strictPort: true,
+      origin: "http://localhost:5173",
+      // The Laravel app is served by nginx on :8080 in Docker while Vite serves
+      // assets on :5173. Allow the app origin to load cross-origin dev assets.
+      cors: {
+        origin: [
+          "http://localhost",
+          "http://127.0.0.1",
+          "http://localhost:8080",
+          "http://127.0.0.1:8080",
+          "http://localhost:5173",
+          "http://127.0.0.1:5173",
+        ],
+      },
 
       watch: {
         ignored: ["**/storage/framework/views/**"],

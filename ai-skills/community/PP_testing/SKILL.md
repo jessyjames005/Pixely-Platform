@@ -1,6 +1,6 @@
----
+﻿---
 name: PP_testing
-description: Write automated tests for Pixely Platform using Pest/PHPUnit and Vitest
+description: "Write automated tests for Pixely Platform using Pest/PHPUnit and Vitest"
 ---
 
 # PP_testing

@@ -1,6 +1,6 @@
----
+﻿---
 name: PP_api-design
-description: Design and implement Pixely Platform REST API endpoints with OpenAPI generation
+description: "Design and implement Pixely Platform REST API endpoints with OpenAPI generation"
 ---
 
 # PP_api-design

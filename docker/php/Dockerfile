@@ -11,7 +11,10 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     zip \
-    unzip
+    unzip \
+    # Docker CLI client so `pixely:verify-front` can reach the Node container
+    # through the mounted Docker socket (see docker-compose.yml `app` service).
+    docker.io
 # Configure GD
 RUN docker-php-ext-configure gd \
     --with-freetype \

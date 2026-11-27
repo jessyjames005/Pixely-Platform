@@ -19,6 +19,7 @@ export class AdminDashboardPage extends BasePage {
     this.extensionsMenu = this.navigation.getByText('Extensions', { exact: true })
     this.manageExtensionsLink = this.navigation.getByRole('link', { name: 'Manage extensions' })
     this.galleryLink = this.navigation.getByRole('link', { name: 'Gallery' })
+    this.musicLink = this.navigation.getByRole('link', { name: 'Music' })
   }
 
   async goto(): Promise<void> {

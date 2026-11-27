@@ -12,13 +12,16 @@ services:
       SANCTUM_STATEFUL_DOMAINS: "localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,nginx,nginx:80"
       SESSION_DOMAIN: "null"
       # Links in emails (password reset...) must point at the nginx port below.
-      APP_URL: "http://localhost:8080"
+      APP_URL: "http://localhost"
       # Local mail catcher: every email the app sends shows up at http://localhost:8025.
       MAIL_MAILER: "smtp"
       MAIL_HOST: "mailpit"
       MAIL_PORT: "1025"
     volumes:
       - ./:/var/www
+      # Docker socket so `pixely:verify-front` can delegate npm checks to the
+      # Node container via `docker exec` from inside the PHP container.
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - pixely
 
@@ -38,7 +41,7 @@ services:
     depends_on:
       - app
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./:/var/www
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

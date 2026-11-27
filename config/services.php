@@ -44,4 +44,12 @@ return [
         'url' => env('TULEAP_URL'),
     ],
 
+    'tmdb' => [
+        'key' => env('TMDB_API_KEY'),
+    ],
+
+    'youtube' => [
+        'key' => env('YOUTUBE_API_KEY'),
+    ],
+
 ];
